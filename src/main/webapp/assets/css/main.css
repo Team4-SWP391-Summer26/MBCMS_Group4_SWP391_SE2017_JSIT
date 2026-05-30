@@ -1,0 +1,58 @@
+/* MBCMS - Main Stylesheet */
+:root {
+    --primary: #e94560;
+    --bg-dark: #0f0f1a;
+    --bg-card: #1a1a2e;
+    --text-muted: #888;
+}
+
+body {
+    background-color: var(--bg-dark);
+    color: #f0f0f0;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+.btn-primary-lc {
+    background-color: var(--primary);
+    border: none;
+    color: #fff;
+}
+
+.btn-primary-lc:hover {
+    background-color: #c73652;
+    color: #fff;
+}
+
+/* Movie card */
+.movie-card {
+    background: var(--bg-card);
+    border: 1px solid #2a2a3e;
+    border-radius: 8px;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.movie-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(233,69,96,0.2);
+}
+
+/* Form controls tren nen toi */
+.form-control-dark {
+    background: var(--bg-dark);
+    color: #f0f0f0;
+    border-color: #2a2a3e;
+}
+
+.form-control-dark:focus {
+    background: var(--bg-dark);
+    color: #f0f0f0;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 0.2rem rgba(233,69,96,0.2);
+}
+
+/* Alert */
+.alert-error {
+    background: rgba(233,69,96,0.1);
+    border: 1px solid var(--primary);
+    color: #ff6b6b;
+}

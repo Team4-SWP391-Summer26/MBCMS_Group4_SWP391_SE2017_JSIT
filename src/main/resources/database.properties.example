@@ -1,0 +1,12 @@
+# Copy file nay thanh database.properties va dien thong tin cua ban
+db.url=jdbc:sqlserver://localhost:1433;databaseName=CinemaDB;encrypt=false;trustServerCertificate=true
+db.username=sa
+db.password=YOUR_PASSWORD_HERE
+
+db.pool.initialSize=5
+db.pool.maxTotal=20
+db.pool.maxIdle=10
+db.pool.minIdle=5
+db.pool.maxWaitMillis=30000
+db.pool.testOnBorrow=true
+db.pool.validationQuery=SELECT 1

@@ -1,0 +1,28 @@
+# Maven
+target/
+*.class
+
+# IntelliJ IDEA
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+
+# Config nhay cam - KHONG commit
+src/main/resources/database.properties
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Upload folder (runtime)
+src/main/webapp/uploads/
+
+# Backup / temp
+*.bak
+*.payfix.bak

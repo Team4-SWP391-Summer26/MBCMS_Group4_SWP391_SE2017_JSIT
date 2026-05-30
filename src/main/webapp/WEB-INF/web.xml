@@ -1,0 +1,87 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns="https://jakarta.ee/xml/ns/jakartaee"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="https://jakarta.ee/xml/ns/jakartaee https://jakarta.ee/xml/ns/jakartaee/web-app_6_0.xsd"
+         version="6.0">
+
+    <display-name>MBCMS</display-name>
+
+    <!-- ===== Encoding Filter (đặt TRƯỚC tất cả filter khác) ===== -->
+    <filter>
+        <filter-name>EncodingFilter</filter-name>
+        <filter-class>com.mbcms.filter.EncodingFilter</filter-class>
+    </filter>
+    <filter-mapping>
+        <filter-name>EncodingFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+
+    <!-- ===== Auth Filter ===== -->
+    <filter>
+        <filter-name>AuthFilter</filter-name>
+        <filter-class>com.mbcms.filter.AuthFilter</filter-class>
+    </filter>
+    <filter-mapping>
+        <filter-name>AuthFilter</filter-name>
+        <url-pattern>/customer/*</url-pattern>
+        <url-pattern>/branch/*</url-pattern>
+        <url-pattern>/staff/*</url-pattern>
+        <url-pattern>/admin/*</url-pattern>
+    </filter-mapping>
+
+    <!-- ===== Role Filter ===== -->
+    <filter>
+        <filter-name>RoleFilter</filter-name>
+        <filter-class>com.mbcms.filter.RoleFilter</filter-class>
+    </filter>
+    <filter-mapping>
+        <filter-name>RoleFilter</filter-name>
+        <url-pattern>/branch/*</url-pattern>
+        <url-pattern>/staff/*</url-pattern>
+        <url-pattern>/admin/*</url-pattern>
+    </filter-mapping>
+
+    <!-- ===== Branch Filter ===== -->
+    <filter>
+        <filter-name>BranchFilter</filter-name>
+        <filter-class>com.mbcms.filter.BranchFilter</filter-class>
+    </filter>
+    <filter-mapping>
+        <filter-name>BranchFilter</filter-name>
+        <url-pattern>/branch/*</url-pattern>
+        <url-pattern>/staff/*</url-pattern>
+    </filter-mapping>
+
+    <!-- ===== Servlets =====
+         Servlet dung @WebServlet annotation (xem class trong com.mbcms.controller.*).
+         KHONG khai bao servlet o day -> moi nguoi them servlet KHONG phai sua web.xml,
+         tranh xung dot merge. File nay chi giu filter / session / error / welcome. -->
+
+    <!-- Session config -->
+    <session-config>
+        <session-timeout>30</session-timeout>
+        <cookie-config>
+            <http-only>true</http-only>
+        </cookie-config>
+    </session-config>
+
+    <!-- Error pages -->
+    <error-page>
+        <error-code>403</error-code>
+        <location>/WEB-INF/views/common/error403.jsp</location>
+    </error-page>
+    <error-page>
+        <error-code>404</error-code>
+        <location>/WEB-INF/views/common/error404.jsp</location>
+    </error-page>
+    <error-page>
+        <error-code>500</error-code>
+        <location>/WEB-INF/views/common/error500.jsp</location>
+    </error-page>
+
+    <!-- Default welcome file -->
+    <welcome-file-list>
+        <welcome-file>index.jsp</welcome-file>
+    </welcome-file-list>
+
+</web-app>
