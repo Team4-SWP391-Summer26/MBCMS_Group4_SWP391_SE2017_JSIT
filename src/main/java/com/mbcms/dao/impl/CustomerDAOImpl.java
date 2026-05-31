@@ -9,8 +9,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 /**
- * MAU DAO - copy pattern nay khi tao *DAOImpl khac.
- * Chi giu 1 method mau; cac method khac team tu them vao interface + impl.
+ * CustomerDAOImpl - Implementation of CustomerDAO accessing the customers table.
  */
 public class CustomerDAOImpl extends BaseDAO implements CustomerDAO {
 
@@ -33,11 +32,70 @@ public class CustomerDAOImpl extends BaseDAO implements CustomerDAO {
             }
             return null;
         } catch (SQLException e) {
-            // null CHI danh cho "khong tim thay user". Loi DB (mat ket noi, pool loi...)
-            // phai nem ra de KHONG bi nguy trang thanh "sai mat khau" o tang tren.
             throw new RuntimeException("Loi truy van customers.findByUsername: " + e.getMessage(), e);
         } finally {
             closeAll(rs, ps, conn);
+        }
+    }
+
+    @Override
+    public Customer findByEmail(String email) {
+        String sql = "SELECT username, email, password_hash, full_name, phone, "
+                + "date_of_birth, address, active, email_verified, reset_token, created_at "
+                + "FROM customers WHERE email = ?";
+
+        Connection conn = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+        try {
+            conn = getConnection();
+            ps = conn.prepareStatement(sql);
+            ps.setString(1, email);
+            rs = ps.executeQuery();
+            if (rs.next()) {
+                return mapRow(rs);
+            }
+            return null;
+        } catch (SQLException e) {
+            throw new RuntimeException("Loi truy van customers.findByEmail: " + e.getMessage(), e);
+        } finally {
+            closeAll(rs, ps, conn);
+        }
+    }
+
+    @Override
+    public boolean updateResetToken(String username, String resetToken) {
+        String sql = "UPDATE customers SET reset_token = ? WHERE username = ?";
+        Connection conn = null;
+        PreparedStatement ps = null;
+        try {
+            conn = getConnection();
+            ps = conn.prepareStatement(sql);
+            ps.setString(1, resetToken);
+            ps.setString(2, username);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            throw new RuntimeException("Loi cap nhat customers.updateResetToken: " + e.getMessage(), e);
+        } finally {
+            closeAll(ps, conn);
+        }
+    }
+
+    @Override
+    public boolean updatePasswordHash(String username, String passwordHash) {
+        String sql = "UPDATE customers SET password_hash = ?, reset_token = NULL WHERE username = ?";
+        Connection conn = null;
+        PreparedStatement ps = null;
+        try {
+            conn = getConnection();
+            ps = conn.prepareStatement(sql);
+            ps.setString(1, passwordHash);
+            ps.setString(2, username);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            throw new RuntimeException("Loi cap nhat customers.updatePasswordHash: " + e.getMessage(), e);
+        } finally {
+            closeAll(ps, conn);
         }
     }
 

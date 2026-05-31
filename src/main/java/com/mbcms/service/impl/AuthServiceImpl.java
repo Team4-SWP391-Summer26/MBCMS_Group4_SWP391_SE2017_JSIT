@@ -38,6 +38,9 @@ public class AuthServiceImpl implements AuthService {
         if (loginId == null || rawPassword == null) return null;
 
         Customer customer = customerDAO.findByUsername(loginId);
+        if (customer == null) {
+            customer = customerDAO.findByEmail(loginId);
+        }
         if (customer == null) return null;
 
         // Kiem tra tai khoan con active

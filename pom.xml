@@ -9,7 +9,7 @@
     <version>1.0-SNAPSHOT</version>
     <packaging>war</packaging>
 
-    <name>MBCMS - Multi-Branch Cinema Management System</name>
+    <name>MBCMS - Multi-Branch Cinema Management Systemtest</name>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>

@@ -9,4 +9,10 @@ import com.mbcms.model.Customer;
 public interface CustomerDAO {
 
     Customer findByUsername(String username);
+
+    Customer findByEmail(String email);
+
+    boolean updateResetToken(String username, String resetToken);
+
+    boolean updatePasswordHash(String username, String passwordHash);
 }
