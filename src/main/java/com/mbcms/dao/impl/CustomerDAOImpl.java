@@ -33,8 +33,9 @@ public class CustomerDAOImpl extends BaseDAO implements CustomerDAO {
             }
             return null;
         } catch (SQLException e) {
-            System.err.println("CustomerDAO.findByUsername: " + e.getMessage());
-            return null;
+            // null CHI danh cho "khong tim thay user". Loi DB (mat ket noi, pool loi...)
+            // phai nem ra de KHONG bi nguy trang thanh "sai mat khau" o tang tren.
+            throw new RuntimeException("Loi truy van customers.findByUsername: " + e.getMessage(), e);
         } finally {
             closeAll(rs, ps, conn);
         }

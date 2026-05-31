@@ -9,6 +9,14 @@ target/
 *.ipr
 out/
 
+# NetBeans
+nbproject/
+nb-configuration.xml
+
+# Cursor / AI agents
+.cursor/
+AGENTS.md
+
 # Config nhay cam - KHONG commit
 src/main/resources/database.properties
 

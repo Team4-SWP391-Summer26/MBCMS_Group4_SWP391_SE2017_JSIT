@@ -19,7 +19,10 @@ public class DBUtil {
 
     private static BasicDataSource dataSource;
 
-    static {
+    private static synchronized void initPool() {
+        if (dataSource != null) {
+            return;
+        }
         try {
             Properties props = new Properties();
             InputStream is = DBUtil.class.getClassLoader()
@@ -29,34 +32,54 @@ public class DBUtil {
             }
             props.load(is);
 
-            dataSource = new BasicDataSource();
-            dataSource.setUrl(props.getProperty("db.url"));
-            dataSource.setUsername(props.getProperty("db.username"));
-            dataSource.setPassword(props.getProperty("db.password"));
+            BasicDataSource ds = new BasicDataSource();
+            // Phai set driverClassName tuong minh: trong Tomcat, driver nam o
+            // WEB-INF/lib (webapp classloader) khong tu dang ky duoc voi DriverManager
+            // (system classloader) -> "No suitable driver". Set driverClassName de
+            // DBCP2 nap driver bang context classloader cua webapp.
+            ds.setDriverClassName(props.getProperty(
+                    "db.driver", "com.microsoft.sqlserver.jdbc.SQLServerDriver"));
+            ds.setUrl(props.getProperty("db.url"));
+            ds.setUsername(props.getProperty("db.username"));
+            ds.setPassword(props.getProperty("db.password"));
 
-            dataSource.setInitialSize(Integer.parseInt(
+            ds.setInitialSize(Integer.parseInt(
                     props.getProperty("db.pool.initialSize", "5")));
-            dataSource.setMaxTotal(Integer.parseInt(
+            ds.setMaxTotal(Integer.parseInt(
                     props.getProperty("db.pool.maxTotal", "20")));
-            dataSource.setMaxIdle(Integer.parseInt(
+            ds.setMaxIdle(Integer.parseInt(
                     props.getProperty("db.pool.maxIdle", "10")));
-            dataSource.setMinIdle(Integer.parseInt(
+            ds.setMinIdle(Integer.parseInt(
                     props.getProperty("db.pool.minIdle", "5")));
-            dataSource.setMaxWaitMillis(Long.parseLong(
+            ds.setMaxWaitMillis(Long.parseLong(
                     props.getProperty("db.pool.maxWaitMillis", "30000")));
-            dataSource.setTestOnBorrow(Boolean.parseBoolean(
+            ds.setTestOnBorrow(Boolean.parseBoolean(
                     props.getProperty("db.pool.testOnBorrow", "true")));
-            dataSource.setValidationQuery(
+            ds.setValidationQuery(
                     props.getProperty("db.pool.validationQuery", "SELECT 1"));
 
+            dataSource = ds;
         } catch (IOException e) {
             throw new RuntimeException("Loi load database.properties: " + e.getMessage(), e);
         }
     }
 
+    /** Goi khi deploy/redeploy de tao pool moi (tranh pool cu sau hot-reload Tomcat). */
+    public static void reinitialize() {
+        shutdown();
+        initPool();
+    }
+
+    static {
+        initPool();
+    }
+
     private DBUtil() {}
 
     public static Connection getConnection() throws SQLException {
+        if (dataSource == null) {
+            initPool();
+        }
         return dataSource.getConnection();
     }
 
@@ -82,6 +105,8 @@ public class DBUtil {
                 dataSource.close();
             } catch (SQLException e) {
                 System.err.println("Loi tat connection pool: " + e.getMessage());
+            } finally {
+                dataSource = null;
             }
         }
     }
