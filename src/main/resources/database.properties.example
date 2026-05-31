@@ -1,7 +1,7 @@
 # Copy file nay thanh database.properties va dien thong tin cua ban
 db.url=jdbc:sqlserver://localhost:1433;databaseName=CinemaDB;encrypt=false;trustServerCertificate=true
 db.username=sa
-db.password=YOUR_PASSWORD_HERE
+db.password=123
 
 db.pool.initialSize=5
 db.pool.maxTotal=20

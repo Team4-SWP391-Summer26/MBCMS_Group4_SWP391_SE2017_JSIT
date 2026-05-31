@@ -12,6 +12,7 @@ out/
 # Config nhay cam - KHONG commit
 src/main/resources/database.properties
 
+
 # OS
 .DS_Store
 Thumbs.db
