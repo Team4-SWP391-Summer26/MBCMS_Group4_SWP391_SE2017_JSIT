@@ -14,8 +14,8 @@ public class AppContextListener implements ServletContextListener {
 
     @Override
     public void contextInitialized(ServletContextEvent sce) {
+        DBUtil.reinitialize();
         System.out.println("[MBCMS] Ung dung khoi dong - DBCP2 pool ready");
-        // DBUtil tu khoi dong trong static block
     }
 
     @Override

@@ -31,7 +31,8 @@ DELETE FROM dbo.movies;
 DELETE FROM dbo.genres;
 GO
 
-DECLARE @PWD VARCHAR(255) = '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy'; -- "password"
+-- jBCrypt (org.mindrot) work-factor 10 hash for plaintext "password"
+DECLARE @PWD VARCHAR(255) = '$2a$10$Kn8sOp1I8w/yOkiFnuyMLuvefMvn9ljUeUbfFTSnrwRygVe3Lwuju';
 
 -- ---------------------------------------------------------------------
 -- 1. Genres

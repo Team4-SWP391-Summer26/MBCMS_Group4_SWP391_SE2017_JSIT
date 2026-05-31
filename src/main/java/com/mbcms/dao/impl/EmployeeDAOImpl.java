@@ -33,9 +33,9 @@ public class EmployeeDAOImpl extends BaseDAO implements EmployeeDAO {
             }
             return null;
         } catch (SQLException e) {
-            System.err.println("[ERROR] EmployeeDAO.findByUsername - " + e.getMessage());
-            e.printStackTrace();
-            return null;
+            // null CHI danh cho "khong tim thay user". Loi DB (mat ket noi, pool loi...)
+            // phai nem ra de KHONG bi nguy trang thanh "sai mat khau" o tang tren.
+            throw new RuntimeException("Loi truy van employees.findByUsername: " + e.getMessage(), e);
         } finally {
             closeAll(rs, ps, conn);
         }
