@@ -188,12 +188,6 @@
                                     </div>
                                 </div>
 
-                                <!-- Warning info -->
-                                <div class="d-flex align-items-center gap-1 text-secondary mb-3" style="font-size: 0.75rem;">
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-muted"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
-                                    <span class="text-muted">5 failed attempts will lock the account for 15 minutes.</span>
-                                </div>
-
                                 <!-- Remember me and Forgot password -->
                                 <div class="d-flex justify-content-between align-items-center mb-4" style="font-size: 0.85rem;">
                                     <div class="form-check">

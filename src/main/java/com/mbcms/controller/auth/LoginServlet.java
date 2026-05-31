@@ -15,13 +15,6 @@ import java.io.IOException;
 @WebServlet("/auth/login")
 public class LoginServlet extends HttpServlet {
 
-    private AuthService authService;
-
-    @Override
-    public void init() {
-        authService = new AuthServiceImpl();
-    }
-
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
@@ -49,15 +42,23 @@ public class LoginServlet extends HttpServlet {
 
         username = username.trim();
 
-        Customer customer = null;
-        Employee employee = null;
-        String debugInfo = null;
+        AuthService authService = new AuthServiceImpl();
+        Customer customer;
+        Employee employee;
 
         try {
             customer = authService.loginCustomer(username, password);
-        } catch (Exception ex) {
-            debugInfo = "loginCustomer exception: " + ex.getMessage();
-            ex.printStackTrace();
+            employee = (customer == null)
+                    ? authService.loginEmployee(username, password)
+                    : null;
+        } catch (RuntimeException ex) {
+            // Loi he thong (DB/pool...) - log day du o server, KHONG lo chi tiet ra UI.
+            // Thong bao RIENG voi "sai mat khau" de loi DB khong bi nguy trang.
+            getServletContext().log("Loi he thong khi dang nhap", ex);
+            req.setAttribute("errorMsg", "He thong dang gap su co, vui long thu lai sau.");
+            req.setAttribute("username", username);
+            req.getRequestDispatcher("/WEB-INF/views/auth/login.jsp").forward(req, resp);
+            return;
         }
 
         if (customer != null) {
@@ -69,14 +70,6 @@ public class LoginServlet extends HttpServlet {
             session.setAttribute("username",    customer.getUsername());
             resp.sendRedirect(req.getContextPath() + "/home");
             return;
-        }
-
-        try {
-            employee = authService.loginEmployee(username, password);
-        } catch (Exception ex) {
-            debugInfo = (debugInfo == null ? "" : debugInfo + " | ")
-                      + "loginEmployee exception: " + ex.getMessage();
-            ex.printStackTrace();
         }
 
         if (employee != null) {
@@ -96,9 +89,8 @@ public class LoginServlet extends HttpServlet {
             return;
         }
 
-        // --- Login that bai: hien thi ly do ro hon de debug ---
-        String msg = "Tai khoan hoac mat khau khong chinh xac.";
-        req.setAttribute("errorMsg", msg);
+        // Ca hai null = thuc su sai tai khoan/mat khau.
+        req.setAttribute("errorMsg", "Tai khoan hoac mat khau khong chinh xac.");
         req.setAttribute("username", username);
         req.getRequestDispatcher("/WEB-INF/views/auth/login.jsp").forward(req, resp);
     }
