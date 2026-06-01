@@ -43,7 +43,7 @@ Hashes in the database are bcrypt work-factor 10 for the string `"password"`, co
 - **8 genres, 6 movies** (4 NOW_SHOWING/UPCOMING plus multi-genre mappings), **2 branches** (HCM + HN).
 - **6 rooms** (3 per branch: STANDARD / VIP / IMAX), **480 seats** (80 per room = rows A–H × 10 columns; rows G–H are VIP).
 - **14 showtimes** spanning 05–07 Jun 2026.
-- **6 bookings** `BK-000001..BK-000006` covering CONFIRMED / USED / PENDING / CANCELLED, with payments across CASH / MOMO / VNPAY / CREDIT_CARD — for revenue and status reporting tests.
+- **6 bookings** `BK-000001..BK-000006` covering CONFIRMED / USED / PENDING / CANCELLED, with payments across CASH / MOMO / VNPAY — for revenue and status reporting tests.
 - **2 promotions, 6 food items**, food orders, notifications, and feedbacks (including guest feedback without login).
 
 ## Design notes
