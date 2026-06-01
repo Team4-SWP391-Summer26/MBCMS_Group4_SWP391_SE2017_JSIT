@@ -3,8 +3,8 @@
 # duoc voi DriverManager -> thieu dong nay se loi "No suitable driver".
 db.driver=com.microsoft.sqlserver.jdbc.SQLServerDriver
 db.url=jdbc:sqlserver://localhost:1433;databaseName=CinemaDB;encrypt=false;trustServerCertificate=true
-db.username=sa
-db.password=123
+db.username=your_username
+db.password=CHANGE_ME
 
 db.pool.initialSize=5
 db.pool.maxTotal=20
