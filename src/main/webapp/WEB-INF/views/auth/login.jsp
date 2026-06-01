@@ -169,9 +169,10 @@
                                         <span class="position-absolute" style="left: 12px; top: 50%; transform: translateY(-50%); color: #9ca3af;">
                                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
                                         </span>
-                                        <input type="text" name="username" class="form-control" 
+                                        <input type="text" name="email" class="form-control" 
                                                style="padding-left: 40px; border-radius: 8px; border-color: #d1d5db; height: 44px; font-size: 0.9rem;"
-                                               placeholder="thank0617@gmail.com" value="${param.username}" required>
+                                               placeholder="thank0617@gmail.com" value="${param.email}" required>
+                                        <input type="hidden" name="_csrf" value="${sessionScope.csrfToken}" />
                                     </div>
                                 </div>
 
