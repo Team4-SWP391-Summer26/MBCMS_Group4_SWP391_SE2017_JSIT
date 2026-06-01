@@ -157,6 +157,9 @@
                             <c:if test="${not empty errorMsg}">
                                 <div class="alert alert-danger py-2" style="font-size: 0.85rem;">${errorMsg}</div>
                             </c:if>
+                            <c:if test="${not empty successMsg}">
+                                <div class="alert alert-success py-2" style="font-size: 0.85rem;">${successMsg}</div>
+                            </c:if>
 
                             <form method="post" action="${pageContext.request.contextPath}/auth/login">
                                 <!-- Email/Username field -->
