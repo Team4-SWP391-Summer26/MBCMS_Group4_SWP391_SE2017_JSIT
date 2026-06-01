@@ -10,4 +10,5 @@ public interface EmployeeDAO {
 
     Employee findByUsername(String username);
     boolean updatePassword(String username, String newPasswordHash);
+    Employee findByEmail(String email);
 }

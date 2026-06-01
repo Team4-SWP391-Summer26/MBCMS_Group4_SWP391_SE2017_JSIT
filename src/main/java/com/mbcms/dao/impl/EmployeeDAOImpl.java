@@ -40,6 +40,33 @@ public class EmployeeDAOImpl extends BaseDAO implements EmployeeDAO {
             closeAll(rs, ps, conn);
         }
     }
+    
+    @Override
+    public Employee findByEmail(String email) {
+        if (email == null) return null;
+
+        final String sql =
+                "SELECT username, email, password_hash, full_name, phone, "
+                + "date_of_birth, address, active, email_verified, reset_token, created_at "
+                + "FROM customers WHERE LOWER(email) = LOWER(?)";
+
+        Connection conn = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+        try {
+            conn = getConnection();
+            ps   = conn.prepareStatement(sql);
+            ps.setString(1, email.trim());
+            rs   = ps.executeQuery();
+            return rs.next() ? mapRow(rs) : null;
+        } catch (SQLException e) {
+            throw new RuntimeException(
+                    "Loi truy van customers.findByEmail: " + e.getMessage(), e);
+        } finally {
+            closeAll(rs, ps, conn);
+        }
+    }
+    
     /**
      * Update mat khau moi da duoc hash bang BCrypt.
      * Luu y: DAO chi update DB, khong tu hash password o day.

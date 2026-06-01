@@ -18,71 +18,91 @@ public class AuthServiceImpl implements AuthService {
     private final CustomerDAO customerDAO;
     private final EmployeeDAO employeeDAO;
 
+    /** Constructor mac dinh - dung trong production. */
     public AuthServiceImpl() {
         this.customerDAO = new CustomerDAOImpl();
         this.employeeDAO = new EmployeeDAOImpl();
     }
 
-    // Constructor de inject (unit test)
+    /** Constructor de inject - dung trong unit test. */
     public AuthServiceImpl(CustomerDAO customerDAO, EmployeeDAO employeeDAO) {
         this.customerDAO = customerDAO;
         this.employeeDAO = employeeDAO;
     }
 
+    // ------------------------------------------------------------------ //
+    //  loginCustomer                                                       //
+    // ------------------------------------------------------------------ //
+
     /**
-     * Xac thuc Customer.
+     * Xac thuc Customer bang email + mat khau.
      *
-     * @return Customer neu hop le, null neu sai loginId/password hoac bi khoa.
+     * @param email       email nhap tu form
+     * @param rawPassword mat khau nguyen ban
+     * @return LoginResult - khong bao gio null
      */
     @Override
-    public Customer loginCustomer(String loginId, String rawPassword) {
-        if (loginId == null || rawPassword == null) {
-            return null;
+    public LoginResult loginCustomer(String email, String rawPassword) {
+        if (email == null || rawPassword == null) {
+            return LoginResult.wrongCredentials();
         }
 
-        Customer customer = customerDAO.findByUsername(loginId);
+        // 1. Tim theo email (case-insensitive - xu ly o DAO)
+        Customer customer = customerDAO.findByEmail(email);
         if (customer == null) {
-            return null;
+            return LoginResult.wrongCredentials();
         }
 
-        // Kiem tra tai khoan con active
-        if (!customer.isActive()) {
-            return null;
-        }
-
-        // BCrypt verify
+        // 2. BCrypt verify - TRUOC khi kiem tra email_verified (xem Javadoc class)
         if (!BCrypt.checkpw(rawPassword, customer.getPasswordHash())) {
-            return null;
+            return LoginResult.wrongCredentials();
         }
 
-        return customer;
+        // 3. Kiem tra email da xac minh chua
+        if (!customer.isEmailVerified()) {
+            return LoginResult.emailNotVerified();
+        }
+
+        // 4. Kiem tra tai khoan con active
+        if (!customer.isActive()) {
+            return LoginResult.accountDisabled();
+        }
+
+        return LoginResult.success(customer);
     }
 
+    // ------------------------------------------------------------------ //
+    //  loginEmployee                                                       //
+    // ------------------------------------------------------------------ //
+
     /**
-     * Xac thuc Employee (staff/admin).
+     * Xac thuc Employee bang email + mat khau.
+     * Employee khong co email_verified (tai khoan do admin tao thu cong).
      *
-     * @return Employee neu hop le, null neu sai hoac bi khoa.
+     * @param email       email nhap tu form
+     * @param rawPassword mat khau nguyen ban
+     * @return LoginResult - khong bao gio null
      */
     @Override
-    public Employee loginEmployee(String loginId, String rawPassword) {
-        if (loginId == null || rawPassword == null) {
-            return null;
+    public LoginResult loginEmployee(String email, String rawPassword) {
+        if (email == null || rawPassword == null) {
+            return LoginResult.wrongCredentials();
         }
 
-        Employee employee = employeeDAO.findByUsername(loginId);
+        Employee employee = employeeDAO.findByEmail(email);
         if (employee == null) {
-            return null;
-        }
-
-        if (!employee.isActive()) {
-            return null;
+            return LoginResult.wrongCredentials();
         }
 
         if (!BCrypt.checkpw(rawPassword, employee.getPasswordHash())) {
-            return null;
+            return LoginResult.wrongCredentials();
         }
 
-        return employee;
+        if (!employee.isActive()) {
+            return LoginResult.accountDisabled();
+        }
+
+        return LoginResult.success(employee);
     }
 
     /**
