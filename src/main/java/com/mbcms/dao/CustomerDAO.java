@@ -9,5 +9,9 @@ import com.mbcms.model.Customer;
 public interface CustomerDAO {
 
     Customer findByUsername(String username);
+    boolean existsByEmail(String email);
+
+boolean insert(Customer customer);
     boolean updatePassword(String username, String newPasswordHash);
+    
 }

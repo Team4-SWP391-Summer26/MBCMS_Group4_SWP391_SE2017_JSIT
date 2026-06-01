@@ -23,43 +23,44 @@ public class CustomerDAOImpl extends BaseDAO implements CustomerDAO {
         Connection conn = null;
         PreparedStatement ps = null;
         ResultSet rs = null;
+
         try {
             conn = getConnection();
             ps = conn.prepareStatement(sql);
             ps.setString(1, username);
             rs = ps.executeQuery();
+
             if (rs.next()) {
                 return mapRow(rs);
             }
+
             return null;
         } catch (SQLException e) {
-            // null CHI danh cho "khong tim thay user". Loi DB (mat ket noi, pool loi...)
-            // phai nem ra de KHONG bi nguy trang thanh "sai mat khau" o tang tren.
+            // null CHI danh cho "khong tim thay user". Loi DB thi phai nem ra.
             throw new RuntimeException("Loi truy van customers.findByUsername: " + e.getMessage(), e);
         } finally {
             closeAll(rs, ps, conn);
         }
     }
-    /**
-     * Update mat khau moi da duoc hash bang BCrypt.
-     * Luu y: DAO chi update DB, khong tu hash password o day.
-     */
-    @Override
-    public boolean updatePassword(String username, String newPasswordHash) {
-        String sql = "UPDATE customers SET password_hash = ? WHERE username = ?";
 
-<<<<<<< HEAD
+    /**
+     * Kiem tra email da ton tai trong bang customers hay chua.
+     * Dung cho chuc nang register de tranh trung email.
+     */
     @Override
     public boolean existsByEmail(String email) {
         String sql = "SELECT 1 FROM customers WHERE email = ?";
+
         Connection conn = null;
         PreparedStatement ps = null;
         ResultSet rs = null;
+
         try {
             conn = getConnection();
             ps = conn.prepareStatement(sql);
             ps.setString(1, email);
             rs = ps.executeQuery();
+
             return rs.next();
         } catch (SQLException e) {
             throw new RuntimeException("Loi truy van customers.existsByEmail: " + e.getMessage(), e);
@@ -68,36 +69,65 @@ public class CustomerDAOImpl extends BaseDAO implements CustomerDAO {
         }
     }
 
+    /**
+     * Them moi customer vao database.
+     * Dung cho chuc nang register customer.
+     */
     @Override
     public boolean insert(Customer customer) {
         String sql = "INSERT INTO customers (username, email, password_hash, full_name, phone, "
                 + "date_of_birth, address, active, email_verified, reset_token, created_at) "
                 + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
         Connection conn = null;
         PreparedStatement ps = null;
+
         try {
             conn = getConnection();
             ps = conn.prepareStatement(sql);
+
             ps.setString(1, customer.getUsername());
             ps.setString(2, customer.getEmail());
             ps.setString(3, customer.getPasswordHash());
             ps.setString(4, customer.getFullName());
             ps.setString(5, customer.getPhone());
-            ps.setDate(6, customer.getDateOfBirth() != null ? java.sql.Date.valueOf(customer.getDateOfBirth()) : null);
+
+            ps.setDate(6, customer.getDateOfBirth() != null
+                    ? java.sql.Date.valueOf(customer.getDateOfBirth())
+                    : null);
+
             ps.setString(7, customer.getAddress());
             ps.setBoolean(8, customer.isActive());
             ps.setBoolean(9, customer.isEmailVerified());
             ps.setString(10, customer.getResetToken());
-            ps.setTimestamp(11, customer.getCreatedAt() != null ? java.sql.Timestamp.valueOf(customer.getCreatedAt()) : java.sql.Timestamp.valueOf(java.time.LocalDateTime.now()));
+
+            ps.setTimestamp(11, customer.getCreatedAt() != null
+                    ? java.sql.Timestamp.valueOf(customer.getCreatedAt())
+                    : java.sql.Timestamp.valueOf(java.time.LocalDateTime.now()));
+
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
             throw new RuntimeException("Loi thuc thi customers.insert: " + e.getMessage(), e);
-=======
+        } finally {
+            closeAll(ps, conn);
+        }
+    }
+
+    /**
+     * Update mat khau moi da duoc hash bang BCrypt.
+     * Luu y: DAO chi update DB, khong tu hash password o day.
+     */
+    @Override
+    public boolean updatePassword(String username, String newPasswordHash) {
+        String sql = "UPDATE customers SET password_hash = ? WHERE username = ?";
+
         Connection conn = null;
         PreparedStatement ps = null;
+
         try {
             conn = getConnection();
             ps = conn.prepareStatement(sql);
+
             ps.setString(1, newPasswordHash);
             ps.setString(2, username);
 
@@ -106,30 +136,34 @@ public class CustomerDAOImpl extends BaseDAO implements CustomerDAO {
             return ps.executeUpdate() == 1;
         } catch (SQLException e) {
             throw new RuntimeException("Loi truy van customers.updatePassword: " + e.getMessage(), e);
->>>>>>> 25539bd (Add change password feature)
         } finally {
             closeAll(ps, conn);
         }
     }
-<<<<<<< HEAD
 
-=======
->>>>>>> 25539bd (Add change password feature)
+    /**
+     * Chuyen du lieu tu ResultSet thanh object Customer.
+     */
     private Customer mapRow(ResultSet rs) throws SQLException {
         Customer c = new Customer();
+
         c.setUsername(rs.getString("username"));
         c.setEmail(rs.getString("email"));
         c.setPasswordHash(rs.getString("password_hash"));
         c.setFullName(rs.getString("full_name"));
         c.setPhone(rs.getString("phone"));
+
         java.sql.Date dob = rs.getDate("date_of_birth");
         c.setDateOfBirth(dob != null ? dob.toLocalDate() : null);
+
         c.setAddress(rs.getString("address"));
         c.setActive(rs.getBoolean("active"));
         c.setEmailVerified(rs.getBoolean("email_verified"));
         c.setResetToken(rs.getString("reset_token"));
+
         java.sql.Timestamp created = rs.getTimestamp("created_at");
         c.setCreatedAt(created != null ? created.toLocalDateTime() : null);
+
         return c;
     }
 }
