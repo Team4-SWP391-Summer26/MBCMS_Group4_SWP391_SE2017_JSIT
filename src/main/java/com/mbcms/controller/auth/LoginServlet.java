@@ -35,7 +35,7 @@ public class LoginServlet extends HttpServlet {
 
         if (username == null || username.trim().isEmpty()
                 || password == null || password.isEmpty()) {
-            req.setAttribute("errorMsg", "Vui long nhap tai khoan va mat khau.");
+            req.setAttribute("errorMsg", "Please enter username and password.");
             req.getRequestDispatcher("/WEB-INF/views/auth/login.jsp").forward(req, resp);
             return;
         }
@@ -54,8 +54,8 @@ public class LoginServlet extends HttpServlet {
         } catch (RuntimeException ex) {
             // Loi he thong (DB/pool...) - log day du o server, KHONG lo chi tiet ra UI.
             // Thong bao RIENG voi "sai mat khau" de loi DB khong bi nguy trang.
-            getServletContext().log("Loi he thong khi dang nhap", ex);
-            req.setAttribute("errorMsg", "He thong dang gap su co, vui long thu lai sau.");
+            getServletContext().log("System error", ex);
+            req.setAttribute("errorMsg", "Please try again.");
             req.setAttribute("username", username);
             req.getRequestDispatcher("/WEB-INF/views/auth/login.jsp").forward(req, resp);
             return;
@@ -77,20 +77,20 @@ public class LoginServlet extends HttpServlet {
             if (old != null) old.invalidate();
             HttpSession session = req.getSession(true);
             session.setAttribute("currentUser", employee);
-            session.setAttribute("userRole",    employee.getRole());
-            session.setAttribute("username",    employee.getUsername());
+            session.setAttribute("userRole",    employee.getRole()); //add later
+            session.setAttribute("username",    employee.getUsername()); 
             if (employee.getBranchId() != null) {
                 session.setAttribute("branchId", employee.getBranchId());
             }
             String redirect = employee.isAdmin()
-                    ? req.getContextPath() + "/admin/dashboard"
+                    ? req.getContextPath() + "/admin/dashboard" //add later
                     : req.getContextPath() + "/branch/dashboard";
             resp.sendRedirect(redirect);
             return;
         }
 
         // Ca hai null = thuc su sai tai khoan/mat khau.
-        req.setAttribute("errorMsg", "Tai khoan hoac mat khau khong chinh xac.");
+        req.setAttribute("errorMsg", "Username or password incorrect.");
         req.setAttribute("username", username);
         req.getRequestDispatcher("/WEB-INF/views/auth/login.jsp").forward(req, resp);
     }
