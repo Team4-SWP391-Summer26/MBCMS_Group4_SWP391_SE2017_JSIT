@@ -252,18 +252,6 @@ PENDING ──(payment success)──► CONFIRMED ──(QR scan)──► USED
 
 ---
 
-## 📊 Non-Functional Requirements
-
-| Category               | Requirement                                                                  |
-| ---------------------- | ---------------------------------------------------------------------------- |
-| ⚡ **Performance**     | 95% of page loads < 3s at 100 concurrent users; seat map (≤200 seats) < 2s   |
-| 🟢 **Availability**    | 99.5% uptime during business hours (08:00–24:00)                             |
-| 💾 **Backup**          | Daily full SQL Server backups + hourly transaction log; 7-day retention      |
-| 🔧 **Maintainability** | Strict 3-layer separation; Javadoc; JUnit 5 + Mockito; ≥80% coverage target  |
-| 📱 **Compatibility**   | Responsive on desktop ≥1280px, laptop ≥1024px, tablet ≥768px (Bootstrap 5.3) |
-| ♿ **Accessibility**   | WCAG 2.1 AA — minimum 44×44px touch targets                                  |
-
----
 
 ## 🚀 Getting Started
 
