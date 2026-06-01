@@ -141,6 +141,34 @@ public class CustomerDAOImpl extends BaseDAO implements CustomerDAO {
         }
     }
 
+    /** Update personal info (full_name, phone, date_of_birth, address). UC12. */
+    @Override
+    public boolean updateProfile(Customer customer) {
+        String sql = "UPDATE customers SET full_name = ?, phone = ?, "
+                + "date_of_birth = ?, address = ? WHERE username = ?";
+
+        Connection conn = null;
+        PreparedStatement ps = null;
+        try {
+            conn = getConnection();
+            ps = conn.prepareStatement(sql);
+            ps.setString(1, customer.getFullName());
+            ps.setString(2, customer.getPhone());
+            if (customer.getDateOfBirth() != null) {
+                ps.setDate(3, java.sql.Date.valueOf(customer.getDateOfBirth()));
+            } else {
+                ps.setNull(3, java.sql.Types.DATE);
+            }
+            ps.setString(4, customer.getAddress());
+            ps.setString(5, customer.getUsername());
+            return ps.executeUpdate() == 1;
+        } catch (SQLException e) {
+            throw new RuntimeException("Loi cap nhat customers.updateProfile: " + e.getMessage(), e);
+        } finally {
+            closeAll(ps, conn);
+        }
+    }
+
     /**
      * Chuyen du lieu tu ResultSet thanh object Customer.
      */

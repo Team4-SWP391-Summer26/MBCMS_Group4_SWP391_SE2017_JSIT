@@ -13,5 +13,8 @@ public interface CustomerDAO {
 
 boolean insert(Customer customer);
     boolean updatePassword(String username, String newPasswordHash);
-    
+
+    /** Update personal info (full_name, phone, date_of_birth, address). UC12. */
+    boolean updateProfile(Customer customer);
+
 }
