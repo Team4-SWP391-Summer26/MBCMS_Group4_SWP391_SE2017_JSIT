@@ -9,4 +9,5 @@ import com.mbcms.model.Employee;
 public interface EmployeeDAO {
 
     Employee findByUsername(String username);
+    boolean updatePassword(String username, String newPasswordHash);
 }

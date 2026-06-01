@@ -40,7 +40,31 @@ public class CustomerDAOImpl extends BaseDAO implements CustomerDAO {
             closeAll(rs, ps, conn);
         }
     }
+    /**
+     * Update mat khau moi da duoc hash bang BCrypt.
+     * Luu y: DAO chi update DB, khong tu hash password o day.
+     */
+    @Override
+    public boolean updatePassword(String username, String newPasswordHash) {
+        String sql = "UPDATE customers SET password_hash = ? WHERE username = ?";
 
+        Connection conn = null;
+        PreparedStatement ps = null;
+        try {
+            conn = getConnection();
+            ps = conn.prepareStatement(sql);
+            ps.setString(1, newPasswordHash);
+            ps.setString(2, username);
+
+            // executeUpdate tra ve so dong bi anh huong.
+            // = 1 nghia la update thanh cong, = 0 nghia la khong tim thay username.
+            return ps.executeUpdate() == 1;
+        } catch (SQLException e) {
+            throw new RuntimeException("Loi truy van customers.updatePassword: " + e.getMessage(), e);
+        } finally {
+            closeAll(ps, conn);
+        }
+    }
     private Customer mapRow(ResultSet rs) throws SQLException {
         Customer c = new Customer();
         c.setUsername(rs.getString("username"));

@@ -9,4 +9,5 @@ import com.mbcms.model.Customer;
 public interface CustomerDAO {
 
     Customer findByUsername(String username);
+    boolean updatePassword(String username, String newPasswordHash);
 }

@@ -109,6 +109,18 @@
                                             Bookings
                                         </a>
                                     </li>
+                                                                               <li>
+                                        <a class="dropdown-item py-2 px-3"
+                                           href="${pageContext.request.contextPath}/auth/change-password"
+                                           style="color: #4b5563; font-size: 0.9rem; display: flex; align-items: center; gap: 0.5rem;">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                                                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                                            </svg>
+                                            Change Password
+                                        </a>
+                                    </li>
                                     <li>
                                         <hr class="dropdown-divider" style="border-top: 1px solid #e5e7eb;">
                                     </li>
