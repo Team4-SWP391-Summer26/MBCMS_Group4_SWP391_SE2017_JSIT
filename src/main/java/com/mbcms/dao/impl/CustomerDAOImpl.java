@@ -42,6 +42,8 @@ public class CustomerDAOImpl extends BaseDAO implements CustomerDAO {
             closeAll(rs, ps, conn);
         }
     }
+    
+    
 
     /**
      * Kiem tra email da ton tai trong bang customers hay chua.
