@@ -99,4 +99,64 @@ public class AuthServiceImpl implements AuthService {
         // Luu vao CSDL
         return customerDAO.insert(customer);
     }
+        /**
+     * Doi mat khau cho customer/employee dang dang nhap.
+     * Luong xu ly:
+     * 1. Kiem tra input rong.
+     * 2. Tim user theo username va role trong session.
+     * 3. Check mat khau cu bang BCrypt.
+     * 4. Hash mat khau moi bang BCrypt roi update xuong DB.
+     */
+    @Override
+    public String changePassword(String username, String userRole, String oldPassword, String newPassword) {
+        if (username == null || userRole == null || oldPassword == null || newPassword == null) {
+            return "INVALID_INPUT";
+        }
+
+        username = username.trim();
+        userRole = userRole.trim();
+
+        if (username.isEmpty() || userRole.isEmpty() || oldPassword.isEmpty() || newPassword.isEmpty()) {
+            return "INVALID_INPUT";
+        }
+
+        // Mat khau moi nen co do dai toi thieu de tranh password qua yeu.
+        if (newPassword.length() < 6) {
+            return "WEAK_PASSWORD";
+        }
+
+        // Khong cho doi sang dung lai mat khau cu.
+        if (oldPassword.equals(newPassword)) {
+            return "SAME_PASSWORD";
+        }
+
+        // Neu session role la CUSTOMER thi update bang customers.
+        if ("CUSTOMER".equals(userRole)) {
+            Customer customer = customerDAO.findByUsername(username);
+            if (customer == null || !customer.isActive()) {
+                return "USER_NOT_FOUND";
+            }
+
+            // So sanh mat khau cu nguoi dung nhap voi password_hash trong DB.
+            if (!BCrypt.checkpw(oldPassword, customer.getPasswordHash())) {
+                return "WRONG_OLD_PASSWORD";
+            }
+
+            String newHash = BCrypt.hashpw(newPassword, BCrypt.gensalt(10));
+            return customerDAO.updatePassword(username, newHash) ? "SUCCESS" : "UPDATE_FAILED";
+        }
+
+        // Con lai la Employee: ADMIN, BRANCH_MANAGER, BRANCH_STAFF.
+        Employee employee = employeeDAO.findByUsername(username);
+        if (employee == null || !employee.isActive()) {
+            return "USER_NOT_FOUND";
+        }
+
+        if (!BCrypt.checkpw(oldPassword, employee.getPasswordHash())) {
+            return "WRONG_OLD_PASSWORD";
+        }
+
+        String newHash = BCrypt.hashpw(newPassword, BCrypt.gensalt(10));
+        return employeeDAO.updatePassword(username, newHash) ? "SUCCESS" : "UPDATE_FAILED";
+    }
 }

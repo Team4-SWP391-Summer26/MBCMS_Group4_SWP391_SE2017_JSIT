@@ -40,7 +40,15 @@ public class CustomerDAOImpl extends BaseDAO implements CustomerDAO {
             closeAll(rs, ps, conn);
         }
     }
+    /**
+     * Update mat khau moi da duoc hash bang BCrypt.
+     * Luu y: DAO chi update DB, khong tu hash password o day.
+     */
+    @Override
+    public boolean updatePassword(String username, String newPasswordHash) {
+        String sql = "UPDATE customers SET password_hash = ? WHERE username = ?";
 
+<<<<<<< HEAD
     @Override
     public boolean existsByEmail(String email) {
         String sql = "SELECT 1 FROM customers WHERE email = ?";
@@ -84,11 +92,29 @@ public class CustomerDAOImpl extends BaseDAO implements CustomerDAO {
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
             throw new RuntimeException("Loi thuc thi customers.insert: " + e.getMessage(), e);
+=======
+        Connection conn = null;
+        PreparedStatement ps = null;
+        try {
+            conn = getConnection();
+            ps = conn.prepareStatement(sql);
+            ps.setString(1, newPasswordHash);
+            ps.setString(2, username);
+
+            // executeUpdate tra ve so dong bi anh huong.
+            // = 1 nghia la update thanh cong, = 0 nghia la khong tim thay username.
+            return ps.executeUpdate() == 1;
+        } catch (SQLException e) {
+            throw new RuntimeException("Loi truy van customers.updatePassword: " + e.getMessage(), e);
+>>>>>>> 25539bd (Add change password feature)
         } finally {
             closeAll(ps, conn);
         }
     }
+<<<<<<< HEAD
 
+=======
+>>>>>>> 25539bd (Add change password feature)
     private Customer mapRow(ResultSet rs) throws SQLException {
         Customer c = new Customer();
         c.setUsername(rs.getString("username"));
