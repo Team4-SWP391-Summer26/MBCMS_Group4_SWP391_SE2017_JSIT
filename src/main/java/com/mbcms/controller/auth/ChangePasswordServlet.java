@@ -42,60 +42,67 @@ public class ChangePasswordServlet extends HttpServlet {
     protected void doPost(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
 
-        HttpSession session = req.getSession(false);
-        if (session == null || session.getAttribute("currentUser") == null) {
-            resp.sendRedirect(req.getContextPath() + "/auth/login");
-            return;
-        }
+       HttpSession session = req.getSession(false);
 
-        String username = (String) session.getAttribute("username");
-        String userRole = (String) session.getAttribute("userRole");
+    // If user is not logged in, redirect to login page
+    if (session == null || session.getAttribute("currentUser") == null) {
+        resp.sendRedirect(req.getContextPath() + "/auth/login");
+        return;
+    }
 
-        String oldPassword = req.getParameter("oldPassword");
-        String newPassword = req.getParameter("newPassword");
-        String confirmPassword = req.getParameter("confirmPassword");
+    // Get current logged-in user information from session
+    String username = (String) session.getAttribute("username");
+    String userRole = (String) session.getAttribute("userRole");
 
-        // Kiem tra mat khau moi va confirm co giong nhau khong.
-        if (newPassword == null || confirmPassword == null || !newPassword.equals(confirmPassword)) {
-            req.setAttribute("errorMsg", "Mat khau moi va xac nhan mat khau khong khop.");
-            req.getRequestDispatcher("/WEB-INF/views/auth/change-password.jsp").forward(req, resp);
-            return;
-        }
+    // Get form data
+    String oldPassword = req.getParameter("oldPassword");
+    String newPassword = req.getParameter("newPassword");
+    String confirmPassword = req.getParameter("confirmPassword");
 
-        try {
-            String result = authService.changePassword(username, userRole, oldPassword, newPassword);
-
-            switch (result) {
-                case "SUCCESS":
-                    req.setAttribute("successMsg", "Doi mat khau thanh cong.");
-                    break;
-
-                case "WRONG_OLD_PASSWORD":
-                    req.setAttribute("errorMsg", "Mat khau cu khong chinh xac.");
-                    break;
-
-                case "WEAK_PASSWORD":
-                    req.setAttribute("errorMsg", "Mat khau moi phai co it nhat 6 ky tu.");
-                    break;
-
-                case "SAME_PASSWORD":
-                    req.setAttribute("errorMsg", "Mat khau moi khong duoc trung voi mat khau cu.");
-                    break;
-
-                case "USER_NOT_FOUND":
-                    req.setAttribute("errorMsg", "Khong tim thay tai khoan hoac tai khoan da bi khoa.");
-                    break;
-
-                default:
-                    req.setAttribute("errorMsg", "Doi mat khau that bai. Vui long thu lai.");
-                    break;
-            }
-        } catch (RuntimeException ex) {
-            // Log loi that tren server, khong hien chi tiet loi DB ra giao dien.
-            getServletContext().log("Loi he thong khi doi mat khau", ex);
-            req.setAttribute("errorMsg", "He thong dang gap su co, vui long thu lai sau.");
-        }
-
+    // Check whether new password and confirm password match
+    if (newPassword == null || confirmPassword == null || !newPassword.equals(confirmPassword)) {
+        req.setAttribute("errorMsg", "New password and confirm password do not match.");
         req.getRequestDispatcher("/WEB-INF/views/auth/change-password.jsp").forward(req, resp);
+        return;
+    }
+
+    try {
+        // Call service to handle change password logic
+        String result = authService.changePassword(username, userRole, oldPassword, newPassword);
+
+        switch (result) {
+            case "SUCCESS":
+                req.setAttribute("successMsg", "Password changed successfully.");
+                break;
+
+            case "WRONG_OLD_PASSWORD":
+                req.setAttribute("errorMsg", "Current password is incorrect.");
+                break;
+
+            case "WEAK_PASSWORD":
+                req.setAttribute("errorMsg", "New password must be at least 6 characters long.");
+                break;
+
+            case "SAME_PASSWORD":
+                req.setAttribute("errorMsg", "New password must be different from the current password.");
+                break;
+
+            case "USER_NOT_FOUND":
+                req.setAttribute("errorMsg", "Account not found or has been disabled.");
+                break;
+
+            default:
+                req.setAttribute("errorMsg", "Failed to change password. Please try again.");
+                break;
+        }
+
+    } catch (RuntimeException ex) {
+        // Log real error on server, do not show database error details to users
+        getServletContext().log("System error while changing password", ex);
+        req.setAttribute("errorMsg", "The system is currently unavailable. Please try again later.");
+    }
+
+    // Forward back to change password page to show message
+    req.getRequestDispatcher("/WEB-INF/views/auth/change-password.jsp").forward(req, resp);
     }
 }
