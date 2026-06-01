@@ -41,6 +41,54 @@ public class CustomerDAOImpl extends BaseDAO implements CustomerDAO {
         }
     }
 
+    @Override
+    public boolean existsByEmail(String email) {
+        String sql = "SELECT 1 FROM customers WHERE email = ?";
+        Connection conn = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+        try {
+            conn = getConnection();
+            ps = conn.prepareStatement(sql);
+            ps.setString(1, email);
+            rs = ps.executeQuery();
+            return rs.next();
+        } catch (SQLException e) {
+            throw new RuntimeException("Loi truy van customers.existsByEmail: " + e.getMessage(), e);
+        } finally {
+            closeAll(rs, ps, conn);
+        }
+    }
+
+    @Override
+    public boolean insert(Customer customer) {
+        String sql = "INSERT INTO customers (username, email, password_hash, full_name, phone, "
+                + "date_of_birth, address, active, email_verified, reset_token, created_at) "
+                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        Connection conn = null;
+        PreparedStatement ps = null;
+        try {
+            conn = getConnection();
+            ps = conn.prepareStatement(sql);
+            ps.setString(1, customer.getUsername());
+            ps.setString(2, customer.getEmail());
+            ps.setString(3, customer.getPasswordHash());
+            ps.setString(4, customer.getFullName());
+            ps.setString(5, customer.getPhone());
+            ps.setDate(6, customer.getDateOfBirth() != null ? java.sql.Date.valueOf(customer.getDateOfBirth()) : null);
+            ps.setString(7, customer.getAddress());
+            ps.setBoolean(8, customer.isActive());
+            ps.setBoolean(9, customer.isEmailVerified());
+            ps.setString(10, customer.getResetToken());
+            ps.setTimestamp(11, customer.getCreatedAt() != null ? java.sql.Timestamp.valueOf(customer.getCreatedAt()) : java.sql.Timestamp.valueOf(java.time.LocalDateTime.now()));
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            throw new RuntimeException("Loi thuc thi customers.insert: " + e.getMessage(), e);
+        } finally {
+            closeAll(ps, conn);
+        }
+    }
+
     private Customer mapRow(ResultSet rs) throws SQLException {
         Customer c = new Customer();
         c.setUsername(rs.getString("username"));

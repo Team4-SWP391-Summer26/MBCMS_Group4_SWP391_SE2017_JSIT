@@ -73,10 +73,30 @@ public class AuthServiceImpl implements AuthService {
      */
     @Override
     public boolean registerCustomer(Customer customer, String rawPassword) {
-        // TODO HoangHM: Register account
-        // Goi customerDAO.existsByUsername / existsByEmail truoc
-        // Sau do hash: customer.setPasswordHash(BCrypt.hashpw(rawPassword, BCrypt.gensalt(10)));
-        // Cuoi cung goi customerDAO.insert(customer)
-        return false;
+        if (customer == null || rawPassword == null || rawPassword.trim().isEmpty()) {
+            return false;
+        }
+
+        // Kiem tra ten dang nhap ton tai
+        if (customerDAO.findByUsername(customer.getUsername()) != null) {
+            throw new IllegalArgumentException("Tên đăng nhập đã tồn tại trong hệ thống.");
+        }
+
+        // Kiem tra email ton tai
+        if (customerDAO.existsByEmail(customer.getEmail())) {
+            throw new IllegalArgumentException("Email đã được sử dụng bởi tài khoản khác.");
+        }
+
+        // Hash password bang BCrypt
+        String hashed = BCrypt.hashpw(rawPassword, BCrypt.gensalt(10));
+        customer.setPasswordHash(hashed);
+        
+        // Cac thiet lap mac dinh
+        customer.setActive(true);
+        customer.setEmailVerified(false);
+        customer.setCreatedAt(java.time.LocalDateTime.now());
+
+        // Luu vao CSDL
+        return customerDAO.insert(customer);
     }
 }
