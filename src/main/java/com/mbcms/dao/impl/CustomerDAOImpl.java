@@ -69,6 +69,56 @@ public class CustomerDAOImpl extends BaseDAO implements CustomerDAO {
         }
     }
 
+    // Retrieve a customer by their email address
+    @Override
+    public Customer findByEmail(String email) {
+        String sql = "SELECT username, email, password_hash, full_name, phone, "
+                + "date_of_birth, address, active, email_verified, reset_token, created_at "
+                + "FROM customers WHERE email = ?";
+
+        Connection conn = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+
+        try {
+            conn = getConnection();
+            ps = conn.prepareStatement(sql);
+            ps.setString(1, email);
+            rs = ps.executeQuery();
+
+            if (rs.next()) {
+                return mapRow(rs);
+            }
+            return null;
+        } catch (SQLException e) {
+            throw new RuntimeException("Error querying customers.findByEmail: " + e.getMessage(), e);
+        } finally {
+            closeAll(rs, ps, conn);
+        }
+    }
+
+    // Update the reset token hash for a specific customer
+    @Override
+    public boolean updateResetToken(String username, String resetTokenHash) {
+        String sql = "UPDATE customers SET reset_token = ? WHERE username = ?";
+
+        Connection conn = null;
+        PreparedStatement ps = null;
+
+        try {
+            conn = getConnection();
+            ps = conn.prepareStatement(sql);
+            ps.setString(1, resetTokenHash);
+            ps.setString(2, username);
+
+            return ps.executeUpdate() == 1;
+        } catch (SQLException e) {
+            throw new RuntimeException("Error executing customers.updateResetToken: " + e.getMessage(), e);
+        } finally {
+            closeAll(ps, conn);
+        }
+    }
+
     /**
      * Them moi customer vao database.
      * Dung cho chuc nang register customer.

@@ -23,6 +23,14 @@ public class LoginServlet extends HttpServlet {
             resp.sendRedirect(req.getContextPath() + "/home");
             return;
         }
+
+        // Set success message if redirected from registration or password reset
+        if ("true".equals(req.getParameter("resetSuccess"))) {
+            req.setAttribute("successMsg", "Your password has been reset successfully. Please sign in with your new password.");
+        } else if ("true".equals(req.getParameter("registered"))) {
+            req.setAttribute("successMsg", "Your account has been registered successfully. Please sign in.");
+        }
+
         req.getRequestDispatcher("/WEB-INF/views/auth/login.jsp").forward(req, resp);
     }
 
@@ -30,7 +38,7 @@ public class LoginServlet extends HttpServlet {
     protected void doPost(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
 
-        String username  = req.getParameter("username");
+        String username = req.getParameter("username");
         String password = req.getParameter("password");
 
         if (username == null || username.trim().isEmpty()
@@ -63,22 +71,26 @@ public class LoginServlet extends HttpServlet {
 
         if (customer != null) {
             HttpSession old = req.getSession(false);
-            if (old != null) old.invalidate();
+            if (old != null) {
+                old.invalidate();
+            }
             HttpSession session = req.getSession(true);
             session.setAttribute("currentUser", customer);
-            session.setAttribute("userRole",    "CUSTOMER");
-            session.setAttribute("username",    customer.getUsername());
+            session.setAttribute("userRole", "CUSTOMER");
+            session.setAttribute("username", customer.getUsername());
             resp.sendRedirect(req.getContextPath() + "/home");
             return;
         }
 
         if (employee != null) {
             HttpSession old = req.getSession(false);
-            if (old != null) old.invalidate();
+            if (old != null) {
+                old.invalidate();
+            }
             HttpSession session = req.getSession(true);
             session.setAttribute("currentUser", employee);
-            session.setAttribute("userRole",    employee.getRole()); //add later
-            session.setAttribute("username",    employee.getUsername()); 
+            session.setAttribute("userRole", employee.getRole()); //add later
+            session.setAttribute("username", employee.getUsername());
             if (employee.getBranchId() != null) {
                 session.setAttribute("branchId", employee.getBranchId());
             }

@@ -1,0 +1,9 @@
+# Example Google SMTP configuration
+mail.smtp.host=smtp.gmail.com
+mail.smtp.port=587
+mail.smtp.auth=true
+mail.smtp.starttls.enable=true
+
+# Replace with your actual Gmail account and Gmail App Password
+mail.sender.email=your-gmail@gmail.com
+mail.sender.password=your-app-password

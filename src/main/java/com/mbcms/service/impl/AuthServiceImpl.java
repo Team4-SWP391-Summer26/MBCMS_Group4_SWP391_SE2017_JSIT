@@ -10,8 +10,8 @@ import com.mbcms.service.AuthService;
 import org.mindrot.jbcrypt.BCrypt;
 
 /**
- * AuthServiceImpl - xu ly business logic xac thuc.
- * Dung BCrypt (jBCrypt) de verify password, khong bao gio so sanh plaintext.
+ * AuthServiceImpl - xu ly business logic xac thuc. Dung BCrypt (jBCrypt) de
+ * verify password, khong bao gio so sanh plaintext.
  */
 public class AuthServiceImpl implements AuthService {
 
@@ -31,45 +31,63 @@ public class AuthServiceImpl implements AuthService {
 
     /**
      * Xac thuc Customer.
+     *
      * @return Customer neu hop le, null neu sai loginId/password hoac bi khoa.
      */
     @Override
     public Customer loginCustomer(String loginId, String rawPassword) {
-        if (loginId == null || rawPassword == null) return null;
+        if (loginId == null || rawPassword == null) {
+            return null;
+        }
 
         Customer customer = customerDAO.findByUsername(loginId);
-        if (customer == null) return null;
+        if (customer == null) {
+            return null;
+        }
 
         // Kiem tra tai khoan con active
-        if (!customer.isActive()) return null;
+        if (!customer.isActive()) {
+            return null;
+        }
 
         // BCrypt verify
-        if (!BCrypt.checkpw(rawPassword, customer.getPasswordHash())) return null;
+        if (!BCrypt.checkpw(rawPassword, customer.getPasswordHash())) {
+            return null;
+        }
 
         return customer;
     }
 
     /**
      * Xac thuc Employee (staff/admin).
+     *
      * @return Employee neu hop le, null neu sai hoac bi khoa.
      */
     @Override
     public Employee loginEmployee(String loginId, String rawPassword) {
-        if (loginId == null || rawPassword == null) return null;
+        if (loginId == null || rawPassword == null) {
+            return null;
+        }
 
         Employee employee = employeeDAO.findByUsername(loginId);
-        if (employee == null) return null;
+        if (employee == null) {
+            return null;
+        }
 
-        if (!employee.isActive()) return null;
+        if (!employee.isActive()) {
+            return null;
+        }
 
-        if (!BCrypt.checkpw(rawPassword, employee.getPasswordHash())) return null;
+        if (!BCrypt.checkpw(rawPassword, employee.getPasswordHash())) {
+            return null;
+        }
 
         return employee;
     }
 
     /**
-     * Dang ky tai khoan Customer moi.
-     * Hash password bang BCrypt work-factor 10 truoc khi luu.
+     * Dang ky tai khoan Customer moi. Hash password bang BCrypt work-factor 10
+     * truoc khi luu.
      */
     @Override
     public boolean registerCustomer(Customer customer, String rawPassword) {
@@ -90,7 +108,7 @@ public class AuthServiceImpl implements AuthService {
         // Hash password bang BCrypt
         String hashed = BCrypt.hashpw(rawPassword, BCrypt.gensalt(10));
         customer.setPasswordHash(hashed);
-        
+
         // Cac thiet lap mac dinh
         customer.setActive(true);
         customer.setEmailVerified(false);
@@ -99,13 +117,12 @@ public class AuthServiceImpl implements AuthService {
         // Luu vao CSDL
         return customerDAO.insert(customer);
     }
-        /**
-     * Doi mat khau cho customer/employee dang dang nhap.
-     * Luong xu ly:
-     * 1. Kiem tra input rong.
-     * 2. Tim user theo username va role trong session.
-     * 3. Check mat khau cu bang BCrypt.
-     * 4. Hash mat khau moi bang BCrypt roi update xuong DB.
+
+    /**
+     * Doi mat khau cho customer/employee dang dang nhap. Luong xu ly: 1. Kiem
+     * tra input rong. 2. Tim user theo username va role trong session. 3. Check
+     * mat khau cu bang BCrypt. 4. Hash mat khau moi bang BCrypt roi update
+     * xuong DB.
      */
     @Override
     public String changePassword(String username, String userRole, String oldPassword, String newPassword) {
@@ -158,5 +175,42 @@ public class AuthServiceImpl implements AuthService {
 
         String newHash = BCrypt.hashpw(newPassword, BCrypt.gensalt(10));
         return employeeDAO.updatePassword(username, newHash) ? "SUCCESS" : "UPDATE_FAILED";
+    }
+
+    // Retrieve an active customer by their email address
+    @Override
+    public Customer getActiveCustomerByEmail(String email) {
+        if (email == null || email.trim().isEmpty()) {
+            return null;
+        }
+        Customer customer = customerDAO.findByEmail(email.trim());
+        if (customer != null && customer.isActive()) {
+            return customer;
+        }
+        return null;
+    }
+
+    // Set the reset token hash in the database for a customer
+    @Override
+    public boolean setResetToken(String username, String resetTokenHash) {
+        if (username == null || username.trim().isEmpty()) {
+            return false;
+        }
+        return customerDAO.updateResetToken(username.trim(), resetTokenHash);
+    }
+
+    // Update customer's password and clear the reset token hash in the database
+    @Override
+    public boolean resetPasswordAndClearToken(String username, String newPasswordHash) {
+        if (username == null || username.trim().isEmpty() || newPasswordHash == null) {
+            return false;
+        }
+        boolean isPasswordUpdated = customerDAO.updatePassword(username.trim(), newPasswordHash);
+        if (isPasswordUpdated) {
+            // Clear the reset token after password has been successfully reset
+            customerDAO.updateResetToken(username.trim(), null);
+            return true;
+        }
+        return false;
     }
 }
