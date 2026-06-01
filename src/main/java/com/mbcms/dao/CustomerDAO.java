@@ -9,4 +9,6 @@ import com.mbcms.model.Customer;
 public interface CustomerDAO {
 
     Customer findByUsername(String username);
+    
+    Customer findByEmail(String email);
 }

@@ -9,4 +9,6 @@ import com.mbcms.model.Employee;
 public interface EmployeeDAO {
 
     Employee findByUsername(String username);
+    
+    Employee findByEmail(String email);
 }
