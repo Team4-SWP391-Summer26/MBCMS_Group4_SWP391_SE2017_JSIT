@@ -16,19 +16,17 @@
         <jsp:include page="common/header.jsp" />
 
         <div class="container mt-4">
-            <h2 class="mb-4 fw-bold">Phim đang chiếu</h2>
+            <h2 class="mb-4 fw-bold">Now Showing</h2>
             <div class="row row-cols-2 row-cols-md-4 g-3">
                 <%-- TODO: forEach movieList --%>
                 <div class="col">
                     <div class="card h-100 movie-card">
-                        <img src="https://via.placeholder.com/300x450?text=Poster" class="card-img-top"
-                             alt="poster">
                         <div class="card-body">
-                            <h6 class="card-title fw-bold">Tên phim</h6>
-                            <small class="text-secondary">2D | T13 | 120 phút</small>
+                            <h6 class="card-title fw-bold">Movie Title</h6>
+                            <small class="text-secondary">2D | T13 | 120 mins</small>
                         </div>
                         <div class="card-footer border-0" style="background:transparent;">
-                            <a href="#" class="btn btn-sm w-100 btn-primary-lc">Đặt vé</a>
+                            <a href="#" class="btn btn-sm w-100 btn-primary-lc">Book ticket</a>
                         </div>
                     </div>
                 </div>
