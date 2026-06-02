@@ -40,7 +40,7 @@ public class AuthServiceImpl implements AuthService {
             return null;
         }
 
-        Customer customer = customerDAO.findByUsername(loginId);
+        Customer customer = customerDAO.findByEmail(loginId);
         if (customer == null) {
             return null;
         }
