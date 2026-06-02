@@ -55,10 +55,11 @@
                                        class="form-control"
                                        placeholder="Enter your new password"
                                        minlength="6"
+                                       maslenght="64"
                                        required>
 
                                 <small class="text-muted">
-                                    Your new password must be at least 6 characters long.
+                                    Your new password must be at least 6 characters.
                                 </small>
                             </div>
 
@@ -69,6 +70,7 @@
                                        class="form-control"
                                        placeholder="Re-enter your new password"
                                        minlength="6"
+                                       maxlength="64"
                                        required>
                             </div>
 

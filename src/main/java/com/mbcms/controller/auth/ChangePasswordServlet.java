@@ -80,7 +80,7 @@ public class ChangePasswordServlet extends HttpServlet {
                 break;
 
             case "WEAK_PASSWORD":
-                req.setAttribute("errorMsg", "New password must be at least 6 characters long.");
+                req.setAttribute("errorMsg", "New password must be at least 6 characters.");
                 break;
 
             case "SAME_PASSWORD":
