@@ -109,13 +109,27 @@ public class AuthServiceImpl implements AuthService {
         String hashed = BCrypt.hashpw(rawPassword, BCrypt.gensalt(10));
         customer.setPasswordHash(hashed);
 
+        // Sinh token xac thuc ngau nhien
+        String token = java.util.UUID.randomUUID().toString();
+        customer.setResetToken(token);
+
         // Cac thiet lap mac dinh
         customer.setActive(true);
         customer.setEmailVerified(false);
         customer.setCreatedAt(java.time.LocalDateTime.now());
 
-        // Luu vao CSDL
-        return customerDAO.insert(customer);
+        // Luu vao CSDL va gui email xac thuc bat dong bo
+        boolean success = customerDAO.insert(customer);
+        if (success) {
+            final String email = customer.getEmail();
+            final String username = customer.getUsername();
+            final String verifyToken = token;
+            new Thread(() -> {
+                String verifyLink = "http://localhost:9999/MBCMS/auth/verify?username=" + username + "&token=" + verifyToken;
+                com.mbcms.util.EmailUtil.sendVerificationEmail(email, username, verifyLink);
+            }).start();
+        }
+        return success;
     }
 
     /**
@@ -210,6 +224,21 @@ public class AuthServiceImpl implements AuthService {
             // Clear the reset token after password has been successfully reset
             customerDAO.updateResetToken(username.trim(), null);
             return true;
+        }
+        return false;
+    }
+
+    @Override
+    public boolean verifyCustomer(String username, String token) {
+        if (username == null || token == null) {
+            return false;
+        }
+        Customer customer = customerDAO.findByUsername(username);
+        if (customer == null) {
+            return false;
+        }
+        if (token.equals(customer.getResetToken()) && !customer.isEmailVerified()) {
+            return customerDAO.updateEmailVerified(username, true);
         }
         return false;
     }

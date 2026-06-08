@@ -28,4 +28,6 @@ public interface AuthService {
 
     // Update customer's password and clear the reset token hash in the database
     boolean resetPasswordAndClearToken(String username, String newPasswordHash);
+
+    boolean verifyCustomer(String username, String token);
 }

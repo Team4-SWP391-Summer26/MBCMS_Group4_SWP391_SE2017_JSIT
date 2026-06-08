@@ -160,6 +160,9 @@
                             <c:if test="${not empty successMsg}">
                                 <div class="alert alert-success py-2" style="font-size: 0.85rem;">${successMsg}</div>
                             </c:if>
+                            <c:if test="${param.verified == 'true'}">
+                                <div class="alert alert-success py-2" style="font-size: 0.85rem;">Xác thực tài khoản thành công! Vui lòng đăng nhập.</div>
+                            </c:if>
 
                             <form method="post" action="${pageContext.request.contextPath}/auth/login">
                                 <!-- Email/Username field -->

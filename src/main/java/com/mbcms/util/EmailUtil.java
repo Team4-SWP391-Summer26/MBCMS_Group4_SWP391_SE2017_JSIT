@@ -115,4 +115,86 @@ public class EmailUtil {
             return false;
         }
     }
+
+    /**
+     * Send Account Activation Verification Link to recipient's email address.
+     *
+     * @param recipientEmail The recipient's email address.
+     * @param username The registered customer's username.
+     * @param verificationLink The unique activation URL.
+     * @return true if sent successfully, false otherwise.
+     */
+    public static boolean sendVerificationEmail(String recipientEmail, String username, String verificationLink) {
+        final String senderEmail = emailProps.getProperty("mail.sender.email");
+        final String senderPassword = emailProps.getProperty("mail.sender.password");
+
+        // Validate that credentials have been configured
+        if (senderEmail == null || senderEmail.equals("your-gmail@gmail.com")
+                || senderPassword == null || senderPassword.equals("your-app-password")) {
+            System.err.println("[ERROR] Gmail sender credentials are not configured. Cannot send verification email.");
+            return false;
+        }
+
+        // Setup session properties
+        Properties props = new Properties();
+        props.put("mail.smtp.host", emailProps.getProperty("mail.smtp.host", "smtp.gmail.com"));
+        props.put("mail.smtp.port", emailProps.getProperty("mail.smtp.port", "587"));
+        props.put("mail.smtp.auth", emailProps.getProperty("mail.smtp.auth", "true"));
+        props.put("mail.smtp.starttls.enable", emailProps.getProperty("mail.smtp.starttls.enable", "true"));
+
+        // Add timeout properties to prevent hanging
+        props.put("mail.smtp.connectiontimeout", "5000"); // 5s connection timeout
+        props.put("mail.smtp.timeout", "5000");           // 5s read timeout
+
+        // Create a mail session with SMTP authenticator
+        Session session = Session.getInstance(props, new Authenticator() {
+            @Override
+            protected PasswordAuthentication getPasswordAuthentication() {
+                return new PasswordAuthentication(senderEmail, senderPassword);
+            }
+        });
+
+        try {
+            // Create a default MimeMessage object
+            MimeMessage message = new MimeMessage(session);
+
+            // Set From: header field
+            message.setFrom(new InternetAddress(senderEmail));
+
+            // Set To: header field
+            message.addRecipient(Message.RecipientType.TO, new InternetAddress(recipientEmail));
+
+            // Set Subject: header field
+            message.setSubject("[MBCMS] Xác thực đăng ký tài khoản mới", "UTF-8");
+
+            // Compose HTML message body with a stylized button
+            String htmlContent = "<div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e5e7eb; border-radius: 12px; background-color: #ffffff;'>"
+                    + "<div style='text-align: center; margin-bottom: 20px;'>"
+                    + "  <h2 style='color: #182c54; margin: 0;'>MBCMS Cinema</h2>"
+                    + "</div>"
+                    + "<hr style='border: 0; border-top: 1px solid #e5e7eb; margin-bottom: 20px;'>"
+                    + "<p>Xin chào <strong>" + username + "</strong>,</p>"
+                    + "<p>Cảm ơn bạn đã đăng ký tài khoản tại hệ thống rạp chiếu phim MBCMS. Vui lòng bấm vào nút bên dưới để hoàn tất kích hoạt tài khoản của bạn:</p>"
+                    + "<div style='text-align: center; margin: 30px 0;'>"
+                    + "  <a href='" + verificationLink + "' style='display: inline-block; padding: 12px 24px; font-size: 16px; color: #ffffff; background-color: #2563eb; text-decoration: none; border-radius: 8px; font-weight: bold;'>Xác Thực Tài Khoản</a>"
+                    + "</div>"
+                    + "<p style='font-size: 0.9rem; color: #6b7280;'>Nếu nút bấm trên không hoạt động, bạn có thể sao chép liên kết dưới đây và dán vào thanh địa chỉ trình duyệt:</p>"
+                    + "<p style='font-size: 0.85rem; color: #2563eb; word-break: break-all;'>" + verificationLink + "</p>"
+                    + "<br>"
+                    + "<p>Trân trọng,<br>Đội ngũ hỗ trợ MBCMS</p>"
+                    + "</div>";
+
+            // Set content type and encoding
+            message.setContent(htmlContent, "text/html; charset=UTF-8");
+
+            // Send email
+            Transport.send(message);
+            return true;
+
+        } catch (MessagingException e) {
+            System.err.println("[ERROR] Failed to send verification email: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
 }

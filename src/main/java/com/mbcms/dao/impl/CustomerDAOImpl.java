@@ -219,6 +219,24 @@ public class CustomerDAOImpl extends BaseDAO implements CustomerDAO {
         }
     }
 
+    @Override
+    public boolean updateEmailVerified(String username, boolean verified) {
+        String sql = "UPDATE customers SET email_verified = ?, reset_token = NULL WHERE username = ?";
+        Connection conn = null;
+        PreparedStatement ps = null;
+        try {
+            conn = getConnection();
+            ps = conn.prepareStatement(sql);
+            ps.setBoolean(1, verified);
+            ps.setString(2, username);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            throw new RuntimeException("Loi thuc thi customers.updateEmailVerified: " + e.getMessage(), e);
+        } finally {
+            closeAll(ps, conn);
+        }
+    }
+
     /**
      * Chuyen du lieu tu ResultSet thanh object Customer.
      */
