@@ -1,0 +1,135 @@
+/* ============================================================
+   manager.css - Manager/Admin console layout (owner: HungNT)
+   Port tu "Frontend demo" prototype (LuminaCine Prototype.html)
+   de cac man /branch/* dong nhat voi thiet ke da duyet trong SRS.
+   KHONG dung den main.css (style chung cua team).
+   ============================================================ */
+
+:root {
+    /* Bien rieng cua console, map theo prototype --lc-* */
+    --lc-primary: #2563EB;
+    --lc-primary-700: #1D4ED8;
+    --lc-navy: #0F2247;
+    --lc-light: #EFF4FF;
+    --lc-gold: #FFD66B;
+    --lc-bg: #F5F7FA;
+    --lc-border: #E6EAF2;
+    --lc-muted: #64748B;
+    --lc-shadow: 0 4px 12px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.04);
+}
+
+body.lc-console { background: var(--lc-bg); }
+
+/* ---------- Sidebar ---------- */
+.lc-sidebar {
+    background: var(--lc-navy); color: #fff; width: 240px; min-height: 100vh;
+    position: fixed; left: 0; top: 0; padding: 18px 12px; z-index: 1030;
+    box-shadow: 2px 0 12px rgba(0, 0, 0, .06);
+    display: flex; flex-direction: column;
+}
+.lc-sb-brand { font-weight: 800; font-size: 1.15rem; letter-spacing: -0.02em; color: #fff; text-decoration: none; }
+.lc-sb-brand:hover { color: #fff; }
+.lc-sb-subtitle { font-size: .72rem; color: rgba(255,255,255,.5); margin-top: 6px; letter-spacing: .05em; }
+.lc-sb-section { font-size: .68rem; text-transform: uppercase; letter-spacing: .12em; color: rgba(255,255,255,.45); padding: 14px 12px 6px; }
+.lc-sb-item {
+    display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 8px;
+    color: rgba(255,255,255,.78); font-weight: 500; font-size: .92rem; text-decoration: none;
+    transition: background .12s ease, color .12s ease; position: relative; margin-bottom: 2px;
+}
+.lc-sb-item:hover { background: rgba(255,255,255,.06); color: #fff; }
+.lc-sb-item.active { background: var(--lc-primary); color: #fff; }
+.lc-sb-item.active::before {
+    content: ""; position: absolute; left: -12px; top: 8px; bottom: 8px; width: 3px;
+    background: var(--lc-gold); border-radius: 0 4px 4px 0;
+}
+.lc-sb-item.disabled { color: rgba(255,255,255,.35); cursor: not-allowed; }
+.lc-sb-item.disabled:hover { background: transparent; }
+.lc-sb-item i { width: 18px; }
+.lc-sb-soon { font-size: .6rem; background: rgba(255,255,255,.1); color: rgba(255,255,255,.5); padding: .1rem .4rem; border-radius: 999px; margin-left: auto; }
+.lc-sb-user { background: rgba(255,255,255,.04); border-radius: 10px; }
+.lc-sb-avatar {
+    width: 36px; height: 36px; border-radius: 999px; background: var(--lc-primary);
+    display: flex; align-items: center; justify-content: center; font-weight: 700; flex-shrink: 0;
+}
+
+/* ---------- Main content (ben phai sidebar) ---------- */
+.lc-admin-main { margin-left: 240px; min-height: 100vh; background: var(--lc-bg); }
+
+/* ---------- Cards / common ---------- */
+.lc-elev { background: #fff; border: none; border-radius: 14px; box-shadow: var(--lc-shadow); }
+.text-navy { color: #0f1e36; }
+
+/* ---------- Branch scope notice ---------- */
+.lc-scope {
+    background: #FFF8E1; border: 1px solid #FFE082; color: #7a5a00; border-radius: 10px;
+    padding: .55rem .9rem; font-size: .85rem; display: flex; align-items: center; gap: .55rem;
+}
+
+/* ---------- Status pills ---------- */
+.pill { display: inline-flex; align-items: center; gap: .3rem; padding: .25rem .6rem; border-radius: 999px; font-size: .72rem; font-weight: 600; line-height: 1.1; white-space: nowrap; }
+.pill-green { background: #E8F5EE; color: #146C43; }
+.pill-orange { background: #FFF4D6; color: #997404; }
+.pill-red { background: #FBE4E6; color: #B02A37; }
+.pill-gray { background: #EEF1F4; color: #495057; }
+.pill-blue { background: #DCE9FB; color: #084298; }
+.pill-purple { background: #ECE3F8; color: #59359a; }
+
+/* ---------- KPI stat card ---------- */
+.lc-stat-icon {
+    width: 44px; height: 44px; border-radius: 10px; background: var(--lc-light); color: var(--lc-primary);
+    display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0;
+}
+.lc-stat-value { font-size: 1.8rem; letter-spacing: -0.01em; font-weight: 700; }
+
+/* ---------- Tables ---------- */
+.lc-table th { font-size: .76rem; text-transform: uppercase; letter-spacing: .04em; color: var(--lc-muted); white-space: nowrap; border-bottom-width: 1px; }
+.lc-table td { vertical-align: middle; font-size: .92rem; }
+.lc-table thead { background: var(--lc-light); }
+.mono { font-family: ui-monospace, Menlo, Consolas, monospace; }
+
+/* ---------- Date pills (chon ngay) ---------- */
+.date-pill {
+    padding: .55rem .8rem; border-radius: 10px; border: 1px solid var(--lc-border);
+    cursor: pointer; background: #fff; line-height: 1.1; text-align: center; min-width: 64px;
+    text-decoration: none; display: inline-block;
+    transition: border-color .15s ease, background .15s ease, color .15s ease;
+}
+.date-pill .d-day { font-size: .68rem; color: var(--lc-muted); font-weight: 600; text-transform: uppercase; }
+.date-pill .d-num { font-size: .9rem; color: #0f1e36; font-weight: 700; margin-top: 2px; }
+.date-pill:hover:not(.active) { border-color: var(--lc-primary); background: var(--lc-light); }
+.date-pill.active { background: var(--lc-primary); border-color: var(--lc-primary-700); box-shadow: 0 4px 12px rgba(37,99,235,.22); }
+.date-pill.active .d-day, .date-pill.active .d-num { color: #fff; }
+
+/* ---------- Occupancy bar ---------- */
+.bar-track { height: 8px; background: #EEF2F7; border-radius: 999px; overflow: hidden; }
+.bar-fill { height: 100%; background: var(--lc-primary); border-radius: 999px; }
+
+/* ---------- Schedule timeline (rooms x hours) ---------- */
+.tl-wrap { overflow-x: auto; }
+.tl-inner { min-width: 920px; }
+.tl-scale { display: flex; margin-left: 130px; border-bottom: 1px solid var(--lc-border); padding-bottom: 4px; }
+.tl-scale span { flex: 1; font-size: .72rem; color: #94a3b8; font-weight: 500; }
+.tl-row { display: flex; align-items: center; border-bottom: 1px solid var(--lc-border); min-height: 64px; }
+.tl-roomcol { width: 130px; padding: 8px 12px; flex-shrink: 0; }
+.tl-canvas { position: relative; flex: 1; height: 64px; }
+.tl-gridline { position: absolute; top: 0; bottom: 0; width: 1px; background: #F0F4FA; }
+.tl-block {
+    position: absolute; top: 8px; bottom: 8px; border-radius: 6px; color: #fff;
+    padding: 4px 8px; font-size: .72rem; overflow: hidden; cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0,0,0,.12); text-decoration: none; display: block;
+}
+.tl-block:hover { color: #fff; filter: brightness(1.08); }
+.tl-block .tl-title { font-weight: 700; font-size: .78rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tl-std  { background: linear-gradient(135deg, #0D6EFD 0%, #0D6EFDCC 100%); }
+.tl-vip  { background: linear-gradient(135deg, #C9A227 0%, #C9A227CC 100%); }
+.tl-imax { background: linear-gradient(135deg, #6F42C1 0%, #6F42C1CC 100%); }
+.tl-full { background: linear-gradient(135deg, #DC3545 0%, #B02A37 100%); }
+.tl-legend { width: 12px; height: 12px; border-radius: 2px; display: inline-block; }
+
+/* ---------- Form: radio card picker (Format / Subtitle) ---------- */
+.lc-radio {
+    border: 1px solid var(--lc-border); border-radius: 8px; background: #fff; color: #0f1e36;
+    font-weight: 600; padding: .55rem 1rem; text-align: center;
+}
+.btn-check:checked + .lc-radio { background: var(--lc-light); border-color: var(--lc-primary); color: var(--lc-primary-700); }
+.btn-check:focus-visible + .lc-radio { outline: 3px solid rgba(37,99,235,.3); }

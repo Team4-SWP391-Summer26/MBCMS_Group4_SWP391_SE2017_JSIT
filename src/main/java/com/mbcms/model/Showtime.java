@@ -24,6 +24,13 @@ public class Showtime {
     private String subtitleType;
     private String status;
 
+    // Display fields - do tu JOIN (movies/rooms/booking_seats), KHONG map cot cua bang showtimes
+    private String movieTitle;
+    private String roomName;
+    private String roomType;
+    private int bookedSeats;
+    private int roomCapacity;
+
     public Showtime() {}
 
     public long getShowtimeId() { return showtimeId; }
@@ -52,4 +59,19 @@ public class Showtime {
 
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
+
+    public String getMovieTitle() { return movieTitle; }
+    public void setMovieTitle(String movieTitle) { this.movieTitle = movieTitle; }
+
+    public String getRoomName() { return roomName; }
+    public void setRoomName(String roomName) { this.roomName = roomName; }
+
+    public String getRoomType() { return roomType; }
+    public void setRoomType(String roomType) { this.roomType = roomType; }
+
+    public int getBookedSeats() { return bookedSeats; }
+    public void setBookedSeats(int bookedSeats) { this.bookedSeats = bookedSeats; }
+
+    public int getRoomCapacity() { return roomCapacity; }
+    public void setRoomCapacity(int roomCapacity) { this.roomCapacity = roomCapacity; }
 }
