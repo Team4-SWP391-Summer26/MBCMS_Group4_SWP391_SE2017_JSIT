@@ -29,6 +29,11 @@ public class ShowtimeDAOImpl extends BaseDAO implements ShowtimeDAO {
             + "JOIN movies m ON st.movie_id = m.movie_id "
             + "JOIN rooms r ON st.room_id = r.room_id ";
 
+    /**
+     * Lay danh sach suat chieu cua 1 branch, co the loc them theo phim/phong/ngay.
+     * 3 filter movieId, roomId, date la TUY CHON: null = bo qua filter do.
+     * Cau SQL duoc build DONG theo filter nao co mat (xem ben duoi).
+     */
     @Override
     public List<Showtime> findByBranch(long branchId, Long movieId, Long roomId, LocalDate date) {
         StringBuilder sql = new StringBuilder(BASE_SELECT + "WHERE r.branch_id = ?");
@@ -54,6 +59,9 @@ public class ShowtimeDAOImpl extends BaseDAO implements ShowtimeDAO {
             conn = getConnection();
             ps = conn.prepareStatement(sql.toString());
 
+            // Gan gia tri cho cac dau ? theo DUNG THU TU da append o tren.
+            // idx tu tang (idx++) -> chi set ? cho filter nao thuc su co mat,
+            // khop chinx xac so luong dau ? trong cau SQL dong phia tren.
             int idx = 1;
             ps.setLong(idx++, branchId);
             if (movieId != null) {
@@ -68,6 +76,7 @@ public class ShowtimeDAOImpl extends BaseDAO implements ShowtimeDAO {
 
             rs = ps.executeQuery();
 
+            // Duyet tung dong ket qua -> chuyen thanh object Showtime -> bo vao list.
             List<Showtime> showtimes = new ArrayList<>();
             while (rs.next()) {
                 showtimes.add(mapRow(rs));
@@ -142,12 +151,21 @@ public class ShowtimeDAOImpl extends BaseDAO implements ShowtimeDAO {
             // se nem loi o day -> van khong the co 2 suat trung gio bat dau.
             throw new RuntimeException("Loi tao showtimes.createWithConflictCheck: " + e.getMessage(), e);
         } finally {
+            // Tra connection ve che do autocommit truoc khi tra lai pool (vi minh da tat o tren).
             restoreAutoCommitQuietly(conn);
+            // Co 2 PreparedStatement (check va insert) nen phai dong ca hai.
+            // Dong dau: rs + psCheck (truyen null o vi tri conn de CHUA dong connection).
+            // Dong sau: psInsert + conn (dong connection o buoc cuoi cung).
             closeAll(rs, psCheck, null);
             closeAll(psInsert, conn);
         }
     }
 
+    /**
+     * Tim 1 suat chieu theo khoa chinh showtime_id.
+     * Dung lai BASE_SELECT (co JOIN movies + rooms + dem ghe da dat) nhung loc theo id.
+     * @return object Showtime neu tim thay; null neu khong co suat nao co id do.
+     */
     @Override
     public Showtime findById(long showtimeId) {
         String sql = BASE_SELECT + "WHERE st.showtime_id = ?";
@@ -234,6 +252,12 @@ public class ShowtimeDAOImpl extends BaseDAO implements ShowtimeDAO {
         }
     }
 
+    /**
+     * Kiem tra suat chieu nay da co ai dat ve chua (booking con hieu luc).
+     * Dung "SELECT 1 ... " (chi can biet CO/KHONG, khong can dem so luong) cho nhe.
+     * Bo qua booking CANCELLED vi nhung ve da huy khong tinh la dang giu cho.
+     * @return true neu co it nhat 1 booking PENDING/CONFIRMED/USED.
+     */
     @Override
     public boolean hasActiveBookings(long showtimeId) {
         String sql = "SELECT 1 FROM bookings "
@@ -257,6 +281,11 @@ public class ShowtimeDAOImpl extends BaseDAO implements ShowtimeDAO {
         }
     }
 
+    /**
+     * Huy 1 suat chieu = doi status sang CANCELLED (soft cancel).
+     * KHONG DELETE de giu lich su va cac booking dang tham chieu toi suat nay.
+     * @return true neu co dung 1 dong bi cap nhat (huy thanh cong); false neu khong.
+     */
     @Override
     public boolean cancel(long showtimeId) {
         // Soft cancel: doi status, KHONG DELETE (giu lich su + booking tham chieu).
@@ -279,6 +308,7 @@ public class ShowtimeDAOImpl extends BaseDAO implements ShowtimeDAO {
         }
     }
 
+    /** Rollback transaction "nhe nhang": neu rollback cung loi thi chi log, khong nem tiep. */
     private void rollbackQuietly(Connection conn) {
         if (conn != null) {
             try { conn.rollback(); } catch (SQLException e) {
@@ -287,6 +317,7 @@ public class ShowtimeDAOImpl extends BaseDAO implements ShowtimeDAO {
         }
     }
 
+    /** Bat lai autocommit truoc khi connection ve pool (vi mac dinh pool ky vong autocommit=true). */
     private void restoreAutoCommitQuietly(Connection conn) {
         if (conn != null) {
             try { conn.setAutoCommit(true); } catch (SQLException e) {
@@ -295,6 +326,10 @@ public class ShowtimeDAOImpl extends BaseDAO implements ShowtimeDAO {
         }
     }
 
+    /**
+     * Chuyen 1 dong (row) cua ResultSet thanh 1 object Showtime.
+     * Tach rieng ra ham nay de findByBranch va findById dung chung, khong lap code.
+     */
     private Showtime mapRow(ResultSet rs) throws SQLException {
         Showtime st = new Showtime();
         st.setShowtimeId(rs.getLong("showtime_id"));

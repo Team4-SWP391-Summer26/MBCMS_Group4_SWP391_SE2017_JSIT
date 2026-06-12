@@ -31,6 +31,7 @@ public class ShowtimeCreateServlet extends HttpServlet {
 
     private static final String VIEW = "/WEB-INF/views/branch/showtime/form.jsp";
 
+    /** GET: chi mo form trong, nap san danh sach phim + phong cho 2 dropdown. */
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
@@ -38,26 +39,34 @@ public class ShowtimeCreateServlet extends HttpServlet {
         req.getRequestDispatcher(VIEW).forward(req, resp);
     }
 
+    /** POST: nhan du lieu form, tao showtime. Theo chuan PRG (Post-Redirect-Get). */
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
 
+        // Lay branch_id cua manager dang dang nhap tu session (do AuthFilter set san).
+        // getSession(false) = khong tu tao session moi; dung branchId nay de gioi han
+        // manager chi tao suat cho chi nhanh cua minh.
         long branchId = (Long) req.getSession(false).getAttribute("currentBranchId");
 
         try {
+            // handleCreate tra ve null neu OK, hoac chuoi loi de hien cho user.
             String error = handleCreate(req, branchId);
             if (error == null) {
-                // PRG: thanh cong -> redirect, list.jsp hien toast MSG04
+                // Thanh cong -> REDIRECT sang trang list (khong forward). Lam vay de
+                // user co F5 lai cung khong gui POST lai -> tranh tao trung 2 suat.
                 resp.sendRedirect(req.getContextPath() + "/branch/showtimes?created=1");
                 return;
             }
+            // Loi nghiep vu (trung lich / sai phong...) -> de message cho JSP hien.
             req.setAttribute("errorMsg", error);
         } catch (RuntimeException ex) {
+            // Loi he thong (vd mat ket noi DB): ghi log, bao loi chung chung cho user.
             getServletContext().log("System error while creating showtime", ex);
             req.setAttribute("errorMsg", "System error, please try again later.");
         }
 
-        // Loi -> hien lai form, giu nguyen gia tri da nhap (form.jsp doc tu param)
+        // Co loi -> mo lai form va giu nguyen gia tri user da go (form.jsp doc lai tu param).
         loadFormData(req);
         req.getRequestDispatcher(VIEW).forward(req, resp);
     }
@@ -67,13 +76,17 @@ public class ShowtimeCreateServlet extends HttpServlet {
      * @return null neu thanh cong; nguoc lai tra ve thong bao loi.
      */
     private String handleCreate(HttpServletRequest req, long branchId) {
+        // 1. Parse + validate input tu form vao object Showtime (logic dung chung voi Edit).
+        //    populate() tra ve chuoi loi neu input sai (vd thieu gio, gia am...).
         Showtime st = new Showtime();
         String error = ShowtimeFormHelper.populate(req, st);
         if (error != null) {
             return error;
         }
+        // 2. Suat moi tao luon o trang thai SCHEDULED (da len lich).
         st.setStatus(Showtime.STATUS_SCHEDULED);
 
+        // 3. Goi service xu ly nghiep vu, roi DICH ma ket qua sang cau thong bao tieng Anh.
         ShowtimeService service = new ShowtimeServiceImpl();
         String result = service.createShowtime(st, branchId);
 
