@@ -118,8 +118,6 @@
                 <div class="payment-badges">
                     <span class="payment-badge badge-vnpay">VNPAY</span>
                     <span class="payment-badge badge-momo">MoMo</span>
-                    <span class="payment-badge badge-visa">VISA</span>
-                    <span class="payment-badge badge-mc">MC</span>
                 </div>
                 <div class="language-select">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
