@@ -137,7 +137,7 @@ CREATE TABLE dbo.seats (
     CONSTRAINT FK_seats_room FOREIGN KEY (room_id) REFERENCES dbo.rooms (room_id),
     CONSTRAINT UQ_seats_position UNIQUE (room_id, row_label, col_number),
     CONSTRAINT CK_seats_col  CHECK (col_number > 0),
-    CONSTRAINT CK_seats_type CHECK (seat_type IN ('STANDARD','VIP','COUPLE'))
+    CONSTRAINT CK_seats_type CHECK (seat_type IN ('STANDARD','VIP'))
 );
 GO
 CREATE INDEX IX_seats_room ON dbo.seats (room_id);
