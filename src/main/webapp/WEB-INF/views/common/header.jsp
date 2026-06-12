@@ -60,15 +60,17 @@
 
                 <!-- Action items (Notification Bell & Auth) aligned horizontally with exact gap-3 spacing -->
                 <div class="d-flex align-items-center gap-3">
-                    <!-- Notification Bell -->
-                    <div class="notification-btn" title="Notifications">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                             stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-                            <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
-                        </svg>
-                        <span class="notification-dot"></span>
-                    </div>
+                    <!-- Notification Bell (chi hien khi da dang nhap - guest khong co notification) -->
+                    <c:if test="${not empty sessionScope.currentUser}">
+                        <div class="notification-btn" title="Notifications">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                 stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                                <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                            </svg>
+                            <span class="notification-dot"></span>
+                        </div>
+                    </c:if>
 
                     <!-- Auth state links -->
                     <c:choose>
