@@ -132,23 +132,23 @@ Admin            ──►  Manage All Branches · Global Catalog · Users · Pr
 ┌─────────────────────────────────────────────────────────────┐
 │                      PRESENTATION LAYER                      │
 │          JSP 3.1 Views  ·  Jakarta Servlet 6.0              │
-│              com.cinema.view  ·  com.cinema.controller       │
+│           JSP views (webapp)  ·  com.mbcms.controller        │
 ├─────────────────────────────────────────────────────────────┤
 │                    CROSS-CUTTING CONCERNS                    │
 │         AuthFilter → RoleFilter → BranchFilter               │
-│                    com.cinema.filter                         │
+│                    com.mbcms.filter                          │
 ├─────────────────────────────────────────────────────────────┤
 │                    BUSINESS LOGIC LAYER                      │
 │    Booking · Payment · Seat Reservation · Report Generation  │
-│                    com.cinema.service                        │
+│                    com.mbcms.service                         │
 ├─────────────────────────────────────────────────────────────┤
 │                     DATA ACCESS LAYER                        │
 │        JDBC + DAO Pattern · PreparedStatement only           │
 │          Apache DBCP2 Connection Pool · No ORM               │
-│                     com.cinema.dao                           │
+│                     com.mbcms.dao                            │
 ├─────────────────────────────────────────────────────────────┤
 │                  SUPPORTING PACKAGES                         │
-│   com.cinema.bean (Entities)  ·  com.cinema.util (Helpers)  │
+│   com.mbcms.model (Entities)  ·  com.mbcms.util (Helpers)   │
 └─────────────────────────────────────────────────────────────┘
                               │
                               ▼
