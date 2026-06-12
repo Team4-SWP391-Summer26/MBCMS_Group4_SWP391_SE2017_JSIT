@@ -261,7 +261,7 @@ CREATE TABLE #plan (
 
 INSERT INTO #plan VALUES
  ('BK-000002','trangnt', N'MBCMS Ba Trieu',   N'Room 2',    N'Mai 2',            '2026-06-06 20:00', 2, 'CONFIRMED', 'SUMMER50K', 'VNPAY',       'SUCCESS', '2026-06-04 09:15'),
- ('BK-000003','hungnt',  N'MBCMS Nguyen Hue', N'IMAX Hall', N'Dune: Part Three', '2026-06-05 19:00', 3, 'USED',      NULL,        'CREDIT_CARD', 'SUCCESS', '2026-06-03 20:05'),
+ ('BK-000003','hungnt',  N'MBCMS Nguyen Hue', N'IMAX Hall', N'Dune: Part Three', '2026-06-05 19:00', 3, 'USED',      NULL,        'VNPAY',       'SUCCESS', '2026-06-03 20:05'),
  ('BK-000004','guest01', N'MBCMS Nguyen Hue', N'Room 2',    N'Mai 2',            '2026-06-05 18:00', 1, 'CONFIRMED', NULL,        'CASH',        'SUCCESS', '2026-06-05 17:40'),
  ('BK-000005','trangnt', N'MBCMS Ba Trieu',   N'Room 1',    N'The Last Laugh',   '2026-06-06 16:00', 2, 'PENDING',   NULL,        NULL,          NULL,      '2026-06-06 15:50'),
  ('BK-000006','hungnt',  N'MBCMS Nguyen Hue', N'Room 1',    N'Dune: Part Three', '2026-06-05 14:00', 2, 'CANCELLED', NULL,        'MOMO',        'FAILED',  '2026-06-02 11:30');
