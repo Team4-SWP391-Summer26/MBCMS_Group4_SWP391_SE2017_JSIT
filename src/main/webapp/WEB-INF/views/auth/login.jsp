@@ -174,7 +174,7 @@
                                         </span>
                                         <input type="text" name="email" class="form-control" 
                                                style="padding-left: 40px; border-radius: 8px; border-color: #d1d5db; height: 44px; font-size: 0.9rem;"
-                                               placeholder="thank0617@gmail.com" value="${param.email}" required>
+                                               placeholder="you@example.com" value="${param.email}" required>
                                         <input type="hidden" name="_csrf" value="${sessionScope.csrfToken}" />
                                     </div>
                                 </div>
@@ -188,7 +188,7 @@
                                         </span>
                                         <input type="password" id="loginPassword" name="password" class="form-control" 
                                                style="padding-left: 40px; padding-right: 40px; border-radius: 8px; border-color: #d1d5db; height: 44px; font-size: 0.9rem;"
-                                               placeholder="••••••••••••" required>
+                                               placeholder="Enter your password" required>
                                         <span class="position-absolute" style="right: 12px; top: 50%; transform: translateY(-50%); color: #9ca3af; cursor: pointer;" onclick="togglePasswordVisibility('loginPassword')">
                                             <svg id="eyeIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                                         </span>

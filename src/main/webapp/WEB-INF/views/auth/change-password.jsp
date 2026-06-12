@@ -55,7 +55,7 @@
                                        class="form-control"
                                        placeholder="Enter your new password"
                                        minlength="6"
-                                       maslenght="64"
+                                       maxlength="64"
                                        required>
 
                                 <small class="text-muted">
