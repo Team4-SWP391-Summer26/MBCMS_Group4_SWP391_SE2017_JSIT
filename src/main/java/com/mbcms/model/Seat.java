@@ -2,13 +2,12 @@ package com.mbcms.model;
 
 /**
  * Seat - map bang `seats` (ghe thuoc 1 room).
- * seatType: STANDARD | VIP | COUPLE ; active=false = bao tri.
+ * seatType: STANDARD | VIP ; active=false = bao tri.
  */
 public class Seat {
 
     public static final String TYPE_STANDARD = "STANDARD";
     public static final String TYPE_VIP = "VIP";
-    public static final String TYPE_COUPLE = "COUPLE";
 
     private long seatId;
     private long roomId;
