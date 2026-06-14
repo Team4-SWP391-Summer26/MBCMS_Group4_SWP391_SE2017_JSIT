@@ -218,7 +218,7 @@
                                             </span>
                                             <input type="email" name="email" class="form-control"
                                                    style="padding-left: 40px; border-radius: 8px; border-color: #d1d5db; height: 44px; font-size: 0.9rem;"
-                                                   placeholder="thank0617@gmail.com" value="${param.email}" required>
+                                                   placeholder="you@example.com" value="${param.email}" required>
                                         </div>
                                     </div>
 

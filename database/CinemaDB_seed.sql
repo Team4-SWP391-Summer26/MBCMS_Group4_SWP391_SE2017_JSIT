@@ -143,10 +143,12 @@ JOIN dbo.movies   mv ON mv.title = s.movie_title;
 -- ---------------------------------------------------------------------
 -- 8. Customers
 -- ---------------------------------------------------------------------
-INSERT INTO dbo.customers (username, email, password_hash, full_name, phone, date_of_birth, address, email_verified) VALUES
- ('hungnt',  'hungnt@gmail.com',  @PWD, N'Nguyen Thanh Hung', '0901111111', '2003-06-17', N'Thu Duc, HCM', 1),
- ('trangnt', 'trangnt@gmail.com', @PWD, N'Nguyen Thuy Trang', '0902222222', '2003-01-10', N'Hoan Kiem, HN', 1),
- ('guest01', 'guest01@gmail.com', @PWD, N'Le Van Khach',      '0903333333', '2000-12-25', N'Go Vap, HCM',  0);
+INSERT INTO dbo.customers (username, email, password_hash, full_name, phone, date_of_birth, address, email_verified, google_id) VALUES
+ ('hungnt',     'hungnt@gmail.com',     @PWD, N'Nguyen Thanh Hung', '0901111111', '2003-06-17', N'Thu Duc, HCM', 1, NULL),
+ ('trangnt',    'trangnt@gmail.com',    @PWD, N'Nguyen Thuy Trang', '0902222222', '2003-01-10', N'Hoan Kiem, HN', 1, NULL),
+ ('guest01',    'guest01@gmail.com',    @PWD, N'Le Van Khach',      '0903333333', '2000-12-25', N'Go Vap, HCM',  0, NULL),
+ -- Google sign-in account: no local password (NULL), email pre-verified by Google
+ ('googleuser', 'googleuser@gmail.com', NULL, N'Google Demo User',  '0904444444', '2001-03-03', NULL,           1, 'google-oauth2|108273645091827364501');
 
 -- ---------------------------------------------------------------------
 -- 9. Employees (1 admin, 2 managers, 2 staff)
@@ -254,14 +256,14 @@ CREATE TABLE #plan (
     num_seats    INT,
     [status]     VARCHAR(9)    COLLATE DATABASE_DEFAULT,
     promo_code   VARCHAR(30)   COLLATE DATABASE_DEFAULT NULL,   -- NULL = no promo
-    pay_method   VARCHAR(11)   COLLATE DATABASE_DEFAULT NULL,   -- NULL = no payment row (e.g. PENDING booking)
-    pay_status   VARCHAR(8)    COLLATE DATABASE_DEFAULT NULL,
+    pay_method   VARCHAR(5)    COLLATE DATABASE_DEFAULT NULL,   -- NULL = no payment row (e.g. PENDING booking)
+    pay_status   VARCHAR(7)    COLLATE DATABASE_DEFAULT NULL,
     booked_at    DATETIME2           -- explicit date so revenue-by-day has spread
 );
 
 INSERT INTO #plan VALUES
  ('BK-000002','trangnt', N'MBCMS Ba Trieu',   N'Room 2',    N'Mai 2',            '2026-06-06 20:00', 2, 'CONFIRMED', 'SUMMER50K', 'VNPAY',       'SUCCESS', '2026-06-04 09:15'),
- ('BK-000003','hungnt',  N'MBCMS Nguyen Hue', N'IMAX Hall', N'Dune: Part Three', '2026-06-05 19:00', 3, 'USED',      NULL,        'CREDIT_CARD', 'SUCCESS', '2026-06-03 20:05'),
+ ('BK-000003','hungnt',  N'MBCMS Nguyen Hue', N'IMAX Hall', N'Dune: Part Three', '2026-06-05 19:00', 3, 'USED',      NULL,        'VNPAY',       'SUCCESS', '2026-06-03 20:05'),
  ('BK-000004','guest01', N'MBCMS Nguyen Hue', N'Room 2',    N'Mai 2',            '2026-06-05 18:00', 1, 'CONFIRMED', NULL,        'CASH',        'SUCCESS', '2026-06-05 17:40'),
  ('BK-000005','trangnt', N'MBCMS Ba Trieu',   N'Room 1',    N'The Last Laugh',   '2026-06-06 16:00', 2, 'PENDING',   NULL,        NULL,          NULL,      '2026-06-06 15:50'),
  ('BK-000006','hungnt',  N'MBCMS Nguyen Hue', N'Room 1',    N'Dune: Part Three', '2026-06-05 14:00', 2, 'CANCELLED', NULL,        'MOMO',        'FAILED',  '2026-06-02 11:30');

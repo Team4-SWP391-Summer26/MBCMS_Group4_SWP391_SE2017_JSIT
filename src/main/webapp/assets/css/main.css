@@ -311,17 +311,6 @@ body {
     color: #ffffff;
 }
 
-.footer-custom .badge-visa {
-    background-color: #ffffff;
-    color: #1a1f71;
-    border: 1px solid #e5e7eb;
-}
-
-.footer-custom .badge-mc {
-    background-color: #ff5f00;
-    color: #ffffff;
-}
-
 .footer-custom .language-select {
     border: 1px solid #374151;
     background-color: transparent;

@@ -55,7 +55,7 @@
                                        class="form-control"
                                        placeholder="Enter your new password"
                                        minlength="6"
-                                       maslenght="64"
+                                       maxlength="64"
                                        required>
 
                                 <small class="text-muted">
@@ -74,7 +74,7 @@
                                        required>
                             </div>
 
-                            <button type="submit" class="btn btn-primary w-100 py-2">
+                            <button type="submit" class="btn btn-primary-lc w-100 py-2">
                                 Change Password
                             </button>
 

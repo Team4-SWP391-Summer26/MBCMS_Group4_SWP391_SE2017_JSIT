@@ -137,7 +137,7 @@ CREATE TABLE dbo.seats (
     CONSTRAINT FK_seats_room FOREIGN KEY (room_id) REFERENCES dbo.rooms (room_id),
     CONSTRAINT UQ_seats_position UNIQUE (room_id, row_label, col_number),
     CONSTRAINT CK_seats_col  CHECK (col_number > 0),
-    CONSTRAINT CK_seats_type CHECK (seat_type IN ('STANDARD','VIP','COUPLE'))
+    CONSTRAINT CK_seats_type CHECK (seat_type IN ('STANDARD','VIP'))
 );
 GO
 CREATE INDEX IX_seats_room ON dbo.seats (room_id);
@@ -175,7 +175,7 @@ GO
 CREATE TABLE dbo.customers (
     username       VARCHAR(50)   NOT NULL,           -- natural PK
     email          VARCHAR(150)  NOT NULL,
-    password_hash  VARCHAR(255)  NOT NULL,           -- bcrypt, work factor 10
+    password_hash  VARCHAR(255)  NULL,               -- bcrypt, factor 10; NULL for Google-only accounts
     full_name      NVARCHAR(100) NOT NULL,
     phone          VARCHAR(20)   NULL,
     date_of_birth  DATE          NULL,
@@ -183,10 +183,16 @@ CREATE TABLE dbo.customers (
     active         BIT           NOT NULL CONSTRAINT DF_customers_active DEFAULT (1),
     email_verified BIT           NOT NULL CONSTRAINT DF_customers_verified DEFAULT (0),
     reset_token    VARCHAR(255)  NULL,
+    google_id      VARCHAR(255)  NULL,               -- Google OIDC 'sub'; NULL for local accounts
     created_at     DATETIME2     NOT NULL CONSTRAINT DF_customers_created DEFAULT (SYSUTCDATETIME()),
     CONSTRAINT PK_customers PRIMARY KEY (username),
-    CONSTRAINT UQ_customers_email UNIQUE (email)
+    CONSTRAINT UQ_customers_email UNIQUE (email),
+    CONSTRAINT CK_customers_auth CHECK (password_hash IS NOT NULL OR google_id IS NOT NULL)
 );
+GO
+-- one Google account <-> one customer (filtered: ignores the many NULL local accounts;
+-- SQL Server UNIQUE allows only a single NULL, so a filtered index is required here)
+CREATE UNIQUE INDEX UQ_customers_google ON dbo.customers (google_id) WHERE google_id IS NOT NULL;
 GO
 
 CREATE TABLE dbo.promotions (
@@ -257,9 +263,9 @@ GO
 CREATE TABLE dbo.payments (
     payment_id      BIGINT        IDENTITY(1,1) NOT NULL,
     booking_id      BIGINT        NOT NULL,
-    method          VARCHAR(11)   NOT NULL,
+    method          VARCHAR(5)    NOT NULL,
     amount          DECIMAL(10,2) NOT NULL,
-    [status]        VARCHAR(8)    NOT NULL,
+    [status]        VARCHAR(7)    NOT NULL,
     transaction_ref VARCHAR(100)  NULL,              -- NULL for CASH
     paid_at         DATETIME2     NULL,              -- NULL until status = SUCCESS
     CONSTRAINT PK_payments PRIMARY KEY (payment_id),
@@ -267,8 +273,8 @@ CREATE TABLE dbo.payments (
     CONSTRAINT FK_payments_booking FOREIGN KEY (booking_id)
         REFERENCES dbo.bookings (booking_id) ON DELETE CASCADE,
     CONSTRAINT CK_payments_amount CHECK (amount >= 0),
-    CONSTRAINT CK_payments_method CHECK (method IN ('CASH','MOMO','VNPAY','CREDIT_CARD')),
-    CONSTRAINT CK_payments_status CHECK ([status] IN ('PENDING','SUCCESS','FAILED','REFUNDED'))
+    CONSTRAINT CK_payments_method CHECK (method IN ('CASH','MOMO','VNPAY')),
+    CONSTRAINT CK_payments_status CHECK ([status] IN ('PENDING','SUCCESS','FAILED'))
 );
 GO
 
