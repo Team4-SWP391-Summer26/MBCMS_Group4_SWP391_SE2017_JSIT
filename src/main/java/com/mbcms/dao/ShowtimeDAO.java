@@ -43,6 +43,9 @@ public interface ShowtimeDAO {
      * Dung cho business rule: khong cancel suat da co nguoi dat.
      */
     boolean hasActiveBookings(long showtimeId);
+    
+    /** Cac suat chieu cua 1 phim, sap xep theo startTime. */
+    List<Showtime> findByMovieId(long movieId);
 
     /**
      * Huy suat chieu (UC22): UPDATE status = 'CANCELLED', KHONG DELETE (giu lich su).

@@ -17,8 +17,8 @@ public class ShowtimeDAOImpl extends BaseDAO implements ShowtimeDAO {
     // SELECT chung cho findByBranch + findById.
     // Subquery dem ghe da dat: chi tinh booking con hieu luc (PENDING/CONFIRMED/USED),
     // khong tinh CANCELLED - dung quy tac SRS 3.5.2.1 (Seats booked/total).
-    private static final String BASE_SELECT =
-            "SELECT st.showtime_id, st.room_id, st.movie_id, st.start_time, st.end_time, "
+    private static final String BASE_SELECT
+            = "SELECT st.showtime_id, st.room_id, st.movie_id, st.start_time, st.end_time, "
             + "st.base_price, st.format, st.subtitle_type, st.status, "
             + "m.title AS movie_title, r.name AS room_name, r.room_type AS room_type, r.capacity AS room_capacity, "
             + "(SELECT COUNT(*) FROM booking_seats bs "
@@ -30,9 +30,10 @@ public class ShowtimeDAOImpl extends BaseDAO implements ShowtimeDAO {
             + "JOIN rooms r ON st.room_id = r.room_id ";
 
     /**
-     * Lay danh sach suat chieu cua 1 branch, co the loc them theo phim/phong/ngay.
-     * 3 filter movieId, roomId, date la TUY CHON: null = bo qua filter do.
-     * Cau SQL duoc build DONG theo filter nao co mat (xem ben duoi).
+     * Lay danh sach suat chieu cua 1 branch, co the loc them theo
+     * phim/phong/ngay. 3 filter movieId, roomId, date la TUY CHON: null = bo
+     * qua filter do. Cau SQL duoc build DONG theo filter nao co mat (xem ben
+     * duoi).
      */
     @Override
     public List<Showtime> findByBranch(long branchId, Long movieId, Long roomId, LocalDate date) {
@@ -93,11 +94,11 @@ public class ShowtimeDAOImpl extends BaseDAO implements ShowtimeDAO {
      * Check trung lich + INSERT trong CUNG 1 transaction (diem defend van dap):
      *
      * 2 suat chieu CHONG LAN khi: new.start < old.end AND new.end > old.start.
-     * UNIQUE(room_id, start_time) chi chan trung CHINH XAC gio bat dau,
-     * khong chan chong lan mot phan -> bat buoc check bang query nay.
+     * UNIQUE(room_id, start_time) chi chan trung CHINH XAC gio bat dau, khong
+     * chan chong lan mot phan -> bat buoc check bang query nay.
      *
-     * Phai check + insert cung transaction de tranh race condition:
-     * 2 manager cung tao suat trung nhau giua luc check va luc insert.
+     * Phai check + insert cung transaction de tranh race condition: 2 manager
+     * cung tao suat trung nhau giua luc check va luc insert.
      */
     @Override
     public boolean createWithConflictCheck(Showtime st) {
@@ -162,9 +163,11 @@ public class ShowtimeDAOImpl extends BaseDAO implements ShowtimeDAO {
     }
 
     /**
-     * Tim 1 suat chieu theo khoa chinh showtime_id.
-     * Dung lai BASE_SELECT (co JOIN movies + rooms + dem ghe da dat) nhung loc theo id.
-     * @return object Showtime neu tim thay; null neu khong co suat nao co id do.
+     * Tim 1 suat chieu theo khoa chinh showtime_id. Dung lai BASE_SELECT (co
+     * JOIN movies + rooms + dem ghe da dat) nhung loc theo id.
+     *
+     * @return object Showtime neu tim thay; null neu khong co suat nao co id
+     * do.
      */
     @Override
     public Showtime findById(long showtimeId) {
@@ -192,9 +195,9 @@ public class ShowtimeDAOImpl extends BaseDAO implements ShowtimeDAO {
     }
 
     /**
-     * Giong createWithConflictCheck nhung check LOAI TRU CHINH NO
-     * (showtime_id <> ?) - neu khong, sua suat ma giu nguyen gio se
-     * bi bao trung voi... chinh suat dang sua.
+     * Giong createWithConflictCheck nhung check LOAI TRU CHINH NO (showtime_id
+     * <> ?) - neu khong, sua suat ma giu nguyen gio se bi bao trung voi...
+     * chinh suat dang sua.
      */
     @Override
     public boolean updateWithConflictCheck(Showtime st) {
@@ -253,9 +256,10 @@ public class ShowtimeDAOImpl extends BaseDAO implements ShowtimeDAO {
     }
 
     /**
-     * Kiem tra suat chieu nay da co ai dat ve chua (booking con hieu luc).
-     * Dung "SELECT 1 ... " (chi can biet CO/KHONG, khong can dem so luong) cho nhe.
+     * Kiem tra suat chieu nay da co ai dat ve chua (booking con hieu luc). Dung
+     * "SELECT 1 ... " (chi can biet CO/KHONG, khong can dem so luong) cho nhe.
      * Bo qua booking CANCELLED vi nhung ve da huy khong tinh la dang giu cho.
+     *
      * @return true neu co it nhat 1 booking PENDING/CONFIRMED/USED.
      */
     @Override
@@ -282,9 +286,11 @@ public class ShowtimeDAOImpl extends BaseDAO implements ShowtimeDAO {
     }
 
     /**
-     * Huy 1 suat chieu = doi status sang CANCELLED (soft cancel).
-     * KHONG DELETE de giu lich su va cac booking dang tham chieu toi suat nay.
-     * @return true neu co dung 1 dong bi cap nhat (huy thanh cong); false neu khong.
+     * Huy 1 suat chieu = doi status sang CANCELLED (soft cancel). KHONG DELETE
+     * de giu lich su va cac booking dang tham chieu toi suat nay.
+     *
+     * @return true neu co dung 1 dong bi cap nhat (huy thanh cong); false neu
+     * khong.
      */
     @Override
     public boolean cancel(long showtimeId) {
@@ -308,27 +314,63 @@ public class ShowtimeDAOImpl extends BaseDAO implements ShowtimeDAO {
         }
     }
 
-    /** Rollback transaction "nhe nhang": neu rollback cung loi thi chi log, khong nem tiep. */
+    /**
+     * Rollback transaction "nhe nhang": neu rollback cung loi thi chi log,
+     * khong nem tiep.
+     */
     private void rollbackQuietly(Connection conn) {
         if (conn != null) {
-            try { conn.rollback(); } catch (SQLException e) {
+            try {
+                conn.rollback();
+            } catch (SQLException e) {
                 System.err.println("Loi rollback showtimes: " + e.getMessage());
             }
         }
     }
 
-    /** Bat lai autocommit truoc khi connection ve pool (vi mac dinh pool ky vong autocommit=true). */
+    /**
+     * Bat lai autocommit truoc khi connection ve pool (vi mac dinh pool ky vong
+     * autocommit=true).
+     */
     private void restoreAutoCommitQuietly(Connection conn) {
         if (conn != null) {
-            try { conn.setAutoCommit(true); } catch (SQLException e) {
+            try {
+                conn.setAutoCommit(true);
+            } catch (SQLException e) {
                 System.err.println("Loi restore autocommit: " + e.getMessage());
             }
         }
     }
 
+    @Override
+    public List<Showtime> findByMovieId(long movieId) {
+        String sql = "SELECT " + "showtime_id, room_id, movie_id, start_time, end_time, "
+                + "base_price, format, subtitle_type, status" + " FROM showtimes "
+                + "WHERE movie_id = ? AND status = 'SCHEDULED' AND start_time > GETDATE() "
+                + "ORDER BY start_time";
+        Connection conn = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+        List<Showtime> list = new ArrayList<>();
+        try {
+            conn = getConnection();
+            ps = conn.prepareStatement(sql);
+            ps.setLong(1, movieId);
+            rs = ps.executeQuery();
+            while (rs.next()) {
+                list.add(mapRow(rs));
+            }
+            return list;
+        } catch (SQLException e) {
+            throw new RuntimeException("Loi findByMovieId showtime: " + e.getMessage(), e);
+        } finally {
+            closeAll(rs, ps, conn);
+        }
+    }
+
     /**
-     * Chuyen 1 dong (row) cua ResultSet thanh 1 object Showtime.
-     * Tach rieng ra ham nay de findByBranch va findById dung chung, khong lap code.
+     * Chuyen 1 dong (row) cua ResultSet thanh 1 object Showtime. Tach rieng ra
+     * ham nay de findByBranch va findById dung chung, khong lap code.
      */
     private Showtime mapRow(ResultSet rs) throws SQLException {
         Showtime st = new Showtime();
