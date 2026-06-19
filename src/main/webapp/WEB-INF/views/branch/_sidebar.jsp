@@ -29,7 +29,9 @@
        href="${pageContext.request.contextPath}/branch/showtimes">
         <i class="bi bi-calendar3"></i> Showtimes</a>
     <span class="lc-sb-item disabled"><i class="bi bi-grid-3x3"></i> Rooms &amp; Seats <span class="lc-sb-soon">Soon</span></span>
-    <span class="lc-sb-item disabled"><i class="bi bi-ticket-perforated"></i> Promotions <span class="lc-sb-soon">Soon</span></span>
+    <a class="lc-sb-item ${param.active == 'promotions' ? 'active' : ''}"
+       href="${pageContext.request.contextPath}/branch/promotions">
+        <i class="bi bi-ticket-perforated"></i> Promotions</a>
     <span class="lc-sb-item disabled"><i class="bi bi-cup-straw"></i> F&amp;B Menu <span class="lc-sb-soon">Soon</span></span>
     <span class="lc-sb-item disabled"><i class="bi bi-bar-chart"></i> Reports <span class="lc-sb-soon">Soon</span></span>
 
