@@ -11,6 +11,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -55,11 +56,11 @@ public class SeatDAOImpl extends BaseDAO implements SeatDAO {
     @Override
     public Set<Long> findBookedSeatIds(long showtimeId) {
         Set<Long> booked = new HashSet<>();
-        String sql = "SELECT bs.seat_id " +
-            "  FROM dbo.booking_seats bs " +
-            "  JOIN dbo.bookings b ON b.booking_id = bs.booking_id " +
-            " WHERE b.showtime_id = ? " +
-            "   AND b.[status] IN ('PENDING', 'CONFIRMED')";
+        String sql = "SELECT bs.seat_id "
+                + "  FROM dbo.booking_seats bs "
+                + "  JOIN dbo.bookings b ON b.booking_id = bs.booking_id "
+                + " WHERE b.showtime_id = ? "
+                + "   AND b.[status] IN ('PENDING', 'CONFIRMED')";
 
         Connection conn = null;
         PreparedStatement ps = null;
@@ -82,6 +83,52 @@ public class SeatDAOImpl extends BaseDAO implements SeatDAO {
         }
         //tra tat ca ghe thay vi mot doi tuong
         return booked;
+    }
+
+    // ── checkAndLockSeats ─────────────────────────────────────────────────
+    /**
+     * Dùng UPDLOCK + HOLDLOCK trong transaction đang mở của
+     * createBooking.Thread khác sẽ bị block ở đây cho đến khi transaction
+     * commit/rollback.Trả về list seatId bị chiếm (rỗng = tất cả còn trống →
+     * tiếp tục INSERT).
+     *
+     * @param showtimeId
+     * @param seatIds
+     * @return
+     */
+    @Override
+    public List<Long> checkAndLockSeats(long showtimeId, List<Long> seatIds,
+            Connection conn) throws SQLException {
+        String SQL_CHECK_LOCK_TEMPLATE
+                = "SELECT bs.seat_id "
+                + "FROM dbo.booking_seats bs WITH (UPDLOCK, HOLDLOCK) "
+                + "JOIN dbo.bookings b ON b.booking_id = bs.booking_id "
+                + "WHERE b.showtime_id = ? "
+                + "  AND b.[status] != 'CANCELLED' "
+                + "  AND ( "
+                + "    b.[status] IN ('CONFIRMED', 'USED') "
+                + "    OR ( "
+                + "      b.[status] = 'PENDING' "
+                + "      AND DATEDIFF(MINUTE, b.created_at, SYSUTCDATETIME()) < 10 "
+                + "    ) "
+                + "  ) "
+                + "  AND bs.seat_id IN (%s)";
+        String inClause = String.join(",", Collections.nCopies(seatIds.size(), "?"));
+        String sql = String.format(SQL_CHECK_LOCK_TEMPLATE, inClause);
+
+        List<Long> conflict = new ArrayList<>();
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setLong(1, showtimeId);
+            for (int i = 0; i < seatIds.size(); i++) {
+                ps.setLong(i + 2, seatIds.get(i));
+            }
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    conflict.add(rs.getLong("seat_id"));
+                }
+            }
+        }
+        return conflict;
     }
 
     /**
