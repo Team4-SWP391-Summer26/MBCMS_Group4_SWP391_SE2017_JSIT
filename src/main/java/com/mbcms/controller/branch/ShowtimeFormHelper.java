@@ -62,6 +62,11 @@ final class ShowtimeFormHelper {
         if (movie == null || !movie.isActive()) {
             return "Invalid movie.";
         }
+        // Khong xep lich cho phim da ket thuc chieu (movie_status = ENDED).
+        // Chi phim UPCOMING / NOW_SHOWING moi co the len lich.
+        if ("ENDED".equals(movie.getStatus())) {
+            return "This movie has ended and can no longer be scheduled.";
+        }
 
         long roomId;
         try {
