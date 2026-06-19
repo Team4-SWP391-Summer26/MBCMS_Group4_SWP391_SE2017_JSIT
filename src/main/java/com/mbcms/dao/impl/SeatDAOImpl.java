@@ -13,6 +13,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -82,6 +83,67 @@ public class SeatDAOImpl extends BaseDAO implements SeatDAO {
         }
         //tra tat ca ghe thay vi mot doi tuong
         return booked;
+    }
+
+    @Override
+    public int updateSeatTypes(long roomId, Map<Long, String> seatTypes) {
+        // room_id = ? trong WHERE: ghe khong thuoc phong nay se khong bi update
+        // (chong tampering ngay o tang SQL). Batch tat ca trong 1 transaction:
+        // hoac doi het, hoac khong doi gi (tranh trang thai nua voi).
+        String sql = "UPDATE dbo.seats SET seat_type = ? WHERE seat_id = ? AND room_id = ?";
+
+        Connection conn = null;
+        PreparedStatement ps = null;
+
+        try {
+            conn = getConnection();
+            conn.setAutoCommit(false); // bat dau transaction
+            ps = conn.prepareStatement(sql);
+
+            for (Map.Entry<Long, String> e : seatTypes.entrySet()) {
+                ps.setString(1, e.getValue());
+                ps.setLong(2, e.getKey());
+                ps.setLong(3, roomId);
+                ps.addBatch();
+            }
+            int[] results = ps.executeBatch();
+            conn.commit();
+
+            // Dem so ghe thuc su update (>0). SQL Server co the tra SUCCESS_NO_INFO (-2)
+            // khi chay batch -> coi nhu da update 1 ghe trong truong hop do.
+            int affected = 0;
+            for (int r : results) {
+                affected += (r > 0 || r == PreparedStatement.SUCCESS_NO_INFO) ? 1 : 0;
+            }
+            return affected;
+        } catch (SQLException e) {
+            rollbackQuietly(conn);
+            throw new RuntimeException("Loi cap nhat seats.updateSeatTypes: " + e.getMessage(), e);
+        } finally {
+            restoreAutoCommitQuietly(conn);
+            closeAll(ps, conn);
+        }
+    }
+
+    private void rollbackQuietly(Connection conn) {
+        if (conn != null) {
+            try {
+                conn.rollback();
+            } catch (SQLException e) {
+                System.err.println("Loi rollback seats: " + e.getMessage());
+            }
+        }
+    }
+
+    /** Bat lai autocommit truoc khi connection ve pool (pool ky vong autocommit=true). */
+    private void restoreAutoCommitQuietly(Connection conn) {
+        if (conn != null) {
+            try {
+                conn.setAutoCommit(true);
+            } catch (SQLException e) {
+                System.err.println("Loi restore autocommit: " + e.getMessage());
+            }
+        }
     }
 
     /**
