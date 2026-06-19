@@ -58,4 +58,19 @@ public class Promotion {
 
     public boolean isActive() { return active; }
     public void setActive(boolean active) { this.active = active; }
+
+    public String getStatus() {
+        if (!active) {
+            return "Inactive";
+        }
+        java.time.LocalDateTime now = java.time.LocalDateTime.now();
+        if (now.isBefore(validFrom)) {
+            return "Inactive";
+        }
+        if (now.isAfter(validTo)) {
+            return "Expired";
+        }
+        return "Active";
+    }
 }
+
