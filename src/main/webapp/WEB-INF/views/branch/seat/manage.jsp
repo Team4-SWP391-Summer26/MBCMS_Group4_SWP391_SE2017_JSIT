@@ -209,9 +209,7 @@
                                                                         data-col="${seat.colNumber}"
                                                                         data-active="${seat.active}"
                                                                         title="${rowEntry.key}${seat.colNumber}${seat.active ? '' : ' (maintenance)'}"
-                                                                        onclick="toggleSeat(this)">
-                                                                    ${seat.colNumber}
-                                                                </button>
+                                                                        onclick="toggleSeat(this)"></button>
                                                                 <input type="hidden" id="ht_${seat.seatId}"
                                                                        name="type_${seat.seatId}"
                                                                        value="${seat.seatType}"
