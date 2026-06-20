@@ -2,13 +2,19 @@ package com.mbcms.dao;
 
 import com.mbcms.model.Branch;
 
+import java.util.List;
+
 /**
  * BranchDAO - truy van bang `branches` (chi doc).
  * Owner: HungNT - dung cho manager console (hien ten branch trong sidebar
- * va scope notice). CRUD branch la phan cua HoangHM, KHONG nam o day.
+ * va scope notice) + man Admin cap phim cho chi nhanh. Day chi READ;
+ * CRUD branch la phan cua HoangHM, KHONG nam o day.
  */
 public interface BranchDAO {
 
     /** Tim branch theo id; null neu khong ton tai. */
     Branch findById(long branchId);
+
+    /** Tat ca chi nhanh, sap theo ten - cho selector man Admin cap phim. */
+    List<Branch> findAll();
 }

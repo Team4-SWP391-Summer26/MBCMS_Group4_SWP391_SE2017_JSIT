@@ -90,7 +90,7 @@ public class ShowtimeEditServlet extends HttpServlet {
      */
     private String handleUpdate(HttpServletRequest req, long showtimeId, long branchId) {
         Showtime st = new Showtime();
-        String error = ShowtimeFormHelper.populate(req, st);
+        String error = ShowtimeFormHelper.populate(req, st, branchId);
         if (error != null) {
             return error;
         }
@@ -119,7 +119,7 @@ public class ShowtimeEditServlet extends HttpServlet {
         ConsoleSupport.ensureBranchName(req);
         MovieDAO movieDAO = new MovieDAOImpl();
         RoomDAO roomDAO = new RoomDAOImpl();
-        req.setAttribute("movies", movieDAO.findActiveMovies());
+        req.setAttribute("movies", movieDAO.findActiveMoviesForBranch(branchId));
         req.setAttribute("rooms", roomDAO.findActiveByBranch(branchId));
     }
 
