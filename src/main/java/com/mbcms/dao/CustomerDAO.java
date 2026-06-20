@@ -28,4 +28,6 @@ public interface CustomerDAO {
     boolean updateProfile(Customer customer);
 
     boolean updateEmailVerified(String username, boolean verified);
+
+    Customer findByPhone(String phone);
 }

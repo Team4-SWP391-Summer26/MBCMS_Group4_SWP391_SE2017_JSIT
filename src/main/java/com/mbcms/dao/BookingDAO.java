@@ -47,4 +47,11 @@ public interface BookingDAO {
      * Return: so booking duoc giai phong.
      */
     int releaseExpiredLocks();
+
+    /**
+     * Tạo đặt vé tại quầy cho nhân viên (Branch Staff) trong 1 Transaction.
+     * Bao gồm kiểm tra ghế trống, chèn bookings, chèn booking_seats, 
+     * chèn payments (CASH - SUCCESS) và cập nhật số lần dùng khuyến mãi.
+     */
+    Booking createCounterBooking(Booking booking, List<Long> seatIds);
 }

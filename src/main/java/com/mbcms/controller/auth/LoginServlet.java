@@ -94,9 +94,14 @@ public class LoginServlet extends HttpServlet {
             if (employee.getBranchId() != null) {
                 session.setAttribute("branchId", employee.getBranchId());
             }
-            String redirect = employee.isAdmin()
-                    ? req.getContextPath() + "/admin/dashboard" //add later
-                    : req.getContextPath() + "/branch/dashboard";
+            String redirect;
+            if (employee.isAdmin()) {
+                redirect = req.getContextPath() + "/admin/dashboard";
+            } else if (employee.isBranchStaff()) {
+                redirect = req.getContextPath() + "/staff/booking";
+            } else {
+                redirect = req.getContextPath() + "/branch/dashboard";
+            }
             resp.sendRedirect(redirect);
             return;
         }

@@ -38,8 +38,8 @@ public class BookingDAOImpl extends BaseDAO implements BookingDAO {
                 + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, GETDATE())";
 
         String insertSeat
-                = "INSERT INTO booking_seats (booking_id, seat_id, lock_status, unit_price, locked_at) "
-                + "VALUES (?, ?, 'LOCKED', ?, GETDATE())";
+                = "INSERT INTO booking_seats (booking_id, seat_id, is_checked_in, check_in_time) "
+                + "VALUES (?, ?, 0, NULL)";
 
         // SQL Server: lay generated key
         String insertBookingWithKey = insertBooking;
@@ -78,15 +78,11 @@ public class BookingDAOImpl extends BaseDAO implements BookingDAO {
             long newId = rs.getLong(1);
             booking.setBookingId(newId);
 
-            // 2. Insert booking_seats (LOCKED)
+            // 2. Insert booking_seats
             psSeat = conn.prepareStatement(insertSeat);
             for (Long seatId : seatIds) {
                 psSeat.setLong(1, newId);
                 psSeat.setLong(2, seatId);
-                // unit_price = totalAmount / so luong ghe (don gian; co the tinh chi tiet hon)
-                BigDecimal unitPrice = booking.getSubtotal()
-                        .divide(BigDecimal.valueOf(seatIds.size()), 0, java.math.RoundingMode.HALF_UP);
-                psSeat.setBigDecimal(3, unitPrice);
                 psSeat.addBatch();
             }
             psSeat.executeBatch();
@@ -201,14 +197,7 @@ public class BookingDAOImpl extends BaseDAO implements BookingDAO {
         // Khi CONFIRMED: cap nhat booking_seats.lock_status -> CONFIRMED
         // Khi CANCELLED: cap nhat booking_seats.lock_status -> RELEASED
         String updateBooking = "UPDATE bookings SET status = ? WHERE booking_id = ?";
-        String updateSeats;
-        if (Booking.STATUS_CONFIRMED.equals(newStatus)) {
-            updateSeats = "UPDATE booking_seats SET lock_status = 'CONFIRMED' WHERE booking_id = ?";
-        } else if (Booking.STATUS_CANCELLED.equals(newStatus)) {
-            updateSeats = "UPDATE booking_seats SET lock_status = 'RELEASED' WHERE booking_id = ?";
-        } else {
-            updateSeats = null;
-        }
+        String updateSeats = null;
 
         Connection conn = null;
         PreparedStatement ps1 = null;
@@ -252,7 +241,7 @@ public class BookingDAOImpl extends BaseDAO implements BookingDAO {
                 + "FROM booking_seats bs "
                 + "JOIN bookings b ON b.booking_id = bs.booking_id "
                 + "WHERE b.showtime_id = ? "
-                + "  AND bs.lock_status IN ('LOCKED','CONFIRMED') "
+                + "  AND b.status IN ('PENDING','CONFIRMED') "
                 + "  AND bs.seat_id IN (");
         for (int i = 0; i < seatIds.size(); i++) {
             sb.append(i > 0 ? ",?" : "?");
@@ -300,25 +289,11 @@ public class BookingDAOImpl extends BaseDAO implements BookingDAO {
                 + "WHERE status = 'PENDING' "
                 + "  AND DATEDIFF(MINUTE, created_at, GETDATE()) >= " + LOCK_EXPIRE_MINUTES;
 
-        String releaseSeats
-                = "UPDATE booking_seats SET lock_status = 'RELEASED' "
-                + "WHERE lock_status = 'LOCKED' "
-                + "  AND booking_id IN ("
-                + "    SELECT booking_id FROM bookings "
-                + "    WHERE status = 'CANCELLED' "
-                + "      AND DATEDIFF(MINUTE, created_at, GETDATE()) >= " + LOCK_EXPIRE_MINUTES
-                + "  )";
-
         Connection conn = null;
         PreparedStatement ps1 = null;
-        PreparedStatement ps2 = null;
         try {
             conn = getConnection();
             conn.setAutoCommit(false);
-
-            // Giai phong seats truoc (foreign key phu thuoc booking)
-            ps2 = conn.prepareStatement(releaseSeats);
-            ps2.executeUpdate();
 
             ps1 = conn.prepareStatement(cancelBookings);
             int affected = ps1.executeUpdate();
@@ -330,7 +305,7 @@ public class BookingDAOImpl extends BaseDAO implements BookingDAO {
             throw new RuntimeException("Loi releaseExpiredLocks: " + e.getMessage(), e);
         } finally {
             closeAll(ps1, null);
-            closeAll(ps2, conn);
+            closeAll(null, conn);
         }
     }
 
@@ -365,6 +340,143 @@ public class BookingDAOImpl extends BaseDAO implements BookingDAO {
             }
         }
         return ids;
+    }
+
+    @Override
+    public Booking createCounterBooking(Booking booking, List<Long> seatIds) {
+        // Sinh booking_code duy nhat
+        booking.setBookingCode("BK-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase());
+        booking.setStatus(Booking.STATUS_CONFIRMED);
+
+        String insertBooking
+                = "INSERT INTO bookings (customer_username, showtime_id, promo_id, booking_code, "
+                + "  subtotal, discount_amount, total_amount, status, notes, created_at) "
+                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, GETDATE())";
+
+        String insertSeat
+                = "INSERT INTO booking_seats (booking_id, seat_id, is_checked_in, check_in_time) "
+                + "VALUES (?, ?, 0, NULL)";
+
+        String insertPayment
+                = "INSERT INTO payments (booking_id, method, amount, status, transaction_ref, paid_at) "
+                + "VALUES (?, 'CASH', ?, 'SUCCESS', NULL, GETDATE())";
+
+        String updatePromo
+                = "UPDATE promotions SET used_count = used_count + 1 WHERE promo_id = ?";
+
+        Connection conn = null;
+        PreparedStatement psBooking = null;
+        PreparedStatement psSeat = null;
+        PreparedStatement psPayment = null;
+        PreparedStatement psPromo = null;
+        ResultSet rs = null;
+
+        try {
+            conn = getConnection();
+            conn.setAutoCommit(false);
+
+            // 1. Kiem tra ghe trong truoc khi tao
+            List<Long> unavailable = getUnavailableSeatIds(conn, booking.getShowtimeId(), seatIds);
+            if (!unavailable.isEmpty()) {
+                throw new SQLException("Mot so ghe ban chon da bi nguoi khac dat trong luc giao dich: " + unavailable);
+            }
+
+            // 2. Insert booking, lay generated key
+            psBooking = conn.prepareStatement(insertBooking, Statement.RETURN_GENERATED_KEYS);
+            psBooking.setString(1, booking.getCustomerUsername());
+            psBooking.setLong(2, booking.getShowtimeId());
+            if (booking.getPromoId() != null) {
+                psBooking.setLong(3, booking.getPromoId());
+            } else {
+                psBooking.setNull(3, Types.BIGINT);
+            }
+            psBooking.setString(4, booking.getBookingCode());
+            psBooking.setBigDecimal(5, booking.getSubtotal());
+            psBooking.setBigDecimal(6, booking.getDiscountAmount() != null
+                    ? booking.getDiscountAmount() : BigDecimal.ZERO);
+            psBooking.setBigDecimal(7, booking.getTotalAmount());
+            psBooking.setString(8, booking.getStatus());
+            psBooking.setString(9, booking.getNotes());
+            psBooking.executeUpdate();
+
+            rs = psBooking.getGeneratedKeys();
+            if (!rs.next()) {
+                throw new SQLException("Khong lay duoc generated key cua booking tai quay");
+            }
+            long newId = rs.getLong(1);
+            booking.setBookingId(newId);
+
+            // 3. Insert booking_seats
+            psSeat = conn.prepareStatement(insertSeat);
+            for (Long seatId : seatIds) {
+                psSeat.setLong(1, newId);
+                psSeat.setLong(2, seatId);
+                psSeat.addBatch();
+            }
+            psSeat.executeBatch();
+
+            // 4. Insert payments (CASH - SUCCESS)
+            psPayment = conn.prepareStatement(insertPayment);
+            psPayment.setLong(1, newId);
+            psPayment.setBigDecimal(2, booking.getTotalAmount());
+            psPayment.executeUpdate();
+
+            // 5. Update promotions used count
+            if (booking.getPromoId() != null) {
+                psPromo = conn.prepareStatement(updatePromo);
+                psPromo.setLong(1, booking.getPromoId());
+                psPromo.executeUpdate();
+            }
+
+            conn.commit();
+            booking.setSeatIds(seatIds);
+            return booking;
+
+        } catch (SQLException e) {
+            rollbackQuietly(conn);
+            throw new RuntimeException("Loi createCounterBooking: " + e.getMessage(), e);
+        } finally {
+            closeAll(rs, psBooking, null);
+            closeAll(psSeat, null);
+            closeAll(psPayment, null);
+            closeAll(psPromo, conn);
+        }
+    }
+
+    private List<Long> getUnavailableSeatIds(Connection conn, long showtimeId, List<Long> seatIds) throws SQLException {
+        if (seatIds == null || seatIds.isEmpty()) {
+            return new ArrayList<>();
+        }
+        StringBuilder sb = new StringBuilder(
+                "SELECT DISTINCT bs.seat_id "
+                + "FROM booking_seats bs "
+                + "JOIN bookings b ON b.booking_id = bs.booking_id "
+                + "WHERE b.showtime_id = ? "
+                + "  AND b.status IN ('PENDING','CONFIRMED') "
+                + "  AND bs.seat_id IN (");
+        for (int i = 0; i < seatIds.size(); i++) {
+            sb.append(i > 0 ? ",?" : "?");
+        }
+        sb.append(")");
+
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+        List<Long> unavailable = new ArrayList<>();
+        try {
+            ps = conn.prepareStatement(sb.toString());
+            ps.setLong(1, showtimeId);
+            for (int i = 0; i < seatIds.size(); i++) {
+                ps.setLong(i + 2, seatIds.get(i));
+            }
+            rs = ps.executeQuery();
+            while (rs.next()) {
+                unavailable.add(rs.getLong("seat_id"));
+            }
+            return unavailable;
+        } finally {
+            if (rs != null) rs.close();
+            if (ps != null) ps.close();
+        }
     }
 
     private void rollbackQuietly(Connection conn) {
