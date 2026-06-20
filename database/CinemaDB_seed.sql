@@ -78,6 +78,16 @@ INSERT INTO dbo.branches (name, address, city, phone, email) VALUES
  (N'MBCMS Ba Trieu',    N'25 Ba Trieu, Hoan Kiem',           N'Ha Noi',      '02438222222', 'batrieu@mbcms.vn');
 
 -- ---------------------------------------------------------------------
+-- 4b. Movie-branch assignment: Admin cap moi phim active cho moi chi nhanh
+--     (du lieu nen de BM xep lich duoc ngay; Admin tinh chinh sau).
+-- ---------------------------------------------------------------------
+INSERT INTO dbo.movie_branch (movie_id, branch_id)
+SELECT m.movie_id, b.branch_id
+FROM dbo.movies m
+CROSS JOIN dbo.branches b
+WHERE m.active = 1;
+
+-- ---------------------------------------------------------------------
 -- 5. Rooms (capacity 80 = 8 rows x 10 cols, matches seat generation below)
 -- ---------------------------------------------------------------------
 INSERT INTO dbo.rooms (branch_id, name, capacity, room_type)

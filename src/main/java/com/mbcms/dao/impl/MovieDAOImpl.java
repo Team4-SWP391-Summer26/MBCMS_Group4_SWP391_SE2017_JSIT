@@ -45,6 +45,60 @@ public class MovieDAOImpl extends BaseDAO implements MovieDAO {
     }
 
     @Override
+    public List<Movie> findActiveMoviesForBranch(long branchId) {
+        // JOIN movie_branch -> chi phim da duoc cap cho chi nhanh nay. Qualify cot
+        // (m.movie_id...) vi movie_branch cung co cot movie_id (tranh ambiguous).
+        String sql = "SELECT m.movie_id, m.title, m.duration_min, m.status, m.active "
+                + "FROM movies m "
+                + "JOIN movie_branch mb ON mb.movie_id = m.movie_id "
+                + "WHERE m.active = 1 AND mb.branch_id = ? "
+                + "ORDER BY m.title";
+
+        Connection conn = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+
+        try {
+            conn = getConnection();
+            ps = conn.prepareStatement(sql);
+            ps.setLong(1, branchId);
+            rs = ps.executeQuery();
+
+            List<Movie> movies = new ArrayList<>();
+            while (rs.next()) {
+                movies.add(mapRow(rs));
+            }
+            return movies;
+        } catch (SQLException e) {
+            throw new RuntimeException("Loi truy van movies.findActiveMoviesForBranch: " + e.getMessage(), e);
+        } finally {
+            closeAll(rs, ps, conn);
+        }
+    }
+
+    @Override
+    public boolean isAssignedToBranch(long movieId, long branchId) {
+        String sql = "SELECT 1 FROM movie_branch WHERE movie_id = ? AND branch_id = ?";
+
+        Connection conn = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+
+        try {
+            conn = getConnection();
+            ps = conn.prepareStatement(sql);
+            ps.setLong(1, movieId);
+            ps.setLong(2, branchId);
+            rs = ps.executeQuery();
+            return rs.next();
+        } catch (SQLException e) {
+            throw new RuntimeException("Loi truy van movie_branch.isAssignedToBranch: " + e.getMessage(), e);
+        } finally {
+            closeAll(rs, ps, conn);
+        }
+    }
+
+    @Override
     public Movie findById(long movieId) {
         String sql = BASE_SELECT + "WHERE movie_id = ?";
 

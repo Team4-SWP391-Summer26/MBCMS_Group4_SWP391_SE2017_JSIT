@@ -1,250 +1,238 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%--
+    Chon ghe (booking step 2) - logic real-time/websocket: owner TrangNT.
+    Giao dien redesign (stepper + 2 cot + seat-map dong bo manage seat type): HungNT.
+    LUU Y: toan bo <script> websocket + cac class/id/data-* GIU NGUYEN -
+    chi doi CSS/layout + them script trang tri (buildLayout) khong dung vao logic.
+--%>
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="en">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Chọn ghế – MBCMS</title>
+    <title>Choose seats – MBCMS</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <link href="${pageContext.request.contextPath}/assets/css/main.css?v=${applicationScope.assetVersion}" rel="stylesheet">
     <style>
-        /* ===== Màn chiếu ===== */
-        .screen-bar {
-            height: 14px;
-            background: linear-gradient(to bottom, #d4d4d4, #9ca3af);
-            border-radius: 4px 4px 0 0;
-            margin-bottom: 6px;
+        :root {
+            --bk-primary:#2563EB; --bk-navy:#0F1E36; --bk-border:#E6EAF2;
+            --bk-muted:#64748B; --bk-light:#EFF4FF; --bk-bg:#F5F7FA;
+            --seat-w:34px; --seat-h:32px; --seat-gap:7px; --aisle-w:30px; --rl-w:24px;
         }
-        .screen-label {
-            text-align: center;
-            font-size: .75rem;
-            color: #6b7280;
-            letter-spacing: .1em;
-            margin-bottom: 24px;
-        }
+        body { background: var(--bk-bg); }
+        .bk-wrap { max-width: 1080px; }
+        .bk-card { background:#fff; border:1px solid var(--bk-border); border-radius:14px;
+            box-shadow:0 4px 12px rgba(15,23,42,.05); }
 
-        /* ===== Ghế ===== */
+        /* ===== Context bar ===== */
+        .bk-ctx { background:#fff; border-bottom:1px solid var(--bk-border); }
+        .bk-reserve { background:#FFF8E1; border:1px solid #FFE082; color:#7a5a00; border-radius:999px;
+            padding:.3rem .8rem; font-size:.82rem; font-weight:600; display:inline-flex; align-items:center; gap:.4rem; }
+
+        /* ===== Stepper ===== */
+        .bk-steps { display:flex; align-items:center; }
+        .bk-step { display:flex; align-items:center; gap:.5rem; font-size:.9rem; font-weight:600; color:#94a3b8; white-space:nowrap; }
+        .bk-step .bk-dot { width:26px; height:26px; border-radius:999px; display:flex; align-items:center;
+            justify-content:center; font-size:.78rem; background:#E2E8F0; color:#64748b; flex-shrink:0; }
+        .bk-step.done { color:#16a34a; } .bk-step.done .bk-dot { background:#16a34a; color:#fff; }
+        .bk-step.active { color:var(--bk-primary); } .bk-step.active .bk-dot { background:var(--bk-primary); color:#fff; }
+        .bk-line { flex:1; height:2px; background:#E2E8F0; margin:0 .5rem; min-width:10px; }
+        .bk-line.done { background:#16a34a; }
+
+        /* ===== Man chieu (curved screen) ===== */
+        .screen-wrap { margin: 4px 0 24px; }
+        .screen-curve { height:26px; margin:0 auto; max-width:80%; border-top:3px solid #93b4f6;
+            border-radius:50% / 26px 26px 0 0; background:linear-gradient(to bottom, rgba(37,99,235,.14), rgba(37,99,235,0)); }
+        .screen-label { text-align:center; font-size:.68rem; color:var(--bk-muted); letter-spacing:.35em; margin-top:6px; font-weight:600; }
+
+        /* ===== So do ghe ===== */
+        #seatMap { display:inline-block; text-align:left; }
+        .seat-header, .seat-row { display:flex; align-items:center; gap:var(--seat-gap); }
+        .seat-row { margin-bottom:var(--seat-gap); }
+        .row-label { width:var(--rl-w); font-size:.72rem; font-weight:700; color:var(--bk-muted); text-align:center; flex-shrink:0; }
+        .col-num { width:var(--seat-w); font-size:.68rem; font-weight:600; color:#94a3b8; text-align:center; flex-shrink:0; }
+        .aisle { width:var(--aisle-w); flex-shrink:0; }
+
         .seat-btn {
-            width: 38px;
-            height: 34px;
-            font-size: .7rem;
-            font-weight: 600;
-            border-radius: 6px 6px 4px 4px;
-            border: 1.5px solid transparent;
-            cursor: pointer;
-            transition: transform .1s, box-shadow .1s;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            padding: 0;
+            width:var(--seat-w); height:var(--seat-h); font-size:.62rem; font-weight:700;
+            border-radius:8px 8px 5px 5px; border:1.6px solid transparent; cursor:pointer; padding:0; flex-shrink:0;
+            display:inline-flex; align-items:center; justify-content:center;
+            transition:transform .08s, box-shadow .12s; background:#fff;
         }
-        .seat-btn:active { transform: scale(.93); }
-        .seat-btn:focus  { outline: none; }
+        .seat-btn:active { transform:scale(.93); }
+        .seat-btn:focus { outline:none; }
 
-        /* Trống – Thường */
-        .seat-available {
-            background: #e0f2fe;
-            border-color: #38bdf8;
-            color: #0369a1;
-        }
-        .seat-available:hover {
-            background: #bae6fd;
-            box-shadow: 0 0 0 3px rgba(56,189,248,.35);
-        }
-
+        /* Trong - Thuong */
+        .seat-available { background:#f0f7ff; border-color:#7cb0f5; color:#1d4ed8; }
+        .seat-available:hover { background:#dbeafe; box-shadow:0 0 0 3px rgba(37,99,235,.25); transform:translateY(-2px); }
         /* Bạn đang chọn */
-        .seat-selected {
-            background: #16a34a !important;
-            border-color: #15803d !important;
-            color: #fff !important;
-            box-shadow: 0 0 0 3px rgba(22,163,74,.35);
-        }
-
-        /* Người khác đang chọn (soft-lock) — amber, pulsing border */
-        .seat-soft-locked {
-            background: #fef3c7;
-            border-color: #f59e0b;
-            color: #92400e;
-            cursor: not-allowed;
-            animation: soft-pulse 1.8s ease-in-out infinite;
-        }
-        @keyframes soft-pulse {
-            0%,100% { box-shadow: 0 0 0 2px rgba(245,158,11,.4); }
-            50%      { box-shadow: 0 0 0 5px rgba(245,158,11,.0); }
-        }
-
+        .seat-selected { background:#16a34a !important; border-color:#15803d !important; color:#fff !important;
+            box-shadow:0 0 0 3px rgba(22,163,74,.30); }
+        /* Người khác đang chọn (soft-lock) */
+        .seat-soft-locked { background:#fef3c7; border-color:#f59e0b; color:#92400e; cursor:not-allowed;
+            animation:soft-pulse 1.8s ease-in-out infinite; }
+        @keyframes soft-pulse { 0%,100%{box-shadow:0 0 0 2px rgba(245,158,11,.4);} 50%{box-shadow:0 0 0 5px rgba(245,158,11,0);} }
         /* Đã đặt */
-        .seat-booked {
-            background: #fee2e2;
-            border-color: #fca5a5;
-            color: #b91c1c;
-            cursor: not-allowed;
-            opacity: .8;
-        }
-
-        /* Bảo trì */
-        .seat-maintenance {
-            background: #f3f4f6;
-            border-color: #d1d5db;
-            color: #9ca3af;
-            cursor: not-allowed;
-            text-decoration: line-through;
-        }
-
-        /* VIP overrides */
-        .seat-VIP.seat-available       { background:#fef3c7; border-color:#f59e0b; color:#92400e; }
+        .seat-booked { background:#fee2e2; border-color:#fca5a5; color:#b91c1c; cursor:not-allowed; opacity:.85; }
+        /* Bảo trì - dau X */
+        .seat-maintenance { background:#f3f4f6; border-color:#d1d5db; color:#9ca3af; cursor:not-allowed; }
+        .seat-maintenance i { font-size:.85rem; }
+        /* VIP (con trong) - vang */
+        .seat-VIP.seat-available { background:#fef3c7; border-color:#f59e0b; color:#92400e; }
         .seat-VIP.seat-available:hover { background:#fde68a; }
-        .seat-VIP.seat-booked          { background:#fde8d8; border-color:#fb923c; color:#9a3412; }
+        .seat-VIP.seat-booked { background:#fde8d8; border-color:#fb923c; color:#9a3412; }
 
-        /* ===== Row label ===== */
-        .row-label {
-            width: 24px;
-            font-size: .75rem;
-            font-weight: 700;
-            color: #6b7280;
-            text-align: center;
-            flex-shrink: 0;
-        }
+        /* ===== Legend ===== */
+        .legend-item { display:flex; align-items:center; gap:7px; font-size:.8rem; color:#475569; }
+        .legend-box { width:20px; height:18px; border-radius:5px; border:1.6px solid; flex-shrink:0; }
 
-        /* ===== Chú thích ===== */
-        .legend-item { display:flex; align-items:center; gap:8px; font-size:.82rem; }
-        .legend-box  { width:22px; height:20px; border-radius:4px; border:1.5px solid; }
-
-        /* ===== Tóm tắt đặt chỗ ===== */
-        #bookingSummary { min-height: 56px; }
-
-        /* ===== Badge trạng thái WebSocket ===== */
-        #wsBadge { font-size: .72rem; }
-
-        /* ===== Flash badge ===== */
-        #refreshBadge {
-            font-size: .72rem;
-            opacity: 0;
-            transition: opacity .4s;
-        }
-        #refreshBadge.show { opacity: 1; }
+        /* ===== Your selection panel ===== */
+        .sel-panel { position:sticky; top:18px; }
+        .sel-empty { color:var(--bk-muted); font-size:.88rem; }
+        /* Khi co ghe chon (#bookingSummary bo .d-none) -> an placeholder rong (khong dung JS) */
+        #bookingSummary:not(.d-none) ~ .sel-empty { display:none; }
+        #selectedLabels { font-weight:700; color:var(--bk-primary); }
+        #wsBadge, #refreshBadge { font-size:.72rem; }
+        #refreshBadge { opacity:0; transition:opacity .4s; }
+        #refreshBadge.show { opacity:1; }
     </style>
 </head>
 
 <body>
 <jsp:include page="../common/header.jsp" />
 
-<div class="container my-4" style="max-width: 860px;">
-
-    <!-- Tiêu đề -->
-    <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
-        <a href="javascript:history.back()" class="btn btn-sm btn-outline-secondary">&#8592; Quay lại</a>
-        <h5 class="mb-0 fw-bold">Chọn ghế ngồi</h5>
-        <span id="wsBadge"      class="badge bg-secondary ms-auto">Đang kết nối…</span>
-        <span id="refreshBadge" class="badge bg-success">&#8635; Đã cập nhật</span>
-    </div>
-
-    <!-- Thông tin suất chiếu -->
-    <div class="card mb-3 border-0 shadow-sm">
-        <div class="card-body py-2 px-3">
-            <div class="row g-2 align-items-center">
-                <div class="col-auto">
-                    <span class="fw-semibold">Suất:</span>
-                    <span class="text-primary fw-bold ms-1">${startTimeStr}</span>
-                </div>
-                <div class="col-auto">
+<%-- ===== Context bar ===== --%>
+<div class="bk-ctx mt-3">
+    <div class="container bk-wrap py-2">
+        <div class="d-flex align-items-center gap-3 flex-wrap">
+            <a href="javascript:history.back()" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-left"></i></a>
+            <div class="flex-grow-1">
+                <div class="fw-bold" style="color:var(--bk-navy);">Showtime
+                    <span class="text-primary">${startTimeStr}</span></div>
+                <div class="small">
                     <span class="badge bg-secondary">${showtime.format}</span>
                     <span class="badge bg-info text-dark ms-1">${showtime.subtitleType}</span>
                 </div>
-                <div class="col-auto ms-auto">
-                    <span class="fw-semibold">Còn trống:</span>
-                    <span id="availableCountBadge"
-                          class="badge ms-1 ${availableCount > 0 ? 'bg-success' : 'bg-danger'}">
-                        ${availableCount} ghế
-                    </span>
+            </div>
+            <span id="wsBadge" class="badge bg-secondary">Connecting…</span>
+            <span id="refreshBadge" class="badge bg-success">&#8635; Updated</span>
+            <div class="text-end">
+                <div class="text-muted small">Available</div>
+                <span id="availableCountBadge" class="badge ${availableCount > 0 ? 'bg-success' : 'bg-danger'}">${availableCount} seats</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container bk-wrap py-4">
+
+    <%-- ===== Stepper (2/6 Seats) ===== --%>
+    <div class="bk-steps mb-4">
+        <div class="bk-step done"><span class="bk-dot"><i class="bi bi-check-lg"></i></span>Showtime</div>
+        <div class="bk-line done"></div>
+        <div class="bk-step active"><span class="bk-dot">2</span>Seats</div>
+        <div class="bk-line"></div>
+        <div class="bk-step"><span class="bk-dot">3</span>Food &amp; Drinks</div>
+        <div class="bk-line"></div>
+        <div class="bk-step"><span class="bk-dot">4</span>Review</div>
+        <div class="bk-line"></div>
+        <div class="bk-step"><span class="bk-dot">5</span>Payment</div>
+        <div class="bk-line"></div>
+        <div class="bk-step"><span class="bk-dot">6</span>Confirm</div>
+    </div>
+
+    <h3 class="fw-bold mb-1" style="color:var(--bk-navy);">Choose your seats</h3>
+    <p class="text-muted mb-4">Tap a seat to select. Maximum 8 seats per booking.</p>
+
+    <div class="row g-4">
+
+        <%-- ===== Left: seat map ===== --%>
+        <div class="col-lg-8">
+            <div class="bk-card p-4">
+                <div class="screen-wrap">
+                    <div class="screen-curve"></div>
+                    <div class="screen-label">SCREEN</div>
+                </div>
+
+                <div class="text-center" style="overflow-x:auto;">
+                    <%-- #seatMap + cac button GIU NGUYEN cau truc/class/data-* (TrangNT) --%>
+                    <div id="seatMap">
+                        <div class="seat-header"></div>
+                        <c:forEach var="rowEntry" items="${seatsByRow}">
+                            <div class="seat-row" data-row="${rowEntry.key}">
+                                <span class="row-label">${rowEntry.key}</span>
+                                <c:forEach var="seat" items="${rowEntry.value}">
+                                    <c:set var="isBooked" value="${bookedSeatIds.contains(seat.seatId)}" />
+                                    <c:set var="isAvail"  value="${seat.active and not isBooked}" />
+                                    <c:choose>
+                                        <c:when test="${isAvail}">  <c:set var="statusStr" value="AVAILABLE"   /></c:when>
+                                        <c:when test="${isBooked}"> <c:set var="statusStr" value="BOOKED"      /></c:when>
+                                        <c:otherwise>              <c:set var="statusStr" value="MAINTENANCE" /></c:otherwise>
+                                    </c:choose>
+                                    <button
+                                        class="seat-btn seat-${seat.seatType}
+                                               <c:choose>
+                                                   <c:when test="${isAvail}">seat-available</c:when>
+                                                   <c:when test="${isBooked}">seat-booked</c:when>
+                                                   <c:otherwise>seat-maintenance</c:otherwise>
+                                               </c:choose>"
+                                        data-seat-id="${seat.seatId}"
+                                        data-seat-type="${seat.seatType}"
+                                        data-seat-label="${rowEntry.key}${seat.colNumber}"
+                                        data-col="${seat.colNumber}"
+                                        data-status="${statusStr}"
+                                        title="${rowEntry.key}${seat.colNumber} (${seat.seatType}) – ${statusStr}"
+                                        <c:if test="${!isAvail}">disabled</c:if>
+                                        onclick="toggleSeat(this)"><%-- ghe trong: rong; bao tri: dau X --%><c:if test="${not isAvail and not isBooked}"><i class="bi bi-x-lg"></i></c:if></button>
+                                </c:forEach>
+                                <span class="row-label">${rowEntry.key}</span>
+                            </div>
+                        </c:forEach>
+                    </div>
+                </div>
+
+                <%-- Chú thích --%>
+                <div class="d-flex flex-wrap gap-3 mt-4 pt-3" style="border-top:1px solid var(--bk-border);">
+                    <div class="legend-item"><div class="legend-box" style="background:#f0f7ff;border-color:#7cb0f5;"></div>Available</div>
+                    <div class="legend-item"><div class="legend-box" style="background:#fef3c7;border-color:#f59e0b;"></div>VIP</div>
+                    <div class="legend-item"><div class="legend-box" style="background:#16a34a;border-color:#15803d;"></div>Selected</div>
+                    <div class="legend-item"><div class="legend-box" style="background:#fef3c7;border-color:#f59e0b;animation:soft-pulse 1.8s ease-in-out infinite;"></div>Held by others</div>
+                    <div class="legend-item"><div class="legend-box" style="background:#fee2e2;border-color:#fca5a5;"></div>Booked</div>
+                    <div class="legend-item"><div class="legend-box" style="background:#f3f4f6;border-color:#d1d5db;"></div>Maintenance</div>
+                </div>
+            </div>
+        </div>
+
+        <%-- ===== Right: your selection ===== --%>
+        <div class="col-lg-4">
+            <div class="bk-card p-4 sel-panel">
+                <h6 class="fw-bold mb-3" style="color:var(--bk-navy);">Your Selection</h6>
+
+                <%-- #bookingSummary + #selectedLabels + #proceedBtn GIU NGUYEN id (JS dung) --%>
+                <div id="bookingSummary" class="d-none">
+                    <div class="mb-3">
+                        <div class="text-muted small mb-1">Selected seats</div>
+                        <div id="selectedLabels"></div>
+                    </div>
+                    <button class="btn btn-primary w-100 py-2 fw-semibold" id="proceedBtn" onclick="proceedToCheckout()">
+                        Continue <i class="bi bi-arrow-right"></i>
+                    </button>
+                </div>
+                <div class="sel-empty text-center py-4">
+                    <i class="bi bi-grid-3x3-gap" style="font-size:1.8rem;color:#cbd5e1;"></i>
+                    <div class="mt-2">No seats selected yet.<br>Tap an available seat to choose.</div>
+                </div>
+
+                <div class="bk-card mt-3 p-3" style="background:var(--bk-light);border-color:#cfe0fb;">
+                    <div class="small" style="color:#1e40af;">
+                        <i class="bi bi-info-circle-fill"></i> Seats are held while you're on this page.</div>
                 </div>
             </div>
         </div>
     </div>
-
-    <!-- Màn chiếu -->
-    <div class="screen-bar"></div>
-    <div class="screen-label">MÀN CHIẾU</div>
-
-    <!-- Sơ đồ ghế -->
-    <div id="seatMap">
-        <c:forEach var="rowEntry" items="${seatsByRow}">
-            <div class="d-flex align-items-center gap-1 mb-1 flex-wrap">
-                <span class="row-label">${rowEntry.key}</span>
-                <c:forEach var="seat" items="${rowEntry.value}">
-                    <c:set var="isBooked" value="${bookedSeatIds.contains(seat.seatId)}" />
-                    <c:set var="isAvail"  value="${seat.active and not isBooked}" />
-                    <c:choose>
-                        <c:when test="${isAvail}">  <c:set var="statusStr" value="AVAILABLE"   /></c:when>
-                        <c:when test="${isBooked}"> <c:set var="statusStr" value="BOOKED"      /></c:when>
-                        <c:otherwise>              <c:set var="statusStr" value="MAINTENANCE" /></c:otherwise>
-                    </c:choose>
-
-                    <button
-                        class="seat-btn seat-${seat.seatType}
-                               <c:choose>
-                                   <c:when test="${isAvail}">seat-available</c:when>
-                                   <c:when test="${isBooked}">seat-booked</c:when>
-                                   <c:otherwise>seat-maintenance</c:otherwise>
-                               </c:choose>"
-                        data-seat-id="${seat.seatId}"
-                        data-seat-type="${seat.seatType}"
-                        data-seat-label="${rowEntry.key}${seat.colNumber}"
-                        data-status="${statusStr}"
-                        title="${rowEntry.key}${seat.colNumber} (${seat.seatType}) – ${statusStr}"
-                        <c:if test="${!isAvail}">disabled</c:if>
-                        onclick="toggleSeat(this)">
-                        ${rowEntry.key}${seat.colNumber}
-                    </button>
-                </c:forEach>
-            </div>
-        </c:forEach>
-    </div>
-
-    <!-- Chú thích -->
-    <div class="d-flex flex-wrap gap-3 mt-3 mb-4">
-        <div class="legend-item">
-            <div class="legend-box" style="background:#e0f2fe;border-color:#38bdf8;"></div>
-            <span>Còn trống (Thường)</span>
-        </div>
-        <div class="legend-item">
-            <div class="legend-box" style="background:#fef3c7;border-color:#f59e0b;"></div>
-            <span>Còn trống (VIP)</span>
-        </div>
-        <div class="legend-item">
-            <div class="legend-box" style="background:#16a34a;border-color:#15803d;"></div>
-            <span>Bạn đang chọn</span>
-        </div>
-        <div class="legend-item">
-            <div class="legend-box"
-                 style="background:#fef3c7;border-color:#f59e0b;animation:soft-pulse 1.8s ease-in-out infinite;"></div>
-            <span>Người khác đang chọn</span>
-        </div>
-        <div class="legend-item">
-            <div class="legend-box" style="background:#fee2e2;border-color:#fca5a5;"></div>
-            <span>Đã đặt</span>
-        </div>
-        <div class="legend-item">
-            <div class="legend-box" style="background:#f3f4f6;border-color:#d1d5db;"></div>
-            <span>Bảo trì</span>
-        </div>
-    </div>
-
-    <!-- Tóm tắt lựa chọn -->
-    <div id="bookingSummary" class="card border-0 shadow-sm p-3 mb-3 d-none">
-        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
-            <div>
-                <span class="fw-semibold">Ghế đã chọn: </span>
-                <span id="selectedLabels" class="text-primary fw-bold"></span>
-            </div>
-            <button class="btn btn-primary px-4" id="proceedBtn" onclick="proceedToCheckout()">
-                Tiếp tục →
-            </button>
-        </div>
-    </div>
-
 </div><!-- /container -->
 
 <jsp:include page="../common/footer.jsp" />
@@ -306,8 +294,8 @@
                     if (selectedSeats.has(myId)) {
                         selectedSeats.delete(myId);
                         renderSummary();
-                        alert('Ghế ' + btn.dataset.seatLabel
-                            + ' vừa được người khác đặt. Vui lòng chọn ghế khác.');
+                        alert('Seat ' + btn.dataset.seatLabel
+                            + ' was just booked by someone else. Please choose another seat.');
                     }
                     setSeatState(btn, 'booked');
                     updateAvailableCount(-1);
@@ -325,7 +313,7 @@
         };
 
         ws.onclose = function () {
-            setWsBadge('Mất kết nối – thử lại…', 'bg-warning text-dark');
+            setWsBadge('Disconnected – retrying…', 'bg-warning text-dark');
             setTimeout(connectWS, Math.min(wsRetryDelay, 30000));
             wsRetryDelay *= 2;
         };
@@ -397,14 +385,14 @@
     function updateAvailableCount(delta) {
         const badge   = document.getElementById('availableCountBadge');
         const next    = Math.max(0, (parseInt(badge.textContent) || 0) + delta);
-        badge.textContent = next + ' ghế';
-        badge.className   = 'badge ms-1 ' + (next > 0 ? 'bg-success' : 'bg-danger');
+        badge.textContent = next + ' seats';
+        badge.className   = 'badge ' + (next > 0 ? 'bg-success' : 'bg-danger');
     }
 
     function setWsBadge(text, cls) {
         const b = document.getElementById('wsBadge');
         b.textContent = text;
-        b.className   = 'badge ms-auto ' + cls;
+        b.className   = 'badge ' + cls;
     }
 
     function flashRefreshBadge() {
@@ -418,6 +406,38 @@
             ws.send(JSON.stringify(payload));
         }
     }
+
+    /* ── Trang tri so do (HungNT): them so cot + loi di. KHONG dung vao logic/websocket.
+       Chi chen element decorative; cac button data-seat-id giu nguyen.            ── */
+    (function buildLayout() {
+        const rows = Array.from(document.querySelectorAll('.seat-row'));
+        if (!rows.length) return;
+        const colSet = new Set();
+        rows.forEach(r => r.querySelectorAll('.seat-btn').forEach(b => colSet.add(+b.dataset.col)));
+        const cols = Array.from(colSet).sort((a, b) => a - b);
+        if (!cols.length) return;
+        const aisleAfter = cols[Math.ceil(cols.length / 2) - 1];
+
+        const header = document.querySelector('#seatMap .seat-header');
+        header.innerHTML = '<span class="row-label"></span>';
+        cols.forEach(c => {
+            if (c === aisleAfter + 1) header.insertAdjacentHTML('beforeend', '<span class="aisle"></span>');
+            header.insertAdjacentHTML('beforeend', '<span class="col-num">' + c + '</span>');
+        });
+        header.insertAdjacentHTML('beforeend', '<span class="row-label"></span>');
+
+        rows.forEach(r => {
+            const seats = r.querySelectorAll('.seat-btn');
+            for (const b of seats) {
+                if (+b.dataset.col === aisleAfter + 1) {
+                    const sp = document.createElement('span');
+                    sp.className = 'aisle';
+                    r.insertBefore(sp, b);
+                    break;
+                }
+            }
+        });
+    })();
 </script>
 </body>
 </html>

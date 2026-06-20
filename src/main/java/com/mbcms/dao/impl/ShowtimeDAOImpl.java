@@ -368,6 +368,33 @@ public class ShowtimeDAOImpl extends BaseDAO implements ShowtimeDAO {
         }
     }
 
+    @Override
+    public boolean hasUnfinishedShowtimes(long branchId, long movieId) {
+        // SCHEDULED + end_time > now = dang chieu hoac se chieu. Di qua room -> branch
+        // vi showtimes khong co branch_id truc tiep.
+        String sql = "SELECT 1 FROM showtimes st "
+                + "JOIN rooms r ON r.room_id = st.room_id "
+                + "WHERE r.branch_id = ? AND st.movie_id = ? "
+                + "AND st.status = 'SCHEDULED' AND st.end_time > GETDATE()";
+
+        Connection conn = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+
+        try {
+            conn = getConnection();
+            ps = conn.prepareStatement(sql);
+            ps.setLong(1, branchId);
+            ps.setLong(2, movieId);
+            rs = ps.executeQuery();
+            return rs.next();
+        } catch (SQLException e) {
+            throw new RuntimeException("Loi truy van showtimes.hasUnfinishedShowtimes: " + e.getMessage(), e);
+        } finally {
+            closeAll(rs, ps, conn);
+        }
+    }
+
     /**
      * Chuyen 1 dong (row) cua ResultSet thanh 1 object Showtime. Tach rieng ra
      * ham nay de findByBranch va findById dung chung, khong lap code.

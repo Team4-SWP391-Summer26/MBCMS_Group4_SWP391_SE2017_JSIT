@@ -95,7 +95,8 @@ public class ShowtimeListServlet extends HttpServlet {
         // "now" de JSP tinh status dong (suat SCHEDULED qua gio = Ended/Now showing)
         // va an nut Edit/Cancel voi suat da bat dau. Tranh phu thuoc job set ENDED.
         req.setAttribute("nowLdt", LocalDateTime.now());
-        req.setAttribute("movies", movieDAO.findActiveMovies());
+        // Dropdown filter chi liet ke phim da cap cho chi nhanh nay (movie_branch).
+        req.setAttribute("movies", movieDAO.findActiveMoviesForBranch(branchId));
         req.setAttribute("rooms", roomDAO.findActiveByBranch(branchId));
         req.setAttribute("filterMovieId", movieId);
         req.setAttribute("filterRoomId", roomId);
