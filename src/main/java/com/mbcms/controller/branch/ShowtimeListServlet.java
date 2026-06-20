@@ -91,7 +91,7 @@ public class ShowtimeListServlet extends HttpServlet {
 
         req.setAttribute("showtimes", tableShowtimes);
         req.setAttribute("dayShowtimes", dayShowtimes);
-        req.setAttribute("movies", movieDAO.findActiveMovies());
+        req.setAttribute("movies", movieDAO.findActiveMoviesForBranch(branchId));
         req.setAttribute("rooms", roomDAO.findActiveByBranch(branchId));
         req.setAttribute("filterMovieId", movieId);
         req.setAttribute("filterRoomId", roomId);

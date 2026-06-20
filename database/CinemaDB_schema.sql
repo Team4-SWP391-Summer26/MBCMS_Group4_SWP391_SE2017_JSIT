@@ -110,6 +110,22 @@ CREATE TABLE dbo.branches (
 );
 GO
 
+-- movie_branch (M:N): Admin CAP phim cho chi nhanh; BM chi xep lich phim duoc cap.
+-- Dat sau movies + branches (FK ca hai). Cung pattern bridge nhu movie_genres.
+CREATE TABLE dbo.movie_branch (
+    movie_id    BIGINT    NOT NULL,
+    branch_id   BIGINT    NOT NULL,
+    assigned_at DATETIME2 NOT NULL CONSTRAINT DF_movie_branch_assigned DEFAULT (SYSUTCDATETIME()),
+    CONSTRAINT PK_movie_branch PRIMARY KEY (movie_id, branch_id),
+    CONSTRAINT FK_movie_branch_movie  FOREIGN KEY (movie_id)
+        REFERENCES dbo.movies (movie_id) ON DELETE CASCADE,
+    CONSTRAINT FK_movie_branch_branch FOREIGN KEY (branch_id)
+        REFERENCES dbo.branches (branch_id)         -- NO cascade: tranh nhieu duong cascade
+);
+GO
+CREATE INDEX IX_movie_branch_branch ON dbo.movie_branch (branch_id);
+GO
+
 CREATE TABLE dbo.rooms (
     room_id   BIGINT       IDENTITY(1,1) NOT NULL,
     branch_id BIGINT       NOT NULL,
