@@ -8,6 +8,8 @@ import com.mbcms.model.Room;
 import com.mbcms.model.Showtime;
 import com.mbcms.service.ShowtimeService;
 
+import java.time.LocalDateTime;
+
 /**
  * Tang Service cho Showtime: chua TOAN BO business rule (verify branch,
  * trang thai, booking). Servlet chi goi cac ham o day, KHONG tu kiem tra logic.
@@ -72,6 +74,11 @@ public class ShowtimeServiceImpl implements ShowtimeService {
         if (!Showtime.STATUS_SCHEDULED.equals(existing.getStatus())) {
             return RESULT_NOT_EDITABLE;
         }
+        // Buoc 2.5: chi sua suat CHUA bat dau. Suat dang chieu / da chieu xong (start <= now)
+        // thi khoa - khong dua vao status (status ENDED hien chua co job tu set).
+        if (!existing.getStartTime().isAfter(LocalDateTime.now())) {
+            return RESULT_NOT_EDITABLE;
+        }
 
         // Buoc 3: khi edit, manager co the doi sang phong khac -> phong MOI nay
         // cung phai thuoc branch + active (check giong luc create).
@@ -94,6 +101,11 @@ public class ShowtimeServiceImpl implements ShowtimeService {
         }
         // Buoc 2: chi huy duoc suat dang SCHEDULED (suat da huy/da chieu xong thi thoi).
         if (!Showtime.STATUS_SCHEDULED.equals(existing.getStatus())) {
+            return RESULT_NOT_EDITABLE;
+        }
+        // Buoc 2.5: chi huy suat CHUA bat dau. Suat dang chieu / da chieu xong (start <= now)
+        // thi khoa - khong the huy mot suat da/dang dien ra.
+        if (!existing.getStartTime().isAfter(LocalDateTime.now())) {
             return RESULT_NOT_EDITABLE;
         }
         // Business rule: suat da co booking (PENDING/CONFIRMED/USED) thi khong huy

@@ -15,6 +15,7 @@ import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
@@ -91,6 +92,10 @@ public class ShowtimeListServlet extends HttpServlet {
 
         req.setAttribute("showtimes", tableShowtimes);
         req.setAttribute("dayShowtimes", dayShowtimes);
+        // "now" de JSP tinh status dong (suat SCHEDULED qua gio = Ended/Now showing)
+        // va an nut Edit/Cancel voi suat da bat dau. Tranh phu thuoc job set ENDED.
+        req.setAttribute("nowLdt", LocalDateTime.now());
+        // Dropdown filter chi liet ke phim da cap cho chi nhanh nay (movie_branch).
         req.setAttribute("movies", movieDAO.findActiveMoviesForBranch(branchId));
         req.setAttribute("rooms", roomDAO.findActiveByBranch(branchId));
         req.setAttribute("filterMovieId", movieId);
@@ -120,7 +125,7 @@ public class ShowtimeListServlet extends HttpServlet {
                     break;
                 case "NOT_EDITABLE":
                     req.setAttribute("errorMsg",
-                            "This showtime can no longer be cancelled (already cancelled or ended).");
+                            "This showtime can no longer be cancelled (already started, cancelled, or ended).");
                     break;
                 default:
                     req.setAttribute("errorMsg", "System error, please try again later.");
