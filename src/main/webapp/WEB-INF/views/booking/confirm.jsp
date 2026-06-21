@@ -193,57 +193,6 @@
             .btn-history-link:hover {
                 color: #2563eb;
             }
-
-            /* ── Cancel button ── */
-            .btn-cancel-booking {
-                background: #fff;
-                color: #dc2626;
-                border: 1.5px solid #fca5a5;
-                border-radius: 8px;
-                padding: 10px 22px;
-                font-weight: 600;
-                font-size: 0.9rem;
-                cursor: pointer;
-                transition: all 0.15s;
-                text-decoration: none;
-                display: inline-flex;
-                align-items: center;
-                gap: 6px;
-            }
-            .btn-cancel-booking:hover {
-                background: #fef2f2;
-                border-color: #dc2626;
-                color: #b91c1c;
-            }
-
-            /* ── Cancel modal ── */
-            .modal-overlay {
-                position: fixed;
-                inset: 0;
-                background: rgba(15,23,42,.55);
-                z-index: 1055;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                padding: 16px;
-                animation: fadeInModal .2s;
-            }
-            .modal-box {
-                background: #fff;
-                border-radius: 14px;
-                padding: 28px;
-                max-width: 420px;
-                width: 100%;
-                box-shadow: 0 20px 60px rgba(0,0,0,.3);
-            }
-            @keyframes fadeInModal {
-                from{
-                    opacity:0
-                }
-                to{
-                    opacity:1
-                }
-            }
         </style>
     </head>
     <body>
@@ -326,56 +275,9 @@
                                             My Bookings
                                         </a>
                                     </div>
-
-                                    <%-- Cancel button — only for CONFIRMED if business rules allow it --%>
-                                    <button class="btn-cancel-booking" onclick="openCancelModal()">
-                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                             stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                                        <line x1="18" y1="6" x2="6" y2="18"></line>
-                                        <line x1="6" y1="6" x2="18" y2="18"></line>
-                                        </svg>
-                                        Cancel Booking
-                                    </button>
-                                </div>
-
-                            </div>
-                        </div>
-
-                        <!-- Cancel modal -->
-                        <div id="cancel-modal" class="modal-overlay" style="display:none;" onclick="closeCancelModal(event)">
-                            <div class="modal-box" onclick="event.stopPropagation()">
-                                <div style="font-size:2.5rem; text-align:center; margin-bottom:8px;">⚠️</div>
-                                <h5 class="text-center fw-bold mb-1">Cancel this booking?</h5>
-                                <p class="text-center text-muted mb-4" style="font-size:0.9rem;">
-                                    Booking <strong>${booking.bookingCode}</strong> will be cancelled
-                                    and your seats will be released. This cannot be undone.
-                                </p>
-                                <div class="d-flex gap-2">
-                                    <button class="btn btn-outline-secondary flex-fill" onclick="closeCancelModal()">Keep Booking</button>
-                                    <%-- TODO: wire to BookingCancelServlet --%>
-                                    <form action="${pageContext.request.contextPath}/customer/booking/cancel"
-                                          method="post" class="flex-fill m-0">
-                                        <input type="hidden" name="bookingId" value="${booking.bookingId}"/>
-                                        <button type="submit" class="btn-cancel-booking w-100" style="justify-content:center;">
-                                            Yes, Cancel
-                                        </button>
-                                    </form>
                                 </div>
                             </div>
                         </div>
-
-                        <script>
-                            function openCancelModal() {
-                                document.getElementById('cancel-modal').style.display = 'flex';
-                                document.body.style.overflow = 'hidden';
-                            }
-                            function closeCancelModal(e) {
-                                if (e && e.target !== e.currentTarget)
-                                    return;
-                                document.getElementById('cancel-modal').style.display = 'none';
-                                document.body.style.overflow = '';
-                            }
-                        </script>
                     </c:when>
 
                     <%-- ══ ERROR / NOT FOUND STATE ══ --%>

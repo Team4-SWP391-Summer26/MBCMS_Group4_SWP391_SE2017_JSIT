@@ -169,6 +169,49 @@
                 color: #b91c1c;
             }
 
+            /* ── Cancel modal ── */
+            .modal-overlay {
+                position: fixed;
+                inset: 0;
+                background: rgba(15,23,42,.55);
+                z-index: 1055;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding: 16px;
+                animation: fadeInModal .2s;
+            }
+            .modal-box {
+                background: #fff;
+                border-radius: 14px;
+                padding: 28px;
+                max-width: 420px;
+                width: 100%;
+                box-shadow: 0 20px 60px rgba(0,0,0,.3);
+            }
+            
+                        /* ── Cancel button ── */
+            .btn-cancel-booking {
+                background: #fff;
+                color: #dc2626;
+                border: 1.5px solid #fca5a5;
+                border-radius: 8px;
+                padding: 10px 22px;
+                font-weight: 600;
+                font-size: 0.9rem;
+                cursor: pointer;
+                transition: all 0.15s;
+                text-decoration: none;
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+            }
+            .btn-cancel-booking:hover {
+                background: #fef2f2;
+                border-color: #dc2626;
+                color: #b91c1c;
+            }
+
             .back-link {
                 display: inline-block;
                 margin-top: 14px;
@@ -193,6 +236,14 @@
             @keyframes blink {
                 50% {
                     opacity: .4;
+                }
+            }
+            @keyframes fadeInModal {
+                from {
+                    opacity: 0;
+                }
+                to   {
+                    opacity: 1;
                 }
             }
         </style>
@@ -318,53 +369,50 @@
                     </form>
 
                     <%-- Nút Huỷ đặt vé (chỉ hiển thị khi đã có pending booking) --%>
+                    <%-- Nút Huỷ đặt vé (chỉ hiển thị khi đã có pending booking) --%>
                     <c:if test="${not empty booking}">
-                        <form method="post"
-                              action="${pageContext.request.contextPath}/customer/booking/cancel"
-                              onsubmit="return confirm('Bạn có chắc muốn huỷ đặt vé này? Ghế sẽ được giải phóng.');">
-                            <input type="hidden" name="bookingId"  value="${booking.bookingId}">
-                            <input type="hidden" name="showtimeId" value="${showtimeId}">
-                            <button class="btn-cancel-lc">✕ Huỷ đặt vé</button>
-                        </form>
+                        <button type="button" class="btn-cancel-lc" onclick="openCancelModal()">
+                            ✕ Huỷ đặt vé
+                        </button>
                     </c:if>
                 </div>
-                <!-- Cancel modal -->
-                <div id="cancel-modal" class="modal-overlay" style="display:none;" onclick="closeCancelModal(event)">
-                    <div class="modal-box" onclick="event.stopPropagation()">
-                        <div style="font-size:2.5rem; text-align:center; margin-bottom:8px;">⚠️</div>
-                        <h5 class="text-center fw-bold mb-1">Cancel this booking?</h5>
-                        <p class="text-center text-muted mb-4" style="font-size:0.9rem;">
-                            Booking <strong>${booking.bookingCode}</strong> will be cancelled
-                            and your seats will be released. This cannot be undone.
-                        </p>
-                        <div class="d-flex gap-2">
-                            <button class="btn btn-outline-secondary flex-fill" onclick="closeCancelModal()">Keep Booking</button>
-                            <%-- TODO: wire to BookingCancelServlet --%>
-                            <form action="${pageContext.request.contextPath}/customer/booking/cancel"
-                                  method="post" class="flex-fill m-0">
-                                <input type="hidden" name="bookingId" value="${booking.bookingId}"/>
-                                <button type="submit" class="btn-cancel-booking w-100" style="justify-content:center;">
-                                    Yes, Cancel
-                                </button>
-                            </form>
-                        </div>
+            </div>
+            <!-- Cancel modal -->
+            <div id="cancel-modal" class="modal-overlay" style="display:none;" onclick="closeCancelModal(event)">
+                <div class="modal-box" onclick="event.stopPropagation()">
+                    <div style="font-size:2.5rem; text-align:center; margin-bottom:8px;">⚠️</div>
+                    <h5 class="text-center fw-bold mb-1">Cancel this booking?</h5>
+                    <p class="text-center text-muted mb-4" style="font-size:0.9rem;">
+                        Booking <strong>${booking.bookingCode}</strong> will be cancelled
+                        and your seats will be released. This cannot be undone.
+                    </p>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-outline-secondary flex-fill" onclick="closeCancelModal()">Keep Booking</button>
+                        <%-- TODO: wire to BookingCancelServlet --%>
+                        <form action="${pageContext.request.contextPath}/customer/booking/cancel"
+                              method="post" class="flex-fill m-0">
+                            <input type="hidden" name="bookingId" value="${booking.bookingId}"/>
+                            <input type="hidden" name="showtimeId" value="${showtimeId}"/>  <%-- add this --%>
+                            <button type="submit" class="btn-cancel-booking w-100" style="justify-content:center;">
+                                Yes, Cancel
+                            </button>
+                        </form>
                     </div>
                 </div>
-                <script>
-                    function openCancelModal() {
-                        document.getElementById('cancel-modal').style.display = 'flex';
-                        document.body.style.overflow = 'hidden';
-                    }
-                    function closeCancelModal(e) {
-                        if (e && e.target !== e.currentTarget)
-                            return;
-                        document.getElementById('cancel-modal').style.display = 'none';
-                        document.body.style.overflow = '';
-                    }
-                </script>
             </div>
+            <script>
+                function openCancelModal() {
+                    document.getElementById('cancel-modal').style.display = 'flex';
+                    document.body.style.overflow = 'hidden';
+                }
+                function closeCancelModal(e) {
+                    if (e && e.target !== e.currentTarget)
+                        return;
+                    document.getElementById('cancel-modal').style.display = 'none';
+                    document.body.style.overflow = '';
+                }
+            </script>
         </div>
-
 
 
         <%@ include file="/WEB-INF/views/common/footer.jsp" %>
@@ -372,32 +420,32 @@
 
         <c:if test="${not empty booking}">
             <script>
-                                    // Đếm ngược 10 phút từ lúc load trang
-                                    (function () {
-                                        const LIMIT_MS = 10 * 60 * 1000;
-                                        const start = Date.now();
-                                        const wrap = document.getElementById('countdown-wrap');
-                                        if (!wrap)
-                                            return;
+                // Đếm ngược 10 phút từ lúc load trang
+                (function () {
+                    const LIMIT_MS = 10 * 60 * 1000;
+                    const start = Date.now();
+                    const wrap = document.getElementById('countdown-wrap');
+                    if (!wrap)
+                        return;
 
-                                        function tick() {
-                                            const elapsed = Date.now() - start;
-                                            const remaining = Math.max(0, LIMIT_MS - elapsed);
-                                            const m = Math.floor(remaining / 60000);
-                                            const s = Math.floor((remaining % 60000) / 1000);
-                                            wrap.textContent = m + ':' + String(s).padStart(2, '0');
-                                            if (remaining <= 60000)
-                                                wrap.classList.add('danger');
-                                            if (remaining === 0) {
-                                                clearInterval(timer);
-                                                wrap.textContent = 'Hết giờ!';
-                                                alert('Thời gian giữ ghế đã hết. Vui lòng chọn lại ghế.');
-                                                window.location.href = '${pageContext.request.contextPath}/booking/seats?showtimeId=${showtimeId}';
-                                                            }
-                                                        }
-                                                        tick();
-                                                        const timer = setInterval(tick, 1000);
-                                                    })();
+                    function tick() {
+                        const elapsed = Date.now() - start;
+                        const remaining = Math.max(0, LIMIT_MS - elapsed);
+                        const m = Math.floor(remaining / 60000);
+                        const s = Math.floor((remaining % 60000) / 1000);
+                        wrap.textContent = m + ':' + String(s).padStart(2, '0');
+                        if (remaining <= 60000)
+                            wrap.classList.add('danger');
+                        if (remaining === 0) {
+                            clearInterval(timer);
+                            wrap.textContent = 'Hết giờ!';
+                            alert('Thời gian giữ ghế đã hết. Vui lòng chọn lại ghế.');
+                            window.location.href = '${pageContext.request.contextPath}/booking/seats?showtimeId=${showtimeId}';
+                                        }
+                                    }
+                                    tick();
+                                    const timer = setInterval(tick, 1000);
+                                })();
             </script>
         </c:if>
     </body>
