@@ -4,13 +4,13 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 /**
- * Payment - map bang `payments` (1:1 voi booking). method: CASH | MOMO | VNPAY
+ * Payment - map bang `payments` (1:1 voi booking).
+ * method: CASH | VNPAY (online customer); CASH cho quay Staff
  * status: PENDING -> SUCCESS | FAILED (refund out of scope)
  */
 public class Payment {
 
     public static final String METHOD_CASH = "CASH";
-    public static final String METHOD_MOMO = "MOMO";
     public static final String METHOD_VNPAY = "VNPAY";
 
     public static final String STATUS_PENDING = "PENDING";

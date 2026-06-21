@@ -33,4 +33,5 @@ public interface PromotionDAO {
     BigDecimal getRevenueImpactThisMonth();
 
     boolean delete(long promoId);
+    boolean incrementUsedCount(long promoId);
 }

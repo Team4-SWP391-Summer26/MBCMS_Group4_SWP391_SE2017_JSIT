@@ -4,12 +4,10 @@ import com.mbcms.dao.SeatDAO;
 import com.mbcms.dao.ShowtimeDAO;
 import com.mbcms.dao.impl.SeatDAOImpl;
 import com.mbcms.dao.impl.ShowtimeDAOImpl;
-import com.mbcms.model.Booking;
 import com.mbcms.model.Seat;
 import com.mbcms.model.Showtime;
 import com.mbcms.service.SeatAvailabilityService;
 
-import java.sql.SQLException;
 import java.util.*;
 
 public class SeatAvailabilityServiceImpl implements SeatAvailabilityService {

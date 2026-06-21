@@ -55,6 +55,15 @@ public interface ShowtimeDAO {
     /**
      * Huy suat chieu (UC22): UPDATE status = 'CANCELLED', KHONG DELETE (giu
      * lich su). Chi huy duoc suat dang SCHEDULED.
+     * Chi nhanh nay con suat chieu CHUA KET THUC cho phim nay khong?
+     * (status = SCHEDULED va end_time > now -> dang chieu hoac sap chieu).
+     * Dung de chan Admin bo phan phoi phim khoi chi nhanh khi con suat dang/se chieu.
+     */
+    boolean hasUnfinishedShowtimes(long branchId, long movieId);
+
+    /**
+     * Huy suat chieu (UC22): UPDATE status = 'CANCELLED', KHONG DELETE (giu lich su).
+     * Chi huy duoc suat dang SCHEDULED.
      *
      * @return true = huy thanh cong; false = suat khong ton tai hoac khong o
      * trang thai SCHEDULED.

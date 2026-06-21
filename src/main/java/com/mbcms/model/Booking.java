@@ -30,6 +30,7 @@ public class Booking {
     private LocalDateTime createdAt;
 
     private List<Long> seatIds; // tu booking_seats
+    private List<String> seatLabels; // nhan hien thi: row_label + col_number (vd A5)
 
     public Booking() {
     }
@@ -122,11 +123,10 @@ public class Booking {
         this.createdAt = createdAt;
     }
 
-    public List<Long> getSeatIds() {
-        return seatIds;
-    }
+    
+    public List<Long> getSeatIds() { return seatIds; }
+    public void setSeatIds(List<Long> seatIds) { this.seatIds = seatIds; }
 
-    public void setSeatIds(List<Long> seatIds) {
-        this.seatIds = seatIds;
-    }
+    public List<String> getSeatLabels() { return seatLabels; }
+    public void setSeatLabels(List<String> seatLabels) { this.seatLabels = seatLabels; }
 }

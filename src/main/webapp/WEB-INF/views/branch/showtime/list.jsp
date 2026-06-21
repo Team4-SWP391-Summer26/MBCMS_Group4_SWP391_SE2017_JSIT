@@ -226,13 +226,17 @@
                             <tbody>
                                 <c:if test="${empty showtimes}">
                                     <tr><td colspan="9" class="text-center text-muted py-4">
-                                            No showtimes for this day. Click <strong>Add Showtime</strong> to schedule one.</td></tr>
-                                        </c:if>
-                                        <c:forEach var="st" items="${showtimes}">
-                                            <c:set var="sMin" value="${st.startTime.hour * 60 + st.startTime.minute}" />
-                                            <c:set var="eMin" value="${st.endTime.hour * 60 + st.endTime.minute}" />
-                                            <c:set var="durMin" value="${(eMin <= sMin ? eMin + 1440 : eMin) - sMin}" />
-                                            <c:set var="pct" value="${st.roomCapacity > 0 ? st.bookedSeats * 100 / st.roomCapacity : 0}" />
+                                        No showtimes for this day. Click <strong>Add Showtime</strong> to schedule one.</td></tr>
+                                </c:if>
+                                <c:forEach var="st" items="${showtimes}">
+                                    <c:set var="sMin" value="${st.startTime.hour * 60 + st.startTime.minute}" />
+                                    <c:set var="eMin" value="${st.endTime.hour * 60 + st.endTime.minute}" />
+                                    <c:set var="durMin" value="${(eMin <= sMin ? eMin + 1440 : eMin) - sMin}" />
+                                    <c:set var="pct" value="${st.roomCapacity > 0 ? st.bookedSeats * 100 / st.roomCapacity : 0}" />
+                                    <%-- Status dong theo thoi gian thuc (khong dua vao job set ENDED) --%>
+                                    <c:set var="started" value="${not st.startTime.isAfter(nowLdt)}" />
+                                    <c:set var="finished" value="${not st.endTime.isAfter(nowLdt)}" />
+                                    <c:set var="manageable" value="${st.status == 'SCHEDULED' and not started}" />
                                     <tr>
                                         <td class="ps-3">
                                             <div class="text-navy fw-semibold small"><c:out value="${st.movieTitle}" /></div>
@@ -261,23 +265,28 @@
                                         </td>
                                         <td>
                                             <c:choose>
-                                                <c:when test="${st.status == 'SCHEDULED'}">
+                                                <c:when test="${st.status == 'CANCELLED'}">
+                                                    <span class="pill pill-red">Cancelled</span>
+                                                </c:when>
+                                                <%-- SCHEDULED nhung da qua gio ket thuc, hoac status ENDED --%>
+                                                <c:when test="${st.status == 'ENDED' or finished}">
+                                                    <span class="pill pill-gray">Ended</span>
+                                                </c:when>
+                                                <%-- Dang chieu: da bat dau nhung chua ket thuc --%>
+                                                <c:when test="${started}">
+                                                    <span class="pill pill-blue">Now showing</span>
+                                                </c:when>
+                                                <c:otherwise>
                                                     <span class="pill pill-green">Active</span>
                                                     <c:if test="${st.bookedSeats >= st.roomCapacity}">
                                                         <span class="pill pill-red ms-1">Full</span>
                                                     </c:if>
-                                                </c:when>
-                                                <c:when test="${st.status == 'CANCELLED'}">
-                                                    <span class="pill pill-red">Cancelled</span>
-                                                </c:when>
-                                                <c:otherwise>
-                                                    <span class="pill pill-gray">Ended</span>
                                                 </c:otherwise>
                                             </c:choose>
                                         </td>
                                         <td class="text-end pe-3">
-                                            <%-- Chi suat SCHEDULED moi sua/huy duoc (server van verify lai) --%>
-                                            <c:if test="${st.status == 'SCHEDULED'}">
+                                            <%-- Chi suat SCHEDULED & CHUA bat dau moi sua/huy (server van verify lai) --%>
+                                            <c:if test="${manageable}">
                                                 <div class="d-flex gap-1 justify-content-end">
                                                     <a class="btn btn-sm btn-outline-primary" title="Edit"
                                                        href="${pageContext.request.contextPath}/branch/showtimes/edit?id=${st.showtimeId}">

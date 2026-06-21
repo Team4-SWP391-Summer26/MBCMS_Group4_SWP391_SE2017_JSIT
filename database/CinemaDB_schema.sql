@@ -1,7 +1,7 @@
 -- =====================================================================
 -- CinemaDB - SQL Server DDL (schema only)
 -- Project: SWP391 - Multi-Branch Cinema Management System (MBCMS)
--- Source : 01_Database/CinemaDB_final.dbml  (18 tables, 19 FKs, 15 enums)
+-- Source : 01_Database/CinemaDB_final.dbml  (18 tables) + movie_branch bridge = 19 tables
 -- Target : SQL Server 2019+
 --
 -- HOW TO RUN (SSMS):
@@ -42,6 +42,7 @@ IF OBJECT_ID('dbo.customers',          'U') IS NOT NULL DROP TABLE dbo.customers
 IF OBJECT_ID('dbo.showtimes',          'U') IS NOT NULL DROP TABLE dbo.showtimes;
 IF OBJECT_ID('dbo.seats',              'U') IS NOT NULL DROP TABLE dbo.seats;
 IF OBJECT_ID('dbo.rooms',              'U') IS NOT NULL DROP TABLE dbo.rooms;
+IF OBJECT_ID('dbo.movie_branch',       'U') IS NOT NULL DROP TABLE dbo.movie_branch;
 IF OBJECT_ID('dbo.branches',           'U') IS NOT NULL DROP TABLE dbo.branches;
 IF OBJECT_ID('dbo.movie_genres',       'U') IS NOT NULL DROP TABLE dbo.movie_genres;
 IF OBJECT_ID('dbo.genres',             'U') IS NOT NULL DROP TABLE dbo.genres;
@@ -108,6 +109,22 @@ CREATE TABLE dbo.branches (
     created_at DATETIME2     NOT NULL CONSTRAINT DF_branches_created DEFAULT (SYSUTCDATETIME()),
     CONSTRAINT PK_branches PRIMARY KEY (branch_id)
 );
+GO
+
+-- movie_branch (M:N): Admin CAP phim cho chi nhanh; BM chi xep lich phim duoc cap.
+-- Dat sau movies + branches (FK ca hai). Cung pattern bridge nhu movie_genres.
+CREATE TABLE dbo.movie_branch (
+    movie_id    BIGINT    NOT NULL,
+    branch_id   BIGINT    NOT NULL,
+    assigned_at DATETIME2 NOT NULL CONSTRAINT DF_movie_branch_assigned DEFAULT (SYSUTCDATETIME()),
+    CONSTRAINT PK_movie_branch PRIMARY KEY (movie_id, branch_id),
+    CONSTRAINT FK_movie_branch_movie  FOREIGN KEY (movie_id)
+        REFERENCES dbo.movies (movie_id) ON DELETE CASCADE,
+    CONSTRAINT FK_movie_branch_branch FOREIGN KEY (branch_id)
+        REFERENCES dbo.branches (branch_id)         -- NO cascade: tranh nhieu duong cascade
+);
+GO
+CREATE INDEX IX_movie_branch_branch ON dbo.movie_branch (branch_id);
 GO
 
 CREATE TABLE dbo.rooms (
@@ -397,5 +414,5 @@ CREATE INDEX IX_feedbacks_branch   ON dbo.feedbacks (branch_id);
 CREATE INDEX IX_feedbacks_status   ON dbo.feedbacks ([status]);
 GO
 
-PRINT 'CinemaDB schema created: 18 tables.';
+PRINT 'CinemaDB schema created: 19 tables (incl. movie_branch).';
 GO

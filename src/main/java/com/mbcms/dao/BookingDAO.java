@@ -1,6 +1,8 @@
 package com.mbcms.dao;
 
 import com.mbcms.model.Booking;
+import com.mbcms.model.BookingTicket;
+import java.sql.Connection;
 import java.util.List;
 
 /**
@@ -32,6 +34,25 @@ public interface BookingDAO {
      * Tat ca booking cua 1 customer, sap xep moi nhat truoc.
      */
     List<Booking> findByCustomer(String customerUsername);
+    
+     /** Tìm booking theo ID, kèm load seatIds từ booking_seats. */
+    Booking findByIdWithSeats(long bookingId);
+
+    /**
+     * View-model day du cho man Confirm / e-ticket: JOIN bookings + showtimes +
+     * movies + rooms + branches + customers, kem nhan ghe (row_label+col_number).
+     * Return null neu khong tim thay.
+     */
+    BookingTicket findTicket(long bookingId);
+
+    /** Danh sach BookingTicket (day du) cua 1 customer, suat moi nhat truoc. */
+    List<BookingTicket> findTicketsByCustomer(String customerUsername);
+    
+    /**
+     * PENDING → CANCELLED (hết hạn hoặc user huỷ).
+     * Chỉ huỷ được PENDING, không huỷ CONFIRMED.
+     */
+    int cancelBooking(long bookingId, String customerUsername);
 
     /**
      * Cap nhat status booking. PENDING -> CONFIRMED (sau payment success),
@@ -39,12 +60,22 @@ public interface BookingDAO {
      */
     boolean updateStatus(long bookingId, String newStatus);
 
-    // ── Seat locking ──────────────────────────────────────────────────────────
     /**
      * Kiem tra ghe co bi lock / da dat boi booking khac khong. Return: list
      * seatId da bi chiem -> dung truoc khi tao booking.
+     * PENDING → CONFIRMED (sau payment thành công).
+     * Chỉ update khi status=PENDING và expires_at > NOW.
+     * Return số row affected (0 = hết hạn hoặc sai trạng thái).
      */
-    List<Long> getUnavailableSeatIds(long showtimeId, List<Long> seatIds);
+    int confirmBooking(long bookingId, String customerUsername);
+
+    /**
+     * Overload connection-aware: PENDING → CONFIRMED ben trong transaction
+     * cua payment callback (SRS 3.8.4). Dung chung Connection voi PaymentDAO
+     * de payments + bookings cap nhat atomic. KHONG commit/close connection.
+     * Return so row affected (0 = het han hoac sai trang thai).
+     */
+    int confirmBooking(Connection conn, long bookingId, String customerUsername);
 
     /**
      * Giai phong lock PENDING booking da qua 10 phut chua thanh toan. Return:

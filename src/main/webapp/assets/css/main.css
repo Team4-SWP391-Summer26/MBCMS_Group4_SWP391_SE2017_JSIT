@@ -306,11 +306,6 @@ body {
     color: #ffffff;
 }
 
-.footer-custom .badge-momo {
-    background-color: #a50064;
-    color: #ffffff;
-}
-
 .footer-custom .language-select {
     border: 1px solid #374151;
     background-color: transparent;
@@ -330,3 +325,110 @@ body {
     border-color: #9ca3af;
     background-color: rgba(255, 255, 255, 0.05);
 }
+
+/* =====================================================================
+   Booking flow – shared design system (steps 2..6)
+   Dùng chung cho seats / checkout / payment / confirm để đồng nhất UI.
+   ===================================================================== */
+:root {
+    --bk-primary: #2563EB;
+    --bk-navy:    #0F1E36;
+    --bk-border:  #E6EAF2;
+    --bk-muted:   #64748B;
+    --bk-light:   #EFF4FF;
+    --bk-bg:      #F5F7FA;
+}
+
+.bk-page  { background: var(--bk-bg); }
+.bk-wrap  { max-width: 1080px; }
+
+.bk-card {
+    background: #fff;
+    border: 1px solid var(--bk-border);
+    border-radius: 14px;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, .05);
+}
+.bk-summary { position: sticky; top: 18px; }
+.bk-mono    { font-family: ui-monospace, Menlo, Consolas, monospace; }
+
+/* ── Context bar (showtime / booking info) ── */
+.bk-ctx { background: #fff; border-bottom: 1px solid var(--bk-border); }
+.bk-poster {
+    width: 46px; height: 60px; border-radius: 8px; flex-shrink: 0;
+    background: linear-gradient(135deg, #1e293b, #0f172a);
+    display: flex; align-items: center; justify-content: center;
+    color: #FFC107; font-weight: 800; font-size: 1.2rem;
+}
+.bk-reserve {
+    background: #FFF8E1; border: 1px solid #FFE082; color: #7a5a00;
+    border-radius: 999px; padding: .3rem .8rem; font-size: .82rem; font-weight: 600;
+    display: inline-flex; align-items: center; gap: .4rem; white-space: nowrap;
+}
+.bk-reserve.danger { background: #fee2e2; border-color: #fca5a5; color: #b91c1c; }
+
+/* ── Stepper (5 steps) ── */
+.bk-steps { display: flex; align-items: center; }
+.bk-step  {
+    display: flex; align-items: center; gap: .5rem;
+    font-size: .9rem; font-weight: 600; color: #94a3b8; white-space: nowrap;
+}
+.bk-step .bk-dot {
+    width: 26px; height: 26px; border-radius: 999px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: .78rem; background: #E2E8F0; color: #64748b;
+}
+.bk-step.done   { color: #16a34a; }
+.bk-step.done   .bk-dot { background: #16a34a; color: #fff; }
+.bk-step.active { color: var(--bk-primary); }
+.bk-step.active .bk-dot { background: var(--bk-primary); color: #fff; }
+.bk-line { flex: 1; height: 2px; background: #E2E8F0; margin: 0 .5rem; min-width: 12px; }
+.bk-line.done { background: #16a34a; }
+@media (max-width: 640px) {
+    .bk-step span:not(.bk-dot) { display: none; }   /* mobile: chỉ hiện chấm tròn */
+}
+
+/* ── Summary / price lines ── */
+.bk-sum-line {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: .35rem 0; font-size: .92rem;
+}
+.bk-sum-total {
+    padding-top: .6rem; margin-top: .2rem; border-top: 1px solid var(--bk-border);
+}
+
+/* ── Seat chips ── */
+.bk-seat-tag {
+    display: inline-block; background: var(--bk-light); color: var(--bk-primary);
+    border: 1px solid #bfdbfe; border-radius: 7px; padding: 3px 10px;
+    font-size: .82rem; font-weight: 700; margin: 2px 4px 2px 0;
+    font-family: ui-monospace, Menlo, Consolas, monospace;
+}
+
+/* ── Info note ── */
+.bk-info {
+    background: var(--bk-light); border: 1px solid #cfe0fb; color: #1e40af;
+    border-radius: 10px; padding: .6rem .85rem; font-size: .82rem;
+    display: flex; gap: .5rem; align-items: flex-start;
+}
+
+/* ── Payment method card ── */
+.pm {
+    border: 1.6px solid var(--bk-border); border-radius: 12px; padding: .9rem 1rem;
+    display: flex; align-items: center; gap: .9rem; background: #fff;
+    transition: border-color .12s, background .12s;
+}
+.pm.active { border-color: var(--bk-primary); background: var(--bk-light); }
+.pm-logo {
+    width: 46px; height: 30px; border-radius: 6px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: .7rem; color: #fff;
+}
+.pm-vnpay { background: #0d4a9c; }
+.pm-title { font-weight: 700; color: var(--bk-navy); }
+.pm-desc  { font-size: .8rem; color: var(--bk-muted); }
+
+/* ── Buttons reuse Bootstrap .btn-primary; thống nhất màu primary ── */
+.bk-page .btn-primary,
+.bk-card .btn-primary { background: var(--bk-primary); border-color: var(--bk-primary); }
+.bk-page .btn-primary:hover,
+.bk-card .btn-primary:hover { background: #1d4ed8; border-color: #1d4ed8; }

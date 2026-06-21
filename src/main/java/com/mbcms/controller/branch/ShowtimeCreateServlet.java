@@ -85,7 +85,7 @@ public class ShowtimeCreateServlet extends HttpServlet {
         // 1. Parse + validate input tu form vao object Showtime (logic dung chung voi Edit).
         //    populate() tra ve chuoi loi neu input sai (vd thieu gio, gia am...).
         Showtime st = new Showtime();
-        String error = ShowtimeFormHelper.populate(req, st);
+        String error = ShowtimeFormHelper.populate(req, st, branchId);
         if (error != null) {
             return error;
         }
@@ -115,7 +115,7 @@ public class ShowtimeCreateServlet extends HttpServlet {
         ConsoleSupport.ensureBranchName(req);
         MovieDAO movieDAO = new MovieDAOImpl();
         RoomDAO roomDAO = new RoomDAOImpl();
-        req.setAttribute("movies", movieDAO.findActiveMovies());
+        req.setAttribute("movies", movieDAO.findActiveMoviesForBranch(branchId));
         req.setAttribute("rooms", roomDAO.findActiveByBranch(branchId));
     }
 }
