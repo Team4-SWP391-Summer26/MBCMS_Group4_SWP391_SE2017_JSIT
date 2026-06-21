@@ -13,6 +13,32 @@ import java.util.List;
 public class BranchDAOImpl extends BaseDAO implements BranchDAO {
 
     @Override
+    public List<Branch> findAll() {
+        String sql = "SELECT branch_id, name, address, city, phone, email, active "
+                + "FROM branches ORDER BY name";
+
+        Connection conn = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+
+        try {
+            conn = getConnection();
+            ps = conn.prepareStatement(sql);
+            rs = ps.executeQuery();
+
+            List<Branch> list = new ArrayList<>();
+            while (rs.next()) {
+                list.add(mapRow(rs));
+            }
+            return list;
+        } catch (SQLException e) {
+            throw new RuntimeException("Loi truy van branches.findAll: " + e.getMessage(), e);
+        } finally {
+            closeAll(rs, ps, conn);
+        }
+    }
+
+    @Override
     public Branch findById(long branchId) {
         String sql = "SELECT branch_id, name, address, city, phone, email, active "
                 + "FROM branches WHERE branch_id = ?";
