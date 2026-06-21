@@ -1,0 +1,363 @@
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
+<!DOCTYPE html>
+<html lang="vi">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Chi tiết đặt vé – MBCMS</title>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+        <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/main.css?v=${applicationScope.assetVersion}">
+        <style>
+            .back-link {
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+                color: var(--text-muted);
+                text-decoration: none;
+                font-size: .9rem;
+                font-weight: 600;
+                margin-bottom: 1.25rem;
+            }
+            .back-link:hover {
+                color: var(--primary);
+            }
+
+            .success-banner {
+                background: #dcfce7;
+                border: 1px solid #86efac;
+                border-radius: 12px;
+                padding: 1rem 1.25rem;
+                text-align: center;
+                margin-bottom: 1.5rem;
+            }
+            .success-banner .title {
+                color: #15803d;
+                font-weight: 700;
+                font-size: 1.05rem;
+            }
+            .success-banner .sub   {
+                color: #166534;
+                font-size: .85rem;
+                margin-top: 2px;
+            }
+
+            /* Ticket card */
+            .ticket-card {
+                background: var(--bg-card);
+                border-radius: 16px;
+                box-shadow: 0 4px 24px rgba(15,30,54,.08);
+                overflow: hidden;
+            }
+            .ticket-header {
+                background: linear-gradient(135deg, #0f1e36 0%, #182c54 100%);
+                color: #fff;
+                padding: 24px 28px;
+                display: flex;
+                justify-content: space-between;
+                align-items: flex-start;
+                flex-wrap: wrap;
+                gap: 12px;
+            }
+            .ticket-header .code-label {
+                font-size: .72rem;
+                color: #93c5fd;
+                letter-spacing: .1em;
+                text-transform: uppercase;
+            }
+            .ticket-header .code-value {
+                font-family: 'Courier New', monospace;
+                font-weight: 800;
+                font-size: 1.4rem;
+                letter-spacing: .05em;
+                margin-top: 2px;
+            }
+
+            .status-chip {
+                font-size: .78rem;
+                font-weight: 700;
+                padding: 5px 14px;
+                border-radius: 999px;
+                white-space: nowrap;
+            }
+            .chip-CONFIRMED {
+                background: #dcfce7;
+                color: #15803d;
+            }
+            .chip-PENDING   {
+                background: #fef3c7;
+                color: #b45309;
+            }
+            .chip-CANCELLED {
+                background: #e5e7eb;
+                color: #4b5563;
+            }
+            .chip-USED      {
+                background: #e0e7ff;
+                color: #4338ca;
+            }
+
+            /* Perforated divider, like a real ticket */
+            .ticket-divider {
+                position: relative;
+                height: 0;
+                border-top: 2px dashed #e5e7eb;
+                margin: 0 28px;
+            }
+            .ticket-divider::before, .ticket-divider::after {
+                content: '';
+                position: absolute;
+                top: -11px;
+                width: 22px;
+                height: 22px;
+                background: var(--bg-dark);
+                border-radius: 50%;
+            }
+            .ticket-divider::before {
+                left: -39px;
+            }
+            .ticket-divider::after  {
+                right: -39px;
+            }
+
+            .ticket-body {
+                padding: 24px 28px;
+            }
+
+            .detail-grid {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 18px 24px;
+                margin-bottom: 20px;
+            }
+            .detail-item .label {
+                font-size: .76rem;
+                color: var(--text-muted);
+                text-transform: uppercase;
+                letter-spacing: .04em;
+                margin-bottom: 3px;
+            }
+            .detail-item .value {
+                font-weight: 700;
+                color: var(--text-dark);
+                font-size: .98rem;
+            }
+
+            .seat-pill {
+                display: inline-block;
+                background: #eff6ff;
+                color: var(--primary);
+                border: 1px solid #bfdbfe;
+                border-radius: 8px;
+                padding: 4px 12px;
+                font-weight: 700;
+                font-size: .85rem;
+                margin: 2px 4px 2px 0;
+            }
+
+            .price-line {
+                display: flex;
+                justify-content: space-between;
+                padding: 7px 0;
+                font-size: .92rem;
+                color: var(--text-dark);
+            }
+            .price-line.discount {
+                color: #16a34a;
+            }
+            .price-line.total {
+                font-weight: 800;
+                font-size: 1.15rem;
+                border-top: 2px solid #e5e7eb;
+                margin-top: 6px;
+                padding-top: 14px;
+                color: var(--primary);
+            }
+
+            .notes-box {
+                background: #f9fafb;
+                border-radius: 8px;
+                padding: 10px 14px;
+                font-size: .88rem;
+                color: var(--text-dark);
+                margin-top: 6px;
+            }
+
+            .action-bar {
+                display: flex;
+                gap: 10px;
+                flex-wrap: wrap;
+                padding: 18px 28px 26px;
+            }
+            .btn-primary-lc, .btn-cancel-lc {
+                border-radius: 9px;
+                padding: 10px 22px;
+                font-weight: 700;
+                font-size: .92rem;
+                text-decoration: none;
+                border: none;
+                cursor: pointer;
+                transition: all .15s;
+            }
+            .btn-cancel-lc {
+                background: #fff;
+                color: #dc2626;
+                border: 1.5px solid #fca5a5;
+            }
+            .btn-cancel-lc:hover {
+                background: #fef2f2;
+                border-color: #dc2626;
+            }
+
+            /* Modal for cancel confirm */
+            .modal-overlay {
+                position: fixed;
+                inset: 0;
+                background: rgba(15,23,42,.55);
+                z-index: 999;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding: 16px;
+            }
+            .modal-box {
+                background: #fff;
+                border-radius: 14px;
+                padding: 26px;
+                max-width: 420px;
+                width: 100%;
+                box-shadow: 0 20px 60px rgba(0,0,0,.3);
+            }
+        </style>
+    </head>
+    <body>
+        <jsp:include page="/WEB-INF/views/common/header.jsp"/>
+
+        <div class="container py-4" style="max-width: 680px;">
+
+            <a href="${pageContext.request.contextPath}/customer/booking/history" class="back-link">&#8592; Lịch sử đặt vé</a>
+
+            <c:if test="${confirmed}">
+                <div class="success-banner">
+                    <div class="title">🎉 Đặt vé thành công!</div>
+                    <div class="sub">Cảm ơn bạn. Vui lòng xuất trình mã vé khi vào rạp.</div>
+                </div>
+            </c:if>
+
+            <c:if test="${not empty param.error}">
+                <div class="alert alert-error border-0 mb-3" style="border-radius: 10px; font-size: .9rem;">
+                    ${param.error}
+                </div>
+            </c:if>
+
+            <div class="ticket-card">
+                <div class="ticket-header">
+                    <div>
+                        <div class="code-label">Mã đặt vé</div>
+                        <div class="code-value">${booking.bookingCode}</div>
+                    </div>
+                    <span class="status-chip chip-${booking.status}">${booking.status}</span>
+                </div>
+
+                <div class="ticket-divider"></div>
+
+                <div class="ticket-body">
+                    <div class="detail-grid">
+                        <div class="detail-item">
+                            <div class="label">Suất chiếu</div>
+                            <div class="value">#${booking.showtimeId}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="label">Ngày đặt</div>
+                            <div class="value">
+                                <%
+                                    java.time.LocalDateTime ldt = ((com.mbcms.model.Booking) request.getAttribute("booking")).getCreatedAt();
+                                    if (ldt != null) {
+                                        java.util.Date d = java.util.Date.from(ldt.atZone(java.time.ZoneId.systemDefault()).toInstant());
+                                        pageContext.setAttribute("createdAtDate", d);
+                                    }
+                                %>
+                                <fmt:formatDate value="${createdAtDate}" pattern="dd/MM/yyyy HH:mm"/>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="detail-item mb-3">
+                        <div class="label">Ghế đã chọn</div>
+                        <div class="value mt-1">
+                            <c:forEach var="seatId" items="${booking.seatIds}">
+                                <span class="seat-pill">Ghế #${seatId}</span>
+                            </c:forEach>
+                        </div>
+                    </div>
+
+                    <div class="ticket-divider" style="margin: 0 0 4px;"></div>
+
+                    <div class="price-line">
+                        <span>Tạm tính</span>
+                        <span><fmt:formatNumber value="${booking.subtotal}" pattern="#,###"/> đ</span>
+                    </div>
+                    <c:if test="${booking.discountAmount != null && booking.discountAmount > 0}">
+                        <div class="price-line discount">
+                            <span>Giảm giá</span>
+                            <span>&minus; <fmt:formatNumber value="${booking.discountAmount}" pattern="#,###"/> đ</span>
+                        </div>
+                    </c:if>
+                    <div class="price-line total">
+                        <span>Tổng cộng</span>
+                        <span><fmt:formatNumber value="${booking.totalAmount}" pattern="#,###"/> đ</span>
+                    </div>
+
+                    <c:if test="${not empty booking.notes}">
+                        <div class="detail-item mt-3">
+                            <div class="label">Ghi chú</div>
+                            <div class="notes-box">${booking.notes}</div>
+                        </div>
+                    </c:if>
+                </div>
+
+                <div class="action-bar">
+                    <c:if test="${booking.status == 'PENDING'}">
+                        <a href="${pageContext.request.contextPath}/booking/confirm?bookingId=${booking.bookingId}"
+                           class="btn btn-primary-lc">Thanh toán ngay</a>
+                        <button type="button" class="btn-cancel-lc" onclick="showCancelModal()">✕ Huỷ đặt vé</button>
+                    </c:if>
+                </div>
+            </div>
+
+        </div>
+
+        <%-- Cancel confirmation modal + hidden form posting to BookingCancelServlet --%>
+        <c:if test="${booking.status == 'PENDING'}">
+            <div id="cancelOverlay" class="modal-overlay d-none" onclick="if (event.target === this)
+            hideCancelModal()">
+                <div class="modal-box">
+                    <div style="font-size:2rem; text-align:center;">⚠️</div>
+                    <h5 class="text-center mt-2 mb-1">Huỷ vé ${booking.bookingCode}?</h5>
+                    <p class="text-center text-muted" style="font-size:.9rem;">
+                        Ghế sẽ được giải phóng ngay lập tức cho người khác. Hành động này không thể hoàn tác.
+                    </p>
+                    <div class="d-flex gap-2 mt-3">
+                        <button type="button" class="btn btn-outline-secondary flex-fill" onclick="hideCancelModal()">Giữ lại</button>
+                        <form method="POST" action="${pageContext.request.contextPath}/booking/cancel" class="flex-fill">
+                            <input type="hidden" name="bookingId" value="${booking.bookingId}">
+                            <button type="submit" class="btn-cancel-lc w-100">Huỷ đặt vé</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </c:if>
+
+        <jsp:include page="/WEB-INF/views/common/footer.jsp"/>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+        <script>
+                        function showCancelModal() {
+                            document.getElementById('cancelOverlay').classList.remove('d-none');
+                        }
+                        function hideCancelModal() {
+                            document.getElementById('cancelOverlay').classList.add('d-none');
+                        }
+        </script>
+    </body>
+</html>

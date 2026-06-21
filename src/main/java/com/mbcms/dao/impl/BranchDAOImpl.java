@@ -63,6 +63,32 @@ public class BranchDAOImpl extends BaseDAO implements BranchDAO {
             closeAll(rs, ps, conn);
         }
     }
+    
+    @Override
+    public List<Branch> findAllActive() {
+        String sql = "SELECT branch_id, name, address, city, phone, email, active "
+                + "FROM branches WHERE active = 1 ORDER BY name";
+
+        Connection conn = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+
+        try {
+            conn = getConnection();
+            ps = conn.prepareStatement(sql);
+            rs = ps.executeQuery();
+
+            List<Branch> branches = new ArrayList<>();
+            while (rs.next()) {
+                branches.add(mapRow(rs));
+            }
+            return branches;
+        } catch (SQLException e) {
+            throw new RuntimeException("Loi truy van branches.findAllActive: " + e.getMessage(), e);
+        } finally {
+            closeAll(rs, ps, conn);
+        }
+    }
 
     private Branch mapRow(ResultSet rs) throws SQLException {
         Branch b = new Branch();

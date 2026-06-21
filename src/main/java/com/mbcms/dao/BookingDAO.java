@@ -27,6 +27,15 @@ public interface BookingDAO {
 
     /** Tat ca booking cua 1 customer, sap xep moi nhat truoc. */
     List<Booking> findByCustomer(String customerUsername);
+    
+     /** Tìm booking theo ID, kèm load seatIds từ booking_seats. */
+    Booking findByIdWithSeats(long bookingId);
+    
+    /**
+     * PENDING → CANCELLED (hết hạn hoặc user huỷ).
+     * Chỉ huỷ được PENDING, không huỷ CONFIRMED.
+     */
+    int cancelBooking(long bookingId, String customerUsername);
 
     /**
      * Cap nhat status booking.
@@ -35,12 +44,12 @@ public interface BookingDAO {
      */
     boolean updateStatus(long bookingId, String newStatus);
 
-    // ── Seat locking ──────────────────────────────────────────────────────────
     /**
-     * Kiem tra ghe co bi lock / da dat boi booking khac khong.
-     * Return: list seatId da bi chiem -> dung truoc khi tao booking.
+     * PENDING → CONFIRMED (sau payment thành công).
+     * Chỉ update khi status=PENDING và expires_at > NOW.
+     * Return số row affected (0 = hết hạn hoặc sai trạng thái).
      */
-    List<Long> getUnavailableSeatIds(long showtimeId, List<Long> seatIds);
+    int confirmBooking(long bookingId, String customerUsername);
 
     /**
      * Giai phong lock PENDING booking da qua 10 phut chua thanh toan.
