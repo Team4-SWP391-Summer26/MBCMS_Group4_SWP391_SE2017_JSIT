@@ -70,22 +70,21 @@ public class VnPayReturnServlet extends HttpServlet {
             return;
         }
         HttpSession session = req.getSession(false);
-        if (session != null) {
-            Customer customer = (Customer) session.getAttribute("currentUser");
-            if (customer != null
-                    && !booking.getCustomerUsername().equals(customer.getUsername())) {
-                resp.setStatus(HttpServletResponse.SC_FORBIDDEN);
-                req.getRequestDispatcher("/WEB-INF/views/common/error403.jsp").forward(req, resp);
-                return;
-            }
-            session.removeAttribute("pendingBookingId");
-            if (customer != null) {
-                try {
-                    req.setAttribute("ticket",
-                            bookingService.getTicket(booking.getBookingId(), customer.getUsername()));
-                } catch (Exception ignore) { /* fallback: confirm.jsp dung 'booking' */ }
-            }
+        if (session == null || session.getAttribute("currentUser") == null) {
+            resp.sendRedirect(req.getContextPath() + "/auth/login");
+            return;
         }
+        Customer customer = (Customer) session.getAttribute("currentUser");
+        if (!booking.getCustomerUsername().equals(customer.getUsername())) {
+            resp.setStatus(HttpServletResponse.SC_FORBIDDEN);
+            req.getRequestDispatcher("/WEB-INF/views/common/error403.jsp").forward(req, resp);
+            return;
+        }
+        session.removeAttribute("pendingBookingId");
+        try {
+            req.setAttribute("ticket",
+                    bookingService.getTicket(booking.getBookingId(), customer.getUsername()));
+        } catch (Exception ignore) { /* fallback: confirm.jsp dung 'booking' */ }
         req.setAttribute("booking", booking);
         req.getRequestDispatcher("/WEB-INF/views/booking/confirm.jsp").forward(req, resp);
     }

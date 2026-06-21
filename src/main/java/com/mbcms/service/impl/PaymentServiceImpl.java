@@ -14,6 +14,9 @@ import com.mbcms.util.DBUtil;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 
 /**
  * PaymentServiceImpl - dieu phoi transaction thanh toan.
@@ -43,6 +46,9 @@ public class PaymentServiceImpl implements PaymentService {
         if (!Booking.STATUS_PENDING.equals(b.getStatus())) {
             throw new IllegalStateException(
                     "Booking cannot be paid in its current status (" + b.getStatus() + ").");
+        }
+        if (isSeatHoldExpired(b)) {
+            throw new IllegalStateException("Your seat hold has expired. Please book again.");
         }
         return b;
     }
@@ -110,7 +116,16 @@ public class PaymentServiceImpl implements PaymentService {
         }
     }
 
-    // ── Helpers ───────────────────────────────────────────────────────────
+    /** Cung logic 10 phut UTC nhu confirmBooking() va PaymentServlet. */
+    private boolean isSeatHoldExpired(Booking booking) {
+        if (booking.getCreatedAt() == null) {
+            return false;
+        }
+        long elapsed = Duration.between(
+                booking.getCreatedAt(), LocalDateTime.now(ZoneOffset.UTC)).getSeconds();
+        return elapsed >= 600;
+    }
+
     private String normalizeMethod(String method) {
         if (method == null) {
             throw new IllegalArgumentException("Payment method is required.");

@@ -214,7 +214,7 @@
 
             <c:if test="${not empty param.error}">
                 <div class="alert alert-danger border-0 mb-3" style="border-radius: 10px; font-size: .9rem;">
-                    ${param.error}
+                    <c:out value="${param.error}"/>
                 </div>
             </c:if>
 

@@ -1,6 +1,7 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
+<%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 <%--
     My Bookings (owner: HungNT). Dung view-model `tickets` (List<BookingTicket>)
     + so lieu (upcoming / pastVisits / spentThisYear / dem theo status).
@@ -146,10 +147,10 @@
                     }
                 %>
                 <div class="mb-card" data-status="${t.status}"
-                     data-search="${t.movieTitle} ${t.bookingCode}">
+                     data-search="${fn:escapeXml(t.movieTitle)} ${fn:escapeXml(t.bookingCode)}">
                     <c:choose>
                         <c:when test="${not empty t.posterUrl}">
-                            <img class="mb-poster" src="${t.posterUrl}" alt="">
+                            <img class="mb-poster" src="<c:out value='${t.posterUrl}'/>" alt="">
                         </c:when>
                         <c:otherwise><div class="mb-poster"><i class="bi bi-film"></i></div></c:otherwise>
                     </c:choose>
@@ -168,7 +169,7 @@
                                     <c:if test="${not empty t.roomName}"> · <c:out value="${t.roomName}"/></c:if>
                                 </div>
                                 <div class="mt-1">
-                                    <c:if test="${not empty t.movieRated}"><span class="mb-badge">${t.movieRated}</span></c:if>
+                                    <c:if test="${not empty t.movieRated}"><span class="mb-badge"><c:out value="${t.movieRated}"/></span></c:if>
                                     <c:if test="${t.durationMin > 0}"><span class="mb-sub">${t.durationMin} min</span></c:if>
                                 </div>
                             </div>
@@ -198,7 +199,7 @@
                                 <div class="mb-col-val">
                                     <c:choose>
                                         <c:when test="${not empty t.seatLabels}">
-                                            <c:forEach var="lbl" items="${t.seatLabels}"><span class="mb-seat">${lbl}</span></c:forEach>
+                                            <c:forEach var="lbl" items="${t.seatLabels}"><span class="mb-seat"><c:out value="${lbl}"/></span></c:forEach>
                                         </c:when>
                                         <c:otherwise>—</c:otherwise>
                                     </c:choose>

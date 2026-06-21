@@ -8,7 +8,10 @@ import com.mbcms.exception.SeatUnavailableException;
 import java.math.BigDecimal;
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -228,9 +231,10 @@ public class BookingDAOImpl extends BaseDAO implements BookingDAO {
             while (rs.next()) {
                 list.add(mapTicket(rs));
             }
-            // Nap nhan ghe cho tung ve (sau khi dong rs chinh)
+            Map<Long, List<String>> labelsByBooking = loadSeatLabelsBatch(
+                    list.stream().map(BookingTicket::getBookingId).collect(Collectors.toList()));
             for (BookingTicket t : list) {
-                t.setSeatLabels(loadSeatLabels(t.getBookingId()));
+                t.setSeatLabels(labelsByBooking.getOrDefault(t.getBookingId(), Collections.emptyList()));
             }
             return list;
         } catch (SQLException e) {
@@ -271,25 +275,39 @@ public class BookingDAOImpl extends BaseDAO implements BookingDAO {
 
     /** Nhan ghe dang "C5" = row_label + col_number, sap xep theo vi tri. */
     private List<String> loadSeatLabels(long bookingId) {
+        Map<Long, List<String>> batch = loadSeatLabelsBatch(List.of(bookingId));
+        return batch.getOrDefault(bookingId, Collections.emptyList());
+    }
+
+    /** Mot query cho nhieu booking_id — tranh N+1 tren trang history. */
+    private Map<Long, List<String>> loadSeatLabelsBatch(List<Long> bookingIds) {
+        if (bookingIds == null || bookingIds.isEmpty()) {
+            return Collections.emptyMap();
+        }
+        String placeholders = bookingIds.stream().map(id -> "?").collect(Collectors.joining(","));
         String sql =
-            "SELECT s.row_label, s.col_number " +
+            "SELECT bs.booking_id, s.row_label, s.col_number " +
             "FROM dbo.booking_seats bs " +
             "JOIN dbo.seats s ON s.seat_id = bs.seat_id " +
-            "WHERE bs.booking_id = ? " +
-            "ORDER BY s.row_label, s.col_number";
+            "WHERE bs.booking_id IN (" + placeholders + ") " +
+            "ORDER BY bs.booking_id, s.row_label, s.col_number";
         Connection conn = null; PreparedStatement ps = null; ResultSet rs = null;
         try {
             conn = getConnection();
             ps = conn.prepareStatement(sql);
-            ps.setLong(1, bookingId);
-            rs = ps.executeQuery();
-            List<String> labels = new ArrayList<>();
-            while (rs.next()) {
-                labels.add(rs.getString("row_label") + rs.getInt("col_number"));
+            for (int i = 0; i < bookingIds.size(); i++) {
+                ps.setLong(i + 1, bookingIds.get(i));
             }
-            return labels;
+            rs = ps.executeQuery();
+            Map<Long, List<String>> map = new HashMap<>();
+            while (rs.next()) {
+                long bid = rs.getLong("booking_id");
+                map.computeIfAbsent(bid, k -> new ArrayList<>())
+                        .add(rs.getString("row_label") + rs.getInt("col_number"));
+            }
+            return map;
         } catch (SQLException e) {
-            throw new RuntimeException("loadSeatLabels lỗi: " + e.getMessage(), e);
+            throw new RuntimeException("loadSeatLabelsBatch lỗi: " + e.getMessage(), e);
         } finally {
             closeAll(rs, ps, conn);
         }
