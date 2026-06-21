@@ -157,10 +157,15 @@
                     <div class="flex-grow-1 min-width-0">
                         <div class="d-flex align-items-start gap-2 flex-wrap">
                             <div class="flex-grow-1">
-                                <div class="mb-title">${not empty t.movieTitle ? t.movieTitle : 'Movie ticket'}</div>
+                                <div class="mb-title">
+                                    <c:choose>
+                                        <c:when test="${not empty t.movieTitle}"><c:out value="${t.movieTitle}"/></c:when>
+                                        <c:otherwise>Movie ticket</c:otherwise>
+                                    </c:choose>
+                                </div>
                                 <div class="mb-sub">
-                                    <c:if test="${not empty t.branchName}">${t.branchName}</c:if>
-                                    <c:if test="${not empty t.roomName}"> · ${t.roomName}</c:if>
+                                    <c:if test="${not empty t.branchName}"><c:out value="${t.branchName}"/></c:if>
+                                    <c:if test="${not empty t.roomName}"> · <c:out value="${t.roomName}"/></c:if>
                                 </div>
                                 <div class="mt-1">
                                     <c:if test="${not empty t.movieRated}"><span class="mb-badge">${t.movieRated}</span></c:if>
