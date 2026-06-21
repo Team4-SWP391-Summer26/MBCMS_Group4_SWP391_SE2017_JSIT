@@ -1,6 +1,8 @@
 package com.mbcms.service;
 
 import com.mbcms.model.Booking;
+import com.mbcms.model.Branch;
+import com.mbcms.model.Movie;
 import com.mbcms.model.Promotion;
 import com.mbcms.model.Seat;
 import com.mbcms.model.Showtime;
@@ -55,6 +57,9 @@ public interface BookingService {
      * owner.
      */
     Booking getBookingDetail(long bookingId, String customerUsername);
+    
+    
+    public int cancelBooking(long bookingId, String customerUsername);
 
     /**
      * Cancel tất cả PENDING booking đã quá expires_at. Gọi bởi

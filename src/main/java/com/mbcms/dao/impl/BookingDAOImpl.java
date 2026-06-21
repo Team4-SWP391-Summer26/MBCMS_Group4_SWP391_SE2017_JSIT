@@ -25,8 +25,6 @@ import java.util.stream.Collectors;
  */
 public class BookingDAOImpl extends BaseDAO implements BookingDAO {
 
-    private static final int LOCK_EXPIRE_MINUTES = 10;
-
     // ── createBooking ─────────────────────────────────────────────────────────
     @Override
     public Booking createBooking(Booking booking, List<Long> seatIds) {
@@ -243,9 +241,9 @@ public class BookingDAOImpl extends BaseDAO implements BookingDAO {
     public int confirmBooking(long bookingId, String customerUsername) {
         // Chỉ confirm khi PENDING và chưa hết hạn
         String sql =
-            "UPDATE dbo.bookings SET [status] = 'CONFIRMED', confirmed_at = SYSUTCDATETIME() " +
+            "UPDATE dbo.bookings SET [status] = 'CONFIRMED' " +
             "WHERE booking_id = ? AND customer_username = ? " +
-            "  AND [status] = 'PENDING' AND expires_at > SYSUTCDATETIME()";
+            "  AND [status] = 'PENDING' AND DATEADD(MINUTE, 10, created_at) > SYSUTCDATETIME()";
         Connection conn = null; PreparedStatement ps = null;
         try {
             conn = getConnection();
