@@ -12,8 +12,11 @@ import com.mbcms.dao.impl.MovieDAOImpl;
 import com.mbcms.dao.impl.PromotionDAOImpl;
 import com.mbcms.dao.impl.SeatDAOImpl;
 import com.mbcms.dao.impl.ShowtimeDAOImpl;
+import com.mbcms.dao.CustomerDAO;
+import com.mbcms.dao.impl.CustomerDAOImpl;
 import com.mbcms.model.Booking;
 import com.mbcms.model.BookingTicket;
+import com.mbcms.model.Customer;
 import com.mbcms.model.Promotion;
 import com.mbcms.model.Seat;
 import com.mbcms.model.Showtime;
@@ -41,6 +44,7 @@ public class BookingServiceImpl implements BookingService {
     private final PromotionDAO promoDao = new PromotionDAOImpl();
     private final BranchDAO  branchDao  = new BranchDAOImpl();
     private final MovieDAO   movieDao   = new MovieDAOImpl();
+    private final CustomerDAO customerDao = new CustomerDAOImpl();
 
     // ── validatePromoCode ─────────────────────────────────────────────────
     @Override
@@ -185,12 +189,12 @@ public class BookingServiceImpl implements BookingService {
         }
         return bookingDao.findTicket(bookingId);
     }
-  @Override
+    @Override
     public Booking createCounterBooking(Booking booking, List<Long> seatIds, String promoCode, String customerPhone) {
         // 1. Tim kiem thanh vien bang SĐT (neu khong co -> mac dinh guest01)
         String username = "guest01";
         if (customerPhone != null && !customerPhone.trim().isEmpty()) {
-            Customer member = customerDAO.findByPhone(customerPhone.trim());
+            Customer member = customerDao.findByPhone(customerPhone.trim());
             if (member != null) {
                 username = member.getUsername();
             }
@@ -201,7 +205,7 @@ public class BookingServiceImpl implements BookingService {
         Long promoId = null;
         BigDecimal discount = BigDecimal.ZERO;
         if (promoCode != null && !promoCode.trim().isEmpty()) {
-            Promotion promo = promotionDAO.findByCode(promoCode.trim().toUpperCase());
+            Promotion promo = promoDao.findByCode(promoCode.trim().toUpperCase());
             if (promo != null && promo.isActive() && "Active".equals(promo.getStatus())) {
                 BigDecimal minAmt = promo.getMinOrderAmount();
                 // Kiem tra gia tri don hang toi thieu
@@ -227,7 +231,8 @@ public class BookingServiceImpl implements BookingService {
         booking.setTotalAmount(booking.getSubtotal().subtract(discount));
 
         // 3. Goi DAO ghi nhan Booking + Seats + CASH Payment trong 1 transaction
-        return bookingDAO.createCounterBooking(booking, seatIds);
+        return bookingDao.createCounterBooking(booking, seatIds);
+    }
 
     @Override
     public List<BookingTicket> getBookingHistoryTickets(String customerUsername) {
