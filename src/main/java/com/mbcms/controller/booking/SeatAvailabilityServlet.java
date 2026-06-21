@@ -18,15 +18,14 @@ import java.util.Set;
 /**
  * SeatAvailabilityServlet
  *
- * GET /booking/seats?showtimeId={id}
- *     → load trang seats.jsp voi trang thai ghe hien tai tu DB
- *     → WebSocket xu ly update realtime sau khi trang da load
+ * GET /booking/seats?showtimeId={id} → load trang seats.jsp voi trang thai ghe
+ * hien tai tu DB → WebSocket xu ly update realtime sau khi trang da load
  */
 @WebServlet("/booking/seats")
 public class SeatAvailabilityServlet extends HttpServlet {
 
-    private static final DateTimeFormatter DT_FMT =
-            DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+    private static final DateTimeFormatter DT_FMT
+            = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
 
     private final SeatAvailabilityService seatService = new SeatAvailabilityServiceImpl();
 
@@ -44,20 +43,20 @@ public class SeatAvailabilityServlet extends HttpServlet {
             Showtime showtime = seatService.getShowtime(showtimeId);
             if (showtime == null) {
                 resp.sendError(HttpServletResponse.SC_NOT_FOUND,
-                    "Khong tim thay suat chieu id=" + showtimeId);
+                        "Khong tim thay suat chieu id=" + showtimeId);
                 return;
             }
 
-            Map<String, List<Seat>> seatsByRow    = seatService.getSeatsByRow(showtimeId);
-            Set<Long>               bookedSeatIds = seatService.getBookedSeatIds(showtimeId);
-            int                     availableCount = seatService.countAvailable(showtimeId);
+            Map<String, List<Seat>> seatsByRow = seatService.getSeatsByRow(showtimeId);
+            Set<Long> bookedSeatIds = seatService.getBookedSeatIds(showtimeId);
+            int availableCount = seatService.countAvailable(showtimeId);
 
-            req.setAttribute("showtime",       showtime);
-            req.setAttribute("seatsByRow",     seatsByRow);
-            req.setAttribute("bookedSeatIds",  bookedSeatIds);
+            req.setAttribute("showtime", showtime);
+            req.setAttribute("seatsByRow", seatsByRow);
+            req.setAttribute("bookedSeatIds", bookedSeatIds);
             req.setAttribute("availableCount", availableCount);
-            req.setAttribute("showtimeId",     showtimeId);
-            req.setAttribute("startTimeStr",   showtime.getStartTime().format(DT_FMT));
+            req.setAttribute("showtimeId", showtimeId);
+            req.setAttribute("startTimeStr", showtime.getStartTime().format(DT_FMT));
 
             req.getRequestDispatcher("/WEB-INF/views/booking/seats.jsp").forward(req, resp);
 
@@ -67,8 +66,13 @@ public class SeatAvailabilityServlet extends HttpServlet {
     }
 
     private Long parseLong(String s) {
-        if (s == null || s.isBlank()) return null;
-        try { return Long.parseLong(s.trim()); }
-        catch (NumberFormatException e) { return null; }
+        if (s == null || s.isBlank()) {
+            return null;
+        }
+        try {
+            return Long.parseLong(s.trim());
+        } catch (NumberFormatException e) {
+            return null;
+        }
     }
 }

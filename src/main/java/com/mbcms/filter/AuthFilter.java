@@ -5,8 +5,8 @@ import jakarta.servlet.http.*;
 import java.io.IOException;
 
 /**
- * AuthFilter - Kiem tra dang nhap
- * Bao ve: /customer/*, /branch/*, /staff/*, /admin/*
+ * AuthFilter - Kiem tra dang nhap Bao ve: /customer/*, /branch/*, /staff/*,
+ * /admin/*
  */
 public class AuthFilter implements Filter {
 

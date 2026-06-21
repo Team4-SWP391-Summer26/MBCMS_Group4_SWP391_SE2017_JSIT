@@ -111,7 +111,7 @@
                                             Bookings
                                         </a>
                                     </li>
-                                                                               <li>
+                                    <li>
                                         <a class="dropdown-item py-2 px-3"
                                            href="${pageContext.request.contextPath}/auth/change-password"
                                            style="color: #4b5563; font-size: 0.9rem; display: flex; align-items: center; gap: 0.5rem;">

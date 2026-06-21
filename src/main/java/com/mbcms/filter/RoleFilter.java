@@ -6,15 +6,13 @@ import jakarta.servlet.http.*;
 import java.io.IOException;
 
 /**
- * RoleFilter - Kiem tra quyen truy cap theo URL prefix.
- * Chay SAU AuthFilter nen "currentUser" chac chan != null.
+ * RoleFilter - Kiem tra quyen truy cap theo URL prefix. Chay SAU AuthFilter nen
+ * "currentUser" chac chan != null.
  *
- * /admin/*  -> ADMIN
- * /branch/* -> BRANCH_MANAGER
- * /staff/*  -> BRANCH_STAFF
+ * /admin/* -> ADMIN /branch/* -> BRANCH_MANAGER /staff/* -> BRANCH_STAFF
  *
- * Cac khu vuc nay deu danh cho Employee; neu currentUser khong phai
- * Employee (vd Customer) -> tu choi.
+ * Cac khu vuc nay deu danh cho Employee; neu currentUser khong phai Employee
+ * (vd Customer) -> tu choi.
  */
 public class RoleFilter implements Filter {
 

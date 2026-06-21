@@ -25,7 +25,7 @@ public class PromotionEditServlet extends HttpServlet {
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
         ConsoleSupport.ensureBranchName(req);
-        
+
         String idStr = req.getParameter("id");
         if (idStr == null || idStr.trim().isEmpty()) {
             resp.sendRedirect(req.getContextPath() + "/branch/promotions?error=1");
@@ -43,7 +43,7 @@ public class PromotionEditServlet extends HttpServlet {
 
             req.setAttribute("isEdit", true);
             req.setAttribute("promo", p);
-            
+
             // Format dates back for HTML inputs
             req.setAttribute("rawStartDate", p.getValidFrom().toLocalDate().toString());
             req.setAttribute("rawEndDate", p.getValidTo().toLocalDate().toString());
@@ -129,8 +129,8 @@ public class PromotionEditServlet extends HttpServlet {
         // Validate min order amount
         if (errorMsg == null) {
             try {
-                BigDecimal minOrder = (minOrderAmountStr == null || minOrderAmountStr.trim().isEmpty()) 
-                        ? BigDecimal.ZERO 
+                BigDecimal minOrder = (minOrderAmountStr == null || minOrderAmountStr.trim().isEmpty())
+                        ? BigDecimal.ZERO
                         : new BigDecimal(minOrderAmountStr.trim());
                 if (minOrder.compareTo(BigDecimal.ZERO) < 0) {
                     errorMsg = "Minimum order amount cannot be negative.";
@@ -163,8 +163,8 @@ public class PromotionEditServlet extends HttpServlet {
         // Validate dates
         if (errorMsg == null) {
             try {
-                if (startDateStr == null || startDateStr.trim().isEmpty() || 
-                    endDateStr == null || endDateStr.trim().isEmpty()) {
+                if (startDateStr == null || startDateStr.trim().isEmpty()
+                        || endDateStr == null || endDateStr.trim().isEmpty()) {
                     errorMsg = "Start date and end date are required.";
                 } else {
                     LocalDate start = LocalDate.parse(startDateStr.trim());

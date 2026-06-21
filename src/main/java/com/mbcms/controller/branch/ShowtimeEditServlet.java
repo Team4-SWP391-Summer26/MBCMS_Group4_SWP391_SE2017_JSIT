@@ -16,15 +16,15 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 /**
- * ShowtimeEditServlet - owner: <b>HungNT</b>.
- * SRS 3.5.2.2 Showtime Details Screen - phan Edit (UC21 Edit showtime).
+ * ShowtimeEditServlet - owner: <b>HungNT</b>. SRS 3.5.2.2 Showtime Details
+ * Screen - phan Edit (UC21 Edit showtime).
  *
- * GET  /branch/showtimes/edit?id=N - hien form voi du lieu suat hien tai.
- * POST /branch/showtimes/edit      - validate + cap nhat; thanh cong redirect
- *      ve /branch/showtimes?updated=1 (PRG).
+ * GET /branch/showtimes/edit?id=N - hien form voi du lieu suat hien tai. POST
+ * /branch/showtimes/edit - validate + cap nhat; thanh cong redirect ve
+ * /branch/showtimes?updated=1 (PRG).
  *
- * Chi sua duoc suat SCHEDULED thuoc branch cua manager (service verify).
- * Tai dung form.jsp + ShowtimeFormHelper cua Create.
+ * Chi sua duoc suat SCHEDULED thuoc branch cua manager (service verify). Tai
+ * dung form.jsp + ShowtimeFormHelper cua Create.
  */
 @WebServlet("/branch/showtimes/edit")
 public class ShowtimeEditServlet extends HttpServlet {
@@ -89,6 +89,7 @@ public class ShowtimeEditServlet extends HttpServlet {
 
     /**
      * Validate + cap nhat showtime.
+     *
      * @return null neu thanh cong; nguoc lai tra ve thong bao loi.
      */
     private String handleUpdate(HttpServletRequest req, long showtimeId, long branchId) {

@@ -25,7 +25,7 @@ public class PromotionCreateServlet extends HttpServlet {
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
         ConsoleSupport.ensureBranchName(req);
-        
+
         req.setAttribute("isEdit", false);
         req.setAttribute("promo", new Promotion()); // blank object
         req.setAttribute("rawDiscountValue", "");
@@ -33,7 +33,8 @@ public class PromotionCreateServlet extends HttpServlet {
         req.setAttribute("rawMaxUses", "");
         req.setAttribute("rawStartDate", "");
         req.setAttribute("rawEndDate", "");
-        
+        req.setAttribute("todayStr", java.time.LocalDate.now().toString());
+
         req.getRequestDispatcher(VIEW).forward(req, resp);
     }
 
@@ -87,8 +88,8 @@ public class PromotionCreateServlet extends HttpServlet {
         // Validate min order amount
         if (errorMsg == null) {
             try {
-                BigDecimal minOrder = (minOrderAmountStr == null || minOrderAmountStr.trim().isEmpty()) 
-                        ? BigDecimal.ZERO 
+                BigDecimal minOrder = (minOrderAmountStr == null || minOrderAmountStr.trim().isEmpty())
+                        ? BigDecimal.ZERO
                         : new BigDecimal(minOrderAmountStr.trim());
                 if (minOrder.compareTo(BigDecimal.ZERO) < 0) {
                     errorMsg = "Minimum order amount cannot be negative.";
@@ -121,14 +122,16 @@ public class PromotionCreateServlet extends HttpServlet {
         // Validate dates
         if (errorMsg == null) {
             try {
-                if (startDateStr == null || startDateStr.trim().isEmpty() || 
-                    endDateStr == null || endDateStr.trim().isEmpty()) {
+                if (startDateStr == null || startDateStr.trim().isEmpty()
+                        || endDateStr == null || endDateStr.trim().isEmpty()) {
                     errorMsg = "Start date and end date are required.";
                 } else {
                     LocalDate start = LocalDate.parse(startDateStr.trim());
                     LocalDate end = LocalDate.parse(endDateStr.trim());
                     if (end.isBefore(start)) {
                         errorMsg = "End date must be on or after start date.";
+                    } else if (start.isBefore(LocalDate.now())) {
+                        errorMsg = "Start date cannot be in the past.";
                     } else {
                         p.setValidFrom(start.atStartOfDay());
                         p.setValidTo(end.atTime(LocalTime.MAX));
@@ -154,6 +157,7 @@ public class PromotionCreateServlet extends HttpServlet {
             req.setAttribute("rawMaxUses", maxUsesStr);
             req.setAttribute("rawStartDate", startDateStr);
             req.setAttribute("rawEndDate", endDateStr);
+            req.setAttribute("todayStr", LocalDate.now().toString());
             req.getRequestDispatcher(VIEW).forward(req, resp);
             return;
         }

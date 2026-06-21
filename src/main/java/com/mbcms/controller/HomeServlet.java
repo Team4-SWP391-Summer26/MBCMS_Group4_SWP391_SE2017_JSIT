@@ -6,8 +6,8 @@ import jakarta.servlet.http.*;
 import java.io.IOException;
 
 /**
- * HomeServlet - trang chu guest.
- * Browse/featured movies: owner <b>AnhND</b> (Report 4).
+ * HomeServlet - trang chu guest. Browse/featured movies: owner <b>AnhND</b>
+ * (Report 4).
  */
 @WebServlet("/home")
 public class HomeServlet extends HttpServlet {

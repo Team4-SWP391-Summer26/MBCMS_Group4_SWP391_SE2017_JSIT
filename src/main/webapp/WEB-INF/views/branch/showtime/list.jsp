@@ -77,7 +77,7 @@
                                 <c:forEach var="m" items="${movies}">
                                     <option value="${m.movieId}" ${filterMovieId == m.movieId ? 'selected' : ''}>
                                         <c:out value="${m.title}" /></option>
-                                </c:forEach>
+                                    </c:forEach>
                             </select>
                             <select class="form-select form-select-sm" name="roomId" style="min-width:150px;"
                                     onchange="this.form.submit()">
@@ -85,7 +85,7 @@
                                 <c:forEach var="r" items="${rooms}">
                                     <option value="${r.roomId}" ${filterRoomId == r.roomId ? 'selected' : ''}>
                                         <c:out value="${r.name}" /> &middot; ${r.roomType}</option>
-                                </c:forEach>
+                                    </c:forEach>
                             </select>
                         </form>
                         <a class="btn btn-primary btn-sm d-flex align-items-center" href="${pageContext.request.contextPath}/branch/showtimes/create">
@@ -291,7 +291,7 @@
                                                     <a class="btn btn-sm btn-outline-primary" title="Edit"
                                                        href="${pageContext.request.contextPath}/branch/showtimes/edit?id=${st.showtimeId}">
                                                         <i class="bi bi-pencil"></i></a>
-                                                    <%-- Cancel = POST (hanh dong doi du lieu) + confirm --%>
+                                                        <%-- Cancel = POST (hanh dong doi du lieu) + confirm --%>
                                                     <form method="post" class="d-inline"
                                                           action="${pageContext.request.contextPath}/branch/showtimes/cancel"
                                                           onsubmit="return confirm('Cancel this showtime?');">

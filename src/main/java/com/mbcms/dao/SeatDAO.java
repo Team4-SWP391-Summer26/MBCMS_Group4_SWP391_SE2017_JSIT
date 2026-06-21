@@ -18,6 +18,7 @@ import java.util.Set;
 public interface SeatDAO {
 
     List<Seat> findByRoom(long roomId);
+
     Set<Long> findBookedSeatIds(long showtimeId);
     
     /**

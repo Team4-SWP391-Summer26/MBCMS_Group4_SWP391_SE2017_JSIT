@@ -43,7 +43,7 @@
                 background-color: #fef3c7;
                 color: #d97706;
             }
-            
+
             /* Ticket Card CSS */
             .ticket-card {
                 background: linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%);
@@ -65,9 +65,13 @@
                 transform: translateY(-50%);
                 z-index: 2;
             }
-            .ticket-card::before { left: -10px; }
-            .ticket-card::after { right: -10px; }
-            
+            .ticket-card::before {
+                left: -10px;
+            }
+            .ticket-card::after {
+                right: -10px;
+            }
+
             .ticket-dash {
                 border-left: 2px dashed rgba(255, 255, 255, 0.25);
                 height: 100%;
@@ -75,7 +79,7 @@
                 left: 70%;
                 top: 0;
             }
-            
+
             .card-glow {
                 position: absolute;
                 width: 150px;
@@ -223,12 +227,13 @@
                                     <div class="col-md-6">
                                         <label class="form-label fw-semibold text-navy small">Start date *</label>
                                         <input type="date" class="form-control form-control-sm" name="startDate" id="inputStart" required
-                                               value="${rawStartDate}">
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label class="form-label fw-semibold text-navy small">End date *</label>
-                                        <input type="date" class="form-control form-control-sm" name="endDate" id="inputEnd" required
-                                               value="${rawEndDate}">
+                                               value="${rawStartDate}"
+                                               <c:if test="${!isEdit}">min="${todayStr}"</c:if>>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label fw-semibold text-navy small">End date *</label>
+                                            <input type="date" class="form-control form-control-sm" name="endDate" id="inputEnd" required
+                                                   value="${rawEndDate}">
                                     </div>
                                 </div>
                             </div>
@@ -292,7 +297,7 @@
                                             <h4 class="fw-bold mb-2 text-white font-monospace" id="previewCode" style="letter-spacing: 0.05em;">PROMO_CODE</h4>
                                             <div class="fw-semibold text-truncate text-white-50 small" id="previewName" style="max-width: 90%;">Promotion name</div>
                                         </div>
-                                        
+
                                         <div class="d-flex align-items-end justify-content-between mt-4">
                                             <div>
                                                 <div class="small" style="opacity: 0.7; font-size: 0.7rem; font-weight: 500;">YOU SAVE</div>
@@ -333,113 +338,124 @@
 
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
         <script>
-            // Elements
-            const inputCode = document.getElementById('inputCode');
-            const inputName = document.getElementById('inputName');
-            const typePercentage = document.getElementById('typePercentage');
-            const typeFixed = document.getElementById('typeFixed');
-            const inputValue = document.getElementById('inputValue');
-            const inputMinOrder = document.getElementById('inputMinOrder');
-            const inputStart = document.getElementById('inputStart');
-            const inputEnd = document.getElementById('inputEnd');
-            const toggleLimit = document.getElementById('toggleLimit');
-            const inputMaxUses = document.getElementById('inputMaxUses');
-            
-            // Preview Elements
-            const previewCode = document.getElementById('previewCode');
-            const previewName = document.getElementById('previewName');
-            const previewValue = document.getElementById('previewValue');
-            const previewMinOrder = document.getElementById('previewMinOrder');
-            const previewDates = document.getElementById('previewDates');
-            const examplePromoLabel = document.getElementById('examplePromoLabel');
-            const exampleDiscount = document.getElementById('exampleDiscount');
-            const exampleFinal = document.getElementById('exampleFinal');
+                                                   // Elements
+                                                   const inputCode = document.getElementById('inputCode');
+                                                   const inputName = document.getElementById('inputName');
+                                                   const typePercentage = document.getElementById('typePercentage');
+                                                   const typeFixed = document.getElementById('typeFixed');
+                                                   const inputValue = document.getElementById('inputValue');
+                                                   const inputMinOrder = document.getElementById('inputMinOrder');
+                                                   const inputStart = document.getElementById('inputStart');
+                                                   const inputEnd = document.getElementById('inputEnd');
+                                                   const toggleLimit = document.getElementById('toggleLimit');
+                                                   const inputMaxUses = document.getElementById('inputMaxUses');
+
+                                                   // Preview Elements
+                                                   const previewCode = document.getElementById('previewCode');
+                                                   const previewName = document.getElementById('previewName');
+                                                   const previewValue = document.getElementById('previewValue');
+                                                   const previewMinOrder = document.getElementById('previewMinOrder');
+                                                   const previewDates = document.getElementById('previewDates');
+                                                   const examplePromoLabel = document.getElementById('examplePromoLabel');
+                                                   const exampleDiscount = document.getElementById('exampleDiscount');
+                                                   const exampleFinal = document.getElementById('exampleFinal');
 
 
 
-            function formatCurrency(num) {
-                return new Intl.NumberFormat('vi-VN').format(num) + '₫';
-            }
+                                                   function formatCurrency(num) {
+                                                       return new Intl.NumberFormat('vi-VN').format(num) + '₫';
+                                                   }
 
-            function formatDateString(dateStr) {
-                if (!dateStr) return '';
-                const parts = dateStr.split('-');
-                if (parts.length === 3) {
-                    return parts[2] + '/' + parts[1];
-                }
-                return dateStr;
-            }
+                                                   function formatDateString(dateStr) {
+                                                       if (!dateStr)
+                                                           return '';
+                                                       const parts = dateStr.split('-');
+                                                       if (parts.length === 3) {
+                                                           return parts[2] + '/' + parts[1];
+                                                       }
+                                                       return dateStr;
+                                                   }
 
-            function updatePreview() {
-                const isPercent = typePercentage.checked;
-                const val = parseFloat(inputValue.value) || 0;
-                const code = inputCode.value || 'PROMO_CODE';
-                const name = inputName.value || 'Promotion name';
-                const minOrder = parseFloat(inputMinOrder.value) || 0;
-                
-                // Update text
-                previewCode.textContent = code;
-                previewName.textContent = name;
-                examplePromoLabel.textContent = 'Discount (' + code + ')';
-                
-                // Update Value
-                if (isPercent) {
-                    previewValue.textContent = val + '%';
-                    exampleDiscount.textContent = '-' + formatCurrency(265000 * (val / 100));
-                    exampleFinal.textContent = formatCurrency(265000 - (265000 * (val / 100)));
-                } else {
-                    previewValue.textContent = formatCurrency(val);
-                    exampleDiscount.textContent = '-' + formatCurrency(val);
-                    exampleFinal.textContent = formatCurrency(Math.max(0, 265000 - val));
-                }
+                                                   function updatePreview() {
+                                                       const isPercent = typePercentage.checked;
+                                                       const val = parseFloat(inputValue.value) || 0;
+                                                       const code = inputCode.value || 'PROMO_CODE';
+                                                       const name = inputName.value || 'Promotion name';
+                                                       const minOrder = parseFloat(inputMinOrder.value) || 0;
 
-                // Update Min Order
-                previewMinOrder.textContent = minOrder > 0 ? 'Min. ' + formatCurrency(minOrder) : 'No minimum order';
+                                                       // Update text
+                                                       previewCode.textContent = code;
+                                                       previewName.textContent = name;
+                                                       examplePromoLabel.textContent = 'Discount (' + code + ')';
 
-                // Update Dates
-                const start = formatDateString(inputStart.value);
-                const end = formatDateString(inputEnd.value);
-                previewDates.textContent = 'Valid: ' + start + ' → ' + end;
-            }
+                                                       // Update Value
+                                                       if (isPercent) {
+                                                           previewValue.textContent = val + '%';
+                                                           exampleDiscount.textContent = '-' + formatCurrency(265000 * (val / 100));
+                                                           exampleFinal.textContent = formatCurrency(265000 - (265000 * (val / 100)));
+                                                       } else {
+                                                           previewValue.textContent = formatCurrency(val);
+                                                           exampleDiscount.textContent = '-' + formatCurrency(val);
+                                                           exampleFinal.textContent = formatCurrency(Math.max(0, 265000 - val));
+                                                       }
 
-            function onDiscountTypeChange() {
-                const suffix = document.getElementById('valueSuffix');
-                if (typePercentage.checked) {
-                    suffix.textContent = '%';
-                    inputValue.max = 100;
-                } else {
-                    suffix.textContent = '₫';
-                    inputValue.removeAttribute('max');
-                }
-                updatePreview();
-            }
+                                                       // Update Min Order
+                                                       previewMinOrder.textContent = minOrder > 0 ? 'Min. ' + formatCurrency(minOrder) : 'No minimum order';
 
-            function onLimitToggleChange() {
-                const group = document.getElementById('maxUsesGroup');
-                if (toggleLimit.checked) {
-                    group.classList.remove('d-none');
-                    inputMaxUses.setAttribute('required', 'required');
-                } else {
-                    group.classList.add('d-none');
-                    inputMaxUses.removeAttribute('required');
-                    inputMaxUses.value = '';
-                }
-            }
+                                                       // Update Dates
+                                                       const start = formatDateString(inputStart.value);
+                                                       const end = formatDateString(inputEnd.value);
+                                                       previewDates.textContent = 'Valid: ' + start + ' → ' + end;
+                                                   }
 
-            // Bind listeners
-            inputCode.addEventListener('input', updatePreview);
-            inputName.addEventListener('input', updatePreview);
-            inputValue.addEventListener('input', updatePreview);
-            inputMinOrder.addEventListener('input', updatePreview);
-            inputStart.addEventListener('change', updatePreview);
-            inputEnd.addEventListener('change', updatePreview);
-            
-            // Initialization
-            window.addEventListener('DOMContentLoaded', () => {
-                onDiscountTypeChange();
-                onLimitToggleChange();
-                updatePreview();
-            });
+                                                   function updateEndDateMin() {
+                                                       if (inputStart.value) {
+                                                           inputEnd.min = inputStart.value;
+                                                       }
+                                                   }
+
+                                                   function onDiscountTypeChange() {
+                                                       const suffix = document.getElementById('valueSuffix');
+                                                       if (typePercentage.checked) {
+                                                           suffix.textContent = '%';
+                                                           inputValue.max = 100;
+                                                       } else {
+                                                           suffix.textContent = '₫';
+                                                           inputValue.removeAttribute('max');
+                                                       }
+                                                       updatePreview();
+                                                   }
+
+                                                   function onLimitToggleChange() {
+                                                       const group = document.getElementById('maxUsesGroup');
+                                                       if (toggleLimit.checked) {
+                                                           group.classList.remove('d-none');
+                                                           inputMaxUses.setAttribute('required', 'required');
+                                                       } else {
+                                                           group.classList.add('d-none');
+                                                           inputMaxUses.removeAttribute('required');
+                                                           inputMaxUses.value = '';
+                                                       }
+                                                   }
+
+                                                   // Bind listeners
+                                                   inputCode.addEventListener('input', updatePreview);
+                                                   inputName.addEventListener('input', updatePreview);
+                                                   inputValue.addEventListener('input', updatePreview);
+                                                   inputMinOrder.addEventListener('input', updatePreview);
+                                                   inputStart.addEventListener('change', () => {
+                                                       updateEndDateMin();
+                                                       updatePreview();
+                                                   });
+                                                   inputEnd.addEventListener('change', updatePreview);
+
+                                                   // Initialization
+                                                   window.addEventListener('DOMContentLoaded', () => {
+                                                       onDiscountTypeChange();
+                                                       onLimitToggleChange();
+                                                       updateEndDateMin();
+                                                       updatePreview();
+                                                   });
         </script>
     </body>
 </html>
