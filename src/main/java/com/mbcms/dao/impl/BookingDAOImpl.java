@@ -398,17 +398,6 @@ public class BookingDAOImpl extends BaseDAO implements BookingDAO {
             closeAll(ps, conn);
         }
     }
-
-        // Build IN (?,?,...)
-        StringBuilder sb = new StringBuilder(
-                "SELECT DISTINCT bs.seat_id "
-                + "FROM booking_seats bs "
-                + "JOIN bookings b ON b.booking_id = bs.booking_id "
-                + "WHERE b.showtime_id = ? "
-                + " AND bs.lock_status IN ('LOCKED','CONFIRMED') "
-                + "  AND bs.seat_id IN (");
-        for (int i = 0; i < seatIds.size(); i++) {
-            sb.append(i > 0 ? ",?" : "?");
     // ── confirmBooking (connection-aware, dung trong transaction payment) ──
     @Override
     public int confirmBooking(Connection conn, long bookingId, String customerUsername) {
@@ -457,50 +446,13 @@ public class BookingDAOImpl extends BaseDAO implements BookingDAO {
 // ── releaseExpiredLocks ───────────────────────────────────────────────────
     @Override
     public int releaseExpiredLocks() {
-        /*
-         * Tim PENDING booking tao qua LOCK_EXPIRE_MINUTES phut:
-         *   1. Cap nhat bookings.status = CANCELLED
-         *   2. Cap nhat booking_seats.lock_status = RELEASED
-         */
-        String findExpired
-                = "SELECT booking_id FROM bookings "
-                + "WHERE status = 'PENDING' "
-                + "  AND DATEDIFF(MINUTE, created_at, GETDATE()) >= " + LOCK_EXPIRE_MINUTES;
-
-        String cancelBookings
-                = "UPDATE bookings SET status = 'CANCELLED' "
-                + "WHERE status = 'PENDING' "
-                + "  AND DATEDIFF(MINUTE, created_at, GETDATE()) >= " + LOCK_EXPIRE_MINUTES;
-
-        String releaseSeats
-                = "UPDATE booking_seats SET lock_status = 'RELEASED' "
-                + "WHERE lock_status = 'LOCKED' "
-                + "  AND booking_id IN ("
-                + "    SELECT booking_id FROM bookings "
-                + "    WHERE status = 'CANCELLED' "
-                + "      AND DATEDIFF(MINUTE, created_at, GETDATE()) >= " + LOCK_EXPIRE_MINUTES
-                + "  )";
-        // Chỉ CANCEL booking hết hạn — không cần UPDATE booking_seats
-        // getUnavailableSeatIds tự loại PENDING cũ khi query theo thời gian
-        String sql
-                = "UPDATE dbo.bookings SET [status] = 'CANCELLED' "
-                + "WHERE [status] = 'PENDING' "
-                + "  AND DATEDIFF(MINUTE, created_at, SYSUTCDATETIME()) >= 10";
-
+        String sql = "UPDATE dbo.bookings SET [status] = 'CANCELLED' "
+                   + "WHERE [status] = 'PENDING' "
+                   + "  AND DATEADD(MINUTE, 10, created_at) < SYSUTCDATETIME()";
         Connection conn = null;
         PreparedStatement ps = null;
         try {
             conn = getConnection();
-            conn.setAutoCommit(false);
-            // Giai phong seats truoc (foreign key phu thuoc booking)
-            ps2 = conn.prepareStatement(releaseSeats);
-            ps2.executeUpdate();
-
-            ps1 = conn.prepareStatement(cancelBookings);
-            int affected = ps1.executeUpdate();
-
-            conn.commit();
-            return affected;
             ps = conn.prepareStatement(sql);
             return ps.executeUpdate();
         } catch (SQLException e) {

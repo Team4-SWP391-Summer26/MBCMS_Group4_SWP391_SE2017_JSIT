@@ -4,7 +4,7 @@ import com.mbcms.model.Booking;
 import com.mbcms.model.Customer;
 import com.mbcms.service.BookingService;
 import com.mbcms.service.impl.BookingServiceImpl;
-import com.mbcms.util.QrCodeUtil;
+import com.mbcms.util.QRCodeUtil;
 
 import com.google.zxing.WriterException;
 
@@ -61,7 +61,7 @@ public class BookingQrServlet extends HttpServlet {
             resp.setContentType("image/png");
             resp.setHeader("Cache-Control", "private, max-age=300");
             try (OutputStream out = resp.getOutputStream()) {
-                QrCodeUtil.writePng(booking.getBookingCode(), QR_SIZE, out);
+                QRCodeUtil.writePng(booking.getBookingCode(), QR_SIZE, out);
             }
 
         } catch (SecurityException e) {
