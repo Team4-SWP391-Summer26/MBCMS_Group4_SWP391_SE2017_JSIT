@@ -292,6 +292,17 @@
                         </div>
                     </div>
 
+                    <c:if test="${booking.status == 'CONFIRMED' || booking.status == 'USED'}">
+                        <div class="text-center my-3">
+                            <img src="${pageContext.request.contextPath}/booking/qr?bookingId=${booking.bookingId}"
+                                 alt="QR ${booking.bookingCode}" width="150" height="150"
+                                 style="border:1px solid #e5e7eb; border-radius:10px; padding:6px; background:#fff;">
+                            <div style="font-size:.74rem; color:#94a3b8; margin-top:4px;">
+                                Xuất trình mã QR này tại cửa rạp để check-in
+                            </div>
+                        </div>
+                    </c:if>
+
                     <div class="ticket-divider" style="margin: 0 0 4px;"></div>
 
                     <div class="price-line">

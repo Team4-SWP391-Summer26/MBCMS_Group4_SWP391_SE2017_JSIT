@@ -1,452 +1,288 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
+<%--
+    Review / Checkout (booking step 3) - owner: HungNT.
+    Giao dien dong nhat voi seats / payment / confirm (--bk-* + stepper chung trong main.css).
+    GIU NGUYEN cac form name/action + JS (promo, notes, cancel modal, countdown).
+--%>
 <!DOCTYPE html>
-<html lang="vi">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>Xác nhận đặt vé – MBCMS</title>
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-        <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/main.css">
-        <style>
-            .checkout-wrap {
-                max-width: 760px;
-                margin: 32px auto 48px;
-                padding: 0 16px;
-            }
-            .page-title {
-                font-weight: 800;
-                color: var(--text-dark);
-                margin-bottom: 1.25rem;
-            }
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Review your order – MBCMS</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="${pageContext.request.contextPath}/assets/css/main.css?v=${applicationScope.assetVersion}" rel="stylesheet">
+    <style>
+        /* ===== Booking shared design (inline de khong phu thuoc cache main.css) ===== */
+        :root {
+            --bk-primary:#2563EB; --bk-navy:#0F1E36; --bk-border:#E6EAF2;
+            --bk-muted:#64748B; --bk-light:#EFF4FF; --bk-bg:#F5F7FA;
+        }
+        body.bk-page { background: var(--bk-bg); }
+        .bk-wrap { max-width: 1080px; }
+        .bk-card { background:#fff; border:1px solid var(--bk-border); border-radius:14px;
+            box-shadow:0 4px 12px rgba(15,23,42,.05); }
+        .bk-summary { position:sticky; top:18px; }
+        .bk-mono { font-family:ui-monospace,Menlo,Consolas,monospace; }
 
-            .alert-err {
-                background: #fee2e2;
-                color: #b91c1c;
-                border-radius: 10px;
-                padding: 10px 16px;
-                margin-bottom: 16px;
-                font-size: .88rem;
-            }
-            .alert-info {
-                background: #dcfce7;
-                color: #15803d;
-                border-radius: 10px;
-                padding: 10px 16px;
-                margin-bottom: 16px;
-                font-size: .88rem;
-            }
-            .alert-pending {
-                background: #fef9c3;
-                color: #92400e;
-                border-radius: 10px;
-                padding: 10px 16px;
-                margin-bottom: 16px;
-                font-size: .88rem;
-                display: flex;
-                align-items: center;
-                gap: 8px;
-            }
+        .bk-ctx { background:#fff; border-bottom:1px solid var(--bk-border); }
+        .bk-poster { width:46px; height:60px; border-radius:8px; flex-shrink:0;
+            background:linear-gradient(135deg,#1e293b,#0f172a); display:flex;
+            align-items:center; justify-content:center; color:#FFC107; font-weight:800; font-size:1.2rem; }
+        .bk-reserve { background:#FFF8E1; border:1px solid #FFE082; color:#7a5a00; border-radius:999px;
+            padding:.3rem .8rem; font-size:.82rem; font-weight:600; display:inline-flex; align-items:center; gap:.4rem; white-space:nowrap; }
+        .bk-reserve.danger { background:#fee2e2; border-color:#fca5a5; color:#b91c1c; }
 
-            .checkout-grid {
-                display: grid;
-                grid-template-columns: 1.2fr 1fr;
-                gap: 20px;
-                align-items: start;
-            }
-            @media (max-width: 760px) {
-                .checkout-grid {
-                    grid-template-columns: 1fr;
-                }
-            }
+        .bk-steps { display:flex; align-items:center; }
+        .bk-step { display:flex; align-items:center; gap:.5rem; font-size:.9rem; font-weight:600; color:#94a3b8; white-space:nowrap; }
+        .bk-step .bk-dot { width:26px; height:26px; border-radius:999px; display:flex; align-items:center;
+            justify-content:center; font-size:.78rem; background:#E2E8F0; color:#64748b; flex-shrink:0; }
+        .bk-step.done { color:#16a34a; } .bk-step.done .bk-dot { background:#16a34a; color:#fff; }
+        .bk-step.active { color:var(--bk-primary); } .bk-step.active .bk-dot { background:var(--bk-primary); color:#fff; }
+        .bk-line { flex:1; height:2px; background:#E2E8F0; margin:0 .5rem; min-width:12px; }
+        .bk-line.done { background:#16a34a; }
+        @media (max-width:640px) { .bk-step span:not(.bk-dot) { display:none; } }
 
-            .summary-card {
-                background: var(--bg-card);
-                border: 1px solid #e5e7eb;
-                border-radius: 14px;
-                box-shadow: 0 2px 12px rgba(15,30,54,.06);
-                padding: 22px 24px;
-            }
-            .section-title {
-                font-size: 1.02rem;
-                font-weight: 700;
-                color: var(--text-dark);
-                margin-bottom: 14px;
-            }
+        .bk-sum-line { display:flex; justify-content:space-between; align-items:center; padding:.35rem 0; font-size:.92rem; }
+        .bk-sum-total { padding-top:.6rem; margin-top:.2rem; border-top:1px solid var(--bk-border); }
+        .bk-seat-tag { display:inline-block; background:var(--bk-light); color:var(--bk-primary);
+            border:1px solid #bfdbfe; border-radius:7px; padding:3px 10px; font-size:.82rem; font-weight:700;
+            margin:2px 4px 2px 0; font-family:ui-monospace,Menlo,Consolas,monospace; }
+        .bk-page .btn-primary { background:var(--bk-primary); border-color:var(--bk-primary); }
+        .bk-page .btn-primary:hover { background:#1d4ed8; border-color:#1d4ed8; }
 
-            .info-table td {
-                padding: 6px 4px;
-                font-size: .9rem;
-                vertical-align: top;
-            }
-            .info-table td:first-child {
-                color: var(--text-muted);
-                font-weight: 600;
-                width: 120px;
-            }
+        /* Cancel modal (page-specific) */
+        .modal-overlay {
+            position: fixed; inset: 0; background: rgba(15,23,42,.55); z-index: 1055;
+            display: flex; align-items: center; justify-content: center; padding: 16px;
+            animation: fadeInModal .2s;
+        }
+        .modal-box {
+            background: #fff; border-radius: 14px; padding: 28px; max-width: 420px; width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,.3);
+        }
+        @keyframes fadeInModal { from { opacity: 0; } to { opacity: 1; } }
+    </style>
+</head>
+<body class="bk-page">
+<jsp:include page="../common/header.jsp" />
 
-            .seat-tag {
-                display: inline-block;
-                background: #eff6ff;
-                color: var(--primary);
-                border: 1px solid #bfdbfe;
-                border-radius: 7px;
-                padding: 3px 10px;
-                font-size: .82rem;
-                font-weight: 700;
-                margin: 2px 4px 2px 0;
-            }
-
-            .promo-row {
-                display: flex;
-                gap: 8px;
-            }
-            .promo-row input {
-                flex: 1;
-            }
-            .promo-applied-badge {
-                display: inline-block;
-                background: #dcfce7;
-                color: #16a34a;
-                border-radius: 999px;
-                padding: 2px 10px;
-                font-size: .76rem;
-                font-weight: 700;
-            }
-
-            .price-row {
-                display: flex;
-                justify-content: space-between;
-                font-size: .9rem;
-                padding: 5px 0;
-                color: var(--text-dark);
-            }
-            .price-row.discount {
-                color: #16a34a;
-            }
-            .price-row.total {
-                font-weight: 800;
-                font-size: 1.1rem;
-                color: var(--primary);
-                border-top: 2px solid #e5e7eb;
-                padding-top: 12px;
-                margin-top: 8px;
-            }
-
-            .btn-pay-lc {
-                background: var(--primary);
-                border: none;
-                color: #fff;
-                border-radius: 9px;
-                padding: 11px 0;
-                font-weight: 700;
-                width: 100%;
-                margin-top: 16px;
-                transition: background .15s;
-            }
-            .btn-pay-lc:hover {
-                background: #1d4ed8;
-                color: #fff;
-            }
-
-            .btn-cancel-lc {
-                background: transparent;
-                border: 1.5px solid #e5e7eb;
-                color: #6b7280;
-                border-radius: 9px;
-                padding: 9px 0;
-                font-weight: 600;
-                width: 100%;
-                margin-top: 10px;
-                font-size: .9rem;
-                transition: all .15s;
-                cursor: pointer;
-            }
-            .btn-cancel-lc:hover {
-                background: #fef2f2;
-                border-color: #dc2626;
-                color: #b91c1c;
-            }
-
-            /* ── Cancel modal ── */
-            .modal-overlay {
-                position: fixed;
-                inset: 0;
-                background: rgba(15,23,42,.55);
-                z-index: 1055;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                padding: 16px;
-                animation: fadeInModal .2s;
-            }
-            .modal-box {
-                background: #fff;
-                border-radius: 14px;
-                padding: 28px;
-                max-width: 420px;
-                width: 100%;
-                box-shadow: 0 20px 60px rgba(0,0,0,.3);
-            }
-            
-                        /* ── Cancel button ── */
-            .btn-cancel-booking {
-                background: #fff;
-                color: #dc2626;
-                border: 1.5px solid #fca5a5;
-                border-radius: 8px;
-                padding: 10px 22px;
-                font-weight: 600;
-                font-size: 0.9rem;
-                cursor: pointer;
-                transition: all 0.15s;
-                text-decoration: none;
-                display: inline-flex;
-                align-items: center;
-                gap: 6px;
-            }
-            .btn-cancel-booking:hover {
-                background: #fef2f2;
-                border-color: #dc2626;
-                color: #b91c1c;
-            }
-
-            .back-link {
-                display: inline-block;
-                margin-top: 14px;
-                color: var(--text-muted);
-                font-size: .85rem;
-                text-decoration: none;
-            }
-            .back-link:hover {
-                color: var(--primary);
-            }
-
-            /* Countdown timer */
-            #countdown-wrap {
-                font-size: .82rem;
-                color: #92400e;
-                font-weight: 700;
-            }
-            #countdown-wrap.danger {
-                color: #b91c1c;
-                animation: blink .8s step-start infinite;
-            }
-            @keyframes blink {
-                50% {
-                    opacity: .4;
-                }
-            }
-            @keyframes fadeInModal {
-                from {
-                    opacity: 0;
-                }
-                to   {
-                    opacity: 1;
-                }
-            }
-        </style>
-    </head>
-    <body>
-        <%@ include file="/WEB-INF/views/common/header.jsp" %>
-
-        <div class="checkout-wrap">
-            <h5 class="page-title">🎬 Xác nhận đặt vé</h5>
-
-            <%-- Ghế đang được giữ – nhắc người dùng --%>
+<%-- ===== Context bar ===== --%>
+<div class="bk-ctx mt-3">
+    <div class="container bk-wrap py-2">
+        <div class="d-flex align-items-center gap-3 flex-wrap">
+            <div class="bk-poster"><i class="bi bi-film"></i></div>
+            <div class="flex-grow-1">
+                <div class="fw-bold" style="color:var(--bk-navy);">
+                    <c:choose>
+                        <c:when test="${not empty booking}">Booking ${booking.bookingCode}</c:when>
+                        <c:otherwise>Review your order</c:otherwise>
+                    </c:choose>
+                </div>
+                <div class="text-muted small">Showtime #${showtimeId}</div>
+            </div>
+            <div class="text-end">
+                <div class="text-muted small">Seats</div>
+                <div class="fw-bold bk-mono" style="color:var(--bk-navy);">
+                    <c:forEach var="sid" items="${seatIds}" varStatus="s">#${sid}<c:if test="${not s.last}">, </c:if></c:forEach>
+                </div>
+            </div>
             <c:if test="${not empty booking}">
-                <div class="alert-pending">
-                    ⏳ <span>Ghế của bạn đang được <strong>giữ trong 10 phút</strong>. Vui lòng hoàn tất thanh toán trước khi hết giờ.</span>
-                    <span id="countdown-wrap" class="ms-auto"></span>
-                </div>
+                <span class="bk-reserve" id="reserve-pill">
+                    <i class="bi bi-clock-history"></i> Reserved for <span id="countdown">--:--</span>
+                </span>
             </c:if>
+        </div>
+    </div>
+</div>
 
-            <%-- Error / info messages --%>
-            <c:if test="${not empty checkoutError}">
-                <div class="alert-err">⚠️ ${checkoutError}</div>
-            </c:if>
-            <c:if test="${not empty pricingError}">
-                <div class="alert-err">⚠️ ${pricingError}</div>
-            </c:if>
-            <c:if test="${not empty promoMessage}">
-                <div class="alert-info">✅ ${promoMessage}</div>
-            </c:if>
+<div class="container bk-wrap py-4">
 
-            <div class="checkout-grid">
+    <%-- ===== Stepper (3/5 Review) ===== --%>
+    <div class="bk-steps mb-4">
+        <div class="bk-step done"><span class="bk-dot"><i class="bi bi-check-lg"></i></span>Showtime</div>
+        <div class="bk-line done"></div>
+        <div class="bk-step done"><span class="bk-dot"><i class="bi bi-check-lg"></i></span>Seats</div>
+        <div class="bk-line done"></div>
+        <div class="bk-step active"><span class="bk-dot">3</span>Review</div>
+        <div class="bk-line"></div>
+        <div class="bk-step"><span class="bk-dot">4</span>Payment</div>
+        <div class="bk-line"></div>
+        <div class="bk-step"><span class="bk-dot">5</span>Confirm</div>
+    </div>
 
-                <%-- LEFT: chi tiết đặt chỗ + promo --%>
-                <div class="summary-card">
-                    <div class="section-title">Chi tiết đặt chỗ</div>
-                    <table class="info-table" style="width:100%">
-                        <c:if test="${not empty booking}">
-                            <tr>
-                                <td>Mã đặt vé</td>
-                                <td class="fw-semibold">${booking.bookingCode}</td>
-                            </tr>
-                        </c:if>
-                        <tr>
-                            <td>Suất chiếu</td>
-                            <td class="fw-semibold">#${showtimeId}</td>
-                        </tr>
-                        <tr>
-                            <td>Ghế</td>
-                            <td>
-                                <c:forEach var="sid" items="${seatIds}">
-                                    <span class="seat-tag">${sid}</span>
-                                </c:forEach>
-                            </td>
-                        </tr>
-                        <c:if test="${not empty booking}">
-                            <tr>
-                                <td>Trạng thái</td>
-                                <td><span class="badge bg-warning text-dark">PENDING – Đang giữ ghế</span></td>
-                            </tr>
-                        </c:if>
-                    </table>
+    <h3 class="fw-bold mb-1" style="color:var(--bk-navy);">Review your order</h3>
+    <p class="text-muted mb-4">Double-check everything before you pay.</p>
 
-                    <hr style="border-color:#e5e7eb; margin: 18px 0;">
+    <%-- ===== Messages ===== --%>
+    <c:if test="${not empty checkoutError}">
+        <div class="alert alert-danger d-flex align-items-center gap-2"><i class="bi bi-exclamation-triangle-fill"></i><span>${checkoutError}</span></div>
+    </c:if>
+    <c:if test="${not empty pricingError}">
+        <div class="alert alert-danger d-flex align-items-center gap-2"><i class="bi bi-exclamation-triangle-fill"></i><span>${pricingError}</span></div>
+    </c:if>
+    <c:if test="${not empty promoMessage}">
+        <div class="alert alert-success d-flex align-items-center gap-2"><i class="bi bi-check-circle-fill"></i><span>${promoMessage}</span></div>
+    </c:if>
 
-                    <div class="section-title" style="margin-bottom:10px;">Mã khuyến mãi</div>
-                    <form method="post" action="${pageContext.request.contextPath}/booking/checkout">
-                        <input type="hidden" name="showtimeId"  value="${showtimeId}">
-                        <input type="hidden" name="applyPromo"  value="true">
-                        <input type="hidden" name="bookingId"   value="${booking.bookingId}">
-                        <c:forEach var="sid" items="${seatIds}">
-                            <input type="hidden" name="seatIds" value="${sid}">
-                        </c:forEach>
-                        <div class="promo-row">
-                            <input class="form-control" type="text" name="promoCode"
-                                   value="${promoCode}" placeholder="Nhập mã (VD: SAVE10)">
-                            <button class="btn btn-outline-primary" type="submit">Áp dụng</button>
-                        </div>
-                        <c:if test="${not empty promoCode}">
-                            <span class="promo-applied-badge mt-2 d-inline-block">${promoCode}</span>
-                        </c:if>
-                    </form>
-                </div>
+    <div class="row g-4">
 
-                <%-- RIGHT: bảng giá + nút thanh toán + nút huỷ --%>
-                <div class="summary-card">
-                    <div class="section-title">Tóm tắt thanh toán</div>
-
-                    <c:if test="${not empty pricing}">
-                        <div class="price-row">
-                            <span>Tạm tính</span>
-                            <span><fmt:formatNumber value="${pricing.subtotal}" pattern="#,###"/> đ</span>
-                        </div>
-                        <c:if test="${pricing.discountAmount > 0}">
-                            <div class="price-row discount">
-                                <span>
-                                    Giảm giá
-                                    <c:if test="${not empty promoCode}">
-                                        <span class="promo-applied-badge ms-1">${promoCode}</span>
-                                    </c:if>
-                                </span>
-                                <span>− <fmt:formatNumber value="${pricing.discountAmount}" pattern="#,###"/> đ</span>
-                            </div>
-                        </c:if>
-                        <div class="price-row total">
-                            <span>Tổng cộng</span>
-                            <span><fmt:formatNumber value="${pricing.totalAmount}" pattern="#,###"/> đ</span>
-                        </div>
-                    </c:if>
-
-                    <%-- Form xác nhận thanh toán --%>
-                    <form method="post" action="${pageContext.request.contextPath}/booking/checkout">
-                        <input type="hidden" name="showtimeId" value="${showtimeId}">
-                        <input type="hidden" name="promoCode"  value="${promoCode}">
-                        <input type="hidden" name="bookingId"  value="${booking.bookingId}">
-                        <c:forEach var="sid" items="${seatIds}">
-                            <input type="hidden" name="seatIds" value="${sid}">
-                        </c:forEach>
-                        <textarea name="notes"
-                                  placeholder="Ghi chú (tuỳ chọn)"
-                                  class="form-control mt-3"
-                                  rows="2"
-                                  style="resize:vertical; font-size:.88rem;"></textarea>
-                        <button class="btn-pay-lc" type="submit">💳 Tiến hành thanh toán</button>
-                    </form>
-
-                    <%-- Nút Huỷ đặt vé (chỉ hiển thị khi đã có pending booking) --%>
-                    <%-- Nút Huỷ đặt vé (chỉ hiển thị khi đã có pending booking) --%>
-                    <c:if test="${not empty booking}">
-                        <button type="button" class="btn-cancel-lc" onclick="openCancelModal()">
-                            ✕ Huỷ đặt vé
-                        </button>
-                    </c:if>
+        <%-- ===== Left: booking details + promo ===== --%>
+        <div class="col-lg-7">
+            <div class="bk-card p-4 mb-4">
+                <h6 class="fw-bold mb-3" style="color:var(--bk-navy);">Booking details</h6>
+                <div class="bk-sum-line"><span class="text-muted">Showtime</span>
+                    <span class="fw-semibold">#${showtimeId}</span></div>
+                <c:if test="${not empty booking}">
+                    <div class="bk-sum-line"><span class="text-muted">Booking code</span>
+                        <span class="fw-semibold bk-mono">${booking.bookingCode}</span></div>
+                    <div class="bk-sum-line"><span class="text-muted">Status</span>
+                        <span><span class="badge bg-warning text-dark">PENDING · seats held</span></span></div>
+                </c:if>
+                <div class="bk-sum-line align-items-start"><span class="text-muted">Seats</span>
+                    <span class="text-end">
+                        <c:forEach var="sid" items="${seatIds}"><span class="bk-seat-tag">#${sid}</span></c:forEach>
+                    </span>
                 </div>
             </div>
-            <!-- Cancel modal -->
-            <div id="cancel-modal" class="modal-overlay" style="display:none;" onclick="closeCancelModal(event)">
-                <div class="modal-box" onclick="event.stopPropagation()">
-                    <div style="font-size:2.5rem; text-align:center; margin-bottom:8px;">⚠️</div>
-                    <h5 class="text-center fw-bold mb-1">Cancel this booking?</h5>
-                    <p class="text-center text-muted mb-4" style="font-size:0.9rem;">
-                        Booking <strong>${booking.bookingCode}</strong> will be cancelled
-                        and your seats will be released. This cannot be undone.
-                    </p>
+
+            <div class="bk-card p-4">
+                <h6 class="fw-bold mb-3" style="color:var(--bk-navy);">Promotion code</h6>
+                <form method="post" action="${pageContext.request.contextPath}/booking/checkout">
+                    <input type="hidden" name="showtimeId" value="${showtimeId}">
+                    <input type="hidden" name="applyPromo" value="true">
+                    <input type="hidden" name="bookingId"  value="${booking.bookingId}">
+                    <c:forEach var="sid" items="${seatIds}">
+                        <input type="hidden" name="seatIds" value="${sid}">
+                    </c:forEach>
                     <div class="d-flex gap-2">
-                        <button class="btn btn-outline-secondary flex-fill" onclick="closeCancelModal()">Keep Booking</button>
-                        <%-- TODO: wire to BookingCancelServlet --%>
-                        <form action="${pageContext.request.contextPath}/customer/booking/cancel"
-                              method="post" class="flex-fill m-0">
-                            <input type="hidden" name="bookingId" value="${booking.bookingId}"/>
-                            <input type="hidden" name="showtimeId" value="${showtimeId}"/>  <%-- add this --%>
-                            <button type="submit" class="btn-cancel-booking w-100" style="justify-content:center;">
-                                Yes, Cancel
-                            </button>
-                        </form>
+                        <input class="form-control" type="text" name="promoCode"
+                               value="${promoCode}" placeholder="Enter code (e.g. SAVE10)">
+                        <button class="btn btn-outline-primary" type="submit">Apply</button>
                     </div>
-                </div>
+                    <c:if test="${not empty promoCode}">
+                        <span class="badge bg-success-subtle text-success mt-2"><i class="bi bi-tag-fill"></i> ${promoCode}</span>
+                    </c:if>
+                </form>
             </div>
-            <script>
-                function openCancelModal() {
-                    document.getElementById('cancel-modal').style.display = 'flex';
-                    document.body.style.overflow = 'hidden';
-                }
-                function closeCancelModal(e) {
-                    if (e && e.target !== e.currentTarget)
-                        return;
-                    document.getElementById('cancel-modal').style.display = 'none';
-                    document.body.style.overflow = '';
-                }
-            </script>
         </div>
 
+        <%-- ===== Right: order summary ===== --%>
+        <div class="col-lg-5">
+            <div class="bk-card p-4 bk-summary">
+                <h6 class="fw-bold mb-3" style="color:var(--bk-navy);">Order summary</h6>
 
-        <%@ include file="/WEB-INF/views/common/footer.jsp" %>
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+                <c:choose>
+                    <c:when test="${not empty booking}">
+                        <div class="bk-sum-line"><span class="text-muted">Subtotal</span>
+                            <span><fmt:formatNumber value="${booking.subtotal}" pattern="#,###"/>₫</span></div>
+                        <c:if test="${booking.discountAmount > 0}">
+                            <div class="bk-sum-line text-success"><span>Discount
+                                <c:if test="${not empty promoCode}"><span class="badge bg-success-subtle text-success ms-1">${promoCode}</span></c:if>
+                                </span>
+                                <span>−<fmt:formatNumber value="${booking.discountAmount}" pattern="#,###"/>₫</span></div>
+                        </c:if>
+                        <div class="bk-sum-line bk-sum-total">
+                            <span class="fw-bold" style="color:var(--bk-navy);">Total</span>
+                            <span class="fw-bold fs-5" style="color:var(--bk-primary);">
+                                <fmt:formatNumber value="${booking.totalAmount}" pattern="#,###"/>₫</span>
+                        </div>
+                    </c:when>
+                    <c:otherwise>
+                        <p class="text-muted small mb-0">Price will appear once your seats are held.</p>
+                    </c:otherwise>
+                </c:choose>
 
-        <c:if test="${not empty booking}">
-            <script>
-                // Đếm ngược 10 phút từ lúc load trang
-                (function () {
-                    const LIMIT_MS = 10 * 60 * 1000;
-                    const start = Date.now();
-                    const wrap = document.getElementById('countdown-wrap');
-                    if (!wrap)
-                        return;
+                <%-- Confirm: tao chuyen sang buoc Payment --%>
+                <form method="post" action="${pageContext.request.contextPath}/booking/checkout" class="mt-3">
+                    <input type="hidden" name="showtimeId" value="${showtimeId}">
+                    <input type="hidden" name="promoCode"  value="${promoCode}">
+                    <input type="hidden" name="bookingId"  value="${booking.bookingId}">
+                    <c:forEach var="sid" items="${seatIds}">
+                        <input type="hidden" name="seatIds" value="${sid}">
+                    </c:forEach>
+                    <textarea name="notes" placeholder="Notes (optional)" class="form-control mb-3"
+                              rows="2" style="resize:vertical; font-size:.88rem;"></textarea>
+                    <button class="btn btn-primary w-100 py-2 fw-semibold" type="submit">
+                        Proceed to Payment <i class="bi bi-arrow-right"></i>
+                    </button>
+                </form>
+                <div class="text-center text-muted small mt-2">
+                    <i class="bi bi-shield-lock"></i> Secure checkout
+                </div>
 
-                    function tick() {
-                        const elapsed = Date.now() - start;
-                        const remaining = Math.max(0, LIMIT_MS - elapsed);
-                        const m = Math.floor(remaining / 60000);
-                        const s = Math.floor((remaining % 60000) / 1000);
-                        wrap.textContent = m + ':' + String(s).padStart(2, '0');
-                        if (remaining <= 60000)
-                            wrap.classList.add('danger');
-                        if (remaining === 0) {
-                            clearInterval(timer);
-                            wrap.textContent = 'Hết giờ!';
-                            alert('Thời gian giữ ghế đã hết. Vui lòng chọn lại ghế.');
-                            window.location.href = '${pageContext.request.contextPath}/booking/seats?showtimeId=${showtimeId}';
-                                        }
-                                    }
-                                    tick();
-                                    const timer = setInterval(tick, 1000);
-                                })();
-            </script>
-        </c:if>
-    </body>
+                <c:if test="${not empty booking}">
+                    <button type="button" class="btn btn-outline-danger w-100 mt-2" onclick="openCancelModal()">
+                        <i class="bi bi-x-lg"></i> Cancel booking
+                    </button>
+                </c:if>
+            </div>
+        </div>
+    </div>
+
+    <%-- ===== Cancel modal ===== --%>
+    <div id="cancel-modal" class="modal-overlay" style="display:none;" onclick="closeCancelModal(event)">
+        <div class="modal-box" onclick="event.stopPropagation()">
+            <div class="text-center mb-2" style="font-size:2.2rem;color:#dc2626;"><i class="bi bi-exclamation-triangle-fill"></i></div>
+            <h5 class="text-center fw-bold mb-1">Cancel this booking?</h5>
+            <p class="text-center text-muted mb-4" style="font-size:.9rem;">
+                Booking <strong>${booking.bookingCode}</strong> will be cancelled and your seats released. This cannot be undone.
+            </p>
+            <div class="d-flex gap-2">
+                <button class="btn btn-outline-secondary flex-fill" onclick="closeCancelModal()">Keep booking</button>
+                <form action="${pageContext.request.contextPath}/customer/booking/cancel" method="post" class="flex-fill m-0">
+                    <input type="hidden" name="bookingId"  value="${booking.bookingId}"/>
+                    <input type="hidden" name="showtimeId" value="${showtimeId}"/>
+                    <button type="submit" class="btn btn-danger w-100">Yes, cancel</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div><!-- /container -->
+
+<jsp:include page="../common/footer.jsp" />
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    function openCancelModal() {
+        document.getElementById('cancel-modal').style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+    }
+    function closeCancelModal(e) {
+        if (e && e.target !== e.currentTarget) return;
+        document.getElementById('cancel-modal').style.display = 'none';
+        document.body.style.overflow = '';
+    }
+</script>
+
+<c:if test="${not empty booking}">
+<script>
+    // Dem nguoc 10 phut giu ghe (client-side, tu luc load trang).
+    (function () {
+        var LIMIT_MS = 10 * 60 * 1000;
+        var start = Date.now();
+        var cd   = document.getElementById('countdown');
+        var pill = document.getElementById('reserve-pill');
+        if (!cd) return;
+        function tick() {
+            var remaining = Math.max(0, LIMIT_MS - (Date.now() - start));
+            var m = Math.floor(remaining / 60000);
+            var s = Math.floor((remaining % 60000) / 1000);
+            cd.textContent = m + ':' + String(s).padStart(2, '0');
+            if (remaining <= 60000 && pill) pill.classList.add('danger');
+            if (remaining === 0) {
+                clearInterval(timer);
+                cd.textContent = 'Expired';
+                alert('Your seat hold has expired. Please pick seats again.');
+                window.location.href = '${pageContext.request.contextPath}/booking/seats?showtimeId=${showtimeId}';
+            }
+        }
+        tick();
+        var timer = setInterval(tick, 1000);
+    })();
+</script>
+</c:if>
+</body>
 </html>

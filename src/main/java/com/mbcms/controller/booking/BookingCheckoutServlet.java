@@ -157,9 +157,10 @@ public class BookingCheckoutServlet extends HttpServlet {
             return;
         }
 
-        // Forward sang BookingConfirmServlet để xử lý thanh toán
+        // Chuyển sang bước thanh toán (PaymentServlet) thay vì confirm thẳng.
+        // Booking->CONFIRMED chỉ xảy ra sau khi payment callback thành công.
         resp.sendRedirect(req.getContextPath()
-                + "/booking/confirm?bookingId=" + bookingId);
+                + "/booking/payment?bookingId=" + bookingId);
     }
 
     // ── Helpers ──────────────────────────────────────────────────────────

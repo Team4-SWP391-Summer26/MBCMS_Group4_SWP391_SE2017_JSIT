@@ -1,6 +1,8 @@
 package com.mbcms.dao;
 
 import com.mbcms.model.Booking;
+import com.mbcms.model.BookingTicket;
+import java.sql.Connection;
 import java.util.List;
 
 /**
@@ -30,6 +32,16 @@ public interface BookingDAO {
     
      /** Tìm booking theo ID, kèm load seatIds từ booking_seats. */
     Booking findByIdWithSeats(long bookingId);
+
+    /**
+     * View-model day du cho man Confirm / e-ticket: JOIN bookings + showtimes +
+     * movies + rooms + branches + customers, kem nhan ghe (row_label+col_number).
+     * Return null neu khong tim thay.
+     */
+    BookingTicket findTicket(long bookingId);
+
+    /** Danh sach BookingTicket (day du) cua 1 customer, suat moi nhat truoc. */
+    List<BookingTicket> findTicketsByCustomer(String customerUsername);
     
     /**
      * PENDING → CANCELLED (hết hạn hoặc user huỷ).
@@ -50,6 +62,14 @@ public interface BookingDAO {
      * Return số row affected (0 = hết hạn hoặc sai trạng thái).
      */
     int confirmBooking(long bookingId, String customerUsername);
+
+    /**
+     * Overload connection-aware: PENDING → CONFIRMED ben trong transaction
+     * cua payment callback (SRS 3.8.4). Dung chung Connection voi PaymentDAO
+     * de payments + bookings cap nhat atomic. KHONG commit/close connection.
+     * Return so row affected (0 = het han hoac sai trang thai).
+     */
+    int confirmBooking(Connection conn, long bookingId, String customerUsername);
 
     /**
      * Giai phong lock PENDING booking da qua 10 phut chua thanh toan.

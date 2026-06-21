@@ -76,7 +76,8 @@
                             <a class="lc-navitem" href="${pageContext.request.contextPath}/auth/change-password">
                                 <i class="bi bi-shield-lock"></i> Security</a>
                             <%-- Not-yet-built items: shown but not clickable (avoid 404) --%>
-                            <span class="lc-navitem disabled"><i class="bi bi-ticket-perforated"></i> My Bookings <span class="lc-soon">Soon</span></span>
+                            <a class="lc-navitem" href="${pageContext.request.contextPath}/customer/booking/history">
+                                <i class="bi bi-ticket-perforated"></i> My Bookings</a>
                             <span class="lc-navitem disabled"><i class="bi bi-bell"></i> Notifications <span class="lc-soon">Soon</span></span>
                             <span class="lc-navitem disabled"><i class="bi bi-chat-dots"></i> Feedback <span class="lc-soon">Soon</span></span>
                             <hr style="margin:10px 0; border-color:#eef1f5;">

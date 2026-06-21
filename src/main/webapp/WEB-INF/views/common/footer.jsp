@@ -57,7 +57,7 @@
             <div class="col-lg-2 col-md-6 col-6">
                 <h5>Account</h5>
                 <ul class="footer-links">
-                    <li><a href="${pageContext.request.contextPath}/customer/bookings">My Bookings</a></li>
+                    <li><a href="${pageContext.request.contextPath}/customer/booking/history">My Bookings</a></li>
                     <li><a href="#">Membership</a></li>
                     <li><a href="${pageContext.request.contextPath}/customer/profile">Profile</a></li>
                     <li><a href="#">Notifications</a></li>
@@ -117,7 +117,6 @@
                 <span class="text-secondary" style="font-size: 0.85rem;">We accept</span>
                 <div class="payment-badges">
                     <span class="payment-badge badge-vnpay">VNPAY</span>
-                    <span class="payment-badge badge-momo">MoMo</span>
                 </div>
                 <div class="language-select">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">

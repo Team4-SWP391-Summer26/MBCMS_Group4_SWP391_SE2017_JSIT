@@ -13,6 +13,7 @@ import com.mbcms.dao.impl.PromotionDAOImpl;
 import com.mbcms.dao.impl.SeatDAOImpl;
 import com.mbcms.dao.impl.ShowtimeDAOImpl;
 import com.mbcms.model.Booking;
+import com.mbcms.model.BookingTicket;
 import com.mbcms.model.Promotion;
 import com.mbcms.model.Seat;
 import com.mbcms.model.Showtime;
@@ -170,6 +171,24 @@ public class BookingServiceImpl implements BookingService {
             throw new SecurityException("Không có quyền xem booking này.");
         }
         return b;
+    }
+
+    @Override
+    public BookingTicket getTicket(long bookingId, String customerUsername) {
+        // Owner check truoc khi tra ve view-model day du (tranh xem ve nguoi khac).
+        Booking b = bookingDao.findById(bookingId);
+        if (b == null) {
+            return null;
+        }
+        if (!b.getCustomerUsername().equals(customerUsername)) {
+            throw new SecurityException("Không có quyền xem booking này.");
+        }
+        return bookingDao.findTicket(bookingId);
+    }
+
+    @Override
+    public List<BookingTicket> getBookingHistoryTickets(String customerUsername) {
+        return bookingDao.findTicketsByCustomer(customerUsername);
     }
 
     // ── expirePendingBookings ─────────────────────────────────────────────
