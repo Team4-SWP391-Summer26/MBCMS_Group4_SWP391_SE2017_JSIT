@@ -6,7 +6,7 @@ This folder contains scripts to create and seed the database for the SWP391 proj
 
 | File | Purpose |
 |---|---|
-| `CinemaDB_schema.sql` | Creates the `CinemaDB` database and 18 tables (PK/FK/UNIQUE/CHECK/index) |
+| `CinemaDB_schema.sql` | Creates the `CinemaDB` database and 19 tables (PK/FK/UNIQUE/CHECK/index) |
 | `CinemaDB_seed.sql` | Loads sample data (movies, branches, seats, showtimes, demo bookings, etc.) |
 
 ## How to run (SSMS)

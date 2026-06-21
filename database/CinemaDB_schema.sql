@@ -1,7 +1,7 @@
 -- =====================================================================
 -- CinemaDB - SQL Server DDL (schema only)
 -- Project: SWP391 - Multi-Branch Cinema Management System (MBCMS)
--- Source : 01_Database/CinemaDB_final.dbml  (18 tables, 19 FKs, 15 enums)
+-- Source : 01_Database/CinemaDB_final.dbml  (18 tables) + movie_branch bridge = 19 tables
 -- Target : SQL Server 2019+
 --
 -- HOW TO RUN (SSMS):
@@ -42,6 +42,7 @@ IF OBJECT_ID('dbo.customers',          'U') IS NOT NULL DROP TABLE dbo.customers
 IF OBJECT_ID('dbo.showtimes',          'U') IS NOT NULL DROP TABLE dbo.showtimes;
 IF OBJECT_ID('dbo.seats',              'U') IS NOT NULL DROP TABLE dbo.seats;
 IF OBJECT_ID('dbo.rooms',              'U') IS NOT NULL DROP TABLE dbo.rooms;
+IF OBJECT_ID('dbo.movie_branch',       'U') IS NOT NULL DROP TABLE dbo.movie_branch;
 IF OBJECT_ID('dbo.branches',           'U') IS NOT NULL DROP TABLE dbo.branches;
 IF OBJECT_ID('dbo.movie_genres',       'U') IS NOT NULL DROP TABLE dbo.movie_genres;
 IF OBJECT_ID('dbo.genres',             'U') IS NOT NULL DROP TABLE dbo.genres;
@@ -413,5 +414,5 @@ CREATE INDEX IX_feedbacks_branch   ON dbo.feedbacks (branch_id);
 CREATE INDEX IX_feedbacks_status   ON dbo.feedbacks ([status]);
 GO
 
-PRINT 'CinemaDB schema created: 18 tables.';
+PRINT 'CinemaDB schema created: 19 tables (incl. movie_branch).';
 GO
