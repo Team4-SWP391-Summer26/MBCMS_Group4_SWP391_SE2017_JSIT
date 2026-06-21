@@ -351,6 +351,22 @@ public class PromotionDAOImpl extends BaseDAO implements PromotionDAO {
         }
         return BigDecimal.ZERO;
     }
+    
+        @Override
+    public boolean incrementUsedCount(long promoId) {
+        String sql = "UPDATE dbo.promotions SET used_count = used_count + 1 WHERE promo_id = ?";
+        Connection conn = null; PreparedStatement ps = null;
+        try {
+            conn = getConnection();
+            ps = conn.prepareStatement(sql);
+            ps.setLong(1, promoId);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            throw new RuntimeException("incrementUsedCount lỗi: " + e.getMessage(), e);
+        } finally {
+            closeAll(ps, conn);
+        }
+    }
 
     private Promotion mapRow(ResultSet rs) throws SQLException {
         Promotion p = new Promotion();

@@ -18,4 +18,5 @@ public interface PromotionDAO {
     int getActivePromotionsCount();
     int getUsedThisMonthCount();
     BigDecimal getRevenueImpactThisMonth();
+    boolean incrementUsedCount(long promoId);
 }

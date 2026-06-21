@@ -3,18 +3,16 @@ package com.mbcms.service.impl;
 import com.mbcms.dao.BookingDAO;
 import com.mbcms.dao.BranchDAO;
 import com.mbcms.dao.MovieDAO;
-import com.mbcms.dao.PromotionDAOTest;
+import com.mbcms.dao.PromotionDAO;
 import com.mbcms.dao.SeatDAO;
 import com.mbcms.dao.ShowtimeDAO;
 import com.mbcms.dao.impl.BookingDAOImpl;
 import com.mbcms.dao.impl.BranchDAOImpl;
 import com.mbcms.dao.impl.MovieDAOImpl;
-import com.mbcms.dao.impl.PromotionDAOImplTest;
+import com.mbcms.dao.impl.PromotionDAOImpl;
 import com.mbcms.dao.impl.SeatDAOImpl;
 import com.mbcms.dao.impl.ShowtimeDAOImpl;
 import com.mbcms.model.Booking;
-import com.mbcms.model.Branch;
-import com.mbcms.model.Movie;
 import com.mbcms.model.Promotion;
 import com.mbcms.model.Seat;
 import com.mbcms.model.Showtime;
@@ -24,7 +22,6 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * BookingServiceImpl – xử lý toàn bộ booking flow.
@@ -40,7 +37,7 @@ public class BookingServiceImpl implements BookingService {
     private final BookingDAO bookingDao = new BookingDAOImpl();
     private final SeatDAO seatDao = new SeatDAOImpl();
     private final ShowtimeDAO showtimeDao = new ShowtimeDAOImpl();
-    private final PromotionDAOTest promoDao = new PromotionDAOImplTest();
+    private final PromotionDAO promoDao = new PromotionDAOImpl();
     private final BranchDAO  branchDao  = new BranchDAOImpl();
     private final MovieDAO   movieDao   = new MovieDAOImpl();
 
