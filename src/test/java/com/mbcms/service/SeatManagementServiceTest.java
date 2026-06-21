@@ -156,5 +156,8 @@ class SeatManagementServiceTest {
             this.lastUpdated = seatTypes;
             return seatTypes.size();
         }
+        @Override public List<String> findLabelsBySeatIds(List<Long> seatIds) {
+            return List.of(); // stub: khong dung trong SeatManagementService test
+        }
     }
 }

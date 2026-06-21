@@ -206,9 +206,10 @@
                             <c:when test="${not empty ticket.seatLabels}">
                                 <c:forEach var="lbl" items="${ticket.seatLabels}"><span class="tk-seat">${lbl}</span></c:forEach>
                             </c:when>
-                            <c:otherwise>
-                                <c:forEach var="sid" items="${booking.seatIds}"><span class="tk-seat">#${sid}</span></c:forEach>
-                            </c:otherwise>
+                            <c:when test="${not empty booking.seatLabels}">
+                                <c:forEach var="lbl" items="${booking.seatLabels}"><span class="tk-seat">${lbl}</span></c:forEach>
+                            </c:when>
+                            <c:otherwise>—</c:otherwise>
                         </c:choose>
                     </div>
                 </div>

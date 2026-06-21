@@ -82,7 +82,7 @@ public class BookingConfirmServlet extends HttpServlet {
             request.getRequestDispatcher("/WEB-INF/views/common/error403.jsp")
                     .forward(request, response);
         } catch (Exception e) {
-            request.setAttribute("error", "Lỗi hệ thống: " + e.getMessage());
+            request.setAttribute("error", "System error: " + e.getMessage());
             request.getRequestDispatcher("/WEB-INF/views/common/error500.jsp")
                     .forward(request, response);
         }
@@ -133,7 +133,7 @@ public class BookingConfirmServlet extends HttpServlet {
             request.getRequestDispatcher("/WEB-INF/views/common/error403.jsp")
                     .forward(request, response);
         } catch (Exception e) {
-            request.setAttribute("error", "Lỗi hệ thống: " + e.getMessage());
+            request.setAttribute("error", "System error: " + e.getMessage());
             request.getRequestDispatcher("/WEB-INF/views/common/error500.jsp")
                     .forward(request, response);
         }

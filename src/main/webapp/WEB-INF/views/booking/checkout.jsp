@@ -87,7 +87,15 @@
             <div class="text-end">
                 <div class="text-muted small">Seats</div>
                 <div class="fw-bold bk-mono" style="color:var(--bk-navy);">
-                    <c:forEach var="sid" items="${seatIds}" varStatus="s">#${sid}<c:if test="${not s.last}">, </c:if></c:forEach>
+                    <c:choose>
+                        <c:when test="${not empty booking.seatLabels}">
+                            <c:forEach var="lbl" items="${booking.seatLabels}" varStatus="s">${lbl}<c:if test="${not s.last}">, </c:if></c:forEach>
+                        </c:when>
+                        <c:when test="${not empty seatLabels}">
+                            <c:forEach var="lbl" items="${seatLabels}" varStatus="s">${lbl}<c:if test="${not s.last}">, </c:if></c:forEach>
+                        </c:when>
+                        <c:otherwise>—</c:otherwise>
+                    </c:choose>
                 </div>
             </div>
             <c:if test="${not empty booking}">
@@ -144,7 +152,14 @@
                 </c:if>
                 <div class="bk-sum-line align-items-start"><span class="text-muted">Seats</span>
                     <span class="text-end">
-                        <c:forEach var="sid" items="${seatIds}"><span class="bk-seat-tag">#${sid}</span></c:forEach>
+                        <c:choose>
+                            <c:when test="${not empty booking.seatLabels}">
+                                <c:forEach var="lbl" items="${booking.seatLabels}"><span class="bk-seat-tag">${lbl}</span></c:forEach>
+                            </c:when>
+                            <c:when test="${not empty seatLabels}">
+                                <c:forEach var="lbl" items="${seatLabels}"><span class="bk-seat-tag">${lbl}</span></c:forEach>
+                            </c:when>
+                        </c:choose>
                     </span>
                 </div>
             </div>

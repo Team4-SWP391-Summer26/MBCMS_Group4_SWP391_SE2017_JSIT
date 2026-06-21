@@ -132,6 +132,7 @@ public class BookingDAOImpl extends BaseDAO implements BookingDAO {
 
             conn.commit(); // release UPDLOCK
             booking.setSeatIds(seatIds);
+            booking.setSeatLabels(loadSeatLabels(newId));
             return booking;
 
         } catch (SeatUnavailableException e) {
@@ -169,7 +170,10 @@ public class BookingDAOImpl extends BaseDAO implements BookingDAO {
     @Override
     public Booking findByIdWithSeats(long bookingId) {
         Booking b = findById(bookingId);
-        if (b != null) b.setSeatIds(loadSeatIds(bookingId));
+        if (b != null) {
+            b.setSeatIds(loadSeatIds(bookingId));
+            b.setSeatLabels(loadSeatLabels(bookingId));
+        }
         return b;
     }
 

@@ -66,7 +66,7 @@ public class PaymentServlet extends HttpServlet {
 
         } catch (IllegalStateException e) {
             // Da thanh toan -> xem chi tiet; con lai (het han) -> ve lich su
-            if (e.getMessage() != null && e.getMessage().contains("đã được thanh toán")) {
+            if (e.getMessage() != null && e.getMessage().contains("already been paid")) {
                 resp.sendRedirect(req.getContextPath()
                         + "/customer/booking/detail?bookingId=" + bookingId);
             } else {

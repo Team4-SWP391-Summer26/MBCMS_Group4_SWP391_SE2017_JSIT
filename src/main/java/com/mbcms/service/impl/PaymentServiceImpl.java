@@ -32,17 +32,17 @@ public class PaymentServiceImpl implements PaymentService {
     public Booking preparePayment(long bookingId, String customerUsername) {
         Booking b = bookingDao.findByIdWithSeats(bookingId);
         if (b == null) {
-            throw new IllegalArgumentException("Booking không tồn tại.");
+            throw new IllegalArgumentException("Booking not found.");
         }
         if (!b.getCustomerUsername().equals(customerUsername)) {
-            throw new SecurityException("Không có quyền thanh toán booking này.");
+            throw new SecurityException("You are not allowed to pay for this booking.");
         }
         if (Booking.STATUS_CONFIRMED.equals(b.getStatus())) {
-            throw new IllegalStateException("Booking đã được thanh toán.");
+            throw new IllegalStateException("Booking has already been paid.");
         }
         if (!Booking.STATUS_PENDING.equals(b.getStatus())) {
             throw new IllegalStateException(
-                    "Booking không ở trạng thái thanh toán được (hiện tại: " + b.getStatus() + ").");
+                    "Booking cannot be paid in its current status (" + b.getStatus() + ").");
         }
         return b;
     }
@@ -62,10 +62,10 @@ public class PaymentServiceImpl implements PaymentService {
 
         Booking b = bookingDao.findById(bookingId);
         if (b == null) {
-            throw new IllegalArgumentException("Booking không tồn tại.");
+            throw new IllegalArgumentException("Booking not found.");
         }
         if (!b.getCustomerUsername().equals(customerUsername)) {
-            throw new SecurityException("Không có quyền thanh toán booking này.");
+            throw new SecurityException("You are not allowed to pay for this booking.");
         }
         // Callback lap lai sau khi da CONFIRMED -> idempotent, khong lam gi them.
         if (Booking.STATUS_CONFIRMED.equals(b.getStatus())) {
@@ -113,11 +113,11 @@ public class PaymentServiceImpl implements PaymentService {
     // ── Helpers ───────────────────────────────────────────────────────────
     private String normalizeMethod(String method) {
         if (method == null) {
-            throw new IllegalArgumentException("Thiếu phương thức thanh toán.");
+            throw new IllegalArgumentException("Payment method is required.");
         }
         String m = method.trim().toUpperCase();
         if (!Payment.METHOD_VNPAY.equals(m)) {
-            throw new IllegalArgumentException("Chi ho tro thanh toan VNPay.");
+            throw new IllegalArgumentException("Only VNPay is supported.");
         }
         return m;
     }

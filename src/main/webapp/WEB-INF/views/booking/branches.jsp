@@ -1,11 +1,11 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Chọn chi nhánh – MBCMS</title>
+    <title>Choose Cinema – MBCMS</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="${pageContext.request.contextPath}/assets/css/main.css?v=${applicationScope.assetVersion}" rel="stylesheet">
     <style>
@@ -27,14 +27,14 @@
 
 <div class="container my-4" style="max-width: 980px;">
 
-    <span class="step-pill mb-2">Bước 1/3 &middot; Chọn chi nhánh</span>
-    <h3 class="fw-bold mt-2 mb-1">Bạn muốn xem phim ở đâu?</h3>
-    <p class="text-secondary mb-4">Chọn một rạp để xem các phim đang chiếu tại đó.</p>
+    <span class="step-pill mb-2">Step 1/3 &middot; Choose cinema</span>
+    <h3 class="fw-bold mt-2 mb-1">Where would you like to watch?</h3>
+    <p class="text-secondary mb-4">Pick a cinema to see movies currently showing there.</p>
 
     <c:choose>
         <c:when test="${empty branches}">
             <div class="alert alert-error" role="alert">
-                Hiện chưa có chi nhánh nào đang hoạt động. Vui lòng quay lại sau.
+                No active cinemas are available right now. Please check back later.
             </div>
         </c:when>
         <c:otherwise>
@@ -69,7 +69,7 @@
         </c:otherwise>
     </c:choose>
 
-</div><!-- /container -->
+</div>
 
 <jsp:include page="../common/footer.jsp" />
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>

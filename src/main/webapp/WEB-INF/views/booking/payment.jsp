@@ -78,7 +78,12 @@
             <div class="text-end">
                 <div class="text-muted small">Seats</div>
                 <div class="fw-bold mono" style="color:var(--bk-navy);">
-                    <c:forEach var="sid" items="${booking.seatIds}" varStatus="s">#${sid}<c:if test="${not s.last}">, </c:if></c:forEach>
+                    <c:choose>
+                        <c:when test="${not empty booking.seatLabels}">
+                            <c:forEach var="lbl" items="${booking.seatLabels}" varStatus="s">${lbl}<c:if test="${not s.last}">, </c:if></c:forEach>
+                        </c:when>
+                        <c:otherwise>—</c:otherwise>
+                    </c:choose>
                 </div>
             </div>
             <span class="bk-reserve" id="reserve-pill">
@@ -158,7 +163,14 @@
                             <div class="fw-bold" style="color:var(--bk-navy);">Booking ${booking.bookingCode}</div>
                             <div class="text-muted small">Showtime #${booking.showtimeId}</div>
                             <div class="small mt-1">Seats:
-                                <strong class="mono"><c:forEach var="sid" items="${booking.seatIds}" varStatus="s">#${sid}<c:if test="${not s.last}">, </c:if></c:forEach></strong>
+                                <strong class="mono">
+                                    <c:choose>
+                                        <c:when test="${not empty booking.seatLabels}">
+                                            <c:forEach var="lbl" items="${booking.seatLabels}" varStatus="s">${lbl}<c:if test="${not s.last}">, </c:if></c:forEach>
+                                        </c:when>
+                                        <c:otherwise>—</c:otherwise>
+                                    </c:choose>
+                                </strong>
                             </div>
                         </div>
                     </div>

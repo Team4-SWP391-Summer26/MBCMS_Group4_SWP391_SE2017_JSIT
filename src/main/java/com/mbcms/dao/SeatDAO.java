@@ -39,4 +39,7 @@ public interface SeatDAO {
      */
     int updateSeatTypes(long roomId, Map<Long, String> seatTypes);
 
+    /** Nhan ghe dang "A5" tu danh sach seat_id, sap xep theo row/col. */
+    List<String> findLabelsBySeatIds(List<Long> seatIds);
+
 }

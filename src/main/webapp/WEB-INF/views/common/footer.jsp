@@ -75,7 +75,7 @@
                     </div>
                     <div class="contact-info">
                         <div class="contact-title">Headquarters</div>
-                        <div class="text-secondary">Khu Giáo dục và Đào tạo - Khu Công nghệ cao Hòa Lạc, Km29 Đại lộ Thăng Long, Thạch Thất, Hà Nội</div>
+                        <div class="text-secondary">Hoa Lac Hi-Tech Park, Km29 Thang Long Blvd, Thach That, Hanoi</div>
                     </div>
                 </div>
 
