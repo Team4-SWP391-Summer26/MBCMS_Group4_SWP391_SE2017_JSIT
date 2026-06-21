@@ -16,13 +16,13 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 /**
- * ShowtimeCreateServlet - owner: <b>HungNT</b>.
- * SRS 3.5.2.2 Showtime Details Screen - phan Create
- * (UC20 Schedule showtimes; UC19 Assign movies to rooms; UC39 Set price).
+ * ShowtimeCreateServlet - owner: <b>HungNT</b>. SRS 3.5.2.2 Showtime Details
+ * Screen - phan Create (UC20 Schedule showtimes; UC19 Assign movies to rooms;
+ * UC39 Set price).
  *
- * GET  /branch/showtimes/create - hien form tao showtime.
- * POST /branch/showtimes/create - validate + tao; thanh cong thi redirect
- *      ve /branch/showtimes?created=1 (PRG pattern - tranh F5 tao trung).
+ * GET /branch/showtimes/create - hien form tao showtime. POST
+ * /branch/showtimes/create - validate + tao; thanh cong thi redirect ve
+ * /branch/showtimes?created=1 (PRG pattern - tranh F5 tao trung).
  *
  * Parse + validate form nam o ShowtimeFormHelper (dung chung voi Edit).
  */
@@ -31,7 +31,9 @@ public class ShowtimeCreateServlet extends HttpServlet {
 
     private static final String VIEW = "/WEB-INF/views/branch/showtime/form.jsp";
 
-    /** GET: chi mo form trong, nap san danh sach phim + phong cho 2 dropdown. */
+    /**
+     * GET: chi mo form trong, nap san danh sach phim + phong cho 2 dropdown.
+     */
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
@@ -39,7 +41,10 @@ public class ShowtimeCreateServlet extends HttpServlet {
         req.getRequestDispatcher(VIEW).forward(req, resp);
     }
 
-    /** POST: nhan du lieu form, tao showtime. Theo chuan PRG (Post-Redirect-Get). */
+    /**
+     * POST: nhan du lieu form, tao showtime. Theo chuan PRG
+     * (Post-Redirect-Get).
+     */
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
@@ -73,6 +78,7 @@ public class ShowtimeCreateServlet extends HttpServlet {
 
     /**
      * Validate + tao showtime.
+     *
      * @return null neu thanh cong; nguoc lai tra ve thong bao loi.
      */
     private String handleCreate(HttpServletRequest req, long branchId) {
@@ -101,7 +107,9 @@ public class ShowtimeCreateServlet extends HttpServlet {
         }
     }
 
-    /** Load movies + rooms cho 2 dropdown cua form (+ ten branch cho sidebar). */
+    /**
+     * Load movies + rooms cho 2 dropdown cua form (+ ten branch cho sidebar).
+     */
     private void loadFormData(HttpServletRequest req) {
         long branchId = (Long) req.getSession(false).getAttribute("currentBranchId");
         ConsoleSupport.ensureBranchName(req);

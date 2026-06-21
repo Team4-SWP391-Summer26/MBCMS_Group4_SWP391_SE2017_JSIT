@@ -3,8 +3,7 @@ package com.mbcms.model;
 import java.math.BigDecimal;
 
 /**
- * FoodItem - map bang `food_items` (menu F&B).
- * category: SNACK | DRINK | COMBO
+ * FoodItem - map bang `food_items` (menu F&B). category: SNACK | DRINK | COMBO
  */
 public class FoodItem {
 
@@ -20,26 +19,62 @@ public class FoodItem {
     private String imageUrl;
     private boolean active = true;
 
-    public FoodItem() {}
+    public FoodItem() {
+    }
 
-    public long getFoodId() { return foodId; }
-    public void setFoodId(long foodId) { this.foodId = foodId; }
+    public long getFoodId() {
+        return foodId;
+    }
 
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
+    public void setFoodId(long foodId) {
+        this.foodId = foodId;
+    }
 
-    public String getDescription() { return description; }
-    public void setDescription(String description) { this.description = description; }
+    public String getName() {
+        return name;
+    }
 
-    public BigDecimal getPrice() { return price; }
-    public void setPrice(BigDecimal price) { this.price = price; }
+    public void setName(String name) {
+        this.name = name;
+    }
 
-    public String getCategory() { return category; }
-    public void setCategory(String category) { this.category = category; }
+    public String getDescription() {
+        return description;
+    }
 
-    public String getImageUrl() { return imageUrl; }
-    public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
+    public void setDescription(String description) {
+        this.description = description;
+    }
 
-    public boolean isActive() { return active; }
-    public void setActive(boolean active) { this.active = active; }
+    public BigDecimal getPrice() {
+        return price;
+    }
+
+    public void setPrice(BigDecimal price) {
+        this.price = price;
+    }
+
+    public String getCategory() {
+        return category;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
+    }
+
+    public boolean isActive() {
+        return active;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
+    }
 }

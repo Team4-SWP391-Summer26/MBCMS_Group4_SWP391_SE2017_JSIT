@@ -78,7 +78,7 @@ public class SeatAvailabilityServiceImpl implements SeatAvailabilityService {
         return showtimeDAO.findById(showtimeId);
     }
 
-    private Showtime requireShowtime(long showtimeId){
+    private Showtime requireShowtime(long showtimeId) {
         Showtime st = showtimeDAO.findById(showtimeId);
         if (st == null) {
             throw new IllegalArgumentException(

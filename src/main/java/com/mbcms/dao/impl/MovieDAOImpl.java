@@ -11,13 +11,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * MovieDAOImpl - chi lay cac cot can cho Showtime Management
- * (dropdown chon phim + duration_min de tinh end_time).
+ * MovieDAOImpl - chi lay cac cot can cho Showtime Management (dropdown chon
+ * phim + duration_min de tinh end_time).
  */
 public class MovieDAOImpl extends BaseDAO implements MovieDAO {
 
-    private static final String BASE_SELECT =
-            "SELECT movie_id, title, duration_min, status, active FROM movies ";
+    private static final String BASE_SELECT
+            = "SELECT movie_id, title, duration_min, status, active FROM movies ";
 
     @Override
     public List<Movie> findActiveMovies() {
@@ -69,7 +69,9 @@ public class MovieDAOImpl extends BaseDAO implements MovieDAO {
         }
     }
 
-    /** Chi map cac cot trong BASE_SELECT (du dung cho showtime). */
+    /**
+     * Chi map cac cot trong BASE_SELECT (du dung cho showtime).
+     */
     private Movie mapRow(ResultSet rs) throws SQLException {
         Movie m = new Movie();
         m.setMovieId(rs.getLong("movie_id"));

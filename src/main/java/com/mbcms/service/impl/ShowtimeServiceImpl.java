@@ -9,9 +9,9 @@ import com.mbcms.model.Showtime;
 import com.mbcms.service.ShowtimeService;
 
 /**
- * Tang Service cho Showtime: chua TOAN BO business rule (verify branch,
- * trang thai, booking). Servlet chi goi cac ham o day, KHONG tu kiem tra logic.
- * DAO chi lo cau SQL. Nho vay khi defend, moi quy tac nghiep vu deu nam 1 cho.
+ * Tang Service cho Showtime: chua TOAN BO business rule (verify branch, trang
+ * thai, booking). Servlet chi goi cac ham o day, KHONG tu kiem tra logic. DAO
+ * chi lo cau SQL. Nho vay khi defend, moi quy tac nghiep vu deu nam 1 cho.
  */
 public class ShowtimeServiceImpl implements ShowtimeService {
 
@@ -19,13 +19,17 @@ public class ShowtimeServiceImpl implements ShowtimeService {
     private final ShowtimeDAO showtimeDAO;
     private final RoomDAO roomDAO;
 
-    /** Constructor mac dinh dung khi chay that: tu tao DAO impl. */
+    /**
+     * Constructor mac dinh dung khi chay that: tu tao DAO impl.
+     */
     public ShowtimeServiceImpl() {
         this.showtimeDAO = new ShowtimeDAOImpl();
         this.roomDAO = new RoomDAOImpl();
     }
 
-    /** Constructor cho unit test (inject mock DAO). */
+    /**
+     * Constructor cho unit test (inject mock DAO).
+     */
     public ShowtimeServiceImpl(ShowtimeDAO showtimeDAO, RoomDAO roomDAO) {
         this.showtimeDAO = showtimeDAO;
         this.roomDAO = roomDAO;
@@ -108,8 +112,9 @@ public class ShowtimeServiceImpl implements ShowtimeService {
     }
 
     /**
-     * Helper kiem tra quyen: suat chieu "thuoc" branch nao la dua vao phong cua no.
-     * Bang showtimes khong co cot branch_id truc tiep, ma di qua room -> branch.
+     * Helper kiem tra quyen: suat chieu "thuoc" branch nao la dua vao phong cua
+     * no. Bang showtimes khong co cot branch_id truc tiep, ma di qua room ->
+     * branch.
      */
     private boolean belongsToBranch(Showtime st, long branchId) {
         Room room = roomDAO.findById(st.getRoomId());

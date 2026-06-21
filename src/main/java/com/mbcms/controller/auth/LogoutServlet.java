@@ -8,8 +8,8 @@ import java.io.IOException;
 /**
  * LogoutServlet - owner: <b>HungNT</b> (Report 4).
  *
- * Huy session hien tai roi dua nguoi dung ve trang chu.
- * Duoc goi tu link "Logout" tren navbar (header.jsp) nen dung GET.
+ * Huy session hien tai roi dua nguoi dung ve trang chu. Duoc goi tu link
+ * "Logout" tren navbar (header.jsp) nen dung GET.
  */
 @WebServlet("/auth/logout")
 public class LogoutServlet extends HttpServlet {

@@ -15,9 +15,9 @@ import java.util.List;
 
 public class PromotionDAOImpl extends BaseDAO implements PromotionDAO {
 
-    private static final String BASE_SELECT = 
-            "SELECT promo_id, code, name, discount_type, discount_value, min_order_amount, " +
-            "valid_from, valid_to, max_uses, used_count, active FROM promotions ";
+    private static final String BASE_SELECT
+            = "SELECT promo_id, code, name, discount_type, discount_value, min_order_amount, "
+            + "valid_from, valid_to, max_uses, used_count, active FROM promotions ";
 
     @Override
     public List<Promotion> findAll() {
@@ -44,7 +44,7 @@ public class PromotionDAOImpl extends BaseDAO implements PromotionDAO {
     @Override
     public List<Promotion> findByFilters(String search, String type, String status) {
         StringBuilder sql = new StringBuilder(BASE_SELECT + "WHERE 1=1 ");
-        
+
         if (search != null && !search.trim().isEmpty()) {
             sql.append("AND (code LIKE ? OR name LIKE ?) ");
         }
@@ -64,7 +64,7 @@ public class PromotionDAOImpl extends BaseDAO implements PromotionDAO {
                     break;
             }
         }
-        
+
         sql.append("ORDER BY promo_id DESC");
 
         Connection conn = null;
@@ -119,7 +119,9 @@ public class PromotionDAOImpl extends BaseDAO implements PromotionDAO {
 
     @Override
     public Promotion findByCode(String code) {
-        if (code == null) return null;
+        if (code == null) {
+            return null;
+        }
         String sql = BASE_SELECT + "WHERE code = ?";
         Connection conn = null;
         PreparedStatement ps = null;
@@ -142,7 +144,9 @@ public class PromotionDAOImpl extends BaseDAO implements PromotionDAO {
 
     @Override
     public boolean existsByCode(String code) {
-        if (code == null) return false;
+        if (code == null) {
+            return false;
+        }
         String sql = "SELECT 1 FROM promotions WHERE code = ?";
         Connection conn = null;
         PreparedStatement ps = null;
@@ -162,7 +166,9 @@ public class PromotionDAOImpl extends BaseDAO implements PromotionDAO {
 
     @Override
     public boolean existsByCodeExcludeId(String code, long promoId) {
-        if (code == null) return false;
+        if (code == null) {
+            return false;
+        }
         String sql = "SELECT 1 FROM promotions WHERE code = ? AND promo_id <> ?";
         Connection conn = null;
         PreparedStatement ps = null;
@@ -183,8 +189,8 @@ public class PromotionDAOImpl extends BaseDAO implements PromotionDAO {
 
     @Override
     public boolean insert(Promotion p) {
-        String sql = "INSERT INTO promotions (code, name, discount_type, discount_value, min_order_amount, " +
-                "valid_from, valid_to, max_uses, used_count, active) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO promotions (code, name, discount_type, discount_value, min_order_amount, "
+                + "valid_from, valid_to, max_uses, used_count, active) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         Connection conn = null;
         PreparedStatement ps = null;
         try {
@@ -214,9 +220,9 @@ public class PromotionDAOImpl extends BaseDAO implements PromotionDAO {
 
     @Override
     public boolean update(Promotion p) {
-        String sql = "UPDATE promotions SET code = ?, name = ?, discount_type = ?, discount_value = ?, " +
-                "min_order_amount = ?, valid_from = ?, valid_to = ?, max_uses = ?, active = ? " +
-                "WHERE promo_id = ?";
+        String sql = "UPDATE promotions SET code = ?, name = ?, discount_type = ?, discount_value = ?, "
+                + "min_order_amount = ?, valid_from = ?, valid_to = ?, max_uses = ?, active = ? "
+                + "WHERE promo_id = ?";
         Connection conn = null;
         PreparedStatement ps = null;
         try {
@@ -305,10 +311,10 @@ public class PromotionDAOImpl extends BaseDAO implements PromotionDAO {
 
     @Override
     public int getUsedThisMonthCount() {
-        String sql = "SELECT COUNT(*) FROM bookings " +
-                "WHERE promo_id IS NOT NULL " +
-                "AND status IN ('CONFIRMED','USED','PENDING') " +
-                "AND created_at >= DATEADD(month, DATEDIFF(month, 0, GETDATE()), 0)";
+        String sql = "SELECT COUNT(*) FROM bookings "
+                + "WHERE promo_id IS NOT NULL "
+                + "AND status IN ('CONFIRMED','USED','PENDING') "
+                + "AND created_at >= DATEADD(month, DATEDIFF(month, 0, GETDATE()), 0)";
         Connection conn = null;
         PreparedStatement ps = null;
         ResultSet rs = null;
@@ -329,10 +335,10 @@ public class PromotionDAOImpl extends BaseDAO implements PromotionDAO {
 
     @Override
     public BigDecimal getRevenueImpactThisMonth() {
-        String sql = "SELECT SUM(discount_amount) FROM bookings " +
-                "WHERE promo_id IS NOT NULL " +
-                "AND status IN ('CONFIRMED','USED') " +
-                "AND created_at >= DATEADD(month, DATEDIFF(month, 0, GETDATE()), 0)";
+        String sql = "SELECT SUM(discount_amount) FROM bookings "
+                + "WHERE promo_id IS NOT NULL "
+                + "AND status IN ('CONFIRMED','USED') "
+                + "AND created_at >= DATEADD(month, DATEDIFF(month, 0, GETDATE()), 0)";
         Connection conn = null;
         PreparedStatement ps = null;
         ResultSet rs = null;
@@ -383,14 +389,14 @@ public class PromotionDAOImpl extends BaseDAO implements PromotionDAO {
         p.setMinOrderAmount(rs.getBigDecimal("min_order_amount"));
         p.setValidFrom(rs.getTimestamp("valid_from").toLocalDateTime());
         p.setValidTo(rs.getTimestamp("valid_to").toLocalDateTime());
-        
+
         int maxUsesVal = rs.getInt("max_uses");
         if (rs.wasNull()) {
             p.setMaxUses(null);
         } else {
             p.setMaxUses(maxUsesVal);
         }
-        
+
         p.setUsedCount(rs.getInt("used_count"));
         p.setActive(rs.getBoolean("active"));
         return p;

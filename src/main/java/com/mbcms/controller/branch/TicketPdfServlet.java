@@ -35,8 +35,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * TicketPdfServlet - Tiện ích sinh file PDF vé kèm mã QR trực tuyến.
- * Mapped: /staff/ticket-pdf
+ * TicketPdfServlet - Tiện ích sinh file PDF vé kèm mã QR trực tuyến. Mapped:
+ * /staff/ticket-pdf
  */
 @WebServlet("/staff/ticket-pdf")
 public class TicketPdfServlet extends HttpServlet {
@@ -105,7 +105,7 @@ public class TicketPdfServlet extends HttpServlet {
             doc.add(new Paragraph("=========================================")
                     .setTextAlignment(TextAlignment.CENTER)
                     .setFontSize(10));
-            
+
             doc.add(createBoldParagraph("Mã vé: " + booking.getBookingCode()));
             doc.add(createBoldParagraph("Phim: " + showtime.getMovieTitle(), 14));
             doc.add(new Paragraph("Suất chiếu: " + timeDisplay));
@@ -208,7 +208,7 @@ public class TicketPdfServlet extends HttpServlet {
             doc.add(new Paragraph("=========================================")
                     .setTextAlignment(TextAlignment.CENTER)
                     .setFontSize(10));
-            
+
             doc.add(createBoldParagraph("Mã vé: " + booking.getBookingCode()));
             doc.add(createBoldParagraph("Phim: " + showtime.getMovieTitle(), 14));
             doc.add(new Paragraph("Suất chiếu: " + timeDisplay));

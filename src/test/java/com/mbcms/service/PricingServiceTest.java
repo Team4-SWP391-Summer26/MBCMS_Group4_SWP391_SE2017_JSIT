@@ -13,8 +13,8 @@ import com.mbcms.model.Seat;
 import com.mbcms.service.impl.PricingServiceImpl;
 
 /**
- * Unit test cho PricingService (UC39 Set price).
- * Quy tac: STANDARD x1.0, VIP x1.2, lam tron ve don vi VND.
+ * Unit test cho PricingService (UC39 Set price). Quy tac: STANDARD x1.0, VIP
+ * x1.2, lam tron ve don vi VND.
  */
 class PricingServiceTest {
 

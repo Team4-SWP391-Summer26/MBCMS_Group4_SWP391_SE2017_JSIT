@@ -7,15 +7,16 @@ import jakarta.websocket.server.HandshakeRequest;
 import jakarta.websocket.server.ServerEndpointConfig;
 
 /**
- * Truyền username từ HTTP session sang WebSocket session.
- * Khai báo trong @ServerEndpoint(configurator = HttpSessionConfigurator.class)
+ * Truyền username từ HTTP session sang WebSocket session. Khai báo trong
+ *
+ * @ServerEndpoint(configurator = HttpSessionConfigurator.class)
  */
 public class HttpSessionConfigurator extends ServerEndpointConfig.Configurator {
 
     @Override
     public void modifyHandshake(ServerEndpointConfig config,
-                                HandshakeRequest request,
-                                HandshakeResponse response) {
+            HandshakeRequest request,
+            HandshakeResponse response) {
         HttpSession httpSession = (HttpSession) request.getHttpSession();
         if (httpSession != null) {
             String username = (String) httpSession.getAttribute("username");

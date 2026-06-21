@@ -9,8 +9,8 @@ import com.mbcms.service.PricingService;
 
 /**
  * Tinh gia ve theo loai ghe. Pure function - khong cham DB, de unit test.
- * Multiplier la hang so trong code (nhom chot 13/06/2026); doi gia tri
- * tai day neu nhom quyet dinh lai.
+ * Multiplier la hang so trong code (nhom chot 13/06/2026); doi gia tri tai day
+ * neu nhom quyet dinh lai.
  */
 public class PricingServiceImpl implements PricingService {
 

@@ -64,7 +64,7 @@ public class BookingServiceImpl implements BookingService {
                     } else if (Promotion.TYPE_FIXED_AMOUNT.equals(promo.getDiscountType())) {
                         discount = promo.getDiscountValue();
                     }
-                    
+
                     // Khong duoc giam nhieu hon gia tri don hang
                     if (discount.compareTo(booking.getSubtotal()) > 0) {
                         discount = booking.getSubtotal();

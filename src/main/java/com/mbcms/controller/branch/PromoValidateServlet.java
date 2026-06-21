@@ -16,8 +16,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * PromoValidateServlet - Kiểm tra và tính toán mã giảm giá qua AJAX.
- * Mapped: /staff/promo-validate
+ * PromoValidateServlet - Kiểm tra và tính toán mã giảm giá qua AJAX. Mapped:
+ * /staff/promo-validate
  */
 @WebServlet("/staff/promo-validate")
 public class PromoValidateServlet extends HttpServlet {

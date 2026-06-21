@@ -15,9 +15,9 @@ import java.time.format.DateTimeParseException;
 import java.util.Arrays;
 
 /**
- * ShowtimeFormHelper - parse + validate form showtime, dung chung cho
- * Create (UC20) va Edit (UC21) de khong lap lai validation.
- * Owner: HungNT. SRS 3.5.2.2 Showtime Details Screen.
+ * ShowtimeFormHelper - parse + validate form showtime, dung chung cho Create
+ * (UC20) va Edit (UC21) de khong lap lai validation. Owner: HungNT. SRS 3.5.2.2
+ * Showtime Details Screen.
  */
 final class ShowtimeFormHelper {
 
@@ -25,11 +25,12 @@ final class ShowtimeFormHelper {
     private static final BigDecimal PRICE_MIN = new BigDecimal("10000");
     private static final BigDecimal PRICE_MAX = new BigDecimal("500000");
 
-    private ShowtimeFormHelper() {}
+    private ShowtimeFormHelper() {
+    }
 
     /**
-     * Doc params tu form, validate, va do vao {@code target}
-     * (movieId, roomId, startTime, endTime tu tinh, basePrice, format, subtitleType).
+     * Doc params tu form, validate, va do vao {@code target} (movieId, roomId,
+     * startTime, endTime tu tinh, basePrice, format, subtitleType).
      *
      * @return null neu hop le; nguoc lai tra ve thong bao loi de hien len form.
      */

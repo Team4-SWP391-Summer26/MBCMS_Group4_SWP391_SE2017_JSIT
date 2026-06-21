@@ -3,9 +3,9 @@ package com.mbcms.model;
 import java.time.LocalDateTime;
 
 /**
- * Notification - map bang `notifications`.
- * type: BOOKING | PAYMENT | PROMOTION | REMINDER | SYSTEM
- * referenceId: loose ref toi booking_id/payment_id... (khong co FK).
+ * Notification - map bang `notifications`. type: BOOKING | PAYMENT | PROMOTION
+ * | REMINDER | SYSTEM referenceId: loose ref toi booking_id/payment_id...
+ * (khong co FK).
  */
 public class Notification {
 
@@ -24,29 +24,70 @@ public class Notification {
     private Long referenceId;
     private LocalDateTime createdAt;
 
-    public Notification() {}
+    public Notification() {
+    }
 
-    public long getNotiId() { return notiId; }
-    public void setNotiId(long notiId) { this.notiId = notiId; }
+    public long getNotiId() {
+        return notiId;
+    }
 
-    public String getCustomerUsername() { return customerUsername; }
-    public void setCustomerUsername(String customerUsername) { this.customerUsername = customerUsername; }
+    public void setNotiId(long notiId) {
+        this.notiId = notiId;
+    }
 
-    public String getTitle() { return title; }
-    public void setTitle(String title) { this.title = title; }
+    public String getCustomerUsername() {
+        return customerUsername;
+    }
 
-    public String getContent() { return content; }
-    public void setContent(String content) { this.content = content; }
+    public void setCustomerUsername(String customerUsername) {
+        this.customerUsername = customerUsername;
+    }
 
-    public String getType() { return type; }
-    public void setType(String type) { this.type = type; }
+    public String getTitle() {
+        return title;
+    }
 
-    public boolean isRead() { return read; }
-    public void setRead(boolean read) { this.read = read; }
+    public void setTitle(String title) {
+        this.title = title;
+    }
 
-    public Long getReferenceId() { return referenceId; }
-    public void setReferenceId(Long referenceId) { this.referenceId = referenceId; }
+    public String getContent() {
+        return content;
+    }
 
-    public LocalDateTime getCreatedAt() { return createdAt; }
-    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+    public void setContent(String content) {
+        this.content = content;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public boolean isRead() {
+        return read;
+    }
+
+    public void setRead(boolean read) {
+        this.read = read;
+    }
+
+    public Long getReferenceId() {
+        return referenceId;
+    }
+
+    public void setReferenceId(Long referenceId) {
+        this.referenceId = referenceId;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
 }

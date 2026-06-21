@@ -33,8 +33,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 /**
- * CounterBookingServlet - Coordinator for walk-in/counter bookings.
- * Mapped to: /staff/booking
+ * CounterBookingServlet - Coordinator for walk-in/counter bookings. Mapped to:
+ * /staff/booking
  */
 @WebServlet("/staff/booking")
 public class CounterBookingServlet extends HttpServlet {
@@ -43,17 +43,17 @@ public class CounterBookingServlet extends HttpServlet {
     private final RoomDAO roomDAO = new RoomDAOImpl();
     private final SeatDAO seatDAO = new SeatDAOImpl();
     private final ShowtimeDAO showtimeDAO = new ShowtimeDAOImpl();
-    
+
     private final BookingService bookingService = new BookingServiceImpl();
     private final PricingService pricingService = new PricingServiceImpl();
     private final SeatAvailabilityService seatService = new SeatAvailabilityServiceImpl();
-    
+
     private final ObjectMapper mapper = new ObjectMapper();
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
-        
+
         // Retrieve current branch ID from session
         Long branchId = (Long) req.getSession().getAttribute("currentBranchId");
         if (branchId == null) {
@@ -72,7 +72,7 @@ public class CounterBookingServlet extends HttpServlet {
         // Render checkout screen
         List<Movie> movies = movieDAO.findActiveMovies();
         List<Room> rooms = roomDAO.findActiveByBranch(branchId);
-        
+
         req.setAttribute("movies", movies);
         req.setAttribute("rooms", rooms);
         req.getRequestDispatcher("/WEB-INF/views/branch/booking/counter-booking.jsp").forward(req, resp);
@@ -81,7 +81,7 @@ public class CounterBookingServlet extends HttpServlet {
     private void handleAjax(String action, long branchId, HttpServletRequest req, HttpServletResponse resp)
             throws IOException {
         resp.setContentType("application/json;charset=UTF-8");
-        
+
         if ("getShowtimes".equals(action)) {
             Long movieId = null;
             String movieIdParam = req.getParameter("movieId");
@@ -96,12 +96,12 @@ public class CounterBookingServlet extends HttpServlet {
             }
 
             List<Showtime> showtimes = showtimeDAO.findByBranch(branchId, movieId, null, date);
-            
+
             // Format showtimes safely as serializable Maps
             List<Map<String, Object>> showtimeMaps = new ArrayList<>();
             DateTimeFormatter timeFmt = DateTimeFormatter.ofPattern("HH:mm");
             DateTimeFormatter dateFmt = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-            
+
             for (Showtime st : showtimes) {
                 if ("SCHEDULED".equals(st.getStatus())) {
                     Map<String, Object> map = new HashMap<>();
@@ -130,7 +130,7 @@ public class CounterBookingServlet extends HttpServlet {
                 resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Missing showtimeId");
                 return;
             }
-            
+
             long showtimeId = Long.parseLong(showtimeIdParam.trim());
             Showtime showtime = showtimeDAO.findById(showtimeId);
             if (showtime == null) {
@@ -162,7 +162,7 @@ public class CounterBookingServlet extends HttpServlet {
             result.put("showtimeBasePrice", showtime.getBasePrice());
             result.put("seatsByRow", seatsByRowMap);
             result.put("bookedSeatIds", bookedSeatIds);
-            
+
             mapper.writeValue(resp.getWriter(), result);
         }
     }
@@ -172,13 +172,13 @@ public class CounterBookingServlet extends HttpServlet {
             throws ServletException, IOException {
         resp.setContentType("application/json;charset=UTF-8");
         Map<String, Object> result = new HashMap<>();
-        
+
         try {
             String showtimeIdParam = req.getParameter("showtimeId");
             if (showtimeIdParam == null || showtimeIdParam.trim().isEmpty()) {
                 throw new IllegalArgumentException("Vui lòng chọn suất chiếu.");
             }
-            
+
             long showtimeId = Long.parseLong(showtimeIdParam.trim());
             Showtime showtime = showtimeDAO.findById(showtimeId);
             if (showtime == null) {
@@ -229,20 +229,20 @@ public class CounterBookingServlet extends HttpServlet {
 
             // Execute service transaction
             Booking createdBooking = bookingService.createCounterBooking(booking, seatIds, promoCode, customerPhone);
-            
+
             // Notify WebSocket server of the hard lock
             String staffUsername = (String) req.getSession().getAttribute("username");
             if (staffUsername == null) {
                 staffUsername = "staff";
             }
             com.mbcms.ws.SeatWebSocketServer.notifyHardLock(showtimeId, seatIds, staffUsername);
-            
+
             result.put("success", true);
             result.put("bookingId", createdBooking.getBookingId());
             result.put("bookingCode", createdBooking.getBookingCode());
             result.put("totalAmount", createdBooking.getTotalAmount());
             result.put("message", "Đã thanh toán thành công và xác nhận đặt vé!");
-            
+
         } catch (Exception e) {
             result.put("success", false);
             result.put("message", "Lỗi đặt vé: " + e.getMessage());

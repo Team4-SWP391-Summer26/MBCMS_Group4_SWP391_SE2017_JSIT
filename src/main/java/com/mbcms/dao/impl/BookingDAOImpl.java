@@ -38,8 +38,8 @@ public class BookingDAOImpl extends BaseDAO implements BookingDAO {
                 + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, GETDATE())";
 
         String insertSeat
-                = "INSERT INTO booking_seats (booking_id, seat_id, is_checked_in, check_in_time) "
-                + "VALUES (?, ?, 0, NULL)";
+                = "INSERT INTO booking_seats (booking_id, seat_id, lock_status, unit_price, locked_at) "
+                + "VALUES (?, ?, 'LOCKED', ?, GETDATE())";
 
         // SQL Server: lay generated key
         String insertBookingWithKey = insertBooking;
@@ -78,11 +78,15 @@ public class BookingDAOImpl extends BaseDAO implements BookingDAO {
             long newId = rs.getLong(1);
             booking.setBookingId(newId);
 
-            // 2. Insert booking_seats
+            // 2. Insert booking_seats (LOCKED)
             psSeat = conn.prepareStatement(insertSeat);
             for (Long seatId : seatIds) {
                 psSeat.setLong(1, newId);
                 psSeat.setLong(2, seatId);
+                // unit_price = totalAmount / so luong ghe (don gian; co the tinh chi tiet hon)
+                BigDecimal unitPrice = booking.getSubtotal()
+                        .divide(BigDecimal.valueOf(seatIds.size()), 0, java.math.RoundingMode.HALF_UP);
+                psSeat.setBigDecimal(3, unitPrice);
                 psSeat.addBatch();
             }
             psSeat.executeBatch();
@@ -197,7 +201,14 @@ public class BookingDAOImpl extends BaseDAO implements BookingDAO {
         // Khi CONFIRMED: cap nhat booking_seats.lock_status -> CONFIRMED
         // Khi CANCELLED: cap nhat booking_seats.lock_status -> RELEASED
         String updateBooking = "UPDATE bookings SET status = ? WHERE booking_id = ?";
-        String updateSeats = null;
+        String updateSeats;
+        if (Booking.STATUS_CONFIRMED.equals(newStatus)) {
+            updateSeats = "UPDATE booking_seats SET lock_status = 'CONFIRMED' WHERE booking_id = ?";
+        } else if (Booking.STATUS_CANCELLED.equals(newStatus)) {
+            updateSeats = "UPDATE booking_seats SET lock_status = 'RELEASED' WHERE booking_id = ?";
+        } else {
+            updateSeats = null;
+        }
 
         Connection conn = null;
         PreparedStatement ps1 = null;
@@ -241,7 +252,7 @@ public class BookingDAOImpl extends BaseDAO implements BookingDAO {
                 + "FROM booking_seats bs "
                 + "JOIN bookings b ON b.booking_id = bs.booking_id "
                 + "WHERE b.showtime_id = ? "
-                + "  AND b.status IN ('PENDING','CONFIRMED') "
+                + " AND bs.lock_status IN ('LOCKED','CONFIRMED') "
                 + "  AND bs.seat_id IN (");
         for (int i = 0; i < seatIds.size(); i++) {
             sb.append(i > 0 ? ",?" : "?");
@@ -289,11 +300,23 @@ public class BookingDAOImpl extends BaseDAO implements BookingDAO {
                 + "WHERE status = 'PENDING' "
                 + "  AND DATEDIFF(MINUTE, created_at, GETDATE()) >= " + LOCK_EXPIRE_MINUTES;
 
+        String releaseSeats
+                = "UPDATE booking_seats SET lock_status = 'RELEASED' "
+                + "WHERE lock_status = 'LOCKED' "
+                + "  AND booking_id IN ("
+                + "    SELECT booking_id FROM bookings "
+                + "    WHERE status = 'CANCELLED' "
+                + "      AND DATEDIFF(MINUTE, created_at, GETDATE()) >= " + LOCK_EXPIRE_MINUTES
+                + "  )";
         Connection conn = null;
         PreparedStatement ps1 = null;
+        PreparedStatement ps2 = null;
         try {
             conn = getConnection();
             conn.setAutoCommit(false);
+            // Giai phong seats truoc (foreign key phu thuoc booking)
+            ps2 = conn.prepareStatement(releaseSeats);
+            ps2.executeUpdate();
 
             ps1 = conn.prepareStatement(cancelBookings);
             int affected = ps1.executeUpdate();
@@ -305,7 +328,7 @@ public class BookingDAOImpl extends BaseDAO implements BookingDAO {
             throw new RuntimeException("Loi releaseExpiredLocks: " + e.getMessage(), e);
         } finally {
             closeAll(ps1, null);
-            closeAll(null, conn);
+            closeAll(ps2, conn);
         }
     }
 
@@ -474,8 +497,12 @@ public class BookingDAOImpl extends BaseDAO implements BookingDAO {
             }
             return unavailable;
         } finally {
-            if (rs != null) rs.close();
-            if (ps != null) ps.close();
+            if (rs != null) {
+                rs.close();
+            }
+            if (ps != null) {
+                ps.close();
+            }
         }
     }
 

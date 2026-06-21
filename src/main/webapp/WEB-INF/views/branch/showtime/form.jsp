@@ -29,17 +29,51 @@
         <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
         <link href="${pageContext.request.contextPath}/assets/css/manager.css?v=${applicationScope.assetVersion}" rel="stylesheet">
         <style>
-            .st-form .form-label { font-size: .82rem; font-weight: 600; color: #0f1e36; }
-            .st-form .form-control[readonly] { background: #f3f4f6; color: #374151; border-color: #e5e7eb; opacity: 1; }
-            .st-section-title { font-size: 1rem; font-weight: 700; color: #0f1e36; margin-bottom: 1rem; }
-            .pv-poster { width: 64px; height: 96px; border-radius: 8px; flex-shrink: 0;
-                         background: linear-gradient(135deg, #2563eb, #1e3a5f); color: #fff;
-                         display: flex; align-items: center; justify-content: center;
-                         font-weight: 800; font-size: 1.5rem; }
-            .pv-timebtn { border: 1px solid var(--lc-border); border-radius: 10px; text-align: center;
-                          padding: .6rem; background: #fff; }
-            .lc-auto { font-size: .6rem; background: #EEF1F4; color: #64748b; padding: .12rem .45rem;
-                       border-radius: 999px; vertical-align: middle; }
+            .st-form .form-label {
+                font-size: .82rem;
+                font-weight: 600;
+                color: #0f1e36;
+            }
+            .st-form .form-control[readonly] {
+                background: #f3f4f6;
+                color: #374151;
+                border-color: #e5e7eb;
+                opacity: 1;
+            }
+            .st-section-title {
+                font-size: 1rem;
+                font-weight: 700;
+                color: #0f1e36;
+                margin-bottom: 1rem;
+            }
+            .pv-poster {
+                width: 64px;
+                height: 96px;
+                border-radius: 8px;
+                flex-shrink: 0;
+                background: linear-gradient(135deg, #2563eb, #1e3a5f);
+                color: #fff;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-weight: 800;
+                font-size: 1.5rem;
+            }
+            .pv-timebtn {
+                border: 1px solid var(--lc-border);
+                border-radius: 10px;
+                text-align: center;
+                padding: .6rem;
+                background: #fff;
+            }
+            .lc-auto {
+                font-size: .6rem;
+                background: #EEF1F4;
+                color: #64748b;
+                padding: .12rem .45rem;
+                border-radius: 999px;
+                vertical-align: middle;
+            }
         </style>
     </head>
 
@@ -102,7 +136,7 @@
                                                 <option value="${m.movieId}" data-duration="${m.durationMin}"
                                                         ${vMovieId == m.movieId ? 'selected' : ''}>
                                                     <c:out value="${m.title}" /> (${m.durationMin} min)</option>
-                                            </c:forEach>
+                                                </c:forEach>
                                         </select>
                                     </div>
                                     <div class="col-md-6">
@@ -113,7 +147,7 @@
                                                 <option value="${r.roomId}" data-capacity="${r.capacity}" data-type="${r.roomType}"
                                                         ${vRoomId == r.roomId ? 'selected' : ''}>
                                                     <c:out value="${r.name}" /> (${r.roomType} &middot; ${r.capacity} seats)</option>
-                                            </c:forEach>
+                                                </c:forEach>
                                         </select>
                                     </div>
                                 </div>
@@ -245,7 +279,9 @@
                 // Khong cho chon ngay qua khu ngay tu date picker
                 dateInp.min = new Date().toISOString().slice(0, 10);
 
-                function fmtVND(n) { return n.toLocaleString('en-US') + 'đ'; }
+                function fmtVND(n) {
+                    return n.toLocaleString('en-US') + 'đ';
+                }
 
                 function selectedFormat() {
                     var el = document.querySelector('input[name="format"]:checked');
@@ -253,7 +289,8 @@
                 }
                 function selectedSubtitle() {
                     var el = document.querySelector('input[name="subtitleType"]:checked');
-                    if (!el) return '';
+                    if (!el)
+                        return '';
                     return el.value === 'SUB' ? 'Subtitled' : (el.value === 'DUB' ? 'Dubbed' : 'Original');
                 }
 
@@ -305,7 +342,9 @@
                     priceInp.addEventListener(ev, update);
                 });
                 document.querySelectorAll('input[name="format"], input[name="subtitleType"]')
-                        .forEach(function (el) { el.addEventListener('change', update); });
+                        .forEach(function (el) {
+                            el.addEventListener('change', update);
+                        });
                 update(); // edit prefill / form load lai sau loi
             })();
         </script>

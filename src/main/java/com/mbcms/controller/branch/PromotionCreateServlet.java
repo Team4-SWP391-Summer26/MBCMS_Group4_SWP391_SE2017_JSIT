@@ -25,7 +25,7 @@ public class PromotionCreateServlet extends HttpServlet {
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
         ConsoleSupport.ensureBranchName(req);
-        
+
         req.setAttribute("isEdit", false);
         req.setAttribute("promo", new Promotion()); // blank object
         req.setAttribute("rawDiscountValue", "");
@@ -34,7 +34,7 @@ public class PromotionCreateServlet extends HttpServlet {
         req.setAttribute("rawStartDate", "");
         req.setAttribute("rawEndDate", "");
         req.setAttribute("todayStr", java.time.LocalDate.now().toString());
-        
+
         req.getRequestDispatcher(VIEW).forward(req, resp);
     }
 
@@ -88,8 +88,8 @@ public class PromotionCreateServlet extends HttpServlet {
         // Validate min order amount
         if (errorMsg == null) {
             try {
-                BigDecimal minOrder = (minOrderAmountStr == null || minOrderAmountStr.trim().isEmpty()) 
-                        ? BigDecimal.ZERO 
+                BigDecimal minOrder = (minOrderAmountStr == null || minOrderAmountStr.trim().isEmpty())
+                        ? BigDecimal.ZERO
                         : new BigDecimal(minOrderAmountStr.trim());
                 if (minOrder.compareTo(BigDecimal.ZERO) < 0) {
                     errorMsg = "Minimum order amount cannot be negative.";
@@ -122,8 +122,8 @@ public class PromotionCreateServlet extends HttpServlet {
         // Validate dates
         if (errorMsg == null) {
             try {
-                if (startDateStr == null || startDateStr.trim().isEmpty() || 
-                    endDateStr == null || endDateStr.trim().isEmpty()) {
+                if (startDateStr == null || startDateStr.trim().isEmpty()
+                        || endDateStr == null || endDateStr.trim().isEmpty()) {
                     errorMsg = "Start date and end date are required.";
                 } else {
                     LocalDate start = LocalDate.parse(startDateStr.trim());

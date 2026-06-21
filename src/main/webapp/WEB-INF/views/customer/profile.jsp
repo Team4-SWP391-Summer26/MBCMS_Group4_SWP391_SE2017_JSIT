@@ -13,20 +13,76 @@
         <link href="${pageContext.request.contextPath}/assets/css/main.css?v=${applicationScope.assetVersion}" rel="stylesheet">
         <style>
             /* Profile-specific styles, aligned with the tones in main.css */
-            .lc-elev { background:#fff; border:none; border-radius:14px; box-shadow:0 1px 3px rgba(15,30,54,.08), 0 8px 24px rgba(15,30,54,.04); }
-            .text-navy { color: var(--text-dark); }
-            .lc-avatar { width:84px; height:84px; border-radius:999px; background:linear-gradient(135deg,#2563eb,#1e3a5f);
-                         color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:1.75rem; }
-            .lc-navitem { display:flex; align-items:center; gap:.6rem; padding:.55rem .85rem; border-radius:8px;
-                          font-size:.92rem; font-weight:500; color:#475569; text-decoration:none; margin-bottom:2px; }
-            .lc-navitem:hover { background:#f1f5fb; color:var(--primary); }
-            .lc-navitem.active { background:#e8f0fe; color:var(--primary); font-weight:600; }
-            .lc-navitem.disabled { color:#9aa4b2; cursor:not-allowed; }
-            .lc-navitem i { width:18px; text-align:center; }
-            .lc-soon { font-size:.62rem; background:#eef1f5; color:#9aa4b2; padding:.05rem .4rem; border-radius:999px; margin-left:auto; }
-            .profile-form .form-label { font-size:.82rem; font-weight:600; color:var(--text-dark); }
+            .lc-elev {
+                background:#fff;
+                border:none;
+                border-radius:14px;
+                box-shadow:0 1px 3px rgba(15,30,54,.08), 0 8px 24px rgba(15,30,54,.04);
+            }
+            .text-navy {
+                color: var(--text-dark);
+            }
+            .lc-avatar {
+                width:84px;
+                height:84px;
+                border-radius:999px;
+                background:linear-gradient(135deg,#2563eb,#1e3a5f);
+                color:#fff;
+                display:flex;
+                align-items:center;
+                justify-content:center;
+                font-weight:700;
+                font-size:1.75rem;
+            }
+            .lc-navitem {
+                display:flex;
+                align-items:center;
+                gap:.6rem;
+                padding:.55rem .85rem;
+                border-radius:8px;
+                font-size:.92rem;
+                font-weight:500;
+                color:#475569;
+                text-decoration:none;
+                margin-bottom:2px;
+            }
+            .lc-navitem:hover {
+                background:#f1f5fb;
+                color:var(--primary);
+            }
+            .lc-navitem.active {
+                background:#e8f0fe;
+                color:var(--primary);
+                font-weight:600;
+            }
+            .lc-navitem.disabled {
+                color:#9aa4b2;
+                cursor:not-allowed;
+            }
+            .lc-navitem i {
+                width:18px;
+                text-align:center;
+            }
+            .lc-soon {
+                font-size:.62rem;
+                background:#eef1f5;
+                color:#9aa4b2;
+                padding:.05rem .4rem;
+                border-radius:999px;
+                margin-left:auto;
+            }
+            .profile-form .form-label {
+                font-size:.82rem;
+                font-weight:600;
+                color:var(--text-dark);
+            }
             /* View-mode (disabled) fields look soft, not harshly locked */
-            .profile-form .form-control:disabled { background:#f3f4f6; color:#374151; border-color:#e5e7eb; opacity:1; }
+            .profile-form .form-control:disabled {
+                background:#f3f4f6;
+                color:#374151;
+                border-color:#e5e7eb;
+                opacity:1;
+            }
         </style>
     </head>
 
@@ -72,10 +128,10 @@
                         <nav class="d-flex flex-column">
                             <a class="lc-navitem active" href="${pageContext.request.contextPath}/customer/profile">
                                 <i class="bi bi-person"></i> Profile</a>
-                            <%-- Change password is a separate feature (owner AnhND, page by HoangHM) --%>
+                                <%-- Change password is a separate feature (owner AnhND, page by HoangHM) --%>
                             <a class="lc-navitem" href="${pageContext.request.contextPath}/auth/change-password">
                                 <i class="bi bi-shield-lock"></i> Security</a>
-                            <%-- Not-yet-built items: shown but not clickable (avoid 404) --%>
+                                <%-- Not-yet-built items: shown but not clickable (avoid 404) --%>
                             <span class="lc-navitem disabled"><i class="bi bi-ticket-perforated"></i> My Bookings <span class="lc-soon">Soon</span></span>
                             <span class="lc-navitem disabled"><i class="bi bi-bell"></i> Notifications <span class="lc-soon">Soon</span></span>
                             <span class="lc-navitem disabled"><i class="bi bi-chat-dots"></i> Feedback <span class="lc-soon">Soon</span></span>
@@ -163,19 +219,21 @@
 
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
         <script>
-            (function () {
-                var editBtn = document.getElementById('editBtn');
-                var editActions = document.getElementById('editActions');
-                var fields = document.querySelectorAll('.editable-field');
-                function enterEdit() {
-                    fields.forEach(function (f) { f.disabled = false; });
-                    editBtn.classList.add('d-none');
-                    editActions.classList.remove('d-none');
-                    editActions.classList.add('d-flex');
-                }
-                editBtn.addEventListener('click', enterEdit);
-                <c:if test="${startEdit}">enterEdit();</c:if>
-            })();
+                                        (function () {
+                                            var editBtn = document.getElementById('editBtn');
+                                            var editActions = document.getElementById('editActions');
+                                            var fields = document.querySelectorAll('.editable-field');
+                                            function enterEdit() {
+                                                fields.forEach(function (f) {
+                                                    f.disabled = false;
+                                                });
+                                                editBtn.classList.add('d-none');
+                                                editActions.classList.remove('d-none');
+                                                editActions.classList.add('d-flex');
+                                            }
+                                            editBtn.addEventListener('click', enterEdit);
+            <c:if test="${startEdit}">enterEdit();</c:if>
+                })();
         </script>
     </body>
 

@@ -4,8 +4,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 /**
- * Payment - map bang `payments` (1:1 voi booking).
- * method: CASH | MOMO | VNPAY
+ * Payment - map bang `payments` (1:1 voi booking). method: CASH | MOMO | VNPAY
  * status: PENDING -> SUCCESS | FAILED (refund out of scope)
  */
 public class Payment {
@@ -26,26 +25,62 @@ public class Payment {
     private String transactionRef;
     private LocalDateTime paidAt;
 
-    public Payment() {}
+    public Payment() {
+    }
 
-    public long getPaymentId() { return paymentId; }
-    public void setPaymentId(long paymentId) { this.paymentId = paymentId; }
+    public long getPaymentId() {
+        return paymentId;
+    }
 
-    public long getBookingId() { return bookingId; }
-    public void setBookingId(long bookingId) { this.bookingId = bookingId; }
+    public void setPaymentId(long paymentId) {
+        this.paymentId = paymentId;
+    }
 
-    public String getMethod() { return method; }
-    public void setMethod(String method) { this.method = method; }
+    public long getBookingId() {
+        return bookingId;
+    }
 
-    public BigDecimal getAmount() { return amount; }
-    public void setAmount(BigDecimal amount) { this.amount = amount; }
+    public void setBookingId(long bookingId) {
+        this.bookingId = bookingId;
+    }
 
-    public String getStatus() { return status; }
-    public void setStatus(String status) { this.status = status; }
+    public String getMethod() {
+        return method;
+    }
 
-    public String getTransactionRef() { return transactionRef; }
-    public void setTransactionRef(String transactionRef) { this.transactionRef = transactionRef; }
+    public void setMethod(String method) {
+        this.method = method;
+    }
 
-    public LocalDateTime getPaidAt() { return paidAt; }
-    public void setPaidAt(LocalDateTime paidAt) { this.paidAt = paidAt; }
+    public BigDecimal getAmount() {
+        return amount;
+    }
+
+    public void setAmount(BigDecimal amount) {
+        this.amount = amount;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public String getTransactionRef() {
+        return transactionRef;
+    }
+
+    public void setTransactionRef(String transactionRef) {
+        this.transactionRef = transactionRef;
+    }
+
+    public LocalDateTime getPaidAt() {
+        return paidAt;
+    }
+
+    public void setPaidAt(LocalDateTime paidAt) {
+        this.paidAt = paidAt;
+    }
 }

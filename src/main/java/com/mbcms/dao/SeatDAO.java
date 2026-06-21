@@ -13,8 +13,9 @@ import java.util.Set;
  * @author Lenovo
  */
 public interface SeatDAO {
-    
+
     List<Seat> findByRoom(long roomId);
+
     Set<Long> findBookedSeatIds(long showtimeId);
-    
+
 }

@@ -15,8 +15,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * CustomerLookupServlet - Tra cứu khách hàng bằng SĐT qua AJAX.
- * Mapped: /staff/customer-lookup
+ * CustomerLookupServlet - Tra cứu khách hàng bằng SĐT qua AJAX. Mapped:
+ * /staff/customer-lookup
  */
 @WebServlet("/staff/customer-lookup")
 public class CustomerLookupServlet extends HttpServlet {
@@ -27,7 +27,7 @@ public class CustomerLookupServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
-        
+
         resp.setContentType("application/json;charset=UTF-8");
         String phone = req.getParameter("phone");
 
