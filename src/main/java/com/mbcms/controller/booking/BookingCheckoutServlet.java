@@ -135,14 +135,50 @@ public class BookingCheckoutServlet extends HttpServlet {
             return;
         }
 
-        // "Áp dụng mã KM" → re-show checkout page với promo mới
+        // "Áp dụng mã KM" → huỷ pending booking cũ, tạo lại với promo mới
+        // để subtotal/discount/total được tính lại (calcDiscount chỉ chạy
+        // bên trong createPendingBooking).
         if (applyPromo) {
-            // Lấy bookingId từ hidden field hoặc session
-            Long bookingId = parseBookingId(bookingIdParam, session);
+            Long oldBookingId = parseBookingId(bookingIdParam, session);
+            if (oldBookingId != null) {
+                try {
+                    bookingService.cancelBooking(oldBookingId, customer.getUsername());
+                } catch (Exception e) {
+                    System.err.println("WARN: Không huỷ được booking cũ trước khi áp promo: " + e.getMessage());
+                }
+            }
+
             req.setAttribute("showtimeId", showtimeId);
             req.setAttribute("seatIds",    seatIds);
             req.setAttribute("promoCode",  promoCode);
-            req.setAttribute("bookingId",  bookingId);
+
+            try {
+                // Tạo lại pending booking (re-lock cùng ghế) với promo mới
+                // → subtotal/discount/total được tính lại đúng.
+                Booking booking = bookingService.createPendingBooking(
+                        customer.getUsername(), showtimeId, seatIds, promoCode, null);
+                session.setAttribute("pendingBookingId", booking.getBookingId());
+                req.setAttribute("booking", booking);
+
+            } catch (SeatUnavailableException e) {
+                resp.sendRedirect(req.getContextPath()
+                        + "/booking/seats?showtimeId=" + showtimeId + "&seatConflict=1");
+                return;
+
+            } catch (IllegalArgumentException e) {
+                // Promo không hợp lệ (hết hạn, sai min order, v.v.)
+                // → vẫn re-lock ghế nhưng KHÔNG áp promo, để giá hiển thị đúng giá gốc.
+                req.setAttribute("checkoutError", e.getMessage());
+                try {
+                    Booking fallback = bookingService.createPendingBooking(
+                            customer.getUsername(), showtimeId, seatIds, null, null);
+                    session.setAttribute("pendingBookingId", fallback.getBookingId());
+                    req.setAttribute("booking", fallback);
+                } catch (Exception inner) {
+                    req.setAttribute("checkoutError", "Lỗi hệ thống: " + inner.getMessage());
+                }
+            }
+
             req.getRequestDispatcher("/WEB-INF/views/booking/checkout.jsp").forward(req, resp);
             return;
         }
