@@ -138,6 +138,7 @@ class ShowtimeServiceTest {
         }
         @Override public Showtime findById(long showtimeId) { return (existing != null && existing.getShowtimeId() == showtimeId) ? existing : null; }
         @Override public boolean hasActiveBookings(long showtimeId) { return hasBookings; }
+        @Override public boolean hasUnfinishedShowtimes(long branchId, long movieId) { return false; }
         @Override public boolean cancel(long showtimeId) { return daoOk; }
         @Override public boolean updateWithConflictCheck(Showtime showtime) { return daoOk; }
         @Override public boolean createWithConflictCheck(Showtime showtime) { return daoOk; }
