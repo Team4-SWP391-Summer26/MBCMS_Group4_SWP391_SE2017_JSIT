@@ -210,6 +210,20 @@
             opacity: 0.4;
         }
 
+        .seat.soft-locked {
+            background-color: #fef3c7 !important;
+            border-color: #f59e0b !important;
+            color: #92400e !important;
+            cursor: not-allowed !important;
+            animation: soft-pulse 1.8s ease-in-out infinite;
+            opacity: 0.8;
+        }
+
+        @keyframes soft-pulse {
+            0%, 100% { box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.4); }
+            50%      { box-shadow: 0 0 0 5px rgba(245, 158, 11, 0.0); }
+        }
+
         .showtime-card {
             border: 2px solid var(--lc-border);
             border-radius: 12px;
@@ -336,8 +350,12 @@
             <%-- ===== STEP 2: SELECT SEAT ===== --%>
             <div class="wizard-panel" id="panel-2">
                 <div class="card lc-elev p-4">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h5 class="text-navy fw-bold mb-0"><i class="bi bi-2-circle-fill text-primary me-2"></i>Chọn Ghế</h5>
+                    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                        <div class="d-flex align-items-center gap-2">
+                            <h5 class="text-navy fw-bold mb-0"><i class="bi bi-2-circle-fill text-primary me-2"></i>Chọn Ghế</h5>
+                            <span id="wsBadge" class="badge bg-secondary">Chưa kết nối</span>
+                            <span id="refreshBadge" class="badge bg-success" style="opacity: 0; transition: opacity 0.4s;">&#8635; Đã cập nhật</span>
+                        </div>
                         <div class="badge bg-primary px-3 py-2 fs-6" id="showtime-header-info"></div>
                     </div>
                     
@@ -364,6 +382,10 @@
                                 <div class="d-flex align-items-center gap-1">
                                     <div class="seat selected" style="width:20px;height:20px;cursor:default;"></div>
                                     <span class="small text-muted">Đang chọn</span>
+                                </div>
+                                <div class="d-flex align-items-center gap-1">
+                                    <div class="seat soft-locked" style="width:20px;height:20px;cursor:default;"></div>
+                                    <span class="small text-muted">Người khác chọn</span>
                                 </div>
                                 <div class="d-flex align-items-center gap-1">
                                     <div class="seat booked" style="width:20px;height:20px;cursor:default;"></div>
@@ -536,14 +558,14 @@
                 <div class="card lc-elev p-4 text-center">
                     <div class="mb-4">
                         <div class="bg-success text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width:70px;height:70px;">
-                            <i class="bi bi-check2-all fs-1"></i>
+                            <i class="bi bi-check-lg fs-1"></i>
                         </div>
                         <h4 class="text-success fw-bold">GIAO DỊCH HOÀN TẤT THÀNH CÔNG!</h4>
                         <p class="text-muted">Đơn hàng đã được lưu và thanh toán bằng tiền mặt thành công.</p>
                     </div>
 
                     <div class="row justify-content-center mb-4">
-                        <div class="col-md-6 col-lg-5">
+                        <div class="col-md-8 col-lg-6">
                             <div class="card border rounded-3 p-4 bg-white shadow-sm">
                                 <div class="small text-muted text-uppercase fw-semibold mb-1">Mã đặt vé của khách</div>
                                 <h2 class="text-primary fw-bold font-monospace" id="final-booking-code"></h2>
@@ -567,25 +589,6 @@
                                 </div>
                             </div>
                         </div>
-                        
-                        <div class="col-md-6 col-lg-5">
-                            <div class="card border rounded-3 p-4 bg-white shadow-sm h-100 d-flex flex-column justify-content-between">
-                                <div>
-                                    <h6 class="text-navy fw-bold text-start mb-2"><i class="bi bi-envelope-at-fill text-primary me-2"></i>Gửi vé điện tử qua Email</h6>
-                                    <p class="text-muted small text-start">Hệ thống sẽ tạo file đính kèm PDF vé xem phim kèm mã QR soát vé để gửi trực tiếp tới email của khách hàng.</p>
-                                    <div class="mb-3 text-start">
-                                        <label class="form-label small text-muted">Email khách hàng nhận vé</label>
-                                        <input type="email" id="customer-email" class="form-control" placeholder="customer@example.com">
-                                    </div>
-                                    
-                                    <div id="email-alert-success" class="alert alert-success py-2 text-start d-none"></div>
-                                    <div id="email-alert-danger" class="alert alert-danger py-2 text-start d-none"></div>
-                                </div>
-                                <button class="btn btn-outline-primary w-100 fw-bold" id="btn-send-email">
-                                    <i class="bi bi-send-fill me-2"></i>Gửi Email Vé PDF
-                                </button>
-                            </div>
-                        </div>
                     </div>
 
                     <hr>
@@ -607,6 +610,10 @@
     <!-- Wizard Core Logic -->
     <script>
         const contextPath = '${pageContext.request.contextPath}';
+        const CURRENT_USER = '${sessionScope.username}';
+        
+        let ws = null;
+        let wsRetryDelay = 2000;
         
         // Wizard State
         let state = {
@@ -721,12 +728,11 @@
                 })
                 .catch(err => {
                     console.error(err);
-                    showtimesContainer.innerHTML = `
-                        <div class="col-12 text-center text-danger py-5">
-                            <i class="bi bi-exclamation-triangle-fill fs-2 d-block mb-2"></i>
-                            Lỗi khi tải suất chiếu: ${err.message}
-                        </div>
-                    `;
+                    showtimesContainer.innerHTML = 
+                        '<div class="col-12 text-center text-danger py-5">' +
+                        '    <i class="bi bi-exclamation-triangle-fill fs-2 d-block mb-2"></i>' +
+                        '    Lỗi khi tải suất chiếu: ' + err.message +
+                        '</div>';
                 });
         }
 
@@ -748,11 +754,10 @@
         btnToStep2.addEventListener('click', () => {
             if (state.showtimeId) {
                 // Populate Step 2 Showtime Banner
-                document.getElementById('showtime-header-info').innerHTML = `
-                    <i class="bi bi-film me-1"></i> ${state.movieTitle} &middot; 
-                    <i class="bi bi-clock me-1"></i> ${state.startTime} &middot; 
-                    <i class="bi bi-door-closed me-1"></i> Phòng: ${state.roomName}
-                `;
+                document.getElementById('showtime-header-info').innerHTML = 
+                    '<i class="bi bi-film me-1"></i> ' + state.movieTitle + ' &middot; ' + 
+                    '<i class="bi bi-clock me-1"></i> ' + state.startTime + ' &middot; ' + 
+                    '<i class="bi bi-door-closed me-1"></i> Phòng: ' + state.roomName;
                 
                 loadSeats();
                 goToStep(2);
@@ -803,6 +808,10 @@
                             seatDiv.innerText = seat.colNumber;
                             seatDiv.title = 'Ghế ' + seat.rowLabel + seat.colNumber + ' (' + (isVip ? 'VIP' : 'Thường') + ')';
                             
+                            seatDiv.setAttribute('data-seat-id', seat.seatId);
+                            seatDiv.setAttribute('data-seat-type', seat.seatType);
+                            seatDiv.setAttribute('data-seat-label', seat.rowLabel + seat.colNumber);
+                            
                             if (!isBooked && seat.active) {
                                 seatDiv.addEventListener('click', () => toggleSeat(seatDiv, seat));
                             }
@@ -817,29 +826,155 @@
 
                         container.appendChild(rowDiv);
                     }
+
+                    // Connect WebSocket after seats are drawn in the DOM
+                    connectWS(state.showtimeId);
                 })
                 .catch(err => {
                     console.error(err);
-                    container.innerHTML = `
-                        <div class="text-center text-danger py-5">
-                            <i class="bi bi-exclamation-triangle-fill fs-2 d-block mb-2"></i>
-                            Lỗi khi tải sơ đồ ghế: ${err.message}
-                        </div>
-                    `;
+                    container.innerHTML = 
+                        '<div class="text-center text-danger py-5">' +
+                        '    <i class="bi bi-exclamation-triangle-fill fs-2 d-block mb-2"></i>' +
+                        '    Lỗi khi tải sơ đồ ghế: ' + err.message +
+                        '</div>';
                 });
         }
 
         function toggleSeat(element, seat) {
+            if (element.classList.contains('booked') || element.classList.contains('disabled') || element.classList.contains('soft-locked')) {
+                return;
+            }
+            
             const index = state.selectedSeats.findIndex(s => s.seatId === seat.seatId);
+            const id = String(seat.seatId);
+            
             if (index > -1) {
                 state.selectedSeats.splice(index, 1);
-                element.classList.remove('selected');
+                setSeatStateUI(element, 'available');
+                sendWS({ action: 'DESELECT', seatId: Number(id), showtimeId: state.showtimeId });
             } else {
                 state.selectedSeats.push(seat);
-                element.classList.add('selected');
+                setSeatStateUI(element, 'selected');
+                sendWS({ action: 'SELECT', seatId: Number(id), showtimeId: state.showtimeId });
             }
 
             updateSeatsSummary();
+        }
+
+        // stateStr: 'available' | 'selected' | 'soft-locked' | 'booked' | 'disabled'
+        function setSeatStateUI(seatDiv, stateStr) {
+            seatDiv.classList.remove('selected', 'booked', 'disabled', 'soft-locked');
+            if (stateStr === 'selected') {
+                seatDiv.classList.add('selected');
+            } else if (stateStr === 'booked') {
+                seatDiv.classList.add('booked');
+            } else if (stateStr === 'disabled') {
+                seatDiv.classList.add('disabled');
+            } else if (stateStr === 'soft-locked') {
+                seatDiv.classList.add('soft-locked');
+            }
+        }
+
+        function connectWS(showtimeId) {
+            closeWS();
+            const WS_URL = (location.protocol === 'https:' ? 'wss' : 'ws')
+                         + '://' + location.host
+                         + contextPath + '/ws/seats/' + showtimeId;
+
+            ws = new WebSocket(WS_URL);
+
+            ws.onopen = function () {
+                setWsBadge('Realtime Connected', 'bg-success');
+                wsRetryDelay = 2000;
+            };
+
+            ws.onmessage = function (event) {
+                let msg;
+                try { msg = JSON.parse(event.data); }
+                catch (e) { return; }
+
+                const seatIdStr = String(msg.seatId);
+                const seatDiv = document.querySelector('[data-seat-id="' + msg.seatId + '"]');
+                if (!seatDiv) return;
+
+                const isMySelection = state.selectedSeats.some(s => String(s.seatId) === seatIdStr);
+
+                switch (msg.action) {
+                    case 'SELECT':
+                        if (isMySelection) return;
+                        setSeatStateUI(seatDiv, 'soft-locked');
+                        break;
+                    case 'DESELECT':
+                        if (isMySelection) return;
+                        setSeatStateUI(seatDiv, 'available');
+                        flashRefreshBadge();
+                        break;
+                    case 'HARD_LOCK':
+                        if (isMySelection) {
+                            if (msg.username !== CURRENT_USER) {
+                                const index = state.selectedSeats.findIndex(s => String(s.seatId) === seatIdStr);
+                                if (index > -1) {
+                                    state.selectedSeats.splice(index, 1);
+                                    updateSeatsSummary();
+                                }
+                                alert('Ghế ' + seatDiv.getAttribute('data-seat-label') + ' vừa được người khác đặt. Vui lòng chọn ghế khác.');
+                            }
+                        }
+                        setSeatStateUI(seatDiv, 'booked');
+                        flashRefreshBadge();
+                        break;
+                    case 'HARD_RELEASE':
+                        if (isMySelection) return;
+                        setSeatStateUI(seatDiv, 'available');
+                        flashRefreshBadge();
+                        break;
+                }
+            };
+
+            ws.onclose = function () {
+                setWsBadge('Mất kết nối – thử lại…', 'bg-warning text-dark');
+                setTimeout(() => {
+                    if (state.currentStep >= 2 && state.showtimeId === showtimeId) {
+                        connectWS(showtimeId);
+                    }
+                }, Math.min(wsRetryDelay, 30000));
+                wsRetryDelay *= 2;
+            };
+
+            ws.onerror = function () {
+                ws.close();
+            };
+        }
+
+        function closeWS() {
+            if (ws) {
+                ws.onclose = null;
+                ws.close();
+                ws = null;
+            }
+            setWsBadge('Chưa kết nối', 'bg-secondary');
+        }
+
+        function setWsBadge(text, cls) {
+            const b = document.getElementById('wsBadge');
+            if (b) {
+                b.textContent = text;
+                b.className = 'badge ' + cls;
+            }
+        }
+
+        function flashRefreshBadge() {
+            const b = document.getElementById('refreshBadge');
+            if (b) {
+                b.style.opacity = '1';
+                setTimeout(() => { b.style.opacity = '0'; }, 2000);
+            }
+        }
+
+        function sendWS(payload) {
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify(payload));
+            }
         }
 
         function updateSeatsSummary() {
@@ -910,11 +1045,9 @@
                         document.getElementById('member-email-display').innerText = data.email || 'Chưa cung cấp';
                         
                         memberCard.classList.remove('d-none');
-                        document.getElementById('member-status-text').innerHTML = `
-                            <span class="text-success fw-semibold"><i class="bi bi-check-circle-fill me-1"></i>Đã chọn thành viên: ${data.fullName}</span>
-                        `;
-                        // Pre-fill email in ticket send email input
-                        document.getElementById('customer-email').value = data.email || '';
+                        document.getElementById('member-status-text').innerHTML = 
+                            '<span class="text-success fw-semibold"><i class="bi bi-check-circle-fill me-1"></i>Đã chọn thành viên: ' + data.fullName + '</span>';
+
                     } else {
                         state.memberPhone = '';
                         state.memberUsername = 'guest01';
@@ -1006,11 +1139,11 @@
             document.getElementById('invoice-seats').innerText = seatLabels.join(', ');
             
             document.getElementById('invoice-customer').innerText = state.memberPhone 
-                ? `${state.memberFullName} (${state.memberPhone})`
+                ? state.memberFullName + ' (' + state.memberPhone + ')'
                 : 'Khách vãng lai (guest01)';
                 
             document.getElementById('invoice-promo').innerText = state.promoCode 
-                ? `${state.promoCode} (Giảm ${state.promoDiscount.toLocaleString()} VND)`
+                ? state.promoCode + ' (Giảm ' + state.promoDiscount.toLocaleString() + ' VND)'
                 : 'Không có';
                 
             document.getElementById('invoice-total').innerText = state.totalAmount.toLocaleString();
@@ -1062,7 +1195,7 @@
             formData.append('promoCode', state.promoCode);
             formData.append('notes', 'Đặt vé trực tiếp tại quầy bằng tiền mặt');
 
-            fetch(`${contextPath}/staff/booking`, {
+            fetch(contextPath + '/staff/booking', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'
@@ -1087,7 +1220,7 @@
                 } else {
                     btnConfirmBooking.disabled = false;
                     btnConfirmBooking.innerHTML = `<i class="bi bi-cash-stack me-2"></i>XÁC NHẬN THANH TOÁN TIỀN MẶT`;
-                    alert(`Đặt vé thất bại: ${data.message}`);
+                    alert('Đặt vé thất bại: ' + data.message);
                 }
             })
             .catch(err => {
@@ -1102,74 +1235,33 @@
         // STEP 5: TICKET UTILITIES
         // ==========================================
         const btnPrintTicket = document.getElementById('btn-print-ticket');
-        const btnSendEmail = document.getElementById('btn-send-email');
-        const customerEmailInput = document.getElementById('customer-email');
-        const emailSuccess = document.getElementById('email-alert-success');
-        const emailError = document.getElementById('email-alert-danger');
-
         btnPrintTicket.addEventListener('click', () => {
             // Open generated PDF in new tab to trigger print
             window.open(contextPath + '/staff/ticket-pdf?bookingCode=' + state.bookingCode, '_blank');
-        });
-
-        btnSendEmail.addEventListener('click', () => {
-            const email = customerEmailInput.value.trim();
-            if (!email) {
-                alert('Vui lòng nhập địa chỉ email nhận vé');
-                return;
-            }
-
-            btnSendEmail.disabled = true;
-            btnSendEmail.innerHTML = `<span class="spinner-border spinner-border-sm me-2" role="status"></span>Đang gửi email...`;
-            emailSuccess.classList.add('d-none');
-            emailError.classList.add('d-none');
-
-            const params = new URLSearchParams();
-            params.append('bookingCode', state.bookingCode);
-            params.append('email', email);
-
-            fetch(contextPath + '/staff/ticket-pdf', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'
-                },
-                body: params.toString()
-            })
-            .then(res => res.json())
-            .then(data => {
-                btnSendEmail.disabled = false;
-                btnSendEmail.innerHTML = `<i class="bi bi-send-fill me-2"></i>Gửi Email Vé PDF`;
-
-                if (data.success) {
-                    emailSuccess.innerText = data.message;
-                    emailSuccess.classList.remove('d-none');
-                } else {
-                    emailError.innerText = data.message;
-                    emailError.classList.remove('d-none');
-                }
-            })
-            .catch(err => {
-                console.error(err);
-                btnSendEmail.disabled = false;
-                btnSendEmail.innerHTML = `<i class="bi bi-send-fill me-2"></i>Gửi Email Vé PDF`;
-                emailError.innerText = 'Lỗi hệ thống khi gửi email.';
-                emailError.classList.remove('d-none');
-            });
         });
 
         // ==========================================
         // HELPERS: NAVIGATOR & SYSTEM RESET
         // ==========================================
         function goToStep(stepNum) {
+            // Close WebSocket if leaving Step 2 to go back to Step 1
+            if (state.currentStep >= 2 && stepNum === 1) {
+                closeWS();
+            }
+            // Close WebSocket on Step 5 (successful booking completion)
+            if (stepNum === 5) {
+                closeWS();
+            }
+
             state.currentStep = stepNum;
             
             // Toggle panels
             document.querySelectorAll('.wizard-panel').forEach(p => p.classList.remove('active'));
-            document.getElementById(`panel-${stepNum}`).classList.add('active');
+            document.getElementById('panel-' + stepNum).classList.add('active');
             
             // Toggle indicators
             for (let i = 1; i <= 5; i++) {
-                const ind = document.getElementById(`step-ind-${i}`);
+                const ind = document.getElementById('step-ind-' + i);
                 ind.classList.remove('active', 'completed');
                 if (i < stepNum) {
                     ind.classList.add('completed');
@@ -1208,7 +1300,6 @@
             dateFilter.value = todayStr;
             memberPhoneInput.value = '';
             promoCodeInput.value = '';
-            customerEmailInput.value = '';
             
             // Clear UI elements
             memberCard.classList.add('d-none');
@@ -1217,9 +1308,10 @@
             `;
             promoSuccess.classList.add('d-none');
             promoError.classList.add('d-none');
-            emailSuccess.classList.add('d-none');
-            emailError.classList.add('d-none');
             
+            // Ensure WebSocket connection is closed on reset
+            closeWS();
+
             // Refresh first page
             loadShowtimes();
             goToStep(1);

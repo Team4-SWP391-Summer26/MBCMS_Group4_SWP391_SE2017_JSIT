@@ -58,10 +58,14 @@ public class PromotionListServlet extends HttpServlet {
             req.setAttribute("successMsg", "Updated successfully.");
         } else if ("1".equals(req.getParameter("toggled"))) {
             req.setAttribute("successMsg", "Promotion status toggled successfully.");
+        } else if ("1".equals(req.getParameter("deleted"))) {
+            req.setAttribute("successMsg", "Promotion deleted successfully.");
         } else if ("1".equals(req.getParameter("error"))) {
             req.setAttribute("errorMsg", "An error occurred. Please try again.");
         } else if ("dup_code".equals(req.getParameter("error"))) {
             req.setAttribute("errorMsg", "Promotion code must be unique.");
+        } else if ("in_use".equals(req.getParameter("error"))) {
+            req.setAttribute("errorMsg", "Cannot delete: This promotion has already been applied to booking records.");
         }
 
         req.getRequestDispatcher(VIEW).forward(req, resp);

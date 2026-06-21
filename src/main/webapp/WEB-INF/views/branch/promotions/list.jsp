@@ -275,6 +275,13 @@
                                                         <i class="bi ${p.active ? 'bi-pause-fill' : 'bi-play-fill'}"></i>
                                                     </button>
                                                 </form>
+                                                <form method="post" action="${pageContext.request.contextPath}/branch/promotions/delete" class="d-inline"
+                                                      onsubmit="return confirm('Are you sure you want to delete <c:out value="${p.code}"/>? This action cannot be undone and will delete it from the database.');">
+                                                    <input type="hidden" name="id" value="${p.promoId}">
+                                                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete">
+                                                        <i class="bi bi-trash-fill"></i>
+                                                    </button>
+                                                </form>
                                             </div>
                                         </td>
                                     </tr>

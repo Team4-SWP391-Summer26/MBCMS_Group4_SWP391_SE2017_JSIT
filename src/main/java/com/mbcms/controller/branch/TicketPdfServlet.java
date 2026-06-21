@@ -1,5 +1,9 @@
 package com.mbcms.controller.branch;
 
+import com.itextpdf.io.font.PdfEncodings;
+import com.itextpdf.kernel.font.PdfFont;
+import com.itextpdf.kernel.font.PdfFontFactory;
+import java.io.InputStream;
 import com.itextpdf.io.image.ImageDataFactory;
 import com.itextpdf.kernel.pdf.PdfDocument;
 import com.itextpdf.kernel.pdf.PdfWriter;
@@ -91,20 +95,22 @@ public class TicketPdfServlet extends HttpServlet {
             PdfDocument pdfDoc = new PdfDocument(writer);
             Document doc = new Document(pdfDoc);
 
+            initFonts();
+            if (fontRegular != null) {
+                doc.setFont(fontRegular);
+            }
+
             // Cấu trúc nội dung vé
-            doc.add(new Paragraph("MBCMS CINEMA TICKET")
-                    .setTextAlignment(TextAlignment.CENTER)
-                    .setFontSize(22)
-                    .setBold());
+            doc.add(createBoldParagraph("MBCMS CINEMA TICKET", 22).setTextAlignment(TextAlignment.CENTER));
             doc.add(new Paragraph("=========================================")
                     .setTextAlignment(TextAlignment.CENTER)
                     .setFontSize(10));
             
-            doc.add(new Paragraph("Mã vé: " + booking.getBookingCode()).setBold());
-            doc.add(new Paragraph("Phim: " + showtime.getMovieTitle()).setFontSize(14).setBold());
+            doc.add(createBoldParagraph("Mã vé: " + booking.getBookingCode()));
+            doc.add(createBoldParagraph("Phim: " + showtime.getMovieTitle(), 14));
             doc.add(new Paragraph("Suất chiếu: " + timeDisplay));
             doc.add(new Paragraph("Phòng chiếu: " + showtime.getRoomName() + " (" + showtime.getFormat() + ")"));
-            doc.add(new Paragraph("Ghế chọn: " + seatsDisplay).setBold());
+            doc.add(createBoldParagraph("Ghế chọn: " + seatsDisplay));
             doc.add(new Paragraph("Tổng tiền: " + booking.getTotalAmount() + " VND"));
             doc.add(new Paragraph("Loại thanh toán: Tiền mặt (CASH)").setFontSize(9));
             doc.add(new Paragraph("-----------------------------------------")
@@ -193,19 +199,21 @@ public class TicketPdfServlet extends HttpServlet {
             PdfDocument pdfDoc = new PdfDocument(writer);
             Document doc = new Document(pdfDoc);
 
-            doc.add(new Paragraph("MBCMS CINEMA TICKET")
-                    .setTextAlignment(TextAlignment.CENTER)
-                    .setFontSize(22)
-                    .setBold());
+            initFonts();
+            if (fontRegular != null) {
+                doc.setFont(fontRegular);
+            }
+
+            doc.add(createBoldParagraph("MBCMS CINEMA TICKET", 22).setTextAlignment(TextAlignment.CENTER));
             doc.add(new Paragraph("=========================================")
                     .setTextAlignment(TextAlignment.CENTER)
                     .setFontSize(10));
             
-            doc.add(new Paragraph("Mã vé: " + booking.getBookingCode()).setBold());
-            doc.add(new Paragraph("Phim: " + showtime.getMovieTitle()).setFontSize(14).setBold());
+            doc.add(createBoldParagraph("Mã vé: " + booking.getBookingCode()));
+            doc.add(createBoldParagraph("Phim: " + showtime.getMovieTitle(), 14));
             doc.add(new Paragraph("Suất chiếu: " + timeDisplay));
             doc.add(new Paragraph("Phòng chiếu: " + showtime.getRoomName() + " (" + showtime.getFormat() + ")"));
-            doc.add(new Paragraph("Ghế chọn: " + seatsDisplay).setBold());
+            doc.add(createBoldParagraph("Ghế chọn: " + seatsDisplay));
             doc.add(new Paragraph("Tổng tiền: " + booking.getTotalAmount() + " VND"));
             doc.add(new Paragraph("Loại thanh toán: Tiền mặt (CASH)").setFontSize(9));
             doc.add(new Paragraph("-----------------------------------------")
@@ -240,5 +248,66 @@ public class TicketPdfServlet extends HttpServlet {
         }
 
         new com.fasterxml.jackson.databind.ObjectMapper().writeValue(resp.getWriter(), result);
+    }
+
+    private static PdfFont fontRegular = null;
+    private static PdfFont fontBold = null;
+
+    private synchronized static void initFonts() {
+        if (fontRegular != null && fontBold != null) {
+            return;
+        }
+        try {
+            byte[] regularBytes;
+            try (InputStream is = TicketPdfServlet.class.getClassLoader().getResourceAsStream("fonts/Arial.ttf")) {
+                if (is == null) {
+                    throw new RuntimeException("Font Arial.ttf not found in classpath");
+                }
+                regularBytes = readAllBytes(is);
+            }
+
+            byte[] boldBytes;
+            try (InputStream is = TicketPdfServlet.class.getClassLoader().getResourceAsStream("fonts/Arial-Bold.ttf")) {
+                if (is == null) {
+                    throw new RuntimeException("Font Arial-Bold.ttf not found in classpath");
+                }
+                boldBytes = readAllBytes(is);
+            }
+
+            fontRegular = PdfFontFactory.createFont(regularBytes, PdfEncodings.IDENTITY_H);
+            fontBold = PdfFontFactory.createFont(boldBytes, PdfEncodings.IDENTITY_H);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static byte[] readAllBytes(InputStream is) throws IOException {
+        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+        int nRead;
+        byte[] data = new byte[16384];
+        while ((nRead = is.read(data, 0, data.length)) != -1) {
+            buffer.write(data, 0, nRead);
+        }
+        return buffer.toByteArray();
+    }
+
+    private static Paragraph createBoldParagraph(String text, float fontSize) {
+        Paragraph p = new Paragraph(text).setFontSize(fontSize);
+        if (fontBold != null) {
+            p.setFont(fontBold);
+        } else {
+            p.setBold();
+        }
+        return p;
+    }
+
+    private static Paragraph createBoldParagraph(String text) {
+        Paragraph p = new Paragraph(text);
+        if (fontBold != null) {
+            p.setFont(fontBold);
+        } else {
+            p.setBold();
+        }
+        return p;
     }
 }

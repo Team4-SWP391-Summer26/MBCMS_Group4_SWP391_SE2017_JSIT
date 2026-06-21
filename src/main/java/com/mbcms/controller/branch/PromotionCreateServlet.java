@@ -33,6 +33,7 @@ public class PromotionCreateServlet extends HttpServlet {
         req.setAttribute("rawMaxUses", "");
         req.setAttribute("rawStartDate", "");
         req.setAttribute("rawEndDate", "");
+        req.setAttribute("todayStr", java.time.LocalDate.now().toString());
         
         req.getRequestDispatcher(VIEW).forward(req, resp);
     }
@@ -129,6 +130,8 @@ public class PromotionCreateServlet extends HttpServlet {
                     LocalDate end = LocalDate.parse(endDateStr.trim());
                     if (end.isBefore(start)) {
                         errorMsg = "End date must be on or after start date.";
+                    } else if (start.isBefore(LocalDate.now())) {
+                        errorMsg = "Start date cannot be in the past.";
                     } else {
                         p.setValidFrom(start.atStartOfDay());
                         p.setValidTo(end.atTime(LocalTime.MAX));
@@ -154,6 +157,7 @@ public class PromotionCreateServlet extends HttpServlet {
             req.setAttribute("rawMaxUses", maxUsesStr);
             req.setAttribute("rawStartDate", startDateStr);
             req.setAttribute("rawEndDate", endDateStr);
+            req.setAttribute("todayStr", LocalDate.now().toString());
             req.getRequestDispatcher(VIEW).forward(req, resp);
             return;
         }

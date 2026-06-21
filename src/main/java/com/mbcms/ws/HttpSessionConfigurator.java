@@ -18,6 +18,11 @@ public class HttpSessionConfigurator extends ServerEndpointConfig.Configurator {
                                 HandshakeResponse response) {
         HttpSession httpSession = (HttpSession) request.getHttpSession();
         if (httpSession != null) {
+            String username = (String) httpSession.getAttribute("username");
+            if (username != null && !username.trim().isEmpty()) {
+                config.getUserProperties().put("username", username);
+                return;
+            }
             Customer customer = (Customer) httpSession.getAttribute("customer");
             if (customer != null) {
                 config.getUserProperties().put("username", customer.getUsername());

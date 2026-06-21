@@ -352,6 +352,27 @@ public class PromotionDAOImpl extends BaseDAO implements PromotionDAO {
         return BigDecimal.ZERO;
     }
 
+    @Override
+    public boolean delete(long promoId) {
+        String sql = "DELETE FROM promotions WHERE promo_id = ?";
+        Connection conn = null;
+        PreparedStatement ps = null;
+        try {
+            conn = getConnection();
+            ps = conn.prepareStatement(sql);
+            ps.setLong(1, promoId);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            // Check for SQL Server foreign key constraint violation (Error Code 547)
+            if (e.getErrorCode() == 547) {
+                throw new RuntimeException("IN_USE");
+            }
+            throw new RuntimeException("Loi in PromotionDAOImpl.delete: " + e.getMessage(), e);
+        } finally {
+            closeAll(ps, conn);
+        }
+    }
+
     private Promotion mapRow(ResultSet rs) throws SQLException {
         Promotion p = new Promotion();
         p.setPromoId(rs.getLong("promo_id"));

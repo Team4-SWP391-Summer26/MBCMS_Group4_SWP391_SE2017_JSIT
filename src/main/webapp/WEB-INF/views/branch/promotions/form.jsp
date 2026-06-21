@@ -223,7 +223,8 @@
                                     <div class="col-md-6">
                                         <label class="form-label fw-semibold text-navy small">Start date *</label>
                                         <input type="date" class="form-control form-control-sm" name="startDate" id="inputStart" required
-                                               value="${rawStartDate}">
+                                               value="${rawStartDate}"
+                                               <c:if test="${!isEdit}">min="${todayStr}"</c:if>>
                                     </div>
                                     <div class="col-md-6">
                                         <label class="form-label fw-semibold text-navy small">End date *</label>
@@ -402,6 +403,12 @@
                 previewDates.textContent = 'Valid: ' + start + ' → ' + end;
             }
 
+            function updateEndDateMin() {
+                if (inputStart.value) {
+                    inputEnd.min = inputStart.value;
+                }
+            }
+
             function onDiscountTypeChange() {
                 const suffix = document.getElementById('valueSuffix');
                 if (typePercentage.checked) {
@@ -431,13 +438,17 @@
             inputName.addEventListener('input', updatePreview);
             inputValue.addEventListener('input', updatePreview);
             inputMinOrder.addEventListener('input', updatePreview);
-            inputStart.addEventListener('change', updatePreview);
+            inputStart.addEventListener('change', () => {
+                updateEndDateMin();
+                updatePreview();
+            });
             inputEnd.addEventListener('change', updatePreview);
             
             // Initialization
             window.addEventListener('DOMContentLoaded', () => {
                 onDiscountTypeChange();
                 onLimitToggleChange();
+                updateEndDateMin();
                 updatePreview();
             });
         </script>

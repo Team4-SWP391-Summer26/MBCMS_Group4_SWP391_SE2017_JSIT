@@ -61,6 +61,8 @@ public class CounterBookingServlet extends HttpServlet {
             return;
         }
 
+        ConsoleSupport.ensureBranchName(req);
+
         String action = req.getParameter("action");
         if (action != null) {
             handleAjax(action, branchId, req, resp);
@@ -227,6 +229,13 @@ public class CounterBookingServlet extends HttpServlet {
 
             // Execute service transaction
             Booking createdBooking = bookingService.createCounterBooking(booking, seatIds, promoCode, customerPhone);
+            
+            // Notify WebSocket server of the hard lock
+            String staffUsername = (String) req.getSession().getAttribute("username");
+            if (staffUsername == null) {
+                staffUsername = "staff";
+            }
+            com.mbcms.ws.SeatWebSocketServer.notifyHardLock(showtimeId, seatIds, staffUsername);
             
             result.put("success", true);
             result.put("bookingId", createdBooking.getBookingId());
