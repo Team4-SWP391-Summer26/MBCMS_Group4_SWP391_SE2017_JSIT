@@ -130,6 +130,8 @@ public class SeatDAOImpl extends BaseDAO implements SeatDAO {
             }
         }
         return conflict;
+    }
+    
     @Override
     public int updateSeatTypes(long roomId, Map<Long, String> seatTypes) {
         // room_id = ? trong WHERE: ghe khong thuoc phong nay se khong bi update
