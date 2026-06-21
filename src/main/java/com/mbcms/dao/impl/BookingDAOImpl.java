@@ -324,7 +324,7 @@ public class BookingDAOImpl extends BaseDAO implements BookingDAO {
     // ── Private helpers ───────────────────────────────────────────────────
  
     private String generateCode() {
-        return "BK-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+        return "BK-" + UUID.randomUUID().toString().substring(0, 6).toUpperCase();
     }
  
     private List<Long> loadSeatIds(long bookingId) {
