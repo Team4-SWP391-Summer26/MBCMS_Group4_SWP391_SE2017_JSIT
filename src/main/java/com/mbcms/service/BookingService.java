@@ -1,6 +1,7 @@
 package com.mbcms.service;
 
 import com.mbcms.model.Booking;
+import com.mbcms.model.BookingTicket;
 import com.mbcms.model.Branch;
 import com.mbcms.model.Movie;
 import com.mbcms.model.Promotion;
@@ -57,8 +58,21 @@ public interface BookingService {
      * owner.
      */
     Booking getBookingDetail(long bookingId, String customerUsername);
-    
-    
+
+    /**
+     * View-model day du cho man Confirm / e-ticket (movie, showtime, room,
+     * branch, seat labels, customer). Throw SecurityException neu khong phai
+     * owner. Return null neu khong tim thay.
+     */
+    BookingTicket getTicket(long bookingId, String customerUsername);
+
+    /**
+     * Lich su booking dang view-model day du (movie/showtime/room/seat labels)
+     * cho trang My Bookings.
+     */
+    List<BookingTicket> getBookingHistoryTickets(String customerUsername);
+
+
     public int cancelBooking(long bookingId, String customerUsername);
 
     /**

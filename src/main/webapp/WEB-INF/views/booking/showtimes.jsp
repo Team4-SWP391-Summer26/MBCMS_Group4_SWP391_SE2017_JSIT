@@ -1,11 +1,11 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Chọn suất chiếu – ${movie.title} – MBCMS</title>
+    <title>Choose Showtime – ${movie.title} – MBCMS</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="${pageContext.request.contextPath}/assets/css/main.css?v=${applicationScope.assetVersion}" rel="stylesheet">
     <style>
@@ -39,9 +39,9 @@
 <div class="container my-4" style="max-width: 980px;">
 
     <a href="${pageContext.request.contextPath}/booking/movies?branchId=${branch.branchId}"
-       class="btn btn-sm btn-outline-secondary mb-3">&#8592; Đổi phim</a>
+       class="btn btn-sm btn-outline-secondary mb-3">&#8592; Change movie</a>
 
-    <span class="step-pill mb-2">Bước 3/3 &middot; Chọn suất chiếu</span>
+    <span class="step-pill mb-2">Step 3/3 &middot; Choose showtime</span>
 
     <div class="d-flex flex-wrap align-items-start gap-3 mt-2 mb-4">
         <c:if test="${not empty movie.posterUrl}">
@@ -52,7 +52,7 @@
             <h3 class="fw-bold mb-1">${movie.title}</h3>
             <div class="text-secondary mb-1">
                 <c:if test="${not empty movie.rated}"><span class="badge bg-dark me-1">${movie.rated}</span></c:if>
-                ${movie.durationMin} phút
+                ${movie.durationMin} min
             </div>
             <div class="text-secondary small">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -68,20 +68,18 @@
     <c:choose>
         <c:when test="${empty dayGroups}">
             <div class="alert alert-error" role="alert">
-                Phim này hiện chưa có suất chiếu sắp tới tại ${branch.name}. Vui lòng chọn phim khác.
+                No upcoming showtimes for this movie at ${branch.name}. Please choose another movie.
             </div>
         </c:when>
         <c:otherwise>
-            <!-- Tab chọn ngày -->
             <div class="d-flex gap-2 mb-3 flex-wrap" id="dayTabs">
                 <c:forEach var="day" items="${dayGroups}" varStatus="loop">
                     <div class="day-tab ${loop.first ? 'active' : ''}" data-day-index="${loop.index}">
-                        ${day.dateLabel}<c:if test="${day.today}"> &middot; Hôm nay</c:if>
+                        ${day.dateLabel}<c:if test="${day.today}"> &middot; Today</c:if>
                     </div>
                 </c:forEach>
             </div>
 
-            <!-- Danh sách suất chiếu theo ngày -->
             <c:forEach var="day" items="${dayGroups}" varStatus="loop">
                 <div class="day-panel ${loop.first ? 'active' : ''}" data-day-panel="${loop.index}">
                     <div class="card border-0 shadow-sm p-3">
@@ -93,14 +91,14 @@
                                            href="${pageContext.request.contextPath}/booking/seats?showtimeId=${slot.showtimeId}">
                                             <span class="slot-time">${slot.timeLabel}</span>
                                             <span class="slot-sub">${slot.format} &middot; ${slot.subtitleType}</span>
-                                            <span class="slot-sub">${slot.availableSeats} ghế trống</span>
+                                            <span class="slot-sub">${slot.availableSeats} seats left</span>
                                         </a>
                                     </c:when>
                                     <c:otherwise>
-                                        <span class="slot-btn slot-full" title="Đã hết ghế">
+                                        <span class="slot-btn slot-full" title="Sold out">
                                             <span class="slot-time">${slot.timeLabel}</span>
                                             <span class="slot-sub">${slot.format} &middot; ${slot.subtitleType}</span>
-                                            <span class="slot-sub">Hết ghế</span>
+                                            <span class="slot-sub">Sold out</span>
                                         </span>
                                     </c:otherwise>
                                 </c:choose>
@@ -112,7 +110,7 @@
         </c:otherwise>
     </c:choose>
 
-</div><!-- /container -->
+</div>
 
 <jsp:include page="../common/footer.jsp" />
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>

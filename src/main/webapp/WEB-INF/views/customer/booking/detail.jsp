@@ -2,11 +2,11 @@
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="en">
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>Chi tiết đặt vé – MBCMS</title>
+        <title>Booking Details – MBCMS</title>
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
         <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/main.css?v=${applicationScope.assetVersion}">
         <style>
@@ -20,9 +20,7 @@
                 font-weight: 600;
                 margin-bottom: 1.25rem;
             }
-            .back-link:hover {
-                color: var(--primary);
-            }
+            .back-link:hover { color: var(--primary); }
 
             .success-banner {
                 background: #dcfce7;
@@ -32,18 +30,9 @@
                 text-align: center;
                 margin-bottom: 1.5rem;
             }
-            .success-banner .title {
-                color: #15803d;
-                font-weight: 700;
-                font-size: 1.05rem;
-            }
-            .success-banner .sub   {
-                color: #166534;
-                font-size: .85rem;
-                margin-top: 2px;
-            }
+            .success-banner .title { color: #15803d; font-weight: 700; font-size: 1.05rem; }
+            .success-banner .sub   { color: #166534; font-size: .85rem; margin-top: 2px; }
 
-            /* Ticket card */
             .ticket-card {
                 background: var(--bg-card);
                 border-radius: 16px;
@@ -81,24 +70,11 @@
                 border-radius: 999px;
                 white-space: nowrap;
             }
-            .chip-CONFIRMED {
-                background: #dcfce7;
-                color: #15803d;
-            }
-            .chip-PENDING   {
-                background: #fef3c7;
-                color: #b45309;
-            }
-            .chip-CANCELLED {
-                background: #e5e7eb;
-                color: #4b5563;
-            }
-            .chip-USED      {
-                background: #e0e7ff;
-                color: #4338ca;
-            }
+            .chip-CONFIRMED { background: #dcfce7; color: #15803d; }
+            .chip-PENDING   { background: #fef3c7; color: #b45309; }
+            .chip-CANCELLED { background: #e5e7eb; color: #4b5563; }
+            .chip-USED      { background: #e0e7ff; color: #4338ca; }
 
-            /* Perforated divider, like a real ticket */
             .ticket-divider {
                 position: relative;
                 height: 0;
@@ -114,16 +90,10 @@
                 background: var(--bg-dark);
                 border-radius: 50%;
             }
-            .ticket-divider::before {
-                left: -39px;
-            }
-            .ticket-divider::after  {
-                right: -39px;
-            }
+            .ticket-divider::before { left: -39px; }
+            .ticket-divider::after  { right: -39px; }
 
-            .ticket-body {
-                padding: 24px 28px;
-            }
+            .ticket-body { padding: 24px 28px; }
 
             .detail-grid {
                 display: grid;
@@ -163,9 +133,7 @@
                 font-size: .92rem;
                 color: var(--text-dark);
             }
-            .price-line.discount {
-                color: #16a34a;
-            }
+            .price-line.discount { color: #16a34a; }
             .price-line.total {
                 font-weight: 800;
                 font-size: 1.15rem;
@@ -210,7 +178,6 @@
                 border-color: #dc2626;
             }
 
-            /* Modal for cancel confirm */
             .modal-overlay {
                 position: fixed;
                 inset: 0;
@@ -236,25 +203,25 @@
 
         <div class="container py-4" style="max-width: 680px;">
 
-            <a href="${pageContext.request.contextPath}/customer/booking/history" class="back-link">&#8592; Lịch sử đặt vé</a>
+            <a href="${pageContext.request.contextPath}/customer/booking/history" class="back-link">&#8592; My Bookings</a>
 
             <c:if test="${confirmed}">
                 <div class="success-banner">
-                    <div class="title">🎉 Đặt vé thành công!</div>
-                    <div class="sub">Cảm ơn bạn. Vui lòng xuất trình mã vé khi vào rạp.</div>
+                    <div class="title">Booking confirmed!</div>
+                    <div class="sub">Thank you. Please present your ticket code at the cinema entrance.</div>
                 </div>
             </c:if>
 
             <c:if test="${not empty param.error}">
-                <div class="alert alert-error border-0 mb-3" style="border-radius: 10px; font-size: .9rem;">
-                    ${param.error}
+                <div class="alert alert-danger border-0 mb-3" style="border-radius: 10px; font-size: .9rem;">
+                    <c:out value="${param.error}"/>
                 </div>
             </c:if>
 
             <div class="ticket-card">
                 <div class="ticket-header">
                     <div>
-                        <div class="code-label">Mã đặt vé</div>
+                        <div class="code-label">Booking Code</div>
                         <div class="code-value">${booking.bookingCode}</div>
                     </div>
                     <span class="status-chip chip-${booking.status}">${booking.status}</span>
@@ -265,11 +232,11 @@
                 <div class="ticket-body">
                     <div class="detail-grid">
                         <div class="detail-item">
-                            <div class="label">Suất chiếu</div>
+                            <div class="label">Showtime</div>
                             <div class="value">#${booking.showtimeId}</div>
                         </div>
                         <div class="detail-item">
-                            <div class="label">Ngày đặt</div>
+                            <div class="label">Booked On</div>
                             <div class="value">
                                 <%
                                     java.time.LocalDateTime ldt = ((com.mbcms.model.Booking) request.getAttribute("booking")).getCreatedAt();
@@ -284,34 +251,50 @@
                     </div>
 
                     <div class="detail-item mb-3">
-                        <div class="label">Ghế đã chọn</div>
+                        <div class="label">Seats</div>
                         <div class="value mt-1">
-                            <c:forEach var="seatId" items="${booking.seatIds}">
-                                <span class="seat-pill">Ghế #${seatId}</span>
-                            </c:forEach>
+                            <c:choose>
+                                <c:when test="${not empty booking.seatLabels}">
+                                    <c:forEach var="lbl" items="${booking.seatLabels}">
+                                        <span class="seat-pill">${lbl}</span>
+                                    </c:forEach>
+                                </c:when>
+                                <c:otherwise>—</c:otherwise>
+                            </c:choose>
                         </div>
                     </div>
+
+                    <c:if test="${booking.status == 'CONFIRMED' || booking.status == 'USED'}">
+                        <div class="text-center my-3">
+                            <img src="${pageContext.request.contextPath}/booking/qr?bookingId=${booking.bookingId}"
+                                 alt="QR ${booking.bookingCode}" width="150" height="150"
+                                 style="border:1px solid #e5e7eb; border-radius:10px; padding:6px; background:#fff;">
+                            <div style="font-size:.74rem; color:#94a3b8; margin-top:4px;">
+                                Present this QR code at the entrance to check in
+                            </div>
+                        </div>
+                    </c:if>
 
                     <div class="ticket-divider" style="margin: 0 0 4px;"></div>
 
                     <div class="price-line">
-                        <span>Tạm tính</span>
-                        <span><fmt:formatNumber value="${booking.subtotal}" pattern="#,###"/> đ</span>
+                        <span>Subtotal</span>
+                        <span><fmt:formatNumber value="${booking.subtotal}" pattern="#,###"/>₫</span>
                     </div>
                     <c:if test="${booking.discountAmount != null && booking.discountAmount > 0}">
                         <div class="price-line discount">
-                            <span>Giảm giá</span>
-                            <span>&minus; <fmt:formatNumber value="${booking.discountAmount}" pattern="#,###"/> đ</span>
+                            <span>Discount</span>
+                            <span>&minus;<fmt:formatNumber value="${booking.discountAmount}" pattern="#,###"/>₫</span>
                         </div>
                     </c:if>
                     <div class="price-line total">
-                        <span>Tổng cộng</span>
-                        <span><fmt:formatNumber value="${booking.totalAmount}" pattern="#,###"/> đ</span>
+                        <span>Total</span>
+                        <span><fmt:formatNumber value="${booking.totalAmount}" pattern="#,###"/>₫</span>
                     </div>
 
                     <c:if test="${not empty booking.notes}">
                         <div class="detail-item mt-3">
-                            <div class="label">Ghi chú</div>
+                            <div class="label">Notes</div>
                             <div class="notes-box">${booking.notes}</div>
                         </div>
                     </c:if>
@@ -319,30 +302,28 @@
 
                 <div class="action-bar">
                     <c:if test="${booking.status == 'PENDING'}">
-                        <a href="${pageContext.request.contextPath}/booking/confirm?bookingId=${booking.bookingId}"
-                           class="btn btn-primary-lc">Thanh toán ngay</a>
-                        <button type="button" class="btn-cancel-lc" onclick="showCancelModal()">✕ Huỷ đặt vé</button>
+                        <a href="${pageContext.request.contextPath}/booking/payment?bookingId=${booking.bookingId}"
+                           class="btn btn-primary-lc">Pay Now</a>
+                        <button type="button" class="btn-cancel-lc" onclick="showCancelModal()">Cancel Booking</button>
                     </c:if>
                 </div>
             </div>
 
         </div>
 
-        <%-- Cancel confirmation modal + hidden form posting to BookingCancelServlet --%>
         <c:if test="${booking.status == 'PENDING'}">
-            <div id="cancelOverlay" class="modal-overlay d-none" onclick="if (event.target === this)
-            hideCancelModal()">
+            <div id="cancelOverlay" class="modal-overlay d-none" onclick="if (event.target === this) hideCancelModal()">
                 <div class="modal-box">
-                    <div style="font-size:2rem; text-align:center;">⚠️</div>
-                    <h5 class="text-center mt-2 mb-1">Huỷ vé ${booking.bookingCode}?</h5>
+                    <div style="font-size:2rem; text-align:center;">&#9888;</div>
+                    <h5 class="text-center mt-2 mb-1">Cancel ${booking.bookingCode}?</h5>
                     <p class="text-center text-muted" style="font-size:.9rem;">
-                        Ghế sẽ được giải phóng ngay lập tức cho người khác. Hành động này không thể hoàn tác.
+                        Your seats will be released immediately. This action cannot be undone.
                     </p>
                     <div class="d-flex gap-2 mt-3">
-                        <button type="button" class="btn btn-outline-secondary flex-fill" onclick="hideCancelModal()">Giữ lại</button>
+                        <button type="button" class="btn btn-outline-secondary flex-fill" onclick="hideCancelModal()">Keep Booking</button>
                         <form method="POST" action="${pageContext.request.contextPath}/booking/cancel" class="flex-fill">
                             <input type="hidden" name="bookingId" value="${booking.bookingId}">
-                            <button type="submit" class="btn-cancel-lc w-100">Huỷ đặt vé</button>
+                            <button type="submit" class="btn-cancel-lc w-100">Cancel Booking</button>
                         </form>
                     </div>
                 </div>
@@ -352,12 +333,12 @@
         <jsp:include page="/WEB-INF/views/common/footer.jsp"/>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
         <script>
-                        function showCancelModal() {
-                            document.getElementById('cancelOverlay').classList.remove('d-none');
-                        }
-                        function hideCancelModal() {
-                            document.getElementById('cancelOverlay').classList.add('d-none');
-                        }
+            function showCancelModal() {
+                document.getElementById('cancelOverlay').classList.remove('d-none');
+            }
+            function hideCancelModal() {
+                document.getElementById('cancelOverlay').classList.add('d-none');
+            }
         </script>
     </body>
 </html>

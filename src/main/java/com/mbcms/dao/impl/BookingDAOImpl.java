@@ -2,12 +2,16 @@ package com.mbcms.dao.impl;
 
 import com.mbcms.dao.BookingDAO;
 import com.mbcms.model.Booking;
+import com.mbcms.model.BookingTicket;
 import com.mbcms.exception.SeatUnavailableException;
 
 import java.math.BigDecimal;
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -131,6 +135,7 @@ public class BookingDAOImpl extends BaseDAO implements BookingDAO {
 
             conn.commit(); // release UPDLOCK
             booking.setSeatIds(seatIds);
+            booking.setSeatLabels(loadSeatLabels(newId));
             return booking;
 
         } catch (SeatUnavailableException e) {
@@ -168,8 +173,144 @@ public class BookingDAOImpl extends BaseDAO implements BookingDAO {
     @Override
     public Booking findByIdWithSeats(long bookingId) {
         Booking b = findById(bookingId);
-        if (b != null) b.setSeatIds(loadSeatIds(bookingId));
+        if (b != null) {
+            b.setSeatIds(loadSeatIds(bookingId));
+            b.setSeatLabels(loadSeatLabels(bookingId));
+        }
         return b;
+    }
+
+    // ── findTicket (view-model day du cho e-ticket) ───────────────────────
+
+    /** SELECT chung cho BookingTicket (JOIN showtimes+movies+rooms+branches+customers). */
+    private static final String TICKET_SELECT =
+            "SELECT b.booking_id, b.booking_code, b.[status], b.subtotal, " +
+            "       b.discount_amount, b.total_amount, b.created_at, " +
+            "       m.title AS movie_title, m.rated, m.duration_min, m.poster_url, " +
+            "       st.start_time, st.format, st.subtitle_type, " +
+            "       br.name AS branch_name, r.name AS room_name, " +
+            "       c.full_name, c.email " +
+            "FROM dbo.bookings b " +
+            "JOIN dbo.showtimes st ON st.showtime_id = b.showtime_id " +
+            "JOIN dbo.movies    m  ON m.movie_id     = st.movie_id " +
+            "JOIN dbo.rooms     r  ON r.room_id      = st.room_id " +
+            "JOIN dbo.branches  br ON br.branch_id   = r.branch_id " +
+            "JOIN dbo.customers c  ON c.username     = b.customer_username ";
+
+    @Override
+    public BookingTicket findTicket(long bookingId) {
+        String sql = TICKET_SELECT + "WHERE b.booking_id = ?";
+        Connection conn = null; PreparedStatement ps = null; ResultSet rs = null;
+        try {
+            conn = getConnection();
+            ps = conn.prepareStatement(sql);
+            ps.setLong(1, bookingId);
+            rs = ps.executeQuery();
+            if (!rs.next()) return null;
+            BookingTicket t = mapTicket(rs);
+            t.setSeatLabels(loadSeatLabels(bookingId));
+            return t;
+        } catch (SQLException e) {
+            throw new RuntimeException("findTicket lỗi: " + e.getMessage(), e);
+        } finally {
+            closeAll(rs, ps, conn);
+        }
+    }
+
+    @Override
+    public List<BookingTicket> findTicketsByCustomer(String customerUsername) {
+        String sql = TICKET_SELECT +
+                "WHERE b.customer_username = ? ORDER BY st.start_time DESC";
+        Connection conn = null; PreparedStatement ps = null; ResultSet rs = null;
+        try {
+            conn = getConnection();
+            ps = conn.prepareStatement(sql);
+            ps.setString(1, customerUsername);
+            rs = ps.executeQuery();
+            List<BookingTicket> list = new ArrayList<>();
+            while (rs.next()) {
+                list.add(mapTicket(rs));
+            }
+            Map<Long, List<String>> labelsByBooking = loadSeatLabelsBatch(
+                    list.stream().map(BookingTicket::getBookingId).collect(Collectors.toList()));
+            for (BookingTicket t : list) {
+                t.setSeatLabels(labelsByBooking.getOrDefault(t.getBookingId(), Collections.emptyList()));
+            }
+            return list;
+        } catch (SQLException e) {
+            throw new RuntimeException("findTicketsByCustomer lỗi: " + e.getMessage(), e);
+        } finally {
+            closeAll(rs, ps, conn);
+        }
+    }
+
+    /** Map 1 row tu TICKET_SELECT -> BookingTicket (chua gom seat labels). */
+    private BookingTicket mapTicket(ResultSet rs) throws SQLException {
+        BookingTicket t = new BookingTicket();
+        t.setBookingId(rs.getLong("booking_id"));
+        t.setBookingCode(rs.getString("booking_code"));
+        t.setStatus(rs.getString("status"));
+        t.setSubtotal(rs.getBigDecimal("subtotal"));
+        t.setDiscountAmount(rs.getBigDecimal("discount_amount"));
+        t.setTotalAmount(rs.getBigDecimal("total_amount"));
+        Timestamp created = rs.getTimestamp("created_at");
+        t.setCreatedAt(created != null ? created.toLocalDateTime() : null);
+
+        t.setMovieTitle(rs.getString("movie_title"));
+        t.setMovieRated(rs.getString("rated"));
+        t.setDurationMin(rs.getInt("duration_min"));
+        t.setPosterUrl(rs.getString("poster_url"));
+
+        Timestamp start = rs.getTimestamp("start_time");
+        t.setStartTime(start != null ? start.toLocalDateTime() : null);
+        t.setFormat(rs.getString("format"));
+        t.setSubtitleType(rs.getString("subtitle_type"));
+        t.setBranchName(rs.getString("branch_name"));
+        t.setRoomName(rs.getString("room_name"));
+
+        t.setCustomerFullName(rs.getString("full_name"));
+        t.setCustomerEmail(rs.getString("email"));
+        return t;
+    }
+
+    /** Nhan ghe dang "C5" = row_label + col_number, sap xep theo vi tri. */
+    private List<String> loadSeatLabels(long bookingId) {
+        Map<Long, List<String>> batch = loadSeatLabelsBatch(List.of(bookingId));
+        return batch.getOrDefault(bookingId, Collections.emptyList());
+    }
+
+    /** Mot query cho nhieu booking_id — tranh N+1 tren trang history. */
+    private Map<Long, List<String>> loadSeatLabelsBatch(List<Long> bookingIds) {
+        if (bookingIds == null || bookingIds.isEmpty()) {
+            return Collections.emptyMap();
+        }
+        String placeholders = bookingIds.stream().map(id -> "?").collect(Collectors.joining(","));
+        String sql =
+            "SELECT bs.booking_id, s.row_label, s.col_number " +
+            "FROM dbo.booking_seats bs " +
+            "JOIN dbo.seats s ON s.seat_id = bs.seat_id " +
+            "WHERE bs.booking_id IN (" + placeholders + ") " +
+            "ORDER BY bs.booking_id, s.row_label, s.col_number";
+        Connection conn = null; PreparedStatement ps = null; ResultSet rs = null;
+        try {
+            conn = getConnection();
+            ps = conn.prepareStatement(sql);
+            for (int i = 0; i < bookingIds.size(); i++) {
+                ps.setLong(i + 1, bookingIds.get(i));
+            }
+            rs = ps.executeQuery();
+            Map<Long, List<String>> map = new HashMap<>();
+            while (rs.next()) {
+                long bid = rs.getLong("booking_id");
+                map.computeIfAbsent(bid, k -> new ArrayList<>())
+                        .add(rs.getString("row_label") + rs.getInt("col_number"));
+            }
+            return map;
+        } catch (SQLException e) {
+            throw new RuntimeException("loadSeatLabelsBatch lỗi: " + e.getMessage(), e);
+        } finally {
+            closeAll(rs, ps, conn);
+        }
     }
  
     @Override
@@ -257,7 +398,31 @@ public class BookingDAOImpl extends BaseDAO implements BookingDAO {
             closeAll(ps, conn);
         }
     }
-    
+
+    // ── confirmBooking (connection-aware, dung trong transaction payment) ──
+    @Override
+    public int confirmBooking(Connection conn, long bookingId, String customerUsername) {
+        // Cung dieu kien voi overload tu mo connection, nhung dung conn truyen
+        // vao tu PaymentService de atomic voi payments. KHONG commit/close conn.
+        String sql =
+            "UPDATE dbo.bookings SET [status] = 'CONFIRMED' " +
+            "WHERE booking_id = ? AND customer_username = ? " +
+            "  AND [status] = 'PENDING' AND DATEADD(MINUTE, 10, created_at) > SYSUTCDATETIME()";
+        PreparedStatement ps = null;
+        try {
+            ps = conn.prepareStatement(sql);
+            ps.setLong(1, bookingId);
+            ps.setString(2, customerUsername);
+            return ps.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException("confirmBooking(conn) lỗi: " + e.getMessage(), e);
+        } finally {
+            if (ps != null) {
+                try { ps.close(); } catch (SQLException ignored) {}
+            }
+        }
+    }
+
     // ── cancelBooking ─────────────────────────────────────────────────────
  
     @Override

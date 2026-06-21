@@ -4,6 +4,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -146,9 +148,16 @@ class SeatManagementServiceTest {
         FakeSeatDAO(Seat... s) { for (Seat x : s) seats.add(x); }
         @Override public List<Seat> findByRoom(long roomId) { return seats; }
         @Override public Set<Long> findBookedSeatIds(long showtimeId) { return Set.of(); }
+        @Override public List<Long> checkAndLockSeats(long showtimeId, List<Long> seatIds,
+                Connection conn) throws SQLException {
+            return List.of(); // stub: khong co ghe bi chiem
+        }
         @Override public int updateSeatTypes(long roomId, Map<Long, String> seatTypes) {
             this.lastUpdated = seatTypes;
             return seatTypes.size();
+        }
+        @Override public List<String> findLabelsBySeatIds(List<Long> seatIds) {
+            return List.of(); // stub: khong dung trong SeatManagementService test
         }
     }
 }

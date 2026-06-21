@@ -126,6 +126,7 @@ class MovieDistributionServiceTest {
             for (Long id : validIds) { Branch b = new Branch(); b.setBranchId(id); list.add(b); }
             return list;
         }
+        @Override public List<Branch> findAllActive() { return findAll(); }
     }
 
     private static class FakeMovieDAO implements MovieDAO {
@@ -140,6 +141,7 @@ class MovieDistributionServiceTest {
             for (Movie m : active) if (m.getMovieId() == movieId) return m;
             return null;
         }
+        @Override public List<Movie> findByBranch(long branchId) { return List.of(); }
     }
 
     private static class FakeMovieBranchDAO implements MovieBranchDAO {

@@ -1,6 +1,8 @@
 package com.mbcms.controller.booking;
 
 import com.mbcms.exception.SeatUnavailableException;
+import com.mbcms.dao.SeatDAO;
+import com.mbcms.dao.impl.SeatDAOImpl;
 import com.mbcms.model.Booking;
 import com.mbcms.model.Customer;
 import com.mbcms.service.BookingService;
@@ -31,10 +33,12 @@ import java.util.List;
 public class BookingCheckoutServlet extends HttpServlet {
 
     private BookingService bookingService;
+    private SeatDAO seatDao;
 
     @Override
     public void init() {
         bookingService = new BookingServiceImpl();
+        seatDao = new SeatDAOImpl();
     }
 
     // ── GET: tạo PENDING booking rồi hiển thị checkout page ──────────────
@@ -90,10 +94,11 @@ public class BookingCheckoutServlet extends HttpServlet {
             req.setAttribute("checkoutError", e.getMessage());
             req.setAttribute("showtimeId", showtimeId);
             req.setAttribute("seatIds",    seatIds);
+            req.setAttribute("seatLabels", seatDao.findLabelsBySeatIds(seatIds));
             req.getRequestDispatcher("/WEB-INF/views/booking/checkout.jsp").forward(req, resp);
 
         } catch (Exception e) {
-            req.setAttribute("error", "Lỗi hệ thống: " + e.getMessage());
+            req.setAttribute("error", "System error: " + e.getMessage());
             req.getRequestDispatcher("/WEB-INF/views/common/error500.jsp").forward(req, resp);
         }
     }
@@ -120,8 +125,9 @@ public class BookingCheckoutServlet extends HttpServlet {
         String bookingIdParam = req.getParameter("bookingId");
 
         if (showtimeIdParam == null || seatIds.isEmpty()) {
-            req.setAttribute("checkoutError", "Thiếu thông tin đặt vé. Vui lòng thử lại.");
+            req.setAttribute("checkoutError", "Missing booking information. Please try again.");
             req.setAttribute("seatIds",    seatIds);
+            req.setAttribute("seatLabels", seatDao.findLabelsBySeatIds(seatIds));
             req.setAttribute("showtimeId", showtimeIdParam);
             req.getRequestDispatcher("/WEB-INF/views/booking/checkout.jsp").forward(req, resp);
             return;
@@ -175,7 +181,7 @@ public class BookingCheckoutServlet extends HttpServlet {
                     session.setAttribute("pendingBookingId", fallback.getBookingId());
                     req.setAttribute("booking", fallback);
                 } catch (Exception inner) {
-                    req.setAttribute("checkoutError", "Lỗi hệ thống: " + inner.getMessage());
+                    req.setAttribute("checkoutError", "System error: " + inner.getMessage());
                 }
             }
 
@@ -186,16 +192,18 @@ public class BookingCheckoutServlet extends HttpServlet {
         // Xác nhận thanh toán: lấy bookingId từ hidden field hoặc session
         Long bookingId = parseBookingId(bookingIdParam, session);
         if (bookingId == null) {
-            req.setAttribute("checkoutError", "Phiên đặt vé không hợp lệ. Vui lòng chọn ghế lại.");
+            req.setAttribute("checkoutError", "Invalid booking session. Please select seats again.");
             req.setAttribute("showtimeId", showtimeId);
             req.setAttribute("seatIds",    seatIds);
+            req.setAttribute("seatLabels", seatDao.findLabelsBySeatIds(seatIds));
             req.getRequestDispatcher("/WEB-INF/views/booking/checkout.jsp").forward(req, resp);
             return;
         }
 
-        // Forward sang BookingConfirmServlet để xử lý thanh toán
+        // Chuyển sang bước thanh toán (PaymentServlet) thay vì confirm thẳng.
+        // Booking->CONFIRMED chỉ xảy ra sau khi payment callback thành công.
         resp.sendRedirect(req.getContextPath()
-                + "/booking/confirm?bookingId=" + bookingId);
+                + "/booking/payment?bookingId=" + bookingId);
     }
 
     // ── Helpers ──────────────────────────────────────────────────────────

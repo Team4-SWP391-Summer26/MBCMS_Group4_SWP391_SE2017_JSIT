@@ -1,11 +1,11 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Chọn phim – ${branch.name} – MBCMS</title>
+    <title>Choose Movie – ${branch.name} – MBCMS</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="${pageContext.request.contextPath}/assets/css/main.css?v=${applicationScope.assetVersion}" rel="stylesheet">
     <style>
@@ -27,16 +27,16 @@
 
 <div class="container my-4" style="max-width: 980px;">
 
-    <a href="${pageContext.request.contextPath}/booking/branches" class="btn btn-sm btn-outline-secondary mb-3">&#8592; Đổi chi nhánh</a>
+    <a href="${pageContext.request.contextPath}/booking/branches" class="btn btn-sm btn-outline-secondary mb-3">&#8592; Change cinema</a>
 
-    <span class="step-pill mb-2">Bước 2/3 &middot; Chọn phim</span>
+    <span class="step-pill mb-2">Step 2/3 &middot; Choose movie</span>
     <h3 class="fw-bold mt-2 mb-1">${branch.name}</h3>
     <p class="text-secondary mb-4">${branch.address}<c:if test="${not empty branch.city}">, ${branch.city}</c:if></p>
 
     <c:choose>
         <c:when test="${empty movies}">
             <div class="alert alert-error" role="alert">
-                Chi nhánh này hiện chưa có suất chiếu nào sắp tới. Vui lòng chọn chi nhánh khác.
+                This cinema has no upcoming showtimes. Please choose another cinema.
             </div>
         </c:when>
         <c:otherwise>
@@ -66,10 +66,10 @@
                                 </div>
                                 <div class="card-body py-2 px-2">
                                     <h6 class="card-title fw-bold mb-1" style="font-size:.92rem;">${m.title}</h6>
-                                    <small class="text-secondary">${m.durationMin} phút</small>
+                                    <small class="text-secondary">${m.durationMin} min</small>
                                 </div>
                                 <div class="card-footer border-0 px-2 pb-2" style="background:transparent;">
-                                    <span class="btn btn-sm w-100 btn-primary-lc">Chọn suất chiếu</span>
+                                    <span class="btn btn-sm w-100 btn-primary-lc">Pick showtime</span>
                                 </div>
                             </div>
                         </a>
@@ -79,7 +79,7 @@
         </c:otherwise>
     </c:choose>
 
-</div><!-- /container -->
+</div>
 
 <jsp:include page="../common/footer.jsp" />
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>

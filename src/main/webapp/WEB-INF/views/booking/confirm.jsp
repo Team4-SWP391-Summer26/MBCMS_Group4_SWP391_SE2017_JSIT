@@ -1,315 +1,288 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
+<%--
+    Booking confirmation - e-ticket (owner: HungNT). Booking step 5/5.
+    Dung view-model `ticket` (BookingTicket) co day du movie/showtime/room/seat labels.
+    Neu thieu `ticket` (fallback) van hien bookingCode + total tu `booking`.
+--%>
 <!DOCTYPE html>
-<html lang="vi">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>Booking Confirmed – MBCMS</title>
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-        <link href="${pageContext.request.contextPath}/assets/css/main.css?v=${applicationScope.assetVersion}" rel="stylesheet">
-        <style>
-            /* ── Confirm card ── */
-            .confirm-wrapper {
-                min-height: 70vh;
-                display: flex;
-                align-items: center;
-                padding: 3rem 0;
-            }
-            .confirm-card {
-                background: #fff;
-                border-radius: 16px;
-                box-shadow: 0 4px 24px rgba(0,0,0,.1);
-                border: 1px solid #f1f5f9;
-                overflow: hidden;
-                max-width: 540px;
-                margin: 0 auto;
-                width: 100%;
-            }
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Booking Confirmed – MBCMS</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="${pageContext.request.contextPath}/assets/css/main.css?v=${applicationScope.assetVersion}" rel="stylesheet">
+    <style>
+        /* ===== Booking shared stepper (inline, khong phu thuoc cache main.css) ===== */
+        :root { --bk-primary:#2563EB; --bk-navy:#0F1E36; --bk-bg:#F5F7FA; }
+        body.bk-page { background: var(--bk-bg); }
+        .bk-wrap { max-width: 1080px; }
+        .bk-steps { display:flex; align-items:center; }
+        .bk-step { display:flex; align-items:center; gap:.5rem; font-size:.9rem; font-weight:600; color:#94a3b8; white-space:nowrap; }
+        .bk-step .bk-dot { width:26px; height:26px; border-radius:999px; display:flex; align-items:center;
+            justify-content:center; font-size:.78rem; background:#E2E8F0; color:#64748b; flex-shrink:0; }
+        .bk-step.done { color:#16a34a; } .bk-step.done .bk-dot { background:#16a34a; color:#fff; }
+        .bk-step.active { color:var(--bk-primary); } .bk-step.active .bk-dot { background:var(--bk-primary); color:#fff; }
+        .bk-line { flex:1; height:2px; background:#E2E8F0; margin:0 .5rem; min-width:12px; }
+        .bk-line.done { background:#16a34a; }
+        @media (max-width:640px){ .bk-step span:not(.bk-dot){ display:none; } }
 
-            /* ── Success header ── */
-            .confirm-success-top {
-                background: linear-gradient(135deg, #065f46, #047857);
-                padding: 2rem 1.5rem;
-                text-align: center;
-            }
-            .confirm-success-top .check-anim {
-                width: 64px;
-                height: 64px;
-                background: rgba(255,255,255,.15);
-                border-radius: 50%;
-                display: inline-flex;
-                align-items: center;
-                justify-content: center;
-                font-size: 2rem;
-                margin-bottom: 12px;
-                animation: popIn .4s cubic-bezier(.34,1.56,.64,1) both;
-            }
-            @keyframes popIn {
-                from {
-                    opacity:0;
-                    transform: scale(.5);
-                }
-                to   {
-                    opacity:1;
-                    transform: scale(1);
-                }
-            }
-            .confirm-success-top h2 {
-                color: #fff;
-                font-weight: 800;
-                font-size: 1.4rem;
-                margin: 0 0 4px;
-            }
-            .confirm-success-top p {
-                color: #a7f3d0;
-                font-size: 0.88rem;
-                margin: 0;
-            }
+        /* ===== Success header ===== */
+        .cf-hero { text-align:center; padding: 1.5rem 0 .5rem; }
+        .cf-check { width:64px; height:64px; border-radius:50%; background:#dcfce7; color:#16a34a;
+            display:inline-flex; align-items:center; justify-content:center; font-size:2rem; margin-bottom:.6rem;
+            animation:popIn .4s cubic-bezier(.34,1.56,.64,1) both; }
+        @keyframes popIn { from{opacity:0; transform:scale(.5);} to{opacity:1; transform:scale(1);} }
+        .cf-hero h2 { font-weight:800; color:#15803d; font-size:1.7rem; margin:0; }
+        .cf-hero p  { color:#64748b; margin:.25rem 0 0; }
 
-            /* ── Error header ── */
-            .confirm-error-top {
-                background: linear-gradient(135deg, #7f1d1d, #b91c1c);
-                padding: 2rem 1.5rem;
-                text-align: center;
-            }
-            .confirm-error-top .error-icon {
-                font-size: 2.5rem;
-                margin-bottom: 10px;
-            }
-            .confirm-error-top h2 {
-                color: #fff;
-                font-weight: 800;
-                font-size: 1.3rem;
-                margin: 0 0 4px;
-            }
-            .confirm-error-top p {
-                color: #fca5a5;
-                font-size: 0.88rem;
-                margin: 0;
-            }
+        /* ===== E-ticket ===== */
+        .ticket { max-width:620px; margin:1rem auto 0; background:#fff; border-radius:18px;
+            box-shadow:0 10px 40px rgba(15,30,54,.12); overflow:hidden; }
+        .ticket-top { background:linear-gradient(135deg,#1e3a8a 0%,#2563eb 100%); color:#fff; padding:22px 26px;
+            display:flex; gap:16px; align-items:flex-start; }
+        .ticket-poster { width:54px; height:74px; border-radius:8px; object-fit:cover; flex-shrink:0;
+            background:linear-gradient(135deg,#0f172a,#1e293b); display:flex; align-items:center; justify-content:center;
+            color:#FFC107; font-size:1.5rem; }
+        .ticket-kicker { font-size:.7rem; letter-spacing:.16em; color:#bfdbfe; text-transform:uppercase; font-weight:700; }
+        .ticket-title { font-weight:800; font-size:1.35rem; line-height:1.2; margin:.15rem 0 .4rem; }
+        .ticket-badge { display:inline-block; font-size:.7rem; font-weight:700; padding:2px 8px; border-radius:6px;
+            background:rgba(255,255,255,.18); color:#fff; margin:0 4px 4px 0; }
+        .ticket-badge.rated { background:#FFC107; color:#0f1e36; }
+        .ticket-status { margin-left:auto; background:#dcfce7; color:#15803d; font-size:.72rem; font-weight:700;
+            padding:5px 12px; border-radius:999px; white-space:nowrap; display:inline-flex; align-items:center; gap:5px; }
 
-            /* ── Booking code box ── */
-            .code-box {
-                background: #eff6ff;
-                border: 2px dashed #bfdbfe;
-                border-radius: 10px;
-                padding: 14px 20px;
-                text-align: center;
-                margin: 1.5rem 0;
-            }
-            .code-box .label {
-                font-size: 0.78rem;
-                color: #6b7280;
-                font-weight: 600;
-                letter-spacing: 0.08em;
-                text-transform: uppercase;
-                margin-bottom: 4px;
-            }
-            .code-box .code {
-                font-family: monospace;
-                font-weight: 800;
-                font-size: 1.6rem;
-                color: #1d4ed8;
-                letter-spacing: 0.1em;
-            }
+        .ticket-perf { position:relative; height:0; border-top:2px dashed #e5e7eb; margin:0 26px; }
+        .ticket-perf::before, .ticket-perf::after { content:''; position:absolute; top:-12px; width:24px; height:24px;
+            background:var(--bk-bg); border-radius:50%; }
+        .ticket-perf::before { left:-38px; } .ticket-perf::after { right:-38px; }
 
-            /* ── Info rows ── */
-            .info-row {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                padding: 9px 0;
-                border-bottom: 1px solid #f1f5f9;
-                font-size: 0.9rem;
-            }
-            .info-row:last-child {
-                border-bottom: none;
-            }
-            .info-row .lbl {
-                color: #6b7280;
-            }
-            .info-row .val {
-                font-weight: 600;
-                color: #1e293b;
-            }
-            .info-row.total-row .lbl {
-                font-weight: 700;
-                font-size: 0.95rem;
-                color: #1e293b;
-            }
-            .info-row.total-row .val {
-                font-weight: 800;
-                font-size: 1.05rem;
-                color: #1d4ed8;
-            }
-            .info-row.discount-row .val {
-                color: #16a34a;
-                font-weight: 700;
-            }
+        .ticket-body { padding:22px 26px; display:flex; gap:20px; flex-wrap:wrap; }
+        .ticket-grid { flex:1; min-width:240px; display:grid; grid-template-columns:1fr 1fr; gap:14px 18px; }
+        .tk-item .tk-label { font-size:.7rem; color:#94a3b8; text-transform:uppercase; letter-spacing:.05em; margin-bottom:2px; }
+        .tk-item .tk-value { font-weight:700; color:var(--bk-navy); font-size:.96rem; }
+        .tk-seat { display:inline-block; background:#eff6ff; color:var(--bk-primary); border:1px solid #bfdbfe;
+            border-radius:7px; padding:2px 9px; font-weight:700; font-size:.84rem; margin:2px 4px 0 0; font-family:ui-monospace,Menlo,Consolas,monospace; }
+        .ticket-qr { text-align:center; flex-shrink:0; }
+        .ticket-qr .qr-box { display:inline-block; padding:8px; background:#fff; border:1px solid #e5e7eb; border-radius:10px; }
+        .ticket-qr .qr-box img { display:block; width:150px; height:150px; }
+        .ticket-qr .qr-hint { font-size:.72rem; color:#94a3b8; margin-top:6px; max-width:150px; }
 
-            /* ── Seat badge ── */
-            .seat-badge {
-                display: inline-block;
-                background: #eff6ff;
-                color: #1d4ed8;
-                border: 1px solid #bfdbfe;
-                border-radius: 6px;
-                padding: 2px 8px;
-                font-size: 0.8rem;
-                font-weight: 700;
-                margin: 2px 2px 2px 0;
-                font-family: monospace;
-            }
+        .ticket-foot { border-top:1px solid #f1f5f9; padding:16px 26px; display:flex; flex-wrap:wrap; gap:14px;
+            justify-content:space-between; align-items:flex-end; }
+        .ft-label { font-size:.7rem; color:#94a3b8; text-transform:uppercase; letter-spacing:.05em; }
+        .ft-code { font-family:ui-monospace,Menlo,Consolas,monospace; font-weight:800; color:var(--bk-navy); font-size:1rem; letter-spacing:.04em; }
+        .ft-total { font-weight:800; color:var(--bk-primary); font-size:1.25rem; }
 
-            /* ── Action buttons ── */
-            .btn-home-primary {
-                background: #2563eb;
-                color: #fff;
-                border: none;
-                border-radius: 8px;
-                padding: 11px 28px;
-                font-weight: 700;
-                font-size: 0.95rem;
-                text-decoration: none;
-                transition: background 0.15s;
-                display: inline-block;
-            }
-            .btn-home-primary:hover {
-                background: #1d4ed8;
-                color: #fff;
-            }
-            .btn-history-link {
-                color: #6b7280;
-                text-decoration: none;
-                font-size: 0.88rem;
-                font-weight: 500;
-                transition: color 0.15s;
-                display: inline-flex;
-                align-items: center;
-                gap: 5px;
-            }
-            .btn-history-link:hover {
-                color: #2563eb;
-            }
-        </style>
-    </head>
-    <body>
+        .cf-actions { display:flex; gap:12px; justify-content:center; flex-wrap:wrap; margin:1.5rem 0 .5rem; }
+        .cf-note { max-width:620px; margin:1rem auto 0; background:#eff6ff; border:1px solid #cfe0fb; color:#1e40af;
+            border-radius:10px; padding:.7rem 1rem; font-size:.84rem; display:flex; gap:.5rem; align-items:flex-start; }
 
-        <jsp:include page="../common/header.jsp"/>
+        /* Error card */
+        .cf-error { max-width:480px; margin:2rem auto; background:#fff; border-radius:16px; overflow:hidden;
+            box-shadow:0 4px 24px rgba(0,0,0,.08); }
+        .cf-error-top { background:linear-gradient(135deg,#7f1d1d,#b91c1c); color:#fff; text-align:center; padding:2rem 1.5rem; }
+    </style>
+</head>
+<body class="bk-page">
 
-        <div class="confirm-wrapper">
-            <div class="container px-3">
-                <c:choose>
+<jsp:include page="../common/header.jsp"/>
 
-                    <%-- ══ SUCCESS STATE ══ --%>
-                    <c:when test="${not empty booking and booking.status eq 'CONFIRMED'}">
-                        <div class="confirm-card">
+<%-- ===== Stepper (5/5 Confirm) ===== --%>
+<div class="container bk-wrap pt-4">
+    <div class="bk-steps">
+        <div class="bk-step done"><span class="bk-dot"><i class="bi bi-check-lg"></i></span>Showtime</div>
+        <div class="bk-line done"></div>
+        <div class="bk-step done"><span class="bk-dot"><i class="bi bi-check-lg"></i></span>Seats</div>
+        <div class="bk-line done"></div>
+        <div class="bk-step done"><span class="bk-dot"><i class="bi bi-check-lg"></i></span>Review</div>
+        <div class="bk-line done"></div>
+        <div class="bk-step done"><span class="bk-dot"><i class="bi bi-check-lg"></i></span>Payment</div>
+        <div class="bk-line done"></div>
+        <div class="bk-step active"><span class="bk-dot">5</span>Confirm</div>
+    </div>
+</div>
 
-                            <!-- Green top banner -->
-                            <div class="confirm-success-top">
-                                <div class="check-anim">✓</div>
-                                <h2>Payment Successful!</h2>
-                                <p>Your booking is confirmed. Enjoy the show!</p>
-                            </div>
+<div class="container px-3 pb-5">
+<c:choose>
+<c:when test="${not empty booking and booking.status eq 'CONFIRMED'}">
 
-                            <!-- Body -->
-                            <div class="p-4">
+    <%-- Convert LocalDateTime -> Date de fmt:formatDate (chi khi co ticket) --%>
+    <%
+        com.mbcms.model.BookingTicket _t =
+            (com.mbcms.model.BookingTicket) request.getAttribute("ticket");
+        if (_t != null && _t.getStartTime() != null) {
+            pageContext.setAttribute("startDate",
+                java.util.Date.from(_t.getStartTime()
+                    .atZone(java.time.ZoneId.systemDefault()).toInstant()));
+        }
+    %>
 
-                                <!-- Booking code -->
-                                <div class="code-box">
-                                    <div class="label">Your Booking Code</div>
-                                    <div class="code">${booking.bookingCode}</div>
-                                </div>
+    <div class="cf-hero">
+        <div class="cf-check"><i class="bi bi-check-lg"></i></div>
+        <h2>Booking Confirmed!</h2>
+        <p>
+            <c:choose>
+                <c:when test="${not empty ticket.customerEmail}">Your e-ticket has been sent to <strong>${ticket.customerEmail}</strong></c:when>
+                <c:when test="${not empty sessionScope.currentUser.email}">Your e-ticket has been sent to <strong>${sessionScope.currentUser.email}</strong></c:when>
+                <c:otherwise>Your booking is confirmed. Enjoy the show!</c:otherwise>
+            </c:choose>
+        </p>
+    </div>
 
-                                <!-- Info rows -->
-                                <div class="mb-3">
-                                    <div class="info-row">
-                                        <span class="lbl">Showtime</span>
-                                        <span class="val">#${booking.showtimeId}</span>
-                                    </div>
-                                    <div class="info-row">
-                                        <span class="lbl">Seats</span>
-                                        <span class="val">
-                                            <c:forEach var="sid" items="${booking.seatIds}" varStatus="st">
-                                                <span class="seat-badge">#${sid}</span>
-                                            </c:forEach>
-                                        </span>
-                                    </div>
-                                    <div class="info-row">
-                                        <span class="lbl">Subtotal</span>
-                                        <span class="val"><fmt:formatNumber value="${booking.subtotal}" pattern="#,###"/> ₫</span>
-                                    </div>
-                                    <c:if test="${booking.discountAmount > 0}">
-                                        <div class="info-row discount-row">
-                                            <span class="lbl">Discount</span>
-                                            <span class="val">− <fmt:formatNumber value="${booking.discountAmount}" pattern="#,###"/> ₫</span>
-                                        </div>
-                                    </c:if>
-                                    <div class="info-row total-row">
-                                        <span class="lbl">Total Paid</span>
-                                        <span class="val"><fmt:formatNumber value="${booking.totalAmount}" pattern="#,###"/> ₫</span>
-                                    </div>
-                                </div>
+    <div class="ticket">
+        <%-- ===== Top: movie + status ===== --%>
+        <div class="ticket-top">
+            <c:choose>
+                <c:when test="${not empty ticket.posterUrl}">
+                    <img class="ticket-poster" src="${ticket.posterUrl}" alt="poster">
+                </c:when>
+                <c:otherwise><div class="ticket-poster"><i class="bi bi-film"></i></div></c:otherwise>
+            </c:choose>
+            <div class="flex-grow-1">
+                <div class="ticket-kicker">MBCMS · Admit One · E-Ticket</div>
+                <div class="ticket-title">
+                    <c:choose>
+                        <c:when test="${not empty ticket.movieTitle}">${ticket.movieTitle}</c:when>
+                        <c:otherwise>Movie ticket</c:otherwise>
+                    </c:choose>
+                </div>
+                <div>
+                    <c:if test="${not empty ticket.movieRated}"><span class="ticket-badge rated">${ticket.movieRated}</span></c:if>
+                    <c:if test="${not empty ticket.format}"><span class="ticket-badge">${ticket.format}</span></c:if>
+                    <c:if test="${not empty ticket.subtitleType}">
+                        <span class="ticket-badge">
+                            <c:choose>
+                                <c:when test="${ticket.subtitleType eq 'SUB'}">Subtitled</c:when>
+                                <c:when test="${ticket.subtitleType eq 'DUB'}">Dubbed</c:when>
+                                <c:otherwise>Original</c:otherwise>
+                            </c:choose>
+                        </span>
+                    </c:if>
+                    <c:if test="${ticket.durationMin > 0}"><span class="ticket-badge">${ticket.durationMin} min</span></c:if>
+                </div>
+            </div>
+            <span class="ticket-status"><i class="bi bi-check-circle-fill"></i> CONFIRMED</span>
+        </div>
 
-                                <!-- Tip -->
-                                <div style="background:#f8fafc; border-radius:8px; padding:10px 14px; font-size:0.8rem; color:#4b5563; margin-bottom:1.25rem;">
-                                    💡 Present this booking code at the cinema entrance. A copy has been sent to your email.
-                                </div>
+        <div class="ticket-perf"></div>
 
-                                <!-- Action buttons -->
-                                <div class="d-flex flex-column align-items-center gap-3">
-                                    <div class="d-flex gap-3 align-items-center flex-wrap justify-content-center">
-                                        <a href="${pageContext.request.contextPath}/home" class="btn-home-primary">
-                                            Back to Home
-                                        </a>
-                                        <a href="${pageContext.request.contextPath}/customer/booking/history" class="btn-history-link">
-                                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                            <rect x="3" y="4" width="18" height="18" rx="2"></rect>
-                                            <line x1="16" y1="2" x2="16" y2="6"></line>
-                                            <line x1="8" y1="2" x2="8" y2="6"></line>
-                                            <line x1="3" y1="10" x2="21" y2="10"></line>
-                                            </svg>
-                                            My Bookings
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </c:when>
+        <%-- ===== Body: details + QR ===== --%>
+        <div class="ticket-body">
+            <div class="ticket-grid">
+                <div class="tk-item">
+                    <div class="tk-label">Date</div>
+                    <div class="tk-value">
+                        <c:choose>
+                            <c:when test="${not empty startDate}"><fmt:formatDate value="${startDate}" pattern="EEE, dd MMM yyyy"/></c:when>
+                            <c:otherwise>—</c:otherwise>
+                        </c:choose>
+                    </div>
+                </div>
+                <div class="tk-item">
+                    <div class="tk-label">Time</div>
+                    <div class="tk-value">
+                        <c:choose>
+                            <c:when test="${not empty startDate}"><fmt:formatDate value="${startDate}" pattern="HH:mm"/></c:when>
+                            <c:otherwise>—</c:otherwise>
+                        </c:choose>
+                    </div>
+                </div>
+                <div class="tk-item">
+                    <div class="tk-label">Cinema</div>
+                    <div class="tk-value">${not empty ticket.branchName ? ticket.branchName : '—'}</div>
+                </div>
+                <div class="tk-item">
+                    <div class="tk-label">Room</div>
+                    <div class="tk-value">${not empty ticket.roomName ? ticket.roomName : '—'}</div>
+                </div>
+                <div class="tk-item" style="grid-column:1 / -1;">
+                    <div class="tk-label">Seats</div>
+                    <div class="tk-value">
+                        <c:choose>
+                            <c:when test="${not empty ticket.seatLabels}">
+                                <c:forEach var="lbl" items="${ticket.seatLabels}"><span class="tk-seat">${lbl}</span></c:forEach>
+                            </c:when>
+                            <c:when test="${not empty booking.seatLabels}">
+                                <c:forEach var="lbl" items="${booking.seatLabels}"><span class="tk-seat">${lbl}</span></c:forEach>
+                            </c:when>
+                            <c:otherwise>—</c:otherwise>
+                        </c:choose>
+                    </div>
+                </div>
+            </div>
 
-                    <%-- ══ ERROR / NOT FOUND STATE ══ --%>
-                    <c:otherwise>
-                        <div class="confirm-card">
-                            <div class="confirm-error-top">
-                                <div class="error-icon">⚠️</div>
-                                <h2>Booking Not Found</h2>
-                                <p>We couldn't retrieve your booking details.</p>
-                            </div>
-                            <div class="p-4 text-center">
-                                <c:if test="${not empty errorMessage}">
-                                    <p class="text-muted mb-4" style="font-size:0.9rem;">${errorMessage}</p>
-                                </c:if>
-                                <div class="d-flex gap-3 justify-content-center flex-wrap">
-                                    <a href="${pageContext.request.contextPath}/home" class="btn-home-primary">
-                                        Back to Home
-                                    </a>
-                                    <a href="${pageContext.request.contextPath}/customer/booking/history" class="btn-history-link">
-                                        My Bookings
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    </c:otherwise>
-
-                </c:choose>
+            <div class="ticket-qr">
+                <div class="qr-box">
+                    <img src="${pageContext.request.contextPath}/booking/qr?bookingId=${booking.bookingId}"
+                         alt="QR ${booking.bookingCode}">
+                </div>
+                <div class="qr-hint">Scan at the entrance to check in</div>
             </div>
         </div>
 
-        <jsp:include page="../common/footer.jsp"/>
+        <%-- ===== Footer: code + customer + total ===== --%>
+        <div class="ticket-foot">
+            <div>
+                <div class="ft-label">Booking Code</div>
+                <div class="ft-code">${booking.bookingCode}</div>
+            </div>
+            <c:if test="${not empty ticket.customerFullName}">
+                <div>
+                    <div class="ft-label">Customer</div>
+                    <div class="fw-semibold" style="color:var(--bk-navy);">${ticket.customerFullName}</div>
+                </div>
+            </c:if>
+            <div class="text-end">
+                <div class="ft-label">Total Paid</div>
+                <div class="ft-total"><fmt:formatNumber value="${booking.totalAmount}" pattern="#,###"/>₫</div>
+            </div>
+        </div>
+    </div>
 
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    </body>
+    <div class="cf-actions">
+        <a href="${pageContext.request.contextPath}/customer/booking/detail?bookingId=${booking.bookingId}"
+           class="btn btn-outline-primary"><i class="bi bi-receipt"></i> View Receipt</a>
+        <a href="${pageContext.request.contextPath}/customer/booking/history"
+           class="btn btn-outline-secondary"><i class="bi bi-calendar2-week"></i> My Bookings</a>
+        <a href="${pageContext.request.contextPath}/home" class="btn btn-primary"><i class="bi bi-house"></i> Back to Home</a>
+    </div>
+
+    <div class="cf-note">
+        <i class="bi bi-info-circle-fill"></i>
+        <span>Please arrive at least <strong>15 minutes</strong> before showtime. Show this QR code (or your booking code
+            <strong>${booking.bookingCode}</strong>) at the entrance.</span>
+    </div>
+
+</c:when>
+
+<%-- ===== ERROR / NOT FOUND ===== --%>
+<c:otherwise>
+    <div class="cf-error">
+        <div class="cf-error-top">
+            <div style="font-size:2.5rem;"><i class="bi bi-exclamation-triangle-fill"></i></div>
+            <h2 class="fw-bold mt-2 mb-1" style="font-size:1.3rem;">Booking Not Found</h2>
+            <p class="mb-0" style="color:#fca5a5; font-size:.9rem;">We couldn't retrieve your booking details.</p>
+        </div>
+        <div class="p-4 text-center">
+            <c:if test="${not empty errorMessage}">
+                <p class="text-muted mb-4" style="font-size:.9rem;">${errorMessage}</p>
+            </c:if>
+            <div class="d-flex gap-2 justify-content-center flex-wrap">
+                <a href="${pageContext.request.contextPath}/home" class="btn btn-primary">Back to Home</a>
+                <a href="${pageContext.request.contextPath}/customer/booking/history" class="btn btn-outline-secondary">My Bookings</a>
+            </div>
+        </div>
+    </div>
+</c:otherwise>
+</c:choose>
+</div>
+
+<jsp:include page="../common/footer.jsp"/>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
 </html>

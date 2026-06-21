@@ -13,6 +13,7 @@ import com.mbcms.dao.impl.PromotionDAOImpl;
 import com.mbcms.dao.impl.SeatDAOImpl;
 import com.mbcms.dao.impl.ShowtimeDAOImpl;
 import com.mbcms.model.Booking;
+import com.mbcms.model.BookingTicket;
 import com.mbcms.model.Promotion;
 import com.mbcms.model.Seat;
 import com.mbcms.model.Showtime;
@@ -55,20 +56,20 @@ public class BookingServiceImpl implements BookingService {
 
         LocalDateTime now = LocalDateTime.now();
         if (!p.isActive()) {
-            throw new IllegalArgumentException("Mã khuyến mãi đã bị vô hiệu hóa.");
+            throw new IllegalArgumentException("This promo code has been deactivated.");
         }
         if (p.getValidFrom() != null && now.isBefore(p.getValidFrom())) {
-            throw new IllegalArgumentException("Mã khuyến mãi chưa đến hạn sử dụng.");
+            throw new IllegalArgumentException("This promo code is not valid yet.");
         }
         if (p.getValidTo() != null && now.isAfter(p.getValidTo())) {
-            throw new IllegalArgumentException("Mã khuyến mãi đã hết hạn.");
+            throw new IllegalArgumentException("This promo code has expired.");
         }
         if (p.getMaxUses() != null && p.getUsedCount() >= p.getMaxUses()) {
-            throw new IllegalArgumentException("Mã khuyến mãi đã sử dụng hết lượt.");
+            throw new IllegalArgumentException("This promo code has reached its usage limit.");
         }
         if (p.getMinOrderAmount() != null && subtotal.compareTo(p.getMinOrderAmount()) < 0) {
             throw new IllegalArgumentException(String.format(
-                    "Đơn hàng tối thiểu %.0f VND để áp dụng mã này.",
+                    "Minimum order of %.0f VND required for this promo code.",
                     p.getMinOrderAmount().doubleValue()));
         }
         return p;
@@ -79,16 +80,16 @@ public class BookingServiceImpl implements BookingService {
     public Booking createPendingBooking(String customerUsername, long showtimeId,
             List<Long> seatIds, String promoCode, String notes) {
         if (seatIds == null || seatIds.isEmpty()) {
-            throw new IllegalArgumentException("Phải chọn ít nhất 1 ghế.");
+            throw new IllegalArgumentException("Please select at least one seat.");
         }
 
         // Lấy showtime
         Showtime st = showtimeDao.findById(showtimeId);
         if (st == null) {
-            throw new IllegalArgumentException("Suất chiếu không tồn tại.");
+            throw new IllegalArgumentException("Showtime not found.");
         }
         if (!"SCHEDULED".equals(st.getStatus())) {
-            throw new IllegalArgumentException("Suất chiếu không còn hoạt động.");
+            throw new IllegalArgumentException("This showtime is no longer available.");
         }
 
         // Lấy seats để tính surcharge – dùng List<Seat> từ seatDao
@@ -125,14 +126,14 @@ public class BookingServiceImpl implements BookingService {
             // 0 row affected: booking hết hạn hoặc sai trạng thái
             Booking b = bookingDao.findById(bookingId);
             if (b == null) {
-                throw new IllegalArgumentException("Booking không tồn tại.");
+                throw new IllegalArgumentException("Booking not found.");
             }
             if (!Booking.STATUS_PENDING.equals(b.getStatus())) {
                 throw new IllegalStateException(
-                        "Booking không ở trạng thái PENDING. Hiện tại: " + b.getStatus());
+                        "Booking is not PENDING. Current status: " + b.getStatus());
             }
             // PENDING nhưng updated=0 → đã hết hạn
-            throw new IllegalStateException("Booking đã hết thời gian giữ ghế. Vui lòng đặt lại.");
+            throw new IllegalStateException("Your seat hold has expired. Please book again.");
         }
 
         // Tăng used_count nếu có promo
@@ -167,9 +168,27 @@ public class BookingServiceImpl implements BookingService {
             return null;
         }
         if (!b.getCustomerUsername().equals(customerUsername)) {
-            throw new SecurityException("Không có quyền xem booking này.");
+            throw new SecurityException("You are not allowed to view this booking.");
         }
         return b;
+    }
+
+    @Override
+    public BookingTicket getTicket(long bookingId, String customerUsername) {
+        // Owner check truoc khi tra ve view-model day du (tranh xem ve nguoi khac).
+        Booking b = bookingDao.findById(bookingId);
+        if (b == null) {
+            return null;
+        }
+        if (!b.getCustomerUsername().equals(customerUsername)) {
+            throw new SecurityException("You are not allowed to view this booking.");
+        }
+        return bookingDao.findTicket(bookingId);
+    }
+
+    @Override
+    public List<BookingTicket> getBookingHistoryTickets(String customerUsername) {
+        return bookingDao.findTicketsByCustomer(customerUsername);
     }
 
     // ── expirePendingBookings ─────────────────────────────────────────────

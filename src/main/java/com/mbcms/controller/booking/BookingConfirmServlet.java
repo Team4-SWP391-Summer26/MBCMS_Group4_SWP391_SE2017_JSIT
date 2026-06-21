@@ -65,6 +65,11 @@ public class BookingConfirmServlet extends HttpServlet {
             Booking booking = bookingService.confirmBooking(bookingId, customer.getUsername());
             session.removeAttribute("pendingBookingId");
             request.setAttribute("booking", booking);
+            // View-model day du cho e-ticket (movie/showtime/room/seat labels...)
+            try {
+                request.setAttribute("ticket",
+                        bookingService.getTicket(bookingId, customer.getUsername()));
+            } catch (Exception ignore) { /* fallback: confirm.jsp dung 'booking' */ }
             request.getRequestDispatcher("/WEB-INF/views/booking/confirm.jsp")
                     .forward(request, response);
 
@@ -77,7 +82,7 @@ public class BookingConfirmServlet extends HttpServlet {
             request.getRequestDispatcher("/WEB-INF/views/common/error403.jsp")
                     .forward(request, response);
         } catch (Exception e) {
-            request.setAttribute("error", "Lỗi hệ thống: " + e.getMessage());
+            request.setAttribute("error", "System error: " + e.getMessage());
             request.getRequestDispatcher("/WEB-INF/views/common/error500.jsp")
                     .forward(request, response);
         }
@@ -128,7 +133,7 @@ public class BookingConfirmServlet extends HttpServlet {
             request.getRequestDispatcher("/WEB-INF/views/common/error403.jsp")
                     .forward(request, response);
         } catch (Exception e) {
-            request.setAttribute("error", "Lỗi hệ thống: " + e.getMessage());
+            request.setAttribute("error", "System error: " + e.getMessage());
             request.getRequestDispatcher("/WEB-INF/views/common/error500.jsp")
                     .forward(request, response);
         }

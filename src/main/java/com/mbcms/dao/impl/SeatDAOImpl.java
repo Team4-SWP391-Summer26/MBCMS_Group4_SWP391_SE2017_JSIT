@@ -172,6 +172,44 @@ public class SeatDAOImpl extends BaseDAO implements SeatDAO {
         }
     }
 
+    @Override
+    public List<String> findLabelsBySeatIds(List<Long> seatIds) {
+        if (seatIds == null || seatIds.isEmpty()) {
+            return Collections.emptyList();
+        }
+        StringBuilder placeholders = new StringBuilder();
+        for (int i = 0; i < seatIds.size(); i++) {
+            if (i > 0) {
+                placeholders.append(',');
+            }
+            placeholders.append('?');
+        }
+        String sql = "SELECT row_label, col_number FROM dbo.seats "
+                + "WHERE seat_id IN (" + placeholders + ") "
+                + "ORDER BY row_label, col_number";
+
+        Connection conn = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+        try {
+            conn = getConnection();
+            ps = conn.prepareStatement(sql);
+            for (int i = 0; i < seatIds.size(); i++) {
+                ps.setLong(i + 1, seatIds.get(i));
+            }
+            rs = ps.executeQuery();
+            List<String> labels = new ArrayList<>();
+            while (rs.next()) {
+                labels.add(rs.getString("row_label") + rs.getInt("col_number"));
+            }
+            return labels;
+        } catch (SQLException e) {
+            throw new RuntimeException("findLabelsBySeatIds lỗi: " + e.getMessage(), e);
+        } finally {
+            closeAll(rs, ps, conn);
+        }
+    }
+
     private void rollbackQuietly(Connection conn) {
         if (conn != null) {
             try {
