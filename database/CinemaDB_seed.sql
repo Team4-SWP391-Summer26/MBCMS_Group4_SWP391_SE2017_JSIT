@@ -22,6 +22,7 @@ DELETE FROM dbo.showtimes;
 DELETE FROM dbo.seats;
 DELETE FROM dbo.rooms;
 DELETE FROM dbo.movie_genres;
+DELETE FROM dbo.movie_branch;
 DELETE FROM dbo.food_items;
 DELETE FROM dbo.promotions;
 DELETE FROM dbo.employees;
