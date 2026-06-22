@@ -321,7 +321,7 @@
                     </p>
                     <div class="d-flex gap-2 mt-3">
                         <button type="button" class="btn btn-outline-secondary flex-fill" onclick="hideCancelModal()">Keep Booking</button>
-                        <form method="POST" action="${pageContext.request.contextPath}/booking/cancel" class="flex-fill">
+                        <form method="POST" action="${pageContext.request.contextPath}/customer/booking/cancel" class="flex-fill">
                             <input type="hidden" name="bookingId" value="${booking.bookingId}">
                             <button type="submit" class="btn-cancel-lc w-100">Cancel Booking</button>
                         </form>

@@ -195,7 +195,7 @@ public class BookingDAOImpl extends BaseDAO implements BookingDAO {
             "JOIN dbo.movies    m  ON m.movie_id     = st.movie_id " +
             "JOIN dbo.rooms     r  ON r.room_id      = st.room_id " +
             "JOIN dbo.branches  br ON br.branch_id   = r.branch_id " +
-            "JOIN dbo.customers c  ON c.username     = b.customer_username ";
+            "LEFT JOIN dbo.customers c  ON c.username     = b.customer_username ";
 
     @Override
     public BookingTicket findTicket(long bookingId) {
@@ -509,7 +509,7 @@ public class BookingDAOImpl extends BaseDAO implements BookingDAO {
     @Override
     public Booking createCounterBooking(Booking booking, List<Long> seatIds) {
         // Sinh booking_code duy nhat
-        booking.setBookingCode("BK-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase());
+        booking.setBookingCode("BK-" + UUID.randomUUID().toString().substring(0, 6).toUpperCase());
         booking.setStatus(Booking.STATUS_CONFIRMED);
 
         String insertBooking
