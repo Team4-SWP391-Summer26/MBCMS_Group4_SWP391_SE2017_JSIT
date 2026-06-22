@@ -1,0 +1,29 @@
+# Copy file nay thanh database.properties va dien thong tin cua ban
+# BAT BUOC co db.driver: trong Tomcat driver nam o WEB-INF/lib khong tu dang ky
+# duoc voi DriverManager -> thieu dong nay se loi "No suitable driver".
+db.driver=com.microsoft.sqlserver.jdbc.SQLServerDriver
+db.url=jdbc:sqlserver://localhost:1433;databaseName=CinemaDB;encrypt=false;trustServerCertificate=true
+db.username=
+db.password=
+
+db.pool.initialSize=5
+db.pool.maxTotal=20
+db.pool.maxIdle=10
+db.pool.minIdle=5
+db.pool.maxWaitMillis=30000
+db.pool.testOnBorrow=true
+db.pool.validationQuery=SELECT 1
+
+# ----- VNPay Sandbox (thanh toan online) -----
+# 1. Dang ky: https://sandbox.vnpayment.vn/devreg/
+# 2. Lay Terminal ID (vnp_TmnCode) + Secret Key (hashSecret)
+# 3. Dien vao day (KHONG commit secret that len GitHub)
+# 4. Return/IPN URL de trong -> tu build tu localhost khi chay Tomcat
+#    (IPN tu VNPay server -> localhost can ngrok neu muon test IPN; Return URL browser van OK)
+payment.vnpay.tmnCode=
+payment.vnpay.hashSecret=
+payment.vnpay.payUrl=https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
+# payment.vnpay.returnUrl=http://localhost:9999/MBCMS/booking/payment/vnpay-return
+# payment.vnpay.ipnUrl=http://localhost:9999/MBCMS/booking/payment/vnpay-ipn
+payment.vnpay.locale=en
+

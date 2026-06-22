@@ -6,7 +6,7 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Bán vé tại quầy - MBCMS Staff</title>
+        <title>Counter Booking - MBCMS Staff</title>
         <!-- Bootstrap 5 CSS -->
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
         <!-- Bootstrap Icons -->
@@ -189,8 +189,8 @@
                     <div class="alert alert-danger alert-dismissible fade show" role="alert">
                         <i class="bi bi-exclamation-triangle-fill me-2"></i>
                         <c:choose>
-                            <c:when test="${err eq 'vnpay_failed'}">Thanh toán qua cổng VNPay thất bại hoặc đã bị hủy. Ghế đã được giải phóng.</c:when>
-                            <c:otherwise>Có lỗi xảy ra trong quá trình xử lý.</c:otherwise>
+                            <c:when test="${err eq 'vnpay_failed'}">Payment via VNPay gateway failed or was cancelled. Seats have been released.</c:when>
+                            <c:otherwise>An error occurred during processing.</c:otherwise>
                         </c:choose>
                         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
@@ -199,12 +199,12 @@
                 <%-- ===== Page Header ===== --%>
                 <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
                     <div>
-                        <div class="text-muted small mb-1">Nghiệp vụ quầy</div>
-                        <h4 class="text-navy fw-bold mb-0">Đặt Vé Trực Tiếp Tại Quầy</h4>
+                        <div class="text-muted small mb-1">Counter Operations</div>
+                        <h4 class="text-navy fw-bold mb-0">Counter Ticket Booking</h4>
                     </div>
                     <div class="lc-sb-user d-flex align-items-center gap-2 px-3 py-1 text-navy border rounded" style="background:#fff;">
                         <i class="bi bi-geo-alt-fill text-primary"></i>
-                        <span>Chi nhánh: <strong><c:out value="${sessionScope.currentBranchName}" /></strong></span>
+                        <span>Branch: <strong><c:out value="${sessionScope.currentBranchName}" /></strong></span>
                     </div>
                 </div>
 
@@ -213,23 +213,23 @@
                     <div class="wizard-steps">
                         <div class="wizard-step active" id="step-ind-1">
                             <div class="step-num">1</div>
-                            <div class="step-label">Suất Chiếu</div>
+                            <div class="step-label">Showtime</div>
                         </div>
                         <div class="wizard-step" id="step-ind-2">
                             <div class="step-num">2</div>
-                            <div class="step-label">Chọn Ghế</div>
+                            <div class="step-label">Choose Seats</div>
                         </div>
                         <div class="wizard-step" id="step-ind-3">
                             <div class="step-num">3</div>
-                            <div class="step-label">Khuyến Mãi</div>
+                            <div class="step-label">Promotion</div>
                         </div>
                         <div class="wizard-step" id="step-ind-4">
                             <div class="step-num">4</div>
-                            <div class="step-label">Thanh Toán</div>
+                            <div class="step-label">Payment</div>
                         </div>
                         <div class="wizard-step" id="step-ind-5">
                             <div class="step-num">5</div>
-                            <div class="step-label">In Vé</div>
+                            <div class="step-label">Print Ticket</div>
                         </div>
                     </div>
                 </div>
@@ -237,46 +237,46 @@
                 <%-- ===== STEP 1: SELECT SHOWTIME ===== --%>
                 <div class="wizard-panel active" id="panel-1">
                     <div class="card lc-elev p-4">
-                        <h5 class="text-navy fw-bold mb-3"><i class="bi bi-1-circle-fill text-primary me-2"></i>Chọn Suất Chiếu</h5>
+                        <h5 class="text-navy fw-bold mb-3"><i class="bi bi-1-circle-fill text-primary me-2"></i>Select Showtime</h5>
 
                         <!-- Search & Filter Controls -->
                         <div class="row g-3 mb-4">
                             <div class="col-md-5">
-                                <label class="form-label fw-semibold">Tìm kiếm phim</label>
+                                <label class="form-label fw-semibold">Search Movie</label>
                                 <div class="input-group">
                                     <span class="input-group-text"><i class="bi bi-search"></i></span>
-                                    <input type="text" id="movie-search" class="form-control" placeholder="Nhập tên phim cần tìm...">
+                                    <input type="text" id="movie-search" class="form-control" placeholder="Enter movie name...">
                                 </div>
                             </div>
                             <div class="col-md-4">
-                                <label class="form-label fw-semibold">Lọc theo phòng</label>
+                                <label class="form-label fw-semibold">Filter by Room</label>
                                 <select id="room-filter" class="form-select">
-                                    <option value="">Tất cả các phòng</option>
+                                    <option value="">All Rooms</option>
                                     <c:forEach var="r" items="${rooms}">
                                         <option value="${r.roomId}"><c:out value="${r.name}" /> (${r.roomType})</option>
                                     </c:forEach>
                                 </select>
                             </div>
                             <div class="col-md-3">
-                                <label class="form-label fw-semibold">Ngày chiếu</label>
+                                <label class="form-label fw-semibold">Show Date</label>
                                 <input type="date" id="date-filter" class="form-control">
                             </div>
                         </div>
 
                         <!-- Showtimes List Container -->
                         <div class="mb-4">
-                            <h6 class="text-navy fw-bold mb-3 text-uppercase small" style="letter-spacing: .05em;">Danh sách suất chiếu khả dụng hôm nay</h6>
+                            <h6 class="text-navy fw-bold mb-3 text-uppercase small" style="letter-spacing: .05em;">Available Showtimes Today</h6>
                             <div class="row g-3" id="showtimes-container">
                                 <!-- Showtimes populated dynamically via JS -->
                                 <div class="col-12 text-center text-muted py-5" id="showtimes-loading">
                                     <div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div>
-                                    Đang tải danh sách suất chiếu...
+                                    Loading showtimes...
                                 </div>
                             </div>
                         </div>
 
                         <div class="d-flex justify-content-end mt-4">
-                            <button class="btn btn-primary-lc px-4" id="btn-to-step2" disabled>Tiếp tục chọn ghế <i class="bi bi-arrow-right ms-1"></i></button>
+                            <button class="btn btn-primary-lc px-4" id="btn-to-step2" disabled>Continue to select seats <i class="bi bi-arrow-right ms-1"></i></button>
                         </div>
                     </div>
                 </div>
@@ -286,9 +286,9 @@
                     <div class="card lc-elev p-4">
                         <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
                             <div class="d-flex align-items-center gap-2">
-                                <h5 class="text-navy fw-bold mb-0"><i class="bi bi-2-circle-fill text-primary me-2"></i>Chọn Ghế</h5>
-                                <span id="wsBadge" class="badge bg-secondary">Chưa kết nối</span>
-                                <span id="refreshBadge" class="badge bg-success" style="opacity: 0; transition: opacity 0.4s;">&#8635; Đã cập nhật</span>
+                                <h5 class="text-navy fw-bold mb-0"><i class="bi bi-2-circle-fill text-primary me-2"></i>Choose Seats</h5>
+                                <span id="wsBadge" class="badge bg-secondary">Disconnected</span>
+                                <span id="refreshBadge" class="badge bg-success" style="opacity: 0; transition: opacity 0.4s;">&#8635; Updated</span>
                             </div>
                             <div class="badge bg-primary px-3 py-2 fs-6" id="showtime-header-info"></div>
                         </div>
@@ -296,7 +296,7 @@
                         <!-- Curved Screen -->
                         <div class="screen-wrap">
                             <div class="screen-curve"></div>
-                            <div class="screen-label">MÀN HÌNH CHIẾU</div>
+                            <div class="screen-label">SCREEN</div>
                         </div>
 
                         <!-- Seat Map Grid -->
@@ -308,23 +308,23 @@
                         <div class="row align-items-center g-3">
                             <div class="col-md-6">
                                 <div class="d-flex flex-wrap gap-3 mt-2">
-                                    <div class="legend-item"><div class="legend-box" style="background:#f0f7ff;border-color:#7cb0f5;"></div>Thường</div>
+                                    <div class="legend-item"><div class="legend-box" style="background:#f0f7ff;border-color:#7cb0f5;"></div>Regular</div>
                                     <div class="legend-item"><div class="legend-box" style="background:#fef3c7;border-color:#f59e0b;"></div>VIP</div>
-                                    <div class="legend-item"><div class="legend-box" style="background:#16a34a;border-color:#15803d;"></div>Đang chọn</div>
-                                    <div class="legend-item"><div class="legend-box" style="background:#fef3c7;border-color:#f59e0b;animation:soft-pulse 1.8s ease-in-out infinite;"></div>Người khác chọn</div>
-                                    <div class="legend-item"><div class="legend-box" style="background:#fee2e2;border-color:#fca5a5;"></div>Đã đặt</div>
-                                    <div class="legend-item"><div class="legend-box" style="background:#f3f4f6;border-color:#d1d5db;"></div>Bảo trì</div>
+                                    <div class="legend-item"><div class="legend-box" style="background:#16a34a;border-color:#15803d;"></div>Selected</div>
+                                    <div class="legend-item"><div class="legend-box" style="background:#fef3c7;border-color:#f59e0b;animation:soft-pulse 1.8s ease-in-out infinite;"></div>Held by others</div>
+                                    <div class="legend-item"><div class="legend-box" style="background:#fee2e2;border-color:#fca5a5;"></div>Booked</div>
+                                    <div class="legend-item"><div class="legend-box" style="background:#f3f4f6;border-color:#d1d5db;"></div>Maintenance</div>
                                 </div>
                             </div>
                             <div class="col-md-6 text-end">
-                                <div class="fw-semibold text-navy">Ghế đã chọn: <span id="selected-seats-display" class="text-primary font-monospace">&mdash;</span></div>
-                                <div class="fs-5 fw-bold text-navy mt-1">Tổng tạm tính: <span id="subtotal-display" class="text-danger">0</span> VND</div>
+                                <div class="fw-semibold text-navy">Selected seats: <span id="selected-seats-display" class="text-primary font-monospace">&mdash;</span></div>
+                                <div class="fs-5 fw-bold text-navy mt-1">Subtotal: <span id="subtotal-display" class="text-danger">0</span> VND</div>
                             </div>
                         </div>
 
                         <div class="d-flex justify-content-between mt-4">
-                            <button class="btn btn-secondary px-4" onclick="goToStep(1)"><i class="bi bi-arrow-left me-1"></i> Quay lại</button>
-                            <button class="btn btn-primary-lc px-4" id="btn-to-step3" disabled>Tiếp tục <i class="bi bi-arrow-right ms-1"></i></button>
+                            <button class="btn btn-secondary px-4" onclick="goToStep(1)"><i class="bi bi-arrow-left me-1"></i> Back</button>
+                            <button class="btn btn-primary-lc px-4" id="btn-to-step3" disabled>Continue <i class="bi bi-arrow-right ms-1"></i></button>
                         </div>
                     </div>
                 </div>
@@ -332,17 +332,17 @@
                 <%-- ===== STEP 3: PROMOTION ===== --%>
                 <div class="wizard-panel" id="panel-3">
                     <div class="card lc-elev p-4">
-                        <h5 class="text-navy fw-bold mb-3"><i class="bi bi-3-circle-fill text-primary me-2"></i>Khuyến Mãi & Chi Tiết Thanh Toán</h5>
+                        <h5 class="text-navy fw-bold mb-3"><i class="bi bi-3-circle-fill text-primary me-2"></i>Promotion &amp; Payment Details</h5>
 
                         <div class="row justify-content-center">
                             <!-- Promotion Details -->
                             <div class="col-md-8 col-lg-6">
-                                <h6 class="text-navy fw-bold mb-3 text-uppercase small">Áp dụng mã giảm giá (Promo Code)</h6>
+                                <h6 class="text-navy fw-bold mb-3 text-uppercase small">Apply Promo Code</h6>
                                 <div class="mb-4">
-                                    <label class="form-label">Mã khuyến mãi</label>
+                                    <label class="form-label">Promo Code</label>
                                     <div class="input-group">
-                                        <input type="text" id="promo-code" class="form-control text-uppercase" placeholder="Nhập mã giảm giá...">
-                                        <button class="btn btn-outline-primary" type="button" id="btn-apply-promo"><i class="bi bi-check-lg me-1"></i>Áp dụng</button>
+                                        <input type="text" id="promo-code" class="form-control text-uppercase" placeholder="Enter promo code...">
+                                        <button class="btn btn-outline-primary" type="button" id="btn-apply-promo"><i class="bi bi-check-lg me-1"></i>Apply</button>
                                     </div>
                                 </div>
 
@@ -352,23 +352,23 @@
                                 <hr>
 
                                 <div class="d-flex justify-content-between mb-2">
-                                    <span class="text-muted">Tạm tính vé:</span>
+                                    <span class="text-muted">Ticket Subtotal:</span>
                                     <span class="fw-semibold text-navy"><span id="summary-subtotal">0</span> VND</span>
                                 </div>
                                 <div class="d-flex justify-content-between mb-2 text-success">
-                                    <span>Giảm giá:</span>
+                                    <span>Discount:</span>
                                     <span>-<span id="summary-discount">0</span> VND</span>
                                 </div>
                                 <div class="d-flex justify-content-between border-top pt-2 fs-5 fw-bold text-navy">
-                                    <span>Tổng thanh toán:</span>
+                                    <span>Total Payment:</span>
                                     <span><span id="summary-total" class="text-danger">0</span> VND</span>
                                 </div>
                             </div>
                         </div>
 
                         <div class="d-flex justify-content-between mt-5">
-                            <button class="btn btn-secondary px-4" onclick="goToStep(2)"><i class="bi bi-arrow-left me-1"></i> Quay lại</button>
-                            <button class="btn btn-primary-lc px-4" id="btn-to-step4">Tiếp tục <i class="bi bi-arrow-right ms-1"></i></button>
+                            <button class="btn btn-secondary px-4" onclick="goToStep(2)"><i class="bi bi-arrow-left me-1"></i> Back</button>
+                            <button class="btn btn-primary-lc px-4" id="btn-to-step4">Continue <i class="bi bi-arrow-right ms-1"></i></button>
                         </div>
                     </div>
                 </div>
@@ -376,37 +376,37 @@
                 <%-- ===== STEP 4: CONFIRMATION & PAYMENT ===== --%>
                 <div class="wizard-panel" id="panel-4">
                     <div class="card lc-elev p-4">
-                        <h5 class="text-navy fw-bold mb-3"><i class="bi bi-4-circle-fill text-primary me-2"></i>Xác Nhận & Thanh Toán</h5>
+                        <h5 class="text-navy fw-bold mb-3"><i class="bi bi-4-circle-fill text-primary me-2"></i>Confirmation &amp; Payment</h5>
 
                         <div class="row g-4">
                             <!-- Invoice detail -->
                             <div class="col-md-7 border-end">
-                                <h6 class="text-navy fw-bold mb-3 text-uppercase small">Chi tiết đơn hàng</h6>
+                                <h6 class="text-navy fw-bold mb-3 text-uppercase small">Order Details</h6>
                                 <div class="table-responsive">
                                     <table class="table table-bordered">
                                         <tbody>
                                             <tr>
-                                                <th class="bg-light text-navy" style="width:35%;">Phim</th>
+                                                <th class="bg-light text-navy" style="width:35%;">Movie</th>
                                                 <td id="invoice-movie" class="fw-bold text-primary"></td>
                                             </tr>
                                             <tr>
-                                                <th class="bg-light text-navy">Suất chiếu</th>
+                                                <th class="bg-light text-navy">Showtime</th>
                                                 <td id="invoice-time"></td>
                                             </tr>
                                             <tr>
-                                                <th class="bg-light text-navy">Phòng chiếu</th>
+                                                <th class="bg-light text-navy">Room</th>
                                                 <td id="invoice-room"></td>
                                             </tr>
                                             <tr>
-                                                <th class="bg-light text-navy">Ghế đã chọn</th>
+                                                <th class="bg-light text-navy">Selected Seats</th>
                                                 <td id="invoice-seats" class="font-monospace fw-bold text-navy"></td>
                                             </tr>
                                             <tr>
-                                                <th class="bg-light text-navy">Tài khoản đặt vé</th>
-                                                <td id="invoice-customer">Khách vãng lai (guest01)</td>
+                                                <th class="bg-light text-navy">Booking Account</th>
+                                                <td id="invoice-customer">Guest (guest01)</td>
                                             </tr>
                                             <tr>
-                                                <th class="bg-light text-navy">Mã giảm giá</th>
+                                                <th class="bg-light text-navy">Promo Code</th>
                                                 <td id="invoice-promo">&mdash;</td>
                                             </tr>
                                         </tbody>
@@ -417,17 +417,17 @@
                             <!-- Payment details calculation -->
                             <div class="col-md-5">
                                 <div class="bg-light rounded-3 p-4 border text-center">
-                                    <div class="text-muted small text-uppercase fw-semibold mb-1">Tổng tiền cần thanh toán</div>
+                                    <div class="text-muted small text-uppercase fw-semibold mb-1">Total Amount Due</div>
                                     <div class="fs-2 fw-bold text-danger mb-3"><span id="invoice-total">0</span> VND</div>
 
                                     <!-- Payment Method Selection -->
                                     <div class="mb-4 text-start">
-                                        <label class="form-label fw-semibold text-navy">Phương thức thanh toán</label>
+                                        <label class="form-label fw-semibold text-navy">Payment Method</label>
                                         <div class="d-flex gap-3">
                                             <div class="form-check flex-fill p-3 border rounded bg-white" style="cursor: pointer;">
                                                 <input class="form-check-input ms-0 me-2" type="radio" name="paymentMethodRadio" id="pay-cash" value="CASH" checked style="cursor: pointer;">
                                                 <label class="form-check-label fw-bold text-navy" for="pay-cash" style="cursor: pointer;">
-                                                    <i class="bi bi-cash-stack text-success me-1"></i> Tiền mặt
+                                                    <i class="bi bi-cash-stack text-success me-1"></i> Cash
                                                 </label>
                                             </div>
                                             <div class="form-check flex-fill p-3 border rounded bg-white" style="cursor: pointer;">
@@ -442,24 +442,24 @@
                                     <!-- Cash Payment Section -->
                                     <div id="cash-payment-section">
                                         <div class="mb-3 text-start">
-                                            <label class="form-label fw-semibold text-navy">Tiền mặt khách đưa (VND)</label>
+                                            <label class="form-label fw-semibold text-navy">Cash Received (VND)</label>
                                             <input type="number" id="cash-received" class="form-control form-control-lg text-center fw-bold fs-4 text-primary" placeholder="0" min="0">
                                         </div>
 
                                         <div class="d-flex justify-content-between align-items-center border-top pt-3 text-start">
-                                            <span class="fw-semibold text-navy">Tiền thừa trả khách:</span>
+                                            <span class="fw-semibold text-navy">Change Due:</span>
                                             <span class="fs-4 fw-bold text-success"><span id="cash-change">0</span> VND</span>
                                         </div>
 
                                         <div id="cash-error" class="alert alert-warning py-2 mt-3 d-none">
-                                            <i class="bi bi-exclamation-triangle-fill"></i> Số tiền khách đưa chưa đủ.
+                                            <i class="bi bi-exclamation-triangle-fill"></i> Insufficient cash received.
                                         </div>
                                     </div>
 
                                     <!-- VNPay Payment Section -->
                                     <div id="vnpay-payment-section" class="d-none text-start">
                                         <div class="alert alert-info py-3 mb-0">
-                                            <i class="bi bi-info-circle-fill me-2"></i> Hệ thống sẽ tạo liên kết thanh toán VNPay và tự động chuyển hướng. Hãy hướng dẫn khách hàng quét mã QR trên màn hình thanh toán.
+                                            <i class="bi bi-info-circle-fill me-2"></i> The system will generate a VNPay payment link and redirect. Please guide the customer to scan the QR code on the payment screen.
                                         </div>
                                     </div>
                                 </div>
@@ -467,9 +467,9 @@
                         </div>
 
                         <div class="d-flex justify-content-between mt-5">
-                            <button class="btn btn-secondary px-4" onclick="goToStep(3)"><i class="bi bi-arrow-left me-1"></i> Quay lại</button>
+                            <button class="btn btn-secondary px-4" onclick="goToStep(3)"><i class="bi bi-arrow-left me-1"></i> Back</button>
                             <button class="btn btn-success px-5 fw-bold fs-6" id="btn-confirm-booking" disabled>
-                                <i class="bi bi-cash-stack me-2"></i>XÁC NHẬN THANH TOÁN TIỀN MẶT
+                                <i class="bi bi-cash-stack me-2"></i>CONFIRM CASH PAYMENT
                             </button>
                         </div>
                     </div>
@@ -482,31 +482,31 @@
                             <div class="bg-success text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width:70px;height:70px;">
                                 <i class="bi bi-check-lg fs-1"></i>
                             </div>
-                            <h4 class="text-success fw-bold">GIAO DỊCH HOÀN TẤT THÀNH CÔNG!</h4>
-                            <p class="text-muted">Đơn hàng đã được lưu và thanh toán thành công.</p>
+                            <h4 class="text-success fw-bold">TRANSACTION COMPLETED SUCCESSFULLY!</h4>
+                            <p class="text-muted">The order has been saved and paid successfully.</p>
                         </div>
 
                         <div class="row justify-content-center mb-4">
                             <div class="col-md-8 col-lg-6">
                                 <div class="card border rounded-3 p-4 bg-white shadow-sm">
-                                    <div class="small text-muted text-uppercase fw-semibold mb-1">Mã đặt vé của khách</div>
+                                    <div class="small text-muted text-uppercase fw-semibold mb-1">Customer Booking Code</div>
                                     <h2 class="text-primary fw-bold font-monospace" id="final-booking-code"></h2>
 
                                     <div class="alert alert-light border my-3 py-2 small text-start">
                                         <div class="d-flex justify-content-between mb-1">
-                                            <span>Phim:</span><strong id="final-movie"></strong>
+                                            <span>Movie:</span><strong id="final-movie"></strong>
                                         </div>
                                         <div class="d-flex justify-content-between mb-1">
-                                            <span>Suất chiếu:</span><strong id="final-time"></strong>
+                                            <span>Showtime:</span><strong id="final-time"></strong>
                                         </div>
                                         <div class="d-flex justify-content-between">
-                                            <span>Ghế:</span><strong id="final-seats"></strong>
+                                            <span>Seats:</span><strong id="final-seats"></strong>
                                         </div>
                                     </div>
 
                                     <div class="d-grid gap-2">
                                         <button class="btn btn-primary btn-lg fw-bold" id="btn-print-ticket">
-                                            <i class="bi bi-printer-fill me-2"></i>In vé tại quầy (PDF)
+                                            <i class="bi bi-printer-fill me-2"></i>Print Ticket (PDF)
                                         </button>
                                     </div>
                                 </div>
@@ -517,7 +517,7 @@
 
                         <div class="d-flex justify-content-center gap-3">
                             <button class="btn btn-primary-lc px-5 fw-bold" onclick="resetWizard()">
-                                <i class="bi bi-plus-lg me-2"></i>TẠO GIAO DỊCH MỚI
+                                <i class="bi bi-plus-lg me-2"></i>NEW TRANSACTION
                             </button>
                         </div>
                     </div>
@@ -549,7 +549,7 @@
                                     roomType: '',
                                     selectedSeats: [], // Array of seat objects {seatId, rowLabel, colNumber, seatType}
                                     memberUsername: 'guest01',
-                                    memberFullName: 'Khách vãng lai',
+                                    memberFullName: 'Walk-in Guest',
                                     memberEmail: '',
                                     promoCode: '',
                                     promoDiscount: 0,
@@ -635,7 +635,7 @@
                                     showtimesContainer.innerHTML = `
                 <div class="col-12 text-center text-muted py-5">
                     <div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div>
-                    Đang tải danh sách suất chiếu...
+                    Loading showtimes...
                 </div>
             `;
 
@@ -662,7 +662,7 @@
                                                     showtimesContainer.innerHTML = `
                             <div class="col-12 text-center text-muted py-5">
                                 <i class="bi bi-calendar-x fs-2 d-block mb-2"></i>
-                                Không có suất chiếu nào hoạt động phù hợp bộ lọc của bạn.
+                                No active showtimes match your filters.
                             </div>
                         `;
                                                     btnToStep2.disabled = true;
@@ -684,10 +684,10 @@
                                                             '        <span class="fw-bold text-danger">' + st.basePrice.toLocaleString() + ' VND</span>' +
                                                             '    </div>' +
                                                             '    <h6 class="text-navy fw-bold mb-1">' + st.movieTitle + '</h6>' +
-                                                            '    <div class="small text-muted mb-2"><i class="bi bi-clock me-1"></i>' + st.startTime + ' &middot; Phòng: ' + st.roomName + ' (' + st.roomType + ')</div>' +
+                                                            '    <div class="small text-muted mb-2"><i class="bi bi-clock me-1"></i>' + st.startTime + ' &middot; Room: ' + st.roomName + ' (' + st.roomType + ')</div>' +
                                                             '    <div class="d-flex justify-content-between align-items-center mb-1">' +
-                                                            '        <span class="small text-muted">Trống: <strong>' + availableSeats + '/' + st.roomCapacity + '</strong> ghế</span>' +
-                                                            '        <span class="small text-muted">' + percentSold + '% đã bán</span>' +
+                                                            '        <span class="small text-muted">Available: <strong>' + availableSeats + '/' + st.roomCapacity + '</strong> seats</span>' +
+                                                            '        <span class="small text-muted">' + percentSold + '% sold</span>' +
                                                             '    </div>' +
                                                             '    <div class="bar-track">' +
                                                             '        <div class="bar-fill" style="width: ' + percentSold + '%; background-color: ' + (percentSold >= 90 ? '#ef4444' : 'var(--lc-primary)') + '"></div>' +
@@ -701,7 +701,7 @@
                                                 showtimesContainer.innerHTML =
                                                         '<div class="col-12 text-center text-danger py-5">' +
                                                         '    <i class="bi bi-exclamation-triangle-fill fs-2 d-block mb-2"></i>' +
-                                                        '    Lỗi khi tải suất chiếu: ' + err.message +
+                                                        '    Error loading showtimes: ' + err.message +
                                                         '</div>';
                                             });
                                 }
@@ -727,7 +727,7 @@
                                         document.getElementById('showtime-header-info').innerHTML =
                                                 '<i class="bi bi-film me-1"></i> ' + state.movieTitle + ' &middot; ' +
                                                 '<i class="bi bi-clock me-1"></i> ' + state.startTime + ' &middot; ' +
-                                                '<i class="bi bi-door-closed me-1"></i> Phòng: ' + state.roomName;
+                                                '<i class="bi bi-door-closed me-1"></i> Room: ' + state.roomName;
 
                                         loadSeats();
                                         goToStep(2);
@@ -828,7 +828,7 @@
                                                 container.innerHTML =
                                                         '<div class="text-center text-danger py-5">' +
                                                         '    <i class="bi bi-exclamation-triangle-fill fs-2 d-block mb-2"></i>' +
-                                                        '    Lỗi khi tải sơ đồ ghế: ' + err.message +
+                                                        '    Error loading seat map: ' + err.message +
                                                         '</div>';
                                             });
                                 }
@@ -952,7 +952,7 @@
                                                             state.selectedSeats.splice(index, 1);
                                                             updateSeatsSummary();
                                                         }
-                                                        alert('Ghế ' + seatDiv.getAttribute('data-seat-label') + ' vừa được người khác đặt. Vui lòng chọn ghế khác.');
+                                                        alert('Seat ' + seatDiv.getAttribute('data-seat-label') + ' was just selected by someone else. Please choose another seat.');
                                                     }
                                                 }
                                                 setSeatState(seatDiv, 'booked');
@@ -968,7 +968,7 @@
                                     };
 
                                     ws.onclose = function () {
-                                        setWsBadge('Mất kết nối – thử lại…', 'bg-warning text-dark');
+                                        setWsBadge('Disconnected – retrying…', 'bg-warning text-dark');
                                         setTimeout(() => {
                                             if (state.currentStep >= 2 && state.showtimeId === showtimeId) {
                                                 connectWS(showtimeId);
@@ -988,7 +988,7 @@
                                         ws.close();
                                         ws = null;
                                     }
-                                    setWsBadge('Chưa kết nối', 'bg-secondary');
+                                    setWsBadge('Disconnected', 'bg-secondary');
                                 }
 
                                 function setWsBadge(text, cls) {
@@ -1104,7 +1104,7 @@
                                             .catch(err => {
                                                 console.error(err);
                                                 btnApplyPromo.disabled = false;
-                                                alert('Lỗi áp dụng khuyến mãi');
+                                                alert('Error applying promotion');
                                             });
                                 });
 
@@ -1118,17 +1118,17 @@
                                 document.getElementById('btn-to-step4').addEventListener('click', () => {
                                     // Fill step 4 invoice summary
                                     document.getElementById('invoice-movie').innerText = state.movieTitle;
-                                    document.getElementById('invoice-time').innerText = state.startTime + ' ngày ' + state.date;
+                                    document.getElementById('invoice-time').innerText = state.startTime + ' on ' + state.date;
                                     document.getElementById('invoice-room').innerText = state.roomName + ' (' + state.roomType + ')';
 
                                     const seatLabels = state.selectedSeats.map(s => s.rowLabel + s.colNumber);
                                     document.getElementById('invoice-seats').innerText = seatLabels.join(', ');
 
-                                    document.getElementById('invoice-customer').innerText = 'Khách vãng lai (guest01)';
+                                    document.getElementById('invoice-customer').innerText = 'Guest (guest01)';
 
                                     document.getElementById('invoice-promo').innerText = state.promoCode
-                                            ? state.promoCode + ' (Giảm ' + state.promoDiscount.toLocaleString() + ' VND)'
-                                            : 'Không có';
+                                            ? state.promoCode + ' (Discount ' + state.promoDiscount.toLocaleString() + ' VND)'
+                                            : 'None';
 
                                     document.getElementById('invoice-total').innerText = state.totalAmount.toLocaleString();
 
@@ -1188,7 +1188,7 @@
                                         // Update button
                                         btnConfirm.disabled = false;
                                         btnConfirm.className = "btn btn-primary px-5 fw-bold fs-6";
-                                        btnConfirm.innerHTML = `<i class="bi bi-qr-code-scan me-2"></i>TẠO YÊU CẦU THANH TOÁN VNPAY`;
+                                        btnConfirm.innerHTML = `<i class="bi bi-qr-code-scan me-2"></i>GENERATE VNPAY PAYMENT REQUEST`;
                                     } else {
                                         cashSection.classList.remove('d-none');
                                         vnpaySection.classList.add('d-none');
@@ -1202,7 +1202,7 @@
                                             btnConfirm.disabled = false;
                                         }
                                         btnConfirm.className = "btn btn-success px-5 fw-bold fs-6";
-                                        btnConfirm.innerHTML = `<i class="bi bi-cash-stack me-2"></i>XÁC NHẬN THANH TOÁN TIỀN MẶT`;
+                                        btnConfirm.innerHTML = `<i class="bi bi-cash-stack me-2"></i>CONFIRM CASH PAYMENT`;
                                     }
                                 }
 
@@ -1210,9 +1210,9 @@
                                     btnConfirmBooking.disabled = true;
                                     const selectedMethod = document.querySelector('input[name="paymentMethodRadio"]:checked').value;
                                     if (selectedMethod === 'VNPAY') {
-                                        btnConfirmBooking.innerHTML = `<span class="spinner-border spinner-border-sm me-2" role="status"></span>ĐANG TẠO YÊU CẦU VNPAY...`;
+                                        btnConfirmBooking.innerHTML = `<span class="spinner-border spinner-border-sm me-2" role="status"></span>CREATING VNPAY REQUEST...`;
                                     } else {
-                                        btnConfirmBooking.innerHTML = `<span class="spinner-border spinner-border-sm me-2" role="status"></span>ĐANG XỬ LÝ THANH TOÁN...`;
+                                        btnConfirmBooking.innerHTML = `<span class="spinner-border spinner-border-sm me-2" role="status"></span>PROCESSING PAYMENT...`;
                                     }
 
                                     // Prepare payload
@@ -1223,7 +1223,7 @@
                                     formData.append('seatIds', seatIdsString);
                                     formData.append('promoCode', state.promoCode);
                                     formData.append('paymentMethod', selectedMethod);
-                                    formData.append('notes', selectedMethod === 'VNPAY' ? 'Đặt vé trực tiếp tại quầy bằng VNPay' : 'Đặt vé trực tiếp tại quầy bằng tiền mặt');
+                                    formData.append('notes', selectedMethod === 'VNPAY' ? 'Counter booking via VNPay' : 'Counter booking via Cash');
 
                                     fetch(contextPath + '/staff/booking', {
                                         method: 'POST',
@@ -1255,12 +1255,12 @@
                                                     btnConfirmBooking.disabled = false;
                                                     if (selectedMethod === 'VNPAY') {
                                                         btnConfirmBooking.className = "btn btn-primary px-5 fw-bold fs-6";
-                                                        btnConfirmBooking.innerHTML = `<i class="bi bi-qr-code-scan me-2"></i>TẠO YÊU CẦU THANH TOÁN VNPAY`;
+                                                        btnConfirmBooking.innerHTML = `<i class="bi bi-qr-code-scan me-2"></i>GENERATE VNPAY PAYMENT REQUEST`;
                                                     } else {
                                                         btnConfirmBooking.className = "btn btn-success px-5 fw-bold fs-6";
-                                                        btnConfirmBooking.innerHTML = `<i class="bi bi-cash-stack me-2"></i>XÁC NHẬN THANH TOÁN TIỀN MẶT`;
+                                                        btnConfirmBooking.innerHTML = `<i class="bi bi-cash-stack me-2"></i>CONFIRM CASH PAYMENT`;
                                                     }
-                                                    alert('Đặt vé thất bại: ' + data.message);
+                                                    alert('Booking failed: ' + data.message);
                                                 }
                                             })
                                             .catch(err => {
@@ -1268,12 +1268,12 @@
                                                 btnConfirmBooking.disabled = false;
                                                 if (selectedMethod === 'VNPAY') {
                                                     btnConfirmBooking.className = "btn btn-primary px-5 fw-bold fs-6";
-                                                    btnConfirmBooking.innerHTML = `<i class="bi bi-qr-code-scan me-2"></i>TẠO YÊU CẦU THANH TOÁN VNPAY`;
+                                                    btnConfirmBooking.innerHTML = `<i class="bi bi-qr-code-scan me-2"></i>GENERATE VNPAY PAYMENT REQUEST`;
                                                 } else {
                                                     btnConfirmBooking.className = "btn btn-success px-5 fw-bold fs-6";
-                                                    btnConfirmBooking.innerHTML = `<i class="bi bi-cash-stack me-2"></i>XÁC NHẬN THANH TOÁN TIỀN MẶT`;
+                                                    btnConfirmBooking.innerHTML = `<i class="bi bi-cash-stack me-2"></i>CONFIRM CASH PAYMENT`;
                                                 }
-                                                alert('Có lỗi mạng xảy ra khi xử lý đặt vé.');
+                                                alert('A network error occurred while processing booking.');
                                             });
                                 });
 
@@ -1329,7 +1329,7 @@
                                         roomType: '',
                                         selectedSeats: [],
                                         memberUsername: 'guest01',
-                                        memberFullName: 'Khách vãng lai',
+                                        memberFullName: 'Walk-in Guest',
                                         memberEmail: '',
                                         promoCode: '',
                                         promoDiscount: 0,
