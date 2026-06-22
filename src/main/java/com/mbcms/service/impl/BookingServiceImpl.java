@@ -190,16 +190,9 @@ public class BookingServiceImpl implements BookingService {
         return bookingDao.findTicket(bookingId);
     }
     @Override
-    public Booking createCounterBooking(Booking booking, List<Long> seatIds, String promoCode, String customerPhone) {
-        // 1. Tim kiem thanh vien bang SĐT (neu khong co -> mac dinh guest01)
-        String username = "guest01";
-        if (customerPhone != null && !customerPhone.trim().isEmpty()) {
-            Customer member = customerDao.findByPhone(customerPhone.trim());
-            if (member != null) {
-                username = member.getUsername();
-            }
-        }
-        booking.setCustomerUsername(username);
+    public Booking createCounterBooking(Booking booking, List<Long> seatIds, String promoCode) {
+        // 1. Luon set mac dinh guest01 cho khach vang lai mua tai quay
+        booking.setCustomerUsername("guest01");
 
         // 2. Ap dung ma khuyen mai neu co
         Long promoId = null;

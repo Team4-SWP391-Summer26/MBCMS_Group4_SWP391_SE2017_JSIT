@@ -11,15 +11,21 @@ import com.mbcms.dao.impl.SeatDAOImpl;
 import com.mbcms.dao.impl.ShowtimeDAOImpl;
 import com.mbcms.model.Booking;
 import com.mbcms.model.Movie;
+import com.mbcms.model.Payment;
 import com.mbcms.model.Room;
 import com.mbcms.model.Seat;
 import com.mbcms.model.Showtime;
 import com.mbcms.service.BookingService;
+import com.mbcms.service.PaymentService;
 import com.mbcms.service.PricingService;
 import com.mbcms.service.SeatAvailabilityService;
 import com.mbcms.service.impl.BookingServiceImpl;
+import com.mbcms.service.impl.PaymentServiceImpl;
 import com.mbcms.service.impl.PricingServiceImpl;
 import com.mbcms.service.impl.SeatAvailabilityServiceImpl;
+import com.mbcms.util.VnPayUtil;
+import com.mbcms.util.VnPayConfig;
+import java.math.RoundingMode;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -47,8 +53,10 @@ public class CounterBookingServlet extends HttpServlet {
     private final BookingService bookingService = new BookingServiceImpl();
     private final PricingService pricingService = new PricingServiceImpl();
     private final SeatAvailabilityService seatService = new SeatAvailabilityServiceImpl();
+    private final PaymentService paymentService = new PaymentServiceImpl();
 
-    private final ObjectMapper mapper = new ObjectMapper();
+    private final ObjectMapper mapper = new ObjectMapper()
+            .registerModule(new com.fasterxml.jackson.datatype.jsr310.JavaTimeModule());
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
@@ -67,6 +75,18 @@ public class CounterBookingServlet extends HttpServlet {
         if (action != null) {
             handleAjax(action, branchId, req, resp);
             return;
+        }
+
+        String success = req.getParameter("success");
+        if (success != null) {
+            req.setAttribute("success", success);
+            req.setAttribute("successBookingCode", req.getParameter("bookingCode"));
+            req.setAttribute("successBookingId", req.getParameter("bookingId"));
+        }
+
+        String err = req.getParameter("err");
+        if (err != null) {
+            req.setAttribute("err", err);
         }
 
         // Render checkout screen
@@ -164,6 +184,20 @@ public class CounterBookingServlet extends HttpServlet {
             result.put("bookedSeatIds", bookedSeatIds);
 
             mapper.writeValue(resp.getWriter(), result);
+
+        } else if ("getBookingDetail".equals(action)) {
+            String bookingIdParam = req.getParameter("bookingId");
+            if (bookingIdParam == null || bookingIdParam.trim().isEmpty()) {
+                resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Missing bookingId");
+                return;
+            }
+            long bookingId = Long.parseLong(bookingIdParam.trim());
+            com.mbcms.model.BookingTicket ticket = bookingService.getTicket(bookingId, "guest01");
+            if (ticket == null) {
+                resp.sendError(HttpServletResponse.SC_NOT_FOUND, "Booking not found");
+                return;
+            }
+            mapper.writeValue(resp.getWriter(), ticket);
         }
     }
 
@@ -207,41 +241,74 @@ public class CounterBookingServlet extends HttpServlet {
                 throw new IllegalArgumentException("Vui lòng chọn ít nhất 1 ghế.");
             }
 
-            String customerPhone = req.getParameter("customerPhone");
             String promoCode = req.getParameter("promoCode");
             String notes = req.getParameter("notes");
+            String paymentMethod = req.getParameter("paymentMethod");
+            if (paymentMethod == null || paymentMethod.trim().isEmpty()) {
+                paymentMethod = "CASH";
+            }
 
-            // Calculate base total for verification
-            List<Seat> allSeats = seatDAO.findByRoom(showtime.getRoomId());
-            List<Seat> selectedSeats = new ArrayList<>();
-            for (Seat seat : allSeats) {
-                if (seatIds.contains(seat.getSeatId())) {
-                    selectedSeats.add(seat);
+            Booking createdBooking = null;
+
+            if ("VNPAY".equalsIgnoreCase(paymentMethod.trim())) {
+                // For VNPay: create a pending booking first
+                createdBooking = bookingService.createPendingBooking("guest01", showtimeId, seatIds, promoCode, notes);
+
+                // Initialize payment status in payments table
+                paymentService.initiatePayment(createdBooking.getBookingId(), Payment.METHOD_VNPAY, "guest01");
+
+                // Generate VNPay URL redirecting back to staff callback
+                String returnUrl = VnPayUtil.buildAppUrl(req, "/staff/booking/vnpay-return");
+                long amountVnd = createdBooking.getTotalAmount()
+                        .setScale(0, RoundingMode.HALF_UP).longValue();
+
+                String paymentUrl = VnPayUtil.buildPaymentUrl(
+                        createdBooking.getBookingId(),
+                        createdBooking.getBookingCode(),
+                        amountVnd,
+                        req.getRemoteAddr(),
+                        returnUrl);
+
+                result.put("success", true);
+                result.put("bookingId", createdBooking.getBookingId());
+                result.put("bookingCode", createdBooking.getBookingCode());
+                result.put("totalAmount", createdBooking.getTotalAmount());
+                result.put("redirectUrl", paymentUrl);
+                result.put("message", "Đang chuyển hướng sang cổng thanh toán VNPay...");
+            } else {
+                // For Cash: existing flow
+                // Calculate base total for verification
+                List<Seat> allSeats = seatDAO.findByRoom(showtime.getRoomId());
+                List<Seat> selectedSeats = new ArrayList<>();
+                for (Seat seat : allSeats) {
+                    if (seatIds.contains(seat.getSeatId())) {
+                        selectedSeats.add(seat);
+                    }
                 }
+                BigDecimal subtotal = pricingService.calculateTotal(showtime.getBasePrice(), selectedSeats);
+
+                // Construct Booking Model
+                Booking booking = new Booking();
+                booking.setShowtimeId(showtimeId);
+                booking.setSubtotal(subtotal);
+                booking.setNotes(notes);
+
+                // Execute service transaction
+                createdBooking = bookingService.createCounterBooking(booking, seatIds, promoCode);
+
+                // Notify WebSocket server of the hard lock
+                String staffUsername = (String) req.getSession().getAttribute("username");
+                if (staffUsername == null) {
+                    staffUsername = "staff";
+                }
+                com.mbcms.ws.SeatWebSocketServer.notifyHardLock(showtimeId, seatIds, staffUsername);
+
+                result.put("success", true);
+                result.put("bookingId", createdBooking.getBookingId());
+                result.put("bookingCode", createdBooking.getBookingCode());
+                result.put("totalAmount", createdBooking.getTotalAmount());
+                result.put("message", "Đã thanh toán thành công và xác nhận đặt vé!");
             }
-            BigDecimal subtotal = pricingService.calculateTotal(showtime.getBasePrice(), selectedSeats);
-
-            // Construct Booking Model
-            Booking booking = new Booking();
-            booking.setShowtimeId(showtimeId);
-            booking.setSubtotal(subtotal);
-            booking.setNotes(notes);
-
-            // Execute service transaction
-            Booking createdBooking = bookingService.createCounterBooking(booking, seatIds, promoCode, customerPhone);
-
-            // Notify WebSocket server of the hard lock
-            String staffUsername = (String) req.getSession().getAttribute("username");
-            if (staffUsername == null) {
-                staffUsername = "staff";
-            }
-            com.mbcms.ws.SeatWebSocketServer.notifyHardLock(showtimeId, seatIds, staffUsername);
-
-            result.put("success", true);
-            result.put("bookingId", createdBooking.getBookingId());
-            result.put("bookingCode", createdBooking.getBookingCode());
-            result.put("totalAmount", createdBooking.getTotalAmount());
-            result.put("message", "Đã thanh toán thành công và xác nhận đặt vé!");
 
         } catch (Exception e) {
             result.put("success", false);

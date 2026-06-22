@@ -33,7 +33,7 @@ public interface BookingService {
      * trống, áp dụng khuyến mãi, liên kết thành viên, và thanh toán tiền mặt
      * thành công (CASH) trong 1 Transaction.
      */
-    Booking createCounterBooking(Booking booking, List<Long> seatIds, String promoCode, String customerPhone);
+    Booking createCounterBooking(Booking booking, List<Long> seatIds, String promoCode);
     // ── Promo ─────────────────────────────────────────────────────────────
     /**
      * Validate promo code: active, chưa hết hạn, chưa hết lượt, minOrderAmount.
