@@ -25,3 +25,5 @@ payment.vnpay.hashSecret=
 payment.vnpay.payUrl=https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
 # payment.vnpay.returnUrl=http://localhost:9999/MBCMS/booking/payment/vnpay-return
 # payment.vnpay.ipnUrl=http://localhost:9999/MBCMS/booking/payment/vnpay-ipn
+payment.vnpay.locale=en
+

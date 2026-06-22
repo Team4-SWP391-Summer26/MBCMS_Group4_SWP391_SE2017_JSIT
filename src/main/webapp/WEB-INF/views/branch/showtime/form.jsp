@@ -276,11 +276,11 @@
                 var endPrev = document.getElementById('endTimePreview');
                 var endHint = document.getElementById('endTimeHint');
 
-                // Khong cho chon ngay qua khu ngay tu date picker
+                // Prevent selecting past dates from date picker
                 dateInp.min = new Date().toISOString().slice(0, 10);
 
                 function fmtVND(n) {
-                    return n.toLocaleString('en-US') + 'đ';
+                    return n.toLocaleString('en-US') + ' VND';
                 }
 
                 function selectedFormat() {

@@ -15,10 +15,10 @@
         <div class="lc-sb-subtitle">BRANCH STAFF CONSOLE</div>
     </div>
 
-    <div class="lc-sb-section">Nghiệp vụ quầy</div>
+    <div class="lc-sb-section">Counter Operations</div>
     <a class="lc-sb-item ${param.active == 'booking' ? 'active' : ''}"
        href="${pageContext.request.contextPath}/staff/booking">
-        <i class="bi bi-ticket-perforated"></i> Bán vé tại quầy</a>
+        <i class="bi bi-ticket-perforated"></i> Counter Booking</a>
 
     <div style="flex:1;"></div>
 
@@ -28,7 +28,7 @@
             <div style="font-size:.85rem; font-weight:600;" class="text-truncate">
                 <c:out value="${sessionScope.currentUser.fullName}" /></div>
             <div style="font-size:.72rem; color:rgba(255,255,255,.55);" class="text-truncate">
-                <c:out value="${empty sessionScope.currentBranchName ? 'Nhân viên quầy' : sessionScope.currentBranchName}" /></div>
+                <c:out value="${empty sessionScope.currentBranchName ? 'Counter Staff' : sessionScope.currentBranchName}" /></div>
         </div>
         <a href="${pageContext.request.contextPath}/auth/logout" title="Sign out"
            style="color:rgba(255,255,255,.6);"><i class="bi bi-box-arrow-right"></i></a>
