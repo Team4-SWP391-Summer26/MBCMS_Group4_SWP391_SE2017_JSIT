@@ -85,23 +85,32 @@ public class TicketPdfServlet extends HttpServlet {
             PdfDocument pdfDoc = new PdfDocument(writer);
             Document doc = new Document(pdfDoc);
 
-            initFonts();
+            initFontBytes();
+            PdfFont fontRegular = null;
+            PdfFont fontBold = null;
+            if (regularFontBytes != null) {
+                fontRegular = PdfFontFactory.createFont(regularFontBytes, PdfEncodings.IDENTITY_H);
+            }
+            if (boldFontBytes != null) {
+                fontBold = PdfFontFactory.createFont(boldFontBytes, PdfEncodings.IDENTITY_H);
+            }
+
             if (fontRegular != null) {
                 doc.setFont(fontRegular);
             }
 
             // Cấu trúc nội dung vé
-            doc.add(createBoldParagraph("MBCMS CINEMA TICKET", 22).setTextAlignment(TextAlignment.CENTER));
+            doc.add(createBoldParagraph("MBCMS CINEMA TICKET", 22, fontBold).setTextAlignment(TextAlignment.CENTER));
             doc.add(new Paragraph("=========================================")
                     .setTextAlignment(TextAlignment.CENTER)
                     .setFontSize(10));
 
-            doc.add(createBoldParagraph("Mã vé: " + ticket.getBookingCode()));
-            doc.add(createBoldParagraph("Phim: " + ticket.getMovieTitle(), 14));
+            doc.add(createBoldParagraph("Mã vé: " + ticket.getBookingCode(), fontBold));
+            doc.add(createBoldParagraph("Phim: " + ticket.getMovieTitle(), 14, fontBold));
             doc.add(new Paragraph("Rạp: " + ticket.getBranchName()));
             doc.add(new Paragraph("Suất chiếu: " + timeDisplay));
             doc.add(new Paragraph("Phòng chiếu: " + ticket.getRoomName() + " (" + ticket.getFormat() + " - " + ticket.getSubtitleType() + ")"));
-            doc.add(createBoldParagraph("Ghế chọn: " + seatsDisplay));
+            doc.add(createBoldParagraph("Ghế chọn: " + seatsDisplay, fontBold));
             doc.add(new Paragraph("Tổng tiền: " + ticket.getTotalAmount() + " VND"));
 
             // Get payment method
@@ -191,22 +200,31 @@ public class TicketPdfServlet extends HttpServlet {
             PdfDocument pdfDoc = new PdfDocument(writer);
             Document doc = new Document(pdfDoc);
 
-            initFonts();
+            initFontBytes();
+            PdfFont fontRegular = null;
+            PdfFont fontBold = null;
+            if (regularFontBytes != null) {
+                fontRegular = PdfFontFactory.createFont(regularFontBytes, PdfEncodings.IDENTITY_H);
+            }
+            if (boldFontBytes != null) {
+                fontBold = PdfFontFactory.createFont(boldFontBytes, PdfEncodings.IDENTITY_H);
+            }
+
             if (fontRegular != null) {
                 doc.setFont(fontRegular);
             }
 
-            doc.add(createBoldParagraph("MBCMS CINEMA TICKET", 22).setTextAlignment(TextAlignment.CENTER));
+            doc.add(createBoldParagraph("MBCMS CINEMA TICKET", 22, fontBold).setTextAlignment(TextAlignment.CENTER));
             doc.add(new Paragraph("=========================================")
                     .setTextAlignment(TextAlignment.CENTER)
                     .setFontSize(10));
 
-            doc.add(createBoldParagraph("Mã vé: " + ticket.getBookingCode()));
-            doc.add(createBoldParagraph("Phim: " + ticket.getMovieTitle(), 14));
+            doc.add(createBoldParagraph("Mã vé: " + ticket.getBookingCode(), fontBold));
+            doc.add(createBoldParagraph("Phim: " + ticket.getMovieTitle(), 14, fontBold));
             doc.add(new Paragraph("Rạp: " + ticket.getBranchName()));
             doc.add(new Paragraph("Suất chiếu: " + timeDisplay));
             doc.add(new Paragraph("Phòng chiếu: " + ticket.getRoomName() + " (" + ticket.getFormat() + " - " + ticket.getSubtitleType() + ")"));
-            doc.add(createBoldParagraph("Ghế chọn: " + seatsDisplay));
+            doc.add(createBoldParagraph("Ghế chọn: " + seatsDisplay, fontBold));
             doc.add(new Paragraph("Tổng tiền: " + ticket.getTotalAmount() + " VND"));
 
             // Get payment method
@@ -255,32 +273,30 @@ public class TicketPdfServlet extends HttpServlet {
         new com.fasterxml.jackson.databind.ObjectMapper().writeValue(resp.getWriter(), result);
     }
 
-    private static PdfFont fontRegular = null;
-    private static PdfFont fontBold = null;
+    private static byte[] regularFontBytes = null;
+    private static byte[] boldFontBytes = null;
 
-    private synchronized static void initFonts() {
-        if (fontRegular != null && fontBold != null) {
+    private synchronized static void initFontBytes() {
+        if (regularFontBytes != null && boldFontBytes != null) {
             return;
         }
         try {
-            byte[] regularBytes;
-            try (InputStream is = TicketPdfServlet.class.getClassLoader().getResourceAsStream("fonts/Arial.ttf")) {
-                if (is == null) {
-                    throw new RuntimeException("Font Arial.ttf not found in classpath");
+            if (regularFontBytes == null) {
+                try (InputStream is = TicketPdfServlet.class.getClassLoader().getResourceAsStream("fonts/Arial.ttf")) {
+                    if (is == null) {
+                        throw new RuntimeException("Font Arial.ttf not found in classpath");
+                    }
+                    regularFontBytes = readAllBytes(is);
                 }
-                regularBytes = readAllBytes(is);
             }
-
-            byte[] boldBytes;
-            try (InputStream is = TicketPdfServlet.class.getClassLoader().getResourceAsStream("fonts/Arial-Bold.ttf")) {
-                if (is == null) {
-                    throw new RuntimeException("Font Arial-Bold.ttf not found in classpath");
+            if (boldFontBytes == null) {
+                try (InputStream is = TicketPdfServlet.class.getClassLoader().getResourceAsStream("fonts/Arial-Bold.ttf")) {
+                    if (is == null) {
+                        throw new RuntimeException("Font Arial-Bold.ttf not found in classpath");
+                    }
+                    boldFontBytes = readAllBytes(is);
                 }
-                boldBytes = readAllBytes(is);
             }
-
-            fontRegular = PdfFontFactory.createFont(regularBytes, PdfEncodings.IDENTITY_H);
-            fontBold = PdfFontFactory.createFont(boldBytes, PdfEncodings.IDENTITY_H);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -296,7 +312,7 @@ public class TicketPdfServlet extends HttpServlet {
         return buffer.toByteArray();
     }
 
-    private static Paragraph createBoldParagraph(String text, float fontSize) {
+    private static Paragraph createBoldParagraph(String text, float fontSize, PdfFont fontBold) {
         Paragraph p = new Paragraph(text).setFontSize(fontSize);
         if (fontBold != null) {
             p.setFont(fontBold);
@@ -306,7 +322,7 @@ public class TicketPdfServlet extends HttpServlet {
         return p;
     }
 
-    private static Paragraph createBoldParagraph(String text) {
+    private static Paragraph createBoldParagraph(String text, PdfFont fontBold) {
         Paragraph p = new Paragraph(text);
         if (fontBold != null) {
             p.setFont(fontBold);
