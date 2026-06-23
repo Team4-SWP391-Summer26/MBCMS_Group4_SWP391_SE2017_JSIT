@@ -133,3 +133,87 @@ body.lc-console { background: var(--lc-bg); }
 }
 .btn-check:checked + .lc-radio { background: var(--lc-light); border-color: var(--lc-primary); color: var(--lc-primary-700); }
 .btn-check:focus-visible + .lc-radio { outline: 3px solid rgba(37,99,235,.3); }
+
+/* ============================================================
+   Payment console (owner: HungNT) - Payment History + Monitoring
+   Dung chung cho /admin/payments* va /branch/payments*.
+   ============================================================ */
+
+/* ---- Page header + segmented tab ---- */
+.pay-head { display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:1rem; margin-bottom:1.25rem; }
+.pay-eyebrow { font-size:.72rem; text-transform:uppercase; letter-spacing:.12em; color:var(--lc-muted); font-weight:700; margin-bottom:.25rem; }
+.pay-title { font-size:1.55rem; font-weight:800; color:var(--lc-navy); letter-spacing:-.02em; margin:0; }
+.pay-seg { display:inline-flex; background:#fff; border:1px solid var(--lc-border); border-radius:12px; padding:4px; box-shadow:var(--lc-shadow); }
+.pay-seg a { display:inline-flex; align-items:center; gap:.4rem; padding:.5rem 1rem; border-radius:9px; font-size:.85rem; font-weight:600; color:var(--lc-muted); text-decoration:none; transition:all .15s ease; }
+.pay-seg a:hover { color:var(--lc-primary); }
+.pay-seg a.active { background:var(--lc-primary); color:#fff; box-shadow:0 4px 10px rgba(37,99,235,.28); }
+
+/* ---- Filter toolbar ---- */
+.pay-toolbar { background:#fff; border:1px solid var(--lc-border); border-radius:14px; box-shadow:var(--lc-shadow); padding:1rem 1.1rem; margin-bottom:1.1rem; }
+.pay-toolbar label { font-size:.68rem; text-transform:uppercase; letter-spacing:.05em; color:var(--lc-muted); font-weight:700; margin-bottom:.3rem; display:block; }
+.pay-toolbar .form-select, .pay-toolbar .form-control { border-color:var(--lc-border); font-size:.86rem; }
+.pay-toolbar .form-select:focus, .pay-toolbar .form-control:focus { border-color:var(--lc-primary); box-shadow:0 0 0 3px rgba(37,99,235,.12); }
+
+/* ---- Data card + table ---- */
+.pay-card { background:#fff; border:1px solid var(--lc-border); border-radius:14px; box-shadow:var(--lc-shadow); overflow:hidden; }
+.pay-card-head { display:flex; justify-content:space-between; align-items:center; padding:1rem 1.25rem; border-bottom:1px solid var(--lc-border); }
+.pay-card-head h6 { margin:0; font-weight:800; color:var(--lc-navy); }
+.pay-table { width:100%; margin:0; border-collapse:separate; border-spacing:0; }
+.pay-table thead th { background:#F7F9FC; font-size:.69rem; text-transform:uppercase; letter-spacing:.06em; color:var(--lc-muted); font-weight:700; padding:.8rem 1.1rem; border-bottom:1px solid var(--lc-border); white-space:nowrap; }
+.pay-table thead th.r, .pay-table td.r { text-align:right; }
+.pay-table tbody td { padding:.8rem 1.1rem; border-bottom:1px solid #F0F3F8; font-size:.9rem; vertical-align:middle; }
+.pay-table tbody tr:last-child td { border-bottom:none; }
+.pay-table tbody tr { transition:background .12s ease; }
+.pay-table tbody tr:hover { background:#FAFBFE; }
+
+/* ---- Cells ---- */
+.pay-cust { display:flex; align-items:center; gap:.65rem; }
+.pay-avatar { width:34px; height:34px; border-radius:50%; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:.8rem; color:#fff; background:linear-gradient(135deg,#60a5fa,#2563EB); }
+.pay-cust .nm { font-weight:600; color:var(--lc-navy); line-height:1.15; }
+.pay-cust .em { font-size:.75rem; color:var(--lc-muted); }
+.pay-code { font-family:ui-monospace,Menlo,Consolas,monospace; font-size:.8rem; color:#475569; background:#F1F5F9; padding:.16rem .5rem; border-radius:6px; }
+.pay-amount { font-weight:800; color:var(--lc-navy); font-variant-numeric:tabular-nums; white-space:nowrap; }
+.pay-time { color:var(--lc-muted); white-space:nowrap; font-variant-numeric:tabular-nums; }
+.pay-time .dash { color:#cbd5e1; }
+
+.pay-method { display:inline-flex; align-items:center; gap:.3rem; font-size:.71rem; font-weight:700; padding:.24rem .6rem; border-radius:7px; background:#EEF1F4; color:#475569; }
+.pay-method.m-vnpay { background:#E7F0FF; color:#1D4ED8; }
+.pay-method.m-cash  { background:#E8F5EE; color:#146C43; }
+
+.pay-st { display:inline-flex; align-items:center; gap:.4rem; font-size:.73rem; font-weight:700; padding:.28rem .7rem; border-radius:999px; white-space:nowrap; }
+.pay-st .dot { width:7px; height:7px; border-radius:50%; flex-shrink:0; }
+.pay-st.s-success { background:#E8F5EE; color:#146C43; } .pay-st.s-success .dot { background:#16a34a; }
+.pay-st.s-pending { background:#FFF4D6; color:#9a6700; } .pay-st.s-pending .dot { background:#d97706; }
+.pay-st.s-failed  { background:#FBE4E6; color:#b02a37; } .pay-st.s-failed  .dot { background:#dc2626; }
+
+.pay-empty { text-align:center; padding:3.5rem 1.5rem; color:var(--lc-muted); }
+.pay-empty i { font-size:2.6rem; color:#cbd5e1; display:block; margin-bottom:.6rem; }
+
+/* ---- Card footer (count + pagination) ---- */
+.pay-foot { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:.75rem; padding:.85rem 1.25rem; border-top:1px solid var(--lc-border); background:#FCFDFF; }
+.pay-foot .cnt { font-size:.82rem; color:var(--lc-muted); }
+
+/* ---- KPI cards (monitor) ---- */
+.pay-kpi { background:#fff; border:1px solid var(--lc-border); border-radius:14px; box-shadow:var(--lc-shadow); padding:1.25rem 1.35rem; height:100%; position:relative; overflow:hidden; }
+.pay-kpi::before { content:""; position:absolute; left:0; top:0; bottom:0; width:4px; background:var(--lc-primary); }
+.pay-kpi.k-green::before { background:#16a34a; } .pay-kpi.k-amber::before { background:#d97706; }
+.pay-kpi.k-red::before { background:#dc2626; } .pay-kpi.k-blue::before { background:#2563EB; }
+.pay-kpi .row1 { display:flex; align-items:center; gap:.7rem; margin-bottom:.9rem; }
+.pay-kpi .ic { width:42px; height:42px; border-radius:11px; display:flex; align-items:center; justify-content:center; font-size:1.25rem; }
+.pay-kpi .lbl { font-size:.71rem; text-transform:uppercase; letter-spacing:.06em; color:var(--lc-muted); font-weight:700; }
+.pay-kpi .val { font-size:2rem; font-weight:800; color:var(--lc-navy); line-height:1; letter-spacing:-.02em; }
+.pay-kpi .sub { font-size:.77rem; color:var(--lc-muted); margin-top:.4rem; }
+
+/* ---- Progress / mix bars ---- */
+.pay-prog { height:10px; background:#EEF2F7; border-radius:999px; overflow:hidden; }
+.pay-prog > span { display:block; height:100%; border-radius:999px; background:var(--lc-primary); transition:width .4s ease; }
+.pay-prog > span.b-vnpay { background:linear-gradient(90deg,#3b82f6,#2563EB); }
+.pay-prog > span.b-cash  { background:linear-gradient(90deg,#34d399,#16a34a); }
+.pay-mix .top { display:flex; justify-content:space-between; align-items:center; font-size:.85rem; margin-bottom:.4rem; }
+.pay-mix .top .k { font-weight:700; color:var(--lc-navy); }
+.pay-mix .top .v { color:var(--lc-muted); }
+.pay-mix .row-mix { margin-bottom:1.05rem; }
+.pay-mix .row-mix:last-child { margin-bottom:0; }
+
+.pay-health-row { display:flex; justify-content:space-between; align-items:center; padding:.75rem 0; border-top:1px solid #F0F3F8; }
+.pay-health-row:first-of-type { border-top:none; }

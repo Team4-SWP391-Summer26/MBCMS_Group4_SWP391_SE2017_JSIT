@@ -9,6 +9,9 @@ import com.mbcms.dao.impl.PaymentDAOImpl;
 import com.mbcms.model.Booking;
 import com.mbcms.model.Notification;
 import com.mbcms.model.Payment;
+import com.mbcms.model.PaymentRecord;
+import com.mbcms.model.PaymentSearchCriteria;
+import com.mbcms.model.PaymentSummary;
 import com.mbcms.service.PaymentService;
 import com.mbcms.util.DBUtil;
 
@@ -17,6 +20,7 @@ import java.sql.SQLException;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.List;
 
 /**
  * PaymentServiceImpl - dieu phoi transaction thanh toan.
@@ -114,6 +118,21 @@ public class PaymentServiceImpl implements PaymentService {
         } finally {
             restoreAndClose(conn);
         }
+    }
+
+    @Override
+    public List<PaymentRecord> searchPayments(PaymentSearchCriteria criteria) {
+        return paymentDao.search(criteria);
+    }
+
+    @Override
+    public int countPayments(PaymentSearchCriteria criteria) {
+        return paymentDao.count(criteria);
+    }
+
+    @Override
+    public PaymentSummary getPaymentSummary(Long branchId) {
+        return paymentDao.summarize(branchId);
     }
 
     /** Cung logic 10 phut UTC nhu confirmBooking() va PaymentServlet. */

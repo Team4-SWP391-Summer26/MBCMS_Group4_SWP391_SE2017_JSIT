@@ -290,7 +290,7 @@ CREATE TABLE dbo.payments (
     CONSTRAINT FK_payments_booking FOREIGN KEY (booking_id)
         REFERENCES dbo.bookings (booking_id) ON DELETE CASCADE,
     CONSTRAINT CK_payments_amount CHECK (amount >= 0),
-    CONSTRAINT CK_payments_method CHECK (method IN ('CASH','MOMO','VNPAY')),
+    CONSTRAINT CK_payments_method CHECK (method IN ('CASH','VNPAY')),   -- VNPay (online) + Cash (counter); MoMo da bo
     CONSTRAINT CK_payments_status CHECK ([status] IN ('PENDING','SUCCESS','FAILED'))
 );
 GO

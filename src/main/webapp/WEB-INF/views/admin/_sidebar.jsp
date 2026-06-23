@@ -27,6 +27,11 @@
        href="${pageContext.request.contextPath}/admin/movie-branches">
         <i class="bi bi-diagram-3"></i> Movie Distribution</a>
 
+    <div class="lc-sb-section">Finance</div>
+    <a class="lc-sb-item ${param.active == 'payments' ? 'active' : ''}"
+       href="${pageContext.request.contextPath}/admin/payments">
+        <i class="bi bi-credit-card"></i> Payments</a>
+
     <div class="lc-sb-section">System</div>
     <span class="lc-sb-item disabled"><i class="bi bi-building"></i> Branches <span class="lc-sb-soon">Soon</span></span>
     <span class="lc-sb-item disabled"><i class="bi bi-people"></i> Users <span class="lc-sb-soon">Soon</span></span>

@@ -32,6 +32,7 @@ public class BookingTicket {
     private LocalDateTime startTime;
     private String format;        // 2D / 3D / IMAX
     private String subtitleType;  // SUB / DUB / ORIGINAL
+    private long branchId;
     private String branchName;
     private String roomName;
 
@@ -85,6 +86,9 @@ public class BookingTicket {
 
     public String getSubtitleType() { return subtitleType; }
     public void setSubtitleType(String subtitleType) { this.subtitleType = subtitleType; }
+
+    public long getBranchId() { return branchId; }
+    public void setBranchId(long branchId) { this.branchId = branchId; }
 
     public String getBranchName() { return branchName; }
     public void setBranchName(String branchName) { this.branchName = branchName; }

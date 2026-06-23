@@ -12,12 +12,12 @@ import jakarta.servlet.http.HttpSession;
  * Cache ten branch vao session 1 lan (key "currentBranchName") de sidebar
  * va scope notice khong phai query branches moi request.
  */
-final class ConsoleSupport {
+public final class ConsoleSupport {
 
     private ConsoleSupport() {}
 
     /** Dam bao session co "currentBranchName" (load tu DB lan dau). */
-    static void ensureBranchName(HttpServletRequest req) {
+    public static void ensureBranchName(HttpServletRequest req) {
         HttpSession session = req.getSession(false);
         if (session == null || session.getAttribute("currentBranchName") != null) {
             return;

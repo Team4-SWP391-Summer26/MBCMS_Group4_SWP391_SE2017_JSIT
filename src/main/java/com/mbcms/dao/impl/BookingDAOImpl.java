@@ -188,7 +188,7 @@ public class BookingDAOImpl extends BaseDAO implements BookingDAO {
             "       b.discount_amount, b.total_amount, b.created_at, " +
             "       m.title AS movie_title, m.rated, m.duration_min, m.poster_url, " +
             "       st.start_time, st.format, st.subtitle_type, " +
-            "       br.name AS branch_name, r.name AS room_name, " +
+            "       br.branch_id, br.name AS branch_name, r.name AS room_name, " +
             "       c.full_name, c.email " +
             "FROM dbo.bookings b " +
             "JOIN dbo.showtimes st ON st.showtime_id = b.showtime_id " +
@@ -265,6 +265,7 @@ public class BookingDAOImpl extends BaseDAO implements BookingDAO {
         t.setStartTime(start != null ? start.toLocalDateTime() : null);
         t.setFormat(rs.getString("format"));
         t.setSubtitleType(rs.getString("subtitle_type"));
+        t.setBranchId(rs.getLong("branch_id"));
         t.setBranchName(rs.getString("branch_name"));
         t.setRoomName(rs.getString("room_name"));
 
@@ -447,23 +448,43 @@ public class BookingDAOImpl extends BaseDAO implements BookingDAO {
 // ── releaseExpiredLocks ───────────────────────────────────────────────────
     @Override
     public int releaseExpiredLocks() {
-        // Chỉ CANCEL booking hết hạn — không cần UPDATE booking_seats
-        // getUnavailableSeatIds tự loại PENDING cũ khi query theo thời gian
-        String sql
+        // 1 transaction, 2 buoc (booking het han = thanh toan that bai):
+        //  1) Cancel booking PENDING qua 10 phut (khong dung booking_seats).
+        //  2) Payment PENDING thuoc booking DA CANCELLED -> FAILED. Chay SAU (1)
+        //     nen bat ca booking vua het han LAN booking da huy tu truoc (du lieu cu
+        //     / khach tu huy) -> tu lanh, khong con "pending xac song".
+        String cancelBookings
                 = "UPDATE dbo.bookings SET [status] = 'CANCELLED' "
                 + "WHERE [status] = 'PENDING' "
                 + "  AND DATEDIFF(MINUTE, created_at, SYSUTCDATETIME()) >= 10";
+        String failPayments
+                = "UPDATE p SET p.[status] = 'FAILED' "
+                + "FROM dbo.payments p "
+                + "JOIN dbo.bookings b ON b.booking_id = p.booking_id "
+                + "WHERE p.[status] = 'PENDING' AND b.[status] = 'CANCELLED'";
 
         Connection conn = null;
-        PreparedStatement ps = null;
+        PreparedStatement psBk = null;
+        PreparedStatement psPay = null;
         try {
             conn = getConnection();
-            ps = conn.prepareStatement(sql);
-            return ps.executeUpdate();
+            conn.setAutoCommit(false);
+
+            psBk = conn.prepareStatement(cancelBookings);
+            int released = psBk.executeUpdate();
+
+            psPay = conn.prepareStatement(failPayments);
+            psPay.executeUpdate();
+
+            conn.commit();
+            return released; // so booking da huy (giu nguyen y nghia cu cho scheduler)
         } catch (SQLException e) {
+            rollbackQuietly(conn);
             throw new RuntimeException("Loi releaseExpiredLocks: " + e.getMessage(), e);
         } finally {
-            closeAll(ps, conn);
+            if (psBk != null) try { psBk.close(); } catch (SQLException ignored) {}
+            if (psPay != null) try { psPay.close(); } catch (SQLException ignored) {}
+            restoreAndClose(conn);
         }
     }
 
