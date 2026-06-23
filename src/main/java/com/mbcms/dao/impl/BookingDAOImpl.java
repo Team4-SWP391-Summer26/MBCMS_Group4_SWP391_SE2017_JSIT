@@ -540,7 +540,7 @@ public class BookingDAOImpl extends BaseDAO implements BookingDAO {
         String insertBooking
                 = "INSERT INTO bookings (customer_username, showtime_id, promo_id, booking_code, "
                 + "  subtotal, discount_amount, total_amount, status, notes, created_at) "
-                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, GETDATE())";
+                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, SYSUTCDATETIME())";  // UTC dong nhat voi online
 
         String insertSeat
                 = "INSERT INTO booking_seats (booking_id, seat_id, is_checked_in, check_in_time) "
@@ -548,7 +548,7 @@ public class BookingDAOImpl extends BaseDAO implements BookingDAO {
 
         String insertPayment
                 = "INSERT INTO payments (booking_id, method, amount, status, transaction_ref, paid_at) "
-                + "VALUES (?, 'CASH', ?, 'SUCCESS', NULL, GETDATE())";
+                + "VALUES (?, 'CASH', ?, 'SUCCESS', NULL, SYSUTCDATETIME())";  // UTC dong nhat voi online
 
         String updatePromo
                 = "UPDATE promotions SET used_count = used_count + 1 WHERE promo_id = ?";
