@@ -9,33 +9,20 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
 import java.io.IOException;
-import java.net.URLEncoder;
 
 /**
  * BookingConfirmServlet – /booking/confirm
  *
- * GET → show booking confirmation success/failure page (confirm.jsp) called by
- * BookingCheckoutServlet after creating a PENDING booking, OR by payment
- * gateway callback.
- *
- * POST → confirm (PENDING → CONFIRMED) then redirect to detail page. called
- * when there is a real payment step; for now the flow can auto-confirm from GET
- * for demo purposes.
+ * GET → show booking confirmation page after VNPay callback has already
+ * confirmed the booking. This servlet ONLY DISPLAYS the booking status;
+ * it does NOT call confirmBooking() — that is done exclusively by
+ * VnPayCallbackServlet to prevent free-ticket bypass.
  */
 @WebServlet(name = "BookingConfirmServlet", urlPatterns = {"/booking/confirm"})
 public class BookingConfirmServlet extends HttpServlet {
 
     private final BookingService bookingService = new BookingServiceImpl();
 
-    /**
-     * GET /booking/confirm?bookingId=X
-     *
-     * BUG FIX: Original doGet was empty — redirect from BookingCheckoutServlet
-     * hit this endpoint with GET and received a blank response.
-     *
-     * For the current (no external payment gateway) flow: 1. Confirm the
-     * PENDING booking immediately. 2. Forward to confirm.jsp to show success.
-     */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -62,21 +49,21 @@ public class BookingConfirmServlet extends HttpServlet {
         }
 
         try {
-            Booking booking = bookingService.confirmBooking(bookingId, customer.getUsername());
+            // Display-only: load confirmed booking (owner-checked by service)
+            Booking booking = bookingService.getBookingDetail(bookingId, customer.getUsername());
+            if (booking == null) {
+                response.sendRedirect(request.getContextPath() + "/customer/booking/history");
+                return;
+            }
             session.removeAttribute("pendingBookingId");
             request.setAttribute("booking", booking);
-            // View-model day du cho e-ticket (movie/showtime/room/seat labels...)
             try {
                 request.setAttribute("ticket",
                         bookingService.getTicket(bookingId, customer.getUsername()));
-            } catch (Exception ignore) { /* fallback: confirm.jsp dung 'booking' */ }
+            } catch (Exception ignore) { /* confirm.jsp falls back to 'booking' */ }
             request.getRequestDispatcher("/WEB-INF/views/booking/confirm.jsp")
                     .forward(request, response);
 
-        } catch (IllegalStateException e) {
-            request.setAttribute("errorMessage", e.getMessage());
-            request.getRequestDispatcher("/WEB-INF/views/booking/confirm.jsp")
-                    .forward(request, response);
         } catch (SecurityException e) {
             response.setStatus(HttpServletResponse.SC_FORBIDDEN);
             request.getRequestDispatcher("/WEB-INF/views/common/error403.jsp")
@@ -88,11 +75,7 @@ public class BookingConfirmServlet extends HttpServlet {
         }
     }
 
-    /**
-     * POST /booking/confirm
-     *
-     * Used when a payment gateway callback confirms payment externally.
-     */
+    /** POST /booking/confirm is not used in the VNPay flow — redirect to detail. */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -102,40 +85,17 @@ public class BookingConfirmServlet extends HttpServlet {
             response.sendRedirect(request.getContextPath() + "/auth/login");
             return;
         }
-        Customer customer = (Customer) session.getAttribute("currentUser");
 
         String bookingIdParam = request.getParameter("bookingId");
-        if (bookingIdParam == null) {
-            response.sendRedirect(request.getContextPath() + "/customer/booking/history");
-            return;
+        if (bookingIdParam != null) {
+            try {
+                long bookingId = Long.parseLong(bookingIdParam.trim());
+                response.sendRedirect(request.getContextPath()
+                        + "/booking/detail?bookingId=" + bookingId);
+                return;
+            } catch (NumberFormatException ignored) {
+            }
         }
-
-        long bookingId;
-        try {
-            bookingId = Long.parseLong(bookingIdParam.trim());
-        } catch (NumberFormatException e) {
-            response.sendRedirect(request.getContextPath() + "/customer/booking/history");
-            return;
-        }
-
-        try {
-            bookingService.confirmBooking(bookingId, customer.getUsername());
-            session.removeAttribute("pendingBookingId");
-            response.sendRedirect(request.getContextPath()
-                    + "/booking/detail?bookingId=" + bookingId + "&confirmed=1");
-
-        } catch (IllegalStateException e) {
-            response.sendRedirect(request.getContextPath()
-                    + "/booking/detail?bookingId=" + bookingId + "&error="
-                    + URLEncoder.encode(e.getMessage(), "UTF-8"));
-        } catch (SecurityException e) {
-            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-            request.getRequestDispatcher("/WEB-INF/views/common/error403.jsp")
-                    .forward(request, response);
-        } catch (Exception e) {
-            request.setAttribute("error", "System error: " + e.getMessage());
-            request.getRequestDispatcher("/WEB-INF/views/common/error500.jsp")
-                    .forward(request, response);
-        }
+        response.sendRedirect(request.getContextPath() + "/customer/booking/history");
     }
 }

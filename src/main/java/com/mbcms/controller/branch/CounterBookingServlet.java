@@ -208,6 +208,11 @@ public class CounterBookingServlet extends HttpServlet {
         Map<String, Object> result = new HashMap<>();
 
         try {
+            Long branchId = (Long) req.getSession().getAttribute("currentBranchId");
+            if (branchId == null) {
+                throw new SecurityException("Phiên làm việc không hợp lệ.");
+            }
+
             String showtimeIdParam = req.getParameter("showtimeId");
             if (showtimeIdParam == null || showtimeIdParam.trim().isEmpty()) {
                 throw new IllegalArgumentException("Vui lòng chọn suất chiếu.");
@@ -217,6 +222,13 @@ public class CounterBookingServlet extends HttpServlet {
             Showtime showtime = showtimeDAO.findById(showtimeId);
             if (showtime == null) {
                 throw new IllegalArgumentException("Không tìm thấy suất chiếu tương ứng.");
+            }
+
+            // Verify showtime belongs to the staff's branch
+            boolean roomInBranch = roomDAO.findActiveByBranch(branchId).stream()
+                    .anyMatch(r -> r.getRoomId() == showtime.getRoomId());
+            if (!roomInBranch) {
+                throw new SecurityException("Suất chiếu không thuộc chi nhánh của bạn.");
             }
 
             // Parse selected seat IDs

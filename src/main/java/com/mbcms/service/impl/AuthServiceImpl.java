@@ -50,6 +50,11 @@ public class AuthServiceImpl implements AuthService {
             return null;
         }
 
+        // Kiem tra email da xac thuc
+        if (!customer.isEmailVerified()) {
+            return null;
+        }
+
         // BCrypt verify
         if (!BCrypt.checkpw(rawPassword, customer.getPasswordHash())) {
             return null;
