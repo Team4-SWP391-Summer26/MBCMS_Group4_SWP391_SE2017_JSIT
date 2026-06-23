@@ -7,6 +7,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * MAU DAO - copy pattern nay khi tao *DAOImpl khac. Chi giu 1 method mau; cac
@@ -260,6 +262,31 @@ public class CustomerDAOImpl extends BaseDAO implements CustomerDAO {
             return null;
         } catch (SQLException e) {
             throw new RuntimeException("Loi truy van customers.findByPhone: " + e.getMessage(), e);
+        } finally {
+            closeAll(rs, ps, conn);
+        }
+    }
+    
+    @Override
+    public List<String> findAllActiveUsernames() {
+        String sql = "SELECT username FROM dbo.customers WHERE active = 1";
+ 
+        Connection conn = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+        List<String> result = new ArrayList<>();
+ 
+        try {
+            conn = getConnection();
+            ps = conn.prepareStatement(sql);
+            rs = ps.executeQuery();
+            while (rs.next()) {
+                result.add(rs.getString("username"));
+            }
+            return result;
+        } catch (SQLException e) {
+            throw new RuntimeException(
+                    "Loi truy van customers.findAllActiveUsernames: " + e.getMessage(), e);
         } finally {
             closeAll(rs, ps, conn);
         }

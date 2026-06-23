@@ -19,6 +19,7 @@ AGENTS.md
 
 # Config nhay cam - KHONG commit
 src/main/resources/database.properties
+src/main/resources/email.properties
 
 
 # OS

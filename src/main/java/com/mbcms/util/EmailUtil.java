@@ -279,4 +279,249 @@ public class EmailUtil {
             return false;
         }
     }
+
+    // ═══════════════════════════════════════════════════════════════════════════
+// ADD THESE THREE METHODS to the existing EmailUtil class
+// Place after the existing sendVerificationEmail() method
+// ═══════════════════════════════════════════════════════════════════════════
+    /**
+     * Gui email xac nhan dat ve + thanh toan thanh cong. Goi boi
+     * NotificationServiceImpl.sendBookingConfirmation() bat dong bo.
+     */
+    public static boolean sendBookingConfirmationEmail(String recipientEmail,
+            com.mbcms.model.Booking booking) {
+        final String senderEmail = emailProps.getProperty("mail.sender.email");
+        final String senderPassword = emailProps.getProperty("mail.sender.password");
+
+        if (!isConfigured(senderEmail, senderPassword)) {
+            System.err.println("[EmailUtil] Chua cau hinh SMTP. Bo qua email xac nhan dat ve.");
+            return false;
+        }
+
+        Properties props = buildSmtpProps();
+        Session session = buildSession(props, senderEmail, senderPassword);
+
+        try {
+            MimeMessage message = new MimeMessage(session);
+            message.setFrom(new InternetAddress(senderEmail));
+            message.addRecipient(Message.RecipientType.TO, new InternetAddress(recipientEmail));
+            message.setSubject("[MBCMS] Xác nhận đặt vé thành công – " + booking.getBookingCode(), "UTF-8");
+
+            String total = String.format("%,.0f", booking.getTotalAmount());
+            String html
+                    = "<div style='font-family:Arial,sans-serif;max-width:600px;margin:0 auto;"
+                    + "padding:20px;border:1px solid #e5e7eb;border-radius:12px;background:#fff'>"
+                    + "  <div style='text-align:center;margin-bottom:20px'>"
+                    + "    <h2 style='color:#182c54;margin:0'>MBCMS Cinema</h2>"
+                    + "  </div>"
+                    + "  <hr style='border:0;border-top:1px solid #e5e7eb;margin-bottom:20px'>"
+                    + "  <div style='background:#f0fdf4;border:1px solid #86efac;border-radius:8px;"
+                    + "       padding:16px;text-align:center;margin-bottom:20px'>"
+                    + "    <div style='font-size:2rem'>✅</div>"
+                    + "    <h3 style='color:#15803d;margin:8px 0 4px'>Đặt vé thành công!</h3>"
+                    + "    <p style='color:#166534;margin:0'>Thanh toán đã được ghi nhận.</p>"
+                    + "  </div>"
+                    + "  <div style='background:#eff6ff;border:2px dashed #bfdbfe;border-radius:8px;"
+                    + "       padding:14px;text-align:center;margin-bottom:20px'>"
+                    + "    <p style='margin:0 0 4px;font-size:.78rem;color:#6b7280;font-weight:600;"
+                    + "       text-transform:uppercase;letter-spacing:.08em'>Mã đặt vé</p>"
+                    + "    <p style='margin:0;font-family:monospace;font-size:1.8rem;font-weight:800;"
+                    + "       color:#1d4ed8;letter-spacing:.1em'>" + booking.getBookingCode() + "</p>"
+                    + "  </div>"
+                    + "  <table style='width:100%;border-collapse:collapse;font-size:.9rem'>"
+                    + "    <tr><td style='padding:8px 0;color:#6b7280;width:140px'>Suất chiếu</td>"
+                    + "        <td style='padding:8px 0;font-weight:600'>#" + booking.getShowtimeId() + "</td></tr>"
+                    + "    <tr style='border-top:1px solid #f1f5f9'>"
+                    + "        <td style='padding:8px 0;color:#6b7280'>Tổng thanh toán</td>"
+                    + "        <td style='padding:8px 0;font-weight:800;color:#1d4ed8'>" + total + " ₫</td></tr>"
+                    + "  </table>"
+                    + "  <div style='background:#f8fafc;border-radius:8px;padding:10px 14px;"
+                    + "       font-size:.8rem;color:#4b5563;margin:20px 0'>"
+                    + "    💡 Vui lòng xuất trình mã đặt vé này tại quầy vé hoặc cổng vào rạp."
+                    + "  </div>"
+                    + "  <p style='font-size:.85rem;color:#6b7280'>Trân trọng,<br>Đội ngũ MBCMS</p>"
+                    + "</div>";
+
+            message.setContent(html, "text/html; charset=UTF-8");
+            Transport.send(message);
+            return true;
+        } catch (MessagingException e) {
+            System.err.println("[EmailUtil] Loi gui email xac nhan dat ve: " + e.getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Gui email nhac nho suất chieu. Goi boi
+     * NotificationServiceImpl.sendReminderIfNotSent() bat dong bo.
+     */
+    public static boolean sendReminderEmail(String recipientEmail, String bookingCode,
+            String movieTitle, String startTimeStr) {
+        final String senderEmail = emailProps.getProperty("mail.sender.email");
+        final String senderPassword = emailProps.getProperty("mail.sender.password");
+
+        if (!isConfigured(senderEmail, senderPassword)) {
+            System.err.println("[EmailUtil] Chua cau hinh SMTP. Bo qua email nhac nho.");
+            return false;
+        }
+
+        Properties props = buildSmtpProps();
+        Session session = buildSession(props, senderEmail, senderPassword);
+
+        try {
+            MimeMessage message = new MimeMessage(session);
+            message.setFrom(new InternetAddress(senderEmail));
+            message.addRecipient(Message.RecipientType.TO, new InternetAddress(recipientEmail));
+            message.setSubject("[MBCMS] Nhắc nhở: Phim \"" + movieTitle + "\" sắp bắt đầu", "UTF-8");
+
+            String html
+                    = "<div style='font-family:Arial,sans-serif;max-width:600px;margin:0 auto;"
+                    + "padding:20px;border:1px solid #e5e7eb;border-radius:12px;background:#fff'>"
+                    + "  <div style='text-align:center;margin-bottom:20px'>"
+                    + "    <h2 style='color:#182c54;margin:0'>MBCMS Cinema</h2>"
+                    + "  </div>"
+                    + "  <hr style='border:0;border-top:1px solid #e5e7eb;margin-bottom:20px'>"
+                    + "  <div style='background:#fef9c3;border:1px solid #fde047;border-radius:8px;"
+                    + "       padding:16px;text-align:center;margin-bottom:20px'>"
+                    + "    <div style='font-size:2rem'>⏰</div>"
+                    + "    <h3 style='color:#92400e;margin:8px 0 4px'>Suất chiếu sắp bắt đầu!</h3>"
+                    + "    <p style='color:#78350f;margin:0'>Hãy đến rạp trước 15 phút để làm thủ tục.</p>"
+                    + "  </div>"
+                    + "  <table style='width:100%;border-collapse:collapse;font-size:.9rem'>"
+                    + "    <tr><td style='padding:8px 0;color:#6b7280;width:140px'>Phim</td>"
+                    + "        <td style='padding:8px 0;font-weight:700'>" + movieTitle + "</td></tr>"
+                    + "    <tr style='border-top:1px solid #f1f5f9'>"
+                    + "        <td style='padding:8px 0;color:#6b7280'>Giờ chiếu</td>"
+                    + "        <td style='padding:8px 0;font-weight:700;color:#d97706'>" + startTimeStr + "</td></tr>"
+                    + "    <tr style='border-top:1px solid #f1f5f9'>"
+                    + "        <td style='padding:8px 0;color:#6b7280'>Mã đặt vé</td>"
+                    + "        <td style='padding:8px 0;font-family:monospace;font-weight:800'>" + bookingCode + "</td></tr>"
+                    + "  </table>"
+                    + "  <p style='font-size:.85rem;color:#6b7280;margin-top:20px'>"
+                    + "    Trân trọng,<br>Đội ngũ MBCMS</p>"
+                    + "</div>";
+
+            message.setContent(html, "text/html; charset=UTF-8");
+            Transport.send(message);
+            return true;
+        } catch (MessagingException e) {
+            System.err.println("[EmailUtil] Loi gui email nhac nho: " + e.getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Gui email khuyen mai den danh sach customer. Gui BCC (blind carbon copy)
+     * de bao ve quyen rieng tu cua nguoi nhan. Goi boi
+     * NotificationServiceImpl.broadcastPromotion() bat dong bo.
+     */
+    public static boolean sendPromotionBroadcastEmail(java.util.List<String> usernames,
+            com.mbcms.model.Promotion promotion) {
+        // Lay email cho tung username – chi gui den nhung ai co email hop le
+        com.mbcms.dao.CustomerDAO customerDAO = new com.mbcms.dao.impl.CustomerDAOImpl();
+        java.util.List<String> emails = new java.util.ArrayList<>();
+        for (String username : usernames) {
+            try {
+                com.mbcms.model.Customer c = customerDAO.findByUsername(username);
+                if (c != null && c.getEmail() != null && !c.getEmail().isEmpty()) {
+                    emails.add(c.getEmail());
+                }
+            } catch (Exception ignored) {
+            }
+        }
+        if (emails.isEmpty()) {
+            return false;
+        }
+
+        final String senderEmail = emailProps.getProperty("mail.sender.email");
+        final String senderPassword = emailProps.getProperty("mail.sender.password");
+
+        if (!isConfigured(senderEmail, senderPassword)) {
+            System.err.println("[EmailUtil] Chua cau hinh SMTP. Bo qua email promo.");
+            return false;
+        }
+
+        Properties props = buildSmtpProps();
+        Session session = buildSession(props, senderEmail, senderPassword);
+
+        String discountStr = "PERCENT".equals(promotion.getDiscountType())
+                ? promotion.getDiscountValue().toPlainString() + "%"
+                : String.format("%,.0f ₫", promotion.getDiscountValue());
+
+        String html
+                = "<div style='font-family:Arial,sans-serif;max-width:600px;margin:0 auto;"
+                + "padding:20px;border:1px solid #e5e7eb;border-radius:12px;background:#fff'>"
+                + "  <div style='text-align:center;margin-bottom:20px'>"
+                + "    <h2 style='color:#182c54;margin:0'>MBCMS Cinema</h2>"
+                + "  </div>"
+                + "  <hr style='border:0;border-top:1px solid #e5e7eb;margin-bottom:20px'>"
+                + "  <div style='background:linear-gradient(135deg,#1d4ed8,#3b82f6);border-radius:12px;"
+                + "       padding:24px;text-align:center;margin-bottom:20px'>"
+                + "    <div style='font-size:2.5rem'>🎁</div>"
+                + "    <h3 style='color:#fff;margin:8px 0 4px;font-size:1.4rem'>" + promotion.getName() + "</h3>"
+                + "    <p style='color:#bfdbfe;margin:0'>Ưu đãi đặc biệt dành cho bạn!</p>"
+                + "  </div>"
+                + "  <div style='background:#eff6ff;border-radius:8px;padding:16px;text-align:center;margin-bottom:20px'>"
+                + "    <p style='margin:0 0 8px;color:#6b7280;font-size:.9rem'>Giảm ngay</p>"
+                + "    <p style='margin:0;font-size:2rem;font-weight:800;color:#1d4ed8'>" + discountStr + "</p>"
+                + "    <div style='margin-top:12px;background:#fff;border:2px dashed #bfdbfe;"
+                + "         border-radius:8px;padding:8px'>"
+                + "      <p style='margin:0 0 2px;font-size:.75rem;color:#6b7280'>Mã khuyến mãi</p>"
+                + "      <p style='margin:0;font-family:monospace;font-weight:800;font-size:1.2rem;"
+                + "           color:#1d4ed8;letter-spacing:.1em'>" + promotion.getCode() + "</p>"
+                + "    </div>"
+                + "  </div>"
+                + "  <p style='font-size:.85rem;color:#6b7280'>Trân trọng,<br>Đội ngũ MBCMS</p>"
+                + "</div>";
+
+        // Gui theo batch nho (50/lan) de tranh bi spam filter
+        int batchSize = 50;
+        int totalSent = 0;
+        for (int i = 0; i < emails.size(); i += batchSize) {
+            java.util.List<String> batch = emails.subList(i, Math.min(i + batchSize, emails.size()));
+            try {
+                MimeMessage message = new MimeMessage(session);
+                message.setFrom(new InternetAddress(senderEmail));
+                // To: chinh la sender, BCC la batch customer
+                message.addRecipient(Message.RecipientType.TO, new InternetAddress(senderEmail));
+                for (String email : batch) {
+                    message.addRecipient(Message.RecipientType.BCC, new InternetAddress(email));
+                }
+                message.setSubject("[MBCMS] Ưu đãi mới: " + promotion.getName(), "UTF-8");
+                message.setContent(html, "text/html; charset=UTF-8");
+                Transport.send(message);
+                totalSent += batch.size();
+            } catch (MessagingException e) {
+                System.err.println("[EmailUtil] Loi gui batch promo email (batch " + i + "): " + e.getMessage());
+            }
+        }
+        System.out.println("[EmailUtil] Gui promo email: " + totalSent + "/" + emails.size() + " thanh cong.");
+        return totalSent > 0;
+    }
+
+    // ── Private SMTP helpers (thay the code trung lap trong moi method) ───────
+    private static boolean isConfigured(String email, String password) {
+        return email != null && !email.equals("your-gmail@gmail.com")
+                && password != null && !password.equals("your-app-password");
+    }
+
+    private static Properties buildSmtpProps() {
+        Properties props = new Properties();
+        props.put("mail.smtp.host", emailProps.getProperty("mail.smtp.host", "smtp.gmail.com"));
+        props.put("mail.smtp.port", emailProps.getProperty("mail.smtp.port", "587"));
+        props.put("mail.smtp.auth", emailProps.getProperty("mail.smtp.auth", "true"));
+        props.put("mail.smtp.starttls.enable", emailProps.getProperty("mail.smtp.starttls.enable", "true"));
+        props.put("mail.smtp.connectiontimeout", "5000");
+        props.put("mail.smtp.timeout", "5000");
+        return props;
+    }
+
+    private static Session buildSession(Properties props, String email, String password) {
+        return Session.getInstance(props, new Authenticator() {
+            @Override
+            protected PasswordAuthentication getPasswordAuthentication() {
+                return new PasswordAuthentication(email, password);
+            }
+        });
+    }
 }

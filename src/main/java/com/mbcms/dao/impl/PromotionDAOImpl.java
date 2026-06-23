@@ -361,7 +361,10 @@ public class PromotionDAOImpl extends BaseDAO implements PromotionDAO {
         @Override
     public boolean incrementUsedCount(long promoId) {
         String sql = "UPDATE dbo.promotions SET used_count = used_count + 1 WHERE promo_id = ?";
-        Connection conn = null; PreparedStatement ps = null;
+        
+        Connection conn = null; 
+        PreparedStatement ps = null;
+        
         try {
             conn = getConnection();
             ps = conn.prepareStatement(sql);
@@ -371,6 +374,17 @@ public class PromotionDAOImpl extends BaseDAO implements PromotionDAO {
             throw new RuntimeException("incrementUsedCount lỗi: " + e.getMessage(), e);
         } finally {
             closeAll(ps, conn);
+        }
+    }
+
+    @Override
+    public int incrementUsedCount(Connection conn, long promoId) throws SQLException {
+        // Dung conn truyen vao tu PaymentService de atomic voi confirm + payment.
+        // KHONG commit/close conn.
+        String sql = "UPDATE dbo.promotions SET used_count = used_count + 1 WHERE promo_id = ?";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setLong(1, promoId);
+            return ps.executeUpdate();
         }
     }
 

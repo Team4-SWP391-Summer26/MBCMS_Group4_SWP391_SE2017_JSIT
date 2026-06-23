@@ -102,9 +102,12 @@ public class ShowtimeDAOImpl extends BaseDAO implements ShowtimeDAO {
      */
     @Override
     public boolean createWithConflictCheck(Showtime st) {
+        // 30-min cleaning buffer: new showtime must start >= 30 min after any existing one ends,
+        // and existing showtimes must start >= 30 min after this new one ends.
         String checkSql = "SELECT COUNT(*) FROM showtimes "
                 + "WHERE room_id = ? AND status = 'SCHEDULED' "
-                + "AND start_time < ? AND end_time > ?";
+                + "AND start_time < DATEADD(MINUTE, 30, ?) "
+                + "AND DATEADD(MINUTE, 30, end_time) > ?";
 
         String insertSql = "INSERT INTO showtimes "
                 + "(room_id, movie_id, start_time, end_time, base_price, format, subtitle_type, status) "
@@ -203,7 +206,8 @@ public class ShowtimeDAOImpl extends BaseDAO implements ShowtimeDAO {
     public boolean updateWithConflictCheck(Showtime st) {
         String checkSql = "SELECT COUNT(*) FROM showtimes "
                 + "WHERE room_id = ? AND status = 'SCHEDULED' "
-                + "AND start_time < ? AND end_time > ? "
+                + "AND start_time < DATEADD(MINUTE, 30, ?) "
+                + "AND DATEADD(MINUTE, 30, end_time) > ? "
                 + "AND showtime_id <> ?";
 
         String updateSql = "UPDATE showtimes SET room_id = ?, movie_id = ?, start_time = ?, "

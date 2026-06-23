@@ -18,6 +18,8 @@
 <%-- LocalDateTime.toString() = "yyyy-MM-ddTHH:mm" -> cat lay date va time --%>
 <c:set var="vDate" value="${empty param.date ? (editing ? fn:substring(st.startTime, 0, 10) : '') : param.date}" />
 <c:set var="vTime" value="${empty param.startTime ? (editing ? fn:substring(st.startTime, 11, 16) : '') : param.startTime}" />
+<c:set var="vEndTime" value="${empty param.endTime ? (editing ? fn:substring(st.endTime, 11, 16) : '') : param.endTime}" />
+<c:set var="vEndMode" value="${empty param.endMode ? 'auto' : param.endMode}" />
 <!DOCTYPE html>
 <html lang="en">
 
@@ -73,6 +75,38 @@
                 padding: .12rem .45rem;
                 border-radius: 999px;
                 vertical-align: middle;
+            }
+            /* End-time Auto/Custom segmented toggle */
+            .end-toggle {
+                display: inline-flex;
+                background: #eef1f4;
+                border-radius: 999px;
+                padding: 2px;
+                gap: 2px;
+            }
+            .end-toggle-opt {
+                border: 0;
+                background: transparent;
+                font-size: .66rem;
+                font-weight: 700;
+                letter-spacing: .02em;
+                color: #64748b;
+                padding: .2rem .62rem;
+                border-radius: 999px;
+                cursor: pointer;
+                line-height: 1;
+                transition: background .15s ease, color .15s ease, box-shadow .15s ease;
+            }
+            .end-toggle-opt:hover {
+                color: #0f1e36;
+            }
+            .end-toggle-opt.active {
+                background: #fff;
+                color: var(--lc-primary, #2563eb);
+                box-shadow: 0 1px 2px rgba(15, 30, 54, .14);
+            }
+            .end-toggle-opt.active:hover {
+                color: var(--lc-primary, #2563eb);
             }
         </style>
     </head>
@@ -166,10 +200,21 @@
                                         <input type="time" class="form-control" id="startTime" name="startTime" value="${vTime}" required>
                                     </div>
                                     <div class="col-md-4">
-                                        <%-- Chi de XEM TRUOC; server tu tinh lai = start + duration (khong tin client) --%>
-                                        <label class="form-label" for="endTimePreview">End Time <span class="lc-auto">auto</span></label>
+                                        <%-- Auto: server tu tinh = start + duration. Custom: manager tu nhap (server van validate). --%>
+                                        <label class="form-label d-flex align-items-center justify-content-between mb-1">
+                                            <span>End Time</span>
+                                            <span class="end-toggle" id="endToggle" role="group" aria-label="End time mode">
+                                                <button type="button" class="end-toggle-opt active" data-mode="auto">Auto</button>
+                                                <button type="button" class="end-toggle-opt" data-mode="custom">Custom</button>
+                                            </span>
+                                        </label>
+                                        <input type="hidden" name="endMode" id="endMode" value="auto">
+                                        <%-- Auto mode: readonly preview, KHONG submit --%>
                                         <input type="text" class="form-control mono" id="endTimePreview" readonly
                                                placeholder="--:--" tabindex="-1">
+                                        <%-- Custom mode: editable, submit qua name=endTime --%>
+                                        <input type="time" class="form-control mono d-none" id="endTimeCustom"
+                                               name="endTime" value="${vEndTime}">
                                         <div class="form-text" id="endTimeHint">Calculated: start + movie duration</div>
                                     </div>
                                 </div>
@@ -275,6 +320,12 @@
                 var priceInp = document.getElementById('basePrice');
                 var endPrev = document.getElementById('endTimePreview');
                 var endHint = document.getElementById('endTimeHint');
+                var endMode = document.getElementById('endMode');
+                var endCustom = document.getElementById('endTimeCustom');
+                var toggleBtns = document.querySelectorAll('.end-toggle-opt');
+
+                var autoEndHHMM = '';   // computed start + duration (pure HH:MM, no +1 day)
+                var autoCrossDay = false;
 
                 // Prevent selecting past dates from date picker
                 dateInp.min = new Date().toISOString().slice(0, 10);
@@ -301,19 +352,30 @@
                     var capacity = rOpt ? parseInt(rOpt.getAttribute('data-capacity'), 10) : NaN;
                     var price = parseInt(priceInp.value, 10);
 
-                    // --- End time preview ---
+                    // --- Auto end time (start + duration) ---
                     if (!isNaN(duration) && timeInp.value) {
                         var p = timeInp.value.split(':');
                         var total = parseInt(p[0], 10) * 60 + parseInt(p[1], 10) + duration;
                         var h = Math.floor(total / 60) % 24, mm = total % 60;
-                        endPrev.value = String(h).padStart(2, '0') + ':' + String(mm).padStart(2, '0')
-                                + (total >= 1440 ? ' (+1 day)' : '');
+                        autoEndHHMM = String(h).padStart(2, '0') + ':' + String(mm).padStart(2, '0');
+                        autoCrossDay = total >= 1440;
+                        endPrev.value = autoEndHHMM + (autoCrossDay ? ' (+1 day)' : '');
                     } else {
+                        autoEndHHMM = '';
+                        autoCrossDay = false;
                         endPrev.value = '';
                     }
-                    endHint.textContent = isNaN(duration)
-                            ? 'Calculated: start + movie duration'
-                            : 'Calculated: start + ' + duration + ' min';
+
+                    // Hint depends on the active mode
+                    if (endMode.value === 'custom') {
+                        endHint.textContent = isNaN(duration)
+                                ? 'Custom — set the end time manually'
+                                : 'Custom — must be ≥ ' + duration + ' min after start';
+                    } else {
+                        endHint.textContent = isNaN(duration)
+                                ? 'Calculated: start + movie duration'
+                                : 'Calculated: start + ' + duration + ' min';
+                    }
 
                     // --- Customer view ---
                     var title = mOpt && mOpt.value ? mOpt.text.replace(/\s*\(\d+ min\)$/, '') : 'Select a movie';
@@ -325,7 +387,9 @@
                     var line = [roomName, [selectedFormat(), selectedSubtitle()].filter(Boolean).join(' ')]
                             .filter(Boolean).join(' · ');
                     document.getElementById('pvRoomLine').innerHTML = line || '&nbsp;';
-                    document.getElementById('pvTime').textContent = timeInp.value || '--:--';
+                    var endShown = endMode.value === 'custom' ? endCustom.value : autoEndHHMM;
+                    document.getElementById('pvTime').textContent =
+                            timeInp.value ? (timeInp.value + (endShown ? ' – ' + endShown : '')) : '--:--';
                     document.getElementById('pvPrice').innerHTML = isNaN(price) ? '&mdash;' : fmtVND(price);
 
                     // --- Estimated revenue (price x capacity x %) ---
@@ -335,17 +399,58 @@
                     document.getElementById('rev100').innerHTML = ok ? fmtVND(price * capacity) : '&mdash;';
                 }
 
+                // Switch between Auto (readonly preview) and Custom (editable) end time
+                function setMode(mode) {
+                    endMode.value = mode;
+                    toggleBtns.forEach(function (b) {
+                        b.classList.toggle('active', b.getAttribute('data-mode') === mode);
+                    });
+                    if (mode === 'custom') {
+                        endPrev.classList.add('d-none');
+                        endCustom.classList.remove('d-none');
+                        // Seed with the auto value the first time, so manager edits from a sane start
+                        if (!endCustom.value && autoEndHHMM) {
+                            endCustom.value = autoEndHHMM;
+                        }
+                    } else {
+                        endCustom.classList.add('d-none');
+                        endPrev.classList.remove('d-none');
+                    }
+                    update();
+                }
+                toggleBtns.forEach(function (b) {
+                    b.addEventListener('click', function () {
+                        setMode(b.getAttribute('data-mode'));
+                    });
+                });
+
                 ['change', 'input'].forEach(function (ev) {
                     movieSel.addEventListener(ev, update);
                     roomSel.addEventListener(ev, update);
                     timeInp.addEventListener(ev, update);
                     priceInp.addEventListener(ev, update);
+                    endCustom.addEventListener(ev, update);
                 });
                 document.querySelectorAll('input[name="format"], input[name="subtitleType"]')
                         .forEach(function (el) {
                             el.addEventListener('change', update);
                         });
-                update(); // edit prefill / form load lai sau loi
+
+                // ----- Initial mode -----
+                update(); // compute autoEndHHMM first
+                var EDITING = ${editing};
+                var POST_MODE = "${vEndMode}";          // 'custom' if a failed POST carried it
+                var EXISTING_END = "${vEndTime}";       // edit prefill
+                var hasPostMode = ${not empty param.endMode};
+                if (hasPostMode) {
+                    setMode(POST_MODE === 'custom' ? 'custom' : 'auto');
+                } else if (EDITING && EXISTING_END && EXISTING_END !== autoEndHHMM) {
+                    // Existing end differs from auto → it was set as custom
+                    endCustom.value = EXISTING_END;
+                    setMode('custom');
+                } else {
+                    setMode('auto');
+                }
             })();
         </script>
     </body>

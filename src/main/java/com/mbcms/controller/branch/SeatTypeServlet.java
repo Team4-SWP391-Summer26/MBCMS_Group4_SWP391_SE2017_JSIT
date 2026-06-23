@@ -30,7 +30,7 @@ import java.util.Map;
  * Nam duoi /branch/* nen AuthFilter + RoleFilter (BRANCH_MANAGER) + BranchFilter
  * da chay truoc; "currentBranchId" trong session chac chan != null.
  */
-@WebServlet("/branch/seats")
+@WebServlet("/branch/seats-type")
 public class SeatTypeServlet extends HttpServlet {
 
     private static final String VIEW = "/WEB-INF/views/branch/seat/manage.jsp";

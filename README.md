@@ -87,8 +87,8 @@ Admin            ──►  Manage All Branches · Global Catalog · Users · Pr
 
 ### 💳 Payment
 
-- Online: **VNPay** & **MoMo** (HMAC-SHA512 verified callbacks)
-- Counter: Cash / card via staff POS
+- Online: **VNPay** (HMAC-SHA512 verified callbacks)
+- Counter: Cash via staff POS
 - Promotion / discount code support
 - Payment timeout with auto-cancellation
 
@@ -195,7 +195,6 @@ Admin            ──►  Manage All Branches · Global Catalog · Users · Pr
 | Service         | Purpose                                                              |
 | --------------- | -------------------------------------------------------------------- |
 | **VNPay**       | Online payment gateway (sandbox)                                     |
-| **MoMo**        | E-wallet payment gateway (sandbox)                                   |
 | **SMTP Server** | Transactional email (verification, booking confirmation, ticket PDF) |
 
 ---
@@ -248,7 +247,7 @@ PENDING ──(payment success)──► CONFIRMED ──(QR scan)──► USED
 | SEC-05 | Authorization    | `AuthFilter → RoleFilter → BranchFilter` on all protected URLs           |
 | SEC-06 | XSS Prevention   | All JSP output via JSTL `<c:out>` or EL with HTML encoding               |
 | SEC-07 | Brute-force      | Account locked 15 min after 5 consecutive failed login attempts          |
-| SEC-08 | Payment Security | HMAC-SHA512 signature verification on all VNPay/MoMo callbacks           |
+| SEC-08 | Payment Security | HMAC-SHA512 signature verification on all VNPay callbacks                |
 
 ---
 
@@ -302,10 +301,6 @@ Edit `src/main/resources/payment.properties`:
 vnpay.tmn_code=YOUR_TMN_CODE
 vnpay.hash_secret=YOUR_HASH_SECRET
 vnpay.url=https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
-
-momo.partner_code=YOUR_PARTNER_CODE
-momo.access_key=YOUR_ACCESS_KEY
-momo.secret_key=YOUR_SECRET_KEY
 ```
 
 **5. Build & deploy**
