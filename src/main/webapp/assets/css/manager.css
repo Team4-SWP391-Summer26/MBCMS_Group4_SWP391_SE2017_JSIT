@@ -473,3 +473,308 @@ body.lc-console {
 
 .pay-health-row { display:flex; justify-content:space-between; align-items:center; padding:.75rem 0; border-top:1px solid #F0F3F8; }
 .pay-health-row:first-of-type { border-top:none; }
+
+/* ---------- Mockup Refinement Styles (admin console redesign) ---------- */
+
+/* Custom Typography & General Console overrides */
+body.lc-console {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    color: #1e293b;
+}
+
+/* Redesigned Sidebar */
+.lc-sidebar {
+    background: #0f172a;
+    width: 250px;
+    padding: 24px 16px;
+    border-right: 1px solid #1e293b;
+}
+.lc-sb-brand {
+    font-size: 1.35rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.lc-sb-brand-icon {
+    color: #fbbf24;
+    font-size: 1.5rem;
+}
+.lc-sb-subtitle {
+    font-size: 0.65rem;
+    color: #64748b;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+.lc-sb-section {
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: #475569;
+    padding: 20px 8px 8px;
+}
+.lc-sb-item {
+    padding: 10px 14px;
+    font-size: 0.88rem;
+    color: #94a3b8;
+    border-radius: 8px;
+    margin-bottom: 4px;
+}
+.lc-sb-item:hover {
+    background: #1e293b;
+    color: #f8fafc;
+}
+.lc-sb-item.active {
+    background: #2563eb;
+    color: #ffffff;
+}
+.lc-sb-item.active::before {
+    display: none; /* remove old gold bar */
+}
+.lc-sb-user {
+    background: #1e293b;
+    border: 1px solid #334155;
+    padding: 12px;
+}
+.lc-sb-avatar {
+    width: 38px;
+    height: 38px;
+    background: #ef4444; /* red avatar for SA */
+    color: #ffffff;
+    font-size: 0.95rem;
+}
+
+/* Main Panel Layout */
+.lc-admin-main {
+    margin-left: 250px;
+    background: #f8fafc;
+}
+
+/* Header badge & controls */
+.header-badge-admin {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #991b1b;
+    background: #fee2e2;
+    border: 1px solid #fecaca;
+    padding: 6px 12px;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+.header-profile-circle {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #ef4444;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.88rem;
+}
+
+/* Statistics summary cards (Mockup 1) */
+.user-stat-card {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    background: #ffffff;
+    transition: transform 0.15s ease;
+}
+.user-stat-card:hover {
+    transform: translateY(-2px);
+}
+.user-stat-icon-wrapper {
+    width: 38px;
+    height: 38px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.15rem;
+}
+.icon-total { background: #eff6ff; color: #2563eb; }
+.icon-customer { background: #ecfdf5; color: #10b981; }
+.icon-manager { background: #f5f3ff; color: #8b5cf6; }
+.icon-staff { background: #fffbeb; color: #f59e0b; }
+.icon-admin { background: #fff1f2; color: #f43f5e; }
+
+/* Filter & Search Bar */
+.filter-search-input {
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    padding: 8px 12px 8px 36px;
+    font-size: 0.88rem;
+}
+.filter-select {
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    font-size: 0.88rem;
+    padding: 8px 16px;
+    height: 38px;
+}
+.filter-toggle-btn {
+    border: 1px solid #cbd5e1;
+    background: #ffffff;
+    font-size: 0.88rem;
+    padding: 8px 16px;
+}
+.filter-toggle-btn.active {
+    background: #2563eb;
+    color: #ffffff;
+    border-color: #2563eb;
+}
+
+/* User List Table Details */
+.user-avatar-circle {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.88rem;
+    color: #ffffff;
+}
+.role-badge {
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 999px;
+    display: inline-block;
+}
+.role-customer { background: #eff6ff; color: #1d4ed8; }
+.role-manager { background: #f5f3ff; color: #6d28d9; }
+.role-staff { background: #fffbeb; color: #b45309; }
+.role-admin { background: #fff1f2; color: #be123c; }
+
+.status-badge-active { background: #dcfce7; color: #166534; font-size: 0.75rem; font-weight: 600; padding: 4px 10px; border-radius: 6px; }
+.status-badge-inactive { background: #f1f5f9; color: #475569; font-size: 0.75rem; font-weight: 600; padding: 4px 10px; border-radius: 6px; }
+
+/* Table Action Buttons */
+.btn-action-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    border: 1px solid #e2e8f0;
+    background: #ffffff;
+    color: #64748b;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.88rem;
+    transition: all 0.1s ease;
+    text-decoration: none;
+}
+.btn-action-icon:hover {
+    background: #f1f5f9;
+    color: #0f172a;
+    border-color: #cbd5e1;
+}
+.btn-action-edit:hover { color: #2563eb; border-color: #bfdbfe; background: #eff6ff; }
+.btn-action-key:hover { color: #eab308; border-color: #fef08a; background: #fef9c3; }
+.btn-action-suspend:hover { color: #ef4444; border-color: #fecaca; background: #fee2e2; }
+
+/* Cinema Card Header grid style (Mockup 3) */
+.cinema-card-header {
+    height: 80px;
+    background-color: #bfdbfe;
+    background-image: radial-gradient(#2563eb 0.5px, transparent 0.5px), radial-gradient(#2563eb 0.5px, #bfdbfe 0.5px);
+    background-size: 20px 20px;
+    background-position: 0 0, 10px 10px;
+    position: relative;
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+}
+.cinema-card-header.active-blue {
+    background-color: #dbeafe;
+    background-image: radial-gradient(#3b82f6 0.5px, transparent 0.5px), radial-gradient(#3b82f6 0.5px, #dbeafe 0.5px);
+}
+.cinema-card-header.active-green {
+    background-color: #d1fae5;
+    background-image: radial-gradient(#10b981 0.5px, transparent 0.5px), radial-gradient(#10b981 0.5px, #d1fae5 0.5px);
+}
+.cinema-card-header.inactive-gray {
+    background-color: #f1f5f9;
+    background-image: radial-gradient(#94a3b8 0.5px, transparent 0.5px), radial-gradient(#94a3b8 0.5px, #f1f5f9 0.5px);
+}
+.cinema-header-pin {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #ffffff;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    bottom: -18px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 1.15rem;
+}
+.cinema-header-pin.pin-blue { color: #2563eb; }
+.cinema-header-pin.pin-green { color: #10b981; }
+.cinema-header-pin.pin-gray { color: #94a3b8; }
+
+.cinema-badge-active {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: rgba(255,255,255,0.9);
+    color: #15803d;
+    font-size: 0.68rem;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 999px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+.cinema-badge-inactive {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: #fef3c7;
+    color: #b45309;
+    font-size: 0.68rem;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 999px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+/* Edit User role picker cards (Mockup 2) */
+.role-picker-card {
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 16px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    height: 100%;
+}
+.role-picker-card:hover {
+    border-color: #cbd5e1;
+    background: #f8fafc;
+}
+.role-picker-input:checked + .role-picker-card {
+    border-color: #2563eb;
+    background: #eff6ff;
+    box-shadow: 0 0 0 1px #2563eb;
+}
+
+/* Switch styling overrides */
+.form-switch .form-check-input {
+    width: 2.8em;
+    height: 1.5em;
+    cursor: pointer;
+}

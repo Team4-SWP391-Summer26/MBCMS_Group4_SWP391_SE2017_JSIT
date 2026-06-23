@@ -392,3 +392,22 @@ GO
 -- Sample report 2: bookings by status
 SELECT [status], COUNT(*) AS cnt FROM dbo.bookings GROUP BY [status] ORDER BY cnt DESC;
 GO
+-- Add opening_time and closing_time columns
+IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('dbo.branches') AND name = 'opening_time')
+BEGIN
+    ALTER TABLE dbo.branches ADD opening_time TIME NULL;
+END
+GO
+
+IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('dbo.branches') AND name = 'closing_time')
+BEGIN
+    ALTER TABLE dbo.branches ADD closing_time TIME NULL;
+END
+GO
+
+-- Seed default operating hours for existing branches
+UPDATE dbo.branches
+SET opening_time = '08:00:00',
+    closing_time = '23:00:00'
+WHERE opening_time IS NULL;
+GO
