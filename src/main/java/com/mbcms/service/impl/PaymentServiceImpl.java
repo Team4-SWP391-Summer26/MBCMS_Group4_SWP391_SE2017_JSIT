@@ -114,6 +114,9 @@ public class PaymentServiceImpl implements PaymentService {
                 promotionDao.incrementUsedCount(conn, b.getPromoId());
             }
 
+            // 3.5) food_orders: PENDING -> PREPARING (if any concessions exist)
+            new com.mbcms.dao.impl.FoodDAOImpl().updateOrderStatusByBooking(conn, bookingId, "PREPARING");
+
             // 4) notification PAYMENT cho customer
             notificationDao.insert(conn, buildPaymentNotification(b));
 

@@ -162,6 +162,11 @@ public class BookingServiceImpl implements BookingService {
         return confirmed;
     }
 
+    @Override
+    public boolean updateBookingTotals(long bookingId, BigDecimal newSubtotal, BigDecimal newTotalAmount) {
+        return bookingDao.updateBookingTotals(bookingId, newSubtotal, newTotalAmount);
+    }
+
     // ── getBookingHistory / getBookingDetail ──────────────────────────────
     @Override
     public List<Booking> getBookingHistory(String customerUsername) {
