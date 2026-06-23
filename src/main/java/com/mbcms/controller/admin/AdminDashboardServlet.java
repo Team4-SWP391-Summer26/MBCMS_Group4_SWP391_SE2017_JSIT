@@ -19,7 +19,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.List;
 
-@WebServlet("/admin/dashboard")
+@WebServlet({"/admin/dashboard", "/admin"})
 public class AdminDashboardServlet extends HttpServlet {
 
     private final BranchService branchService = new BranchServiceImpl();
@@ -30,6 +30,11 @@ public class AdminDashboardServlet extends HttpServlet {
     protected void doGet(HttpServletRequest req,
                          HttpServletResponse resp)
             throws ServletException, IOException {
+
+        if (req.getServletPath().equals("/admin")) {
+            resp.sendRedirect(req.getContextPath() + "/admin/dashboard");
+            return;
+        }
 
         try {
 
@@ -50,27 +55,18 @@ public class AdminDashboardServlet extends HttpServlet {
             int totalSeats = 0;
 
             for (Room room : rooms) {
-
                 List<Seat> seats =
                         seatService.getSeatsByRoom(room.getRoomId());
 
                 totalSeats += seats.size();
             }
 
-            req.setAttribute("totalBranches",
-                    totalBranches);
+            req.setAttribute("totalBranches", totalBranches);
+            req.setAttribute("activeBranches", activeBranches);
+            req.setAttribute("totalRooms", totalRooms);
+            req.setAttribute("totalSeats", totalSeats);
 
-            req.setAttribute("activeBranches",
-                    activeBranches);
-
-            req.setAttribute("totalRooms",
-                    totalRooms);
-
-            req.setAttribute("totalSeats",
-                    totalSeats);
-
-            req.setAttribute("branches",
-                    branches);
+            req.setAttribute("branches", branches);
 
             req.getRequestDispatcher(
                     "/WEB-INF/views/admin/dashboard.jsp")

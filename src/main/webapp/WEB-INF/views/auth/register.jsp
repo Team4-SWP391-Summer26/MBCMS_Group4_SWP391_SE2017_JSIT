@@ -1,12 +1,12 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="en">
 
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>Đăng ký - MBCMS</title>
+        <title>Register - MBCMS</title>
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
         <link href="${pageContext.request.contextPath}/assets/css/main.css?v=${applicationScope.assetVersion}"
               rel="stylesheet">
@@ -405,7 +405,7 @@
                                     <path d="M8 12L11 15L16 9" stroke="white" stroke-width="2.5"
                                           stroke-linecap="round" stroke-linejoin="round" />
                                     </svg>
-                                    <span class="text-white-50">1 point per 1,000đ spent · no expiry</span>
+                                    <span class="text-white-50">1 point per 1,000 VND spent · no expiry</span>
                                 </div>
                                 <div class="d-flex align-items-center gap-3">
                                     <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
@@ -414,7 +414,7 @@
                                     <path d="M8 12L11 15L16 9" stroke="white" stroke-width="2.5"
                                           stroke-linecap="round" stroke-linejoin="round" />
                                     </svg>
-                                    <span class="text-white-50">Welcome gift: 50,000đ off your first booking</span>
+                                    <span class="text-white-50">Welcome gift: 50,000 VND off your first booking</span>
                                 </div>
                                 <div class="d-flex align-items-center gap-3">
                                     <svg width="22" height="22" viewBox="0 0 24 24" fill="none"

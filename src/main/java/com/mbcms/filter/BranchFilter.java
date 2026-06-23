@@ -6,9 +6,9 @@ import jakarta.servlet.http.*;
 import java.io.IOException;
 
 /**
- * BranchFilter - Dam bao Branch Manager/Staff chi thao tac tren branch cua minh.
- * Set session attribute "currentBranchId" tu Employee.branchId neu chua co.
- * (ADMIN co branchId = null nen khong set.)
+ * BranchFilter - Dam bao Branch Manager/Staff chi thao tac tren branch cua
+ * minh. Set session attribute "currentBranchId" tu Employee.branchId neu chua
+ * co. (ADMIN co branchId = null nen khong set.)
  */
 public class BranchFilter implements Filter {
 

@@ -13,8 +13,8 @@ import java.util.List;
 
 public class RoomDAOImpl extends BaseDAO implements RoomDAO {
 
-    private static final String BASE_SELECT =
-            "SELECT room_id, branch_id, name, capacity, room_type, active FROM rooms ";
+    private static final String BASE_SELECT
+            = "SELECT room_id, branch_id, name, capacity, room_type, active FROM rooms ";
 
     @Override
     public List<Room> findActiveByBranch(long branchId) {

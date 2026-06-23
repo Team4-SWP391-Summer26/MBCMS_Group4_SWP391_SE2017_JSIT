@@ -15,6 +15,31 @@ import java.util.List;
 
 public class BranchDAOImpl extends BaseDAO implements BranchDAO {
 
+    public List<Branch> findAll() {
+        String sql = "SELECT branch_id, name, address, city, phone, email, active "
+                + "FROM branches ORDER BY name";
+
+        Connection conn = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+
+        try {
+            conn = getConnection();
+            ps = conn.prepareStatement(sql);
+            rs = ps.executeQuery();
+
+            List<Branch> list = new ArrayList<>();
+            while (rs.next()) {
+                list.add(mapRow(rs));
+            }
+            return list;
+        } catch (SQLException e) {
+            throw new RuntimeException("Loi truy van branches.findAll: " + e.getMessage(), e);
+        } finally {
+            closeAll(rs, ps, conn);
+        }
+    }
+
     @Override
     public Branch findById(long branchId) {
         String sql = "SELECT branch_id, name, address, city, phone, email, active, created_at, opening_time, closing_time "
@@ -36,6 +61,32 @@ public class BranchDAOImpl extends BaseDAO implements BranchDAO {
             return null;
         } catch (SQLException e) {
             throw new RuntimeException("Loi truy van branches.findById: " + e.getMessage(), e);
+        } finally {
+            closeAll(rs, ps, conn);
+        }
+    }
+    
+    @Override
+    public List<Branch> findAllActive() {
+        String sql = "SELECT branch_id, name, address, city, phone, email, active "
+                + "FROM branches WHERE active = 1 ORDER BY name";
+
+        Connection conn = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+
+        try {
+            conn = getConnection();
+            ps = conn.prepareStatement(sql);
+            rs = ps.executeQuery();
+
+            List<Branch> branches = new ArrayList<>();
+            while (rs.next()) {
+                branches.add(mapRow(rs));
+            }
+            return branches;
+        } catch (SQLException e) {
+            throw new RuntimeException("Loi truy van branches.findAllActive: " + e.getMessage(), e);
         } finally {
             closeAll(rs, ps, conn);
         }

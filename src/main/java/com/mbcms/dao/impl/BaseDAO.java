@@ -9,15 +9,9 @@ import java.sql.SQLException;
 
 /**
  * BaseDAO - lop cha cho tat ca DAOs
- * 
- * Cung cap pattern chuan:
- *   Connection conn = null;
- *   try {
- *       conn = getConnection();
- *       ...
- *   } finally {
- *       closeAll(rs, ps, conn);
- *   }
+ *
+ * Cung cap pattern chuan: Connection conn = null; try { conn = getConnection();
+ * ... } finally { closeAll(rs, ps, conn); }
  */
 public abstract class BaseDAO {
 
@@ -38,7 +32,9 @@ public abstract class BaseDAO {
 
     private void closeResultSet(ResultSet rs) {
         if (rs != null) {
-            try { rs.close(); } catch (SQLException e) {
+            try {
+                rs.close();
+            } catch (SQLException e) {
                 System.err.println("Loi dong ResultSet: " + e.getMessage());
             }
         }
@@ -46,7 +42,9 @@ public abstract class BaseDAO {
 
     private void closeStatement(PreparedStatement ps) {
         if (ps != null) {
-            try { ps.close(); } catch (SQLException e) {
+            try {
+                ps.close();
+            } catch (SQLException e) {
                 System.err.println("Loi dong PreparedStatement: " + e.getMessage());
             }
         }

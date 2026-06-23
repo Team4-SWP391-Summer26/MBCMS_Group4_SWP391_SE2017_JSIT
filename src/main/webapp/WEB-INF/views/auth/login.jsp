@@ -1,11 +1,11 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="en">
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>Đăng nhập - MBCMS</title>
+        <title>Sign In - MBCMS</title>
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
         <link href="${pageContext.request.contextPath}/assets/css/main.css?v=${applicationScope.assetVersion}" rel="stylesheet">
         <style>
@@ -161,7 +161,7 @@
                                 <div class="alert alert-success py-2" style="font-size: 0.85rem;">${successMsg}</div>
                             </c:if>
                             <c:if test="${param.verified == 'true'}">
-                                <div class="alert alert-success py-2" style="font-size: 0.85rem;">Xác thực tài khoản thành công! Vui lòng đăng nhập.</div>
+                                <div class="alert alert-success py-2" style="font-size: 0.85rem;">Account verified successfully! Please sign in.</div>
                             </c:if>
 
                             <form method="post" action="${pageContext.request.contextPath}/auth/login">

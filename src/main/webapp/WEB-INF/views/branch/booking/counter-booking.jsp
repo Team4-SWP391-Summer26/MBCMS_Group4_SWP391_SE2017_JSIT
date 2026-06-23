@@ -1,0 +1,1361 @@
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Counter Booking - MBCMS Staff</title>
+        <!-- Bootstrap 5 CSS -->
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+        <!-- Bootstrap Icons -->
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+        <!-- Theme CSS (Inherits branch manager's style) -->
+        <link href="${pageContext.request.contextPath}/assets/css/manager.css?v=${applicationScope.assetVersion}" rel="stylesheet">
+
+        <style>
+            /* Modern Web Design Enhancements & Aesthetics */
+            .wizard-steps-container {
+                background: #ffffff;
+                border-radius: 12px;
+                padding: 1.5rem 1rem;
+                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+                margin-bottom: 2rem;
+            }
+
+            .wizard-steps {
+                display: flex;
+                justify-content: space-between;
+                position: relative;
+                max-width: 900px;
+                margin: 0 auto;
+            }
+
+            .wizard-steps::before {
+                content: '';
+                position: absolute;
+                top: 20px;
+                left: 5%;
+                right: 5%;
+                height: 3px;
+                background: #e2e8f0;
+                z-index: 1;
+            }
+
+            .wizard-step {
+                position: relative;
+                z-index: 2;
+                text-align: center;
+                flex: 1;
+            }
+
+            .step-num {
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+                background: #ffffff;
+                border: 3px solid #e2e8f0;
+                color: #64748b;
+                font-weight: 700;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                margin: 0 auto 8px;
+                transition: all 0.25s ease;
+            }
+
+            .step-label {
+                font-size: 0.8rem;
+                font-weight: 600;
+                color: #64748b;
+                transition: color 0.25s ease;
+            }
+
+            .wizard-step.active .step-num {
+                border-color: var(--lc-primary);
+                background: var(--lc-primary);
+                color: #ffffff;
+                box-shadow: 0 0 12px rgba(37, 99, 235, 0.35);
+            }
+
+            .wizard-step.active .step-label {
+                color: var(--lc-navy);
+                font-weight: 700;
+            }
+
+            .wizard-step.completed .step-num {
+                border-color: #10b981;
+                background: #10b981;
+                color: #ffffff;
+            }
+
+            .wizard-step.completed .step-label {
+                color: #10b981;
+            }
+
+            :root {
+                --bk-primary:#2563EB; --bk-navy:#0F1E36; --bk-border:#E6EAF2;
+                --bk-muted:#64748B; --bk-light:#EFF4FF; --bk-bg:#F5F7FA;
+                --seat-w:34px; --seat-h:32px; --seat-gap:7px; --aisle-w:30px; --rl-w:24px;
+            }
+
+            /* ===== Man chieu (curved screen) ===== */
+            .screen-wrap { margin: 4px 0 24px; }
+            .screen-curve { height:26px; margin:0 auto; max-width:80%; border-top:3px solid #93b4f6;
+                border-radius:50% / 26px 26px 0 0; background:linear-gradient(to bottom, rgba(37,99,235,.14), rgba(37,99,235,0)); }
+            .screen-label { text-align:center; font-size:.68rem; color:var(--bk-muted); letter-spacing:.35em; margin-top:6px; font-weight:600; }
+
+            /* ===== So do ghe ===== */
+            #seatMap { display:inline-block; text-align:left; }
+            .seat-header, .seat-row { display:flex; align-items:center; gap:var(--seat-gap); }
+            .seat-row { margin-bottom:var(--seat-gap); }
+            .row-label { width:var(--rl-w); font-size:.72rem; font-weight:700; color:var(--bk-muted); text-align:center; flex-shrink:0; }
+            .col-num { width:var(--seat-w); font-size:.68rem; font-weight:600; color:#94a3b8; text-align:center; flex-shrink:0; }
+            .aisle { width:var(--aisle-w); flex-shrink:0; }
+
+            .seat-btn {
+                width:var(--seat-w); height:var(--seat-h); font-size:.62rem; font-weight:700;
+                border-radius:8px 8px 5px 5px; border:1.6px solid transparent; cursor:pointer; padding:0; flex-shrink:0;
+                display:inline-flex; align-items:center; justify-content:center;
+                transition:transform .08s, box-shadow .12s; background:#fff;
+            }
+            .seat-btn:active { transform:scale(.93); }
+            .seat-btn:focus { outline:none; }
+
+            /* Trong - Thuong */
+            .seat-available { background:#f0f7ff; border-color:#7cb0f5; color:#1d4ed8; }
+            .seat-available:hover { background:#dbeafe; box-shadow:0 0 0 3px rgba(37,99,235,.25); transform:translateY(-2px); }
+            /* Bạn đang chọn */
+            .seat-selected { background:#16a34a !important; border-color:#15803d !important; color:#fff !important;
+                box-shadow:0 0 0 3px rgba(22,163,74,.30); }
+            /* Người khác đang chọn (soft-lock) */
+            .seat-soft-locked { background:#fef3c7; border-color:#f59e0b; color:#92400e; cursor:not-allowed;
+                animation:soft-pulse 1.8s ease-in-out infinite; }
+            @keyframes soft-pulse { 0%,100%{box-shadow:0 0 0 2px rgba(245,158,11,.4);} 50%{box-shadow:0 0 0 5px rgba(245,158,11,0);} }
+            /* Đã đặt */
+            .seat-booked { background:#fee2e2; border-color:#fca5a5; color:#b91c1c; cursor:not-allowed; opacity:.85; }
+            /* Bảo trì - dau X */
+            .seat-maintenance { background:#f3f4f6; border-color:#d1d5db; color:#9ca3af; cursor:not-allowed; }
+            .seat-maintenance i { font-size:.85rem; }
+            /* VIP (con trong) - vang */
+            .seat-VIP.seat-available { background:#fef3c7; border-color:#f59e0b; color:#92400e; }
+            .seat-VIP.seat-available:hover { background:#fde68a; }
+            .seat-VIP.seat-booked { background:#fde8d8; border-color:#fb923c; color:#9a3412; }
+
+            /* ===== Legend ===== */
+            .legend-item { display:flex; align-items:center; gap:7px; font-size:.8rem; color:#475569; }
+            .legend-box { width:20px; height:18px; border-radius:5px; border:1.6px solid; flex-shrink:0; }
+
+            .showtime-card {
+                border: 2px solid var(--lc-border);
+                border-radius: 12px;
+                cursor: pointer;
+                transition: all 0.2s ease;
+                background: #ffffff;
+            }
+
+            .showtime-card:hover {
+                border-color: var(--lc-primary);
+                box-shadow: var(--lc-shadow);
+                transform: translateY(-2px);
+            }
+
+            .showtime-card.selected {
+                border-color: var(--lc-primary);
+                background: var(--lc-light);
+                box-shadow: var(--lc-shadow);
+            }
+
+            .wizard-panel {
+                display: none;
+            }
+
+            .wizard-panel.active {
+                display: block;
+            }
+        </style>
+    </head>
+    <body class="lc-console">
+
+        <jsp:include page="/WEB-INF/views/branch/_sidebar_staff.jsp">
+            <jsp:param name="active" value="booking" />
+        </jsp:include>
+
+        <main class="lc-admin-main">
+            <div class="container-fluid px-4 py-4" style="max-width: 1200px;">
+
+                <c:if test="${not empty err}">
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                        <c:choose>
+                            <c:when test="${err eq 'vnpay_failed'}">Payment via VNPay gateway failed or was cancelled. Seats have been released.</c:when>
+                            <c:otherwise>An error occurred during processing.</c:otherwise>
+                        </c:choose>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                </c:if>
+
+                <%-- ===== Page Header ===== --%>
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+                    <div>
+                        <div class="text-muted small mb-1">Counter Operations</div>
+                        <h4 class="text-navy fw-bold mb-0">Counter Ticket Booking</h4>
+                    </div>
+                    <div class="lc-sb-user d-flex align-items-center gap-2 px-3 py-1 text-navy border rounded" style="background:#fff;">
+                        <i class="bi bi-geo-alt-fill text-primary"></i>
+                        <span>Branch: <strong><c:out value="${sessionScope.currentBranchName}" /></strong></span>
+                    </div>
+                </div>
+
+                <%-- ===== Step Indicator Wizard ===== --%>
+                <div class="wizard-steps-container">
+                    <div class="wizard-steps">
+                        <div class="wizard-step active" id="step-ind-1">
+                            <div class="step-num">1</div>
+                            <div class="step-label">Showtime</div>
+                        </div>
+                        <div class="wizard-step" id="step-ind-2">
+                            <div class="step-num">2</div>
+                            <div class="step-label">Choose Seats</div>
+                        </div>
+                        <div class="wizard-step" id="step-ind-3">
+                            <div class="step-num">3</div>
+                            <div class="step-label">Promotion</div>
+                        </div>
+                        <div class="wizard-step" id="step-ind-4">
+                            <div class="step-num">4</div>
+                            <div class="step-label">Payment</div>
+                        </div>
+                        <div class="wizard-step" id="step-ind-5">
+                            <div class="step-num">5</div>
+                            <div class="step-label">Print Ticket</div>
+                        </div>
+                    </div>
+                </div>
+
+                <%-- ===== STEP 1: SELECT SHOWTIME ===== --%>
+                <div class="wizard-panel active" id="panel-1">
+                    <div class="card lc-elev p-4">
+                        <h5 class="text-navy fw-bold mb-3"><i class="bi bi-1-circle-fill text-primary me-2"></i>Select Showtime</h5>
+
+                        <!-- Search & Filter Controls -->
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-5">
+                                <label class="form-label fw-semibold">Search Movie</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                                    <input type="text" id="movie-search" class="form-control" placeholder="Enter movie name...">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold">Filter by Room</label>
+                                <select id="room-filter" class="form-select">
+                                    <option value="">All Rooms</option>
+                                    <c:forEach var="r" items="${rooms}">
+                                        <option value="${r.roomId}"><c:out value="${r.name}" /> (${r.roomType})</option>
+                                    </c:forEach>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label fw-semibold">Show Date</label>
+                                <input type="date" id="date-filter" class="form-control">
+                            </div>
+                        </div>
+
+                        <!-- Showtimes List Container -->
+                        <div class="mb-4">
+                            <h6 class="text-navy fw-bold mb-3 text-uppercase small" style="letter-spacing: .05em;">Available Showtimes Today</h6>
+                            <div class="row g-3" id="showtimes-container">
+                                <!-- Showtimes populated dynamically via JS -->
+                                <div class="col-12 text-center text-muted py-5" id="showtimes-loading">
+                                    <div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div>
+                                    Loading showtimes...
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-end mt-4">
+                            <button class="btn btn-primary-lc px-4" id="btn-to-step2" disabled>Continue to select seats <i class="bi bi-arrow-right ms-1"></i></button>
+                        </div>
+                    </div>
+                </div>
+
+                <%-- ===== STEP 2: SELECT SEAT ===== --%>
+                <div class="wizard-panel" id="panel-2">
+                    <div class="card lc-elev p-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                            <div class="d-flex align-items-center gap-2">
+                                <h5 class="text-navy fw-bold mb-0"><i class="bi bi-2-circle-fill text-primary me-2"></i>Choose Seats</h5>
+                                <span id="wsBadge" class="badge bg-secondary">Disconnected</span>
+                                <span id="refreshBadge" class="badge bg-success" style="opacity: 0; transition: opacity 0.4s;">&#8635; Updated</span>
+                            </div>
+                            <div class="badge bg-primary px-3 py-2 fs-6" id="showtime-header-info"></div>
+                        </div>
+
+                        <!-- Curved Screen -->
+                        <div class="screen-wrap">
+                            <div class="screen-curve"></div>
+                            <div class="screen-label">SCREEN</div>
+                        </div>
+
+                        <!-- Seat Map Grid -->
+                        <div class="seat-grid mb-4" id="seat-map-container" style="overflow-x: auto; text-align: center;">
+                            <!-- Loaded dynamically -->
+                        </div>
+
+                        <!-- Legend & Summary -->
+                        <div class="row align-items-center g-3">
+                            <div class="col-md-6">
+                                <div class="d-flex flex-wrap gap-3 mt-2">
+                                    <div class="legend-item"><div class="legend-box" style="background:#f0f7ff;border-color:#7cb0f5;"></div>Regular</div>
+                                    <div class="legend-item"><div class="legend-box" style="background:#fef3c7;border-color:#f59e0b;"></div>VIP</div>
+                                    <div class="legend-item"><div class="legend-box" style="background:#16a34a;border-color:#15803d;"></div>Selected</div>
+                                    <div class="legend-item"><div class="legend-box" style="background:#fef3c7;border-color:#f59e0b;animation:soft-pulse 1.8s ease-in-out infinite;"></div>Held by others</div>
+                                    <div class="legend-item"><div class="legend-box" style="background:#fee2e2;border-color:#fca5a5;"></div>Booked</div>
+                                    <div class="legend-item"><div class="legend-box" style="background:#f3f4f6;border-color:#d1d5db;"></div>Maintenance</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 text-end">
+                                <div class="fw-semibold text-navy">Selected seats: <span id="selected-seats-display" class="text-primary font-monospace">&mdash;</span></div>
+                                <div class="fs-5 fw-bold text-navy mt-1">Subtotal: <span id="subtotal-display" class="text-danger">0</span> VND</div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between mt-4">
+                            <button class="btn btn-secondary px-4" onclick="goToStep(1)"><i class="bi bi-arrow-left me-1"></i> Back</button>
+                            <button class="btn btn-primary-lc px-4" id="btn-to-step3" disabled>Continue <i class="bi bi-arrow-right ms-1"></i></button>
+                        </div>
+                    </div>
+                </div>
+
+                <%-- ===== STEP 3: PROMOTION ===== --%>
+                <div class="wizard-panel" id="panel-3">
+                    <div class="card lc-elev p-4">
+                        <h5 class="text-navy fw-bold mb-3"><i class="bi bi-3-circle-fill text-primary me-2"></i>Promotion &amp; Payment Details</h5>
+
+                        <div class="row justify-content-center">
+                            <!-- Promotion Details -->
+                            <div class="col-md-8 col-lg-6">
+                                <h6 class="text-navy fw-bold mb-3 text-uppercase small">Apply Promo Code</h6>
+                                <div class="mb-4">
+                                    <label class="form-label">Promo Code</label>
+                                    <div class="input-group">
+                                        <input type="text" id="promo-code" class="form-control text-uppercase" placeholder="Enter promo code...">
+                                        <button class="btn btn-outline-primary" type="button" id="btn-apply-promo"><i class="bi bi-check-lg me-1"></i>Apply</button>
+                                    </div>
+                                </div>
+
+                                <div class="alert alert-success py-2 d-none" id="promo-success-alert"></div>
+                                <div class="alert alert-danger py-2 d-none" id="promo-error-alert"></div>
+
+                                <hr>
+
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span class="text-muted">Ticket Subtotal:</span>
+                                    <span class="fw-semibold text-navy"><span id="summary-subtotal">0</span> VND</span>
+                                </div>
+                                <div class="d-flex justify-content-between mb-2 text-success">
+                                    <span>Discount:</span>
+                                    <span>-<span id="summary-discount">0</span> VND</span>
+                                </div>
+                                <div class="d-flex justify-content-between border-top pt-2 fs-5 fw-bold text-navy">
+                                    <span>Total Payment:</span>
+                                    <span><span id="summary-total" class="text-danger">0</span> VND</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between mt-5">
+                            <button class="btn btn-secondary px-4" onclick="goToStep(2)"><i class="bi bi-arrow-left me-1"></i> Back</button>
+                            <button class="btn btn-primary-lc px-4" id="btn-to-step4">Continue <i class="bi bi-arrow-right ms-1"></i></button>
+                        </div>
+                    </div>
+                </div>
+
+                <%-- ===== STEP 4: CONFIRMATION & PAYMENT ===== --%>
+                <div class="wizard-panel" id="panel-4">
+                    <div class="card lc-elev p-4">
+                        <h5 class="text-navy fw-bold mb-3"><i class="bi bi-4-circle-fill text-primary me-2"></i>Confirmation &amp; Payment</h5>
+
+                        <div class="row g-4">
+                            <!-- Invoice detail -->
+                            <div class="col-md-7 border-end">
+                                <h6 class="text-navy fw-bold mb-3 text-uppercase small">Order Details</h6>
+                                <div class="table-responsive">
+                                    <table class="table table-bordered">
+                                        <tbody>
+                                            <tr>
+                                                <th class="bg-light text-navy" style="width:35%;">Movie</th>
+                                                <td id="invoice-movie" class="fw-bold text-primary"></td>
+                                            </tr>
+                                            <tr>
+                                                <th class="bg-light text-navy">Showtime</th>
+                                                <td id="invoice-time"></td>
+                                            </tr>
+                                            <tr>
+                                                <th class="bg-light text-navy">Room</th>
+                                                <td id="invoice-room"></td>
+                                            </tr>
+                                            <tr>
+                                                <th class="bg-light text-navy">Selected Seats</th>
+                                                <td id="invoice-seats" class="font-monospace fw-bold text-navy"></td>
+                                            </tr>
+                                            <tr>
+                                                <th class="bg-light text-navy">Booking Account</th>
+                                                <td id="invoice-customer">Guest (guest01)</td>
+                                            </tr>
+                                            <tr>
+                                                <th class="bg-light text-navy">Promo Code</th>
+                                                <td id="invoice-promo">&mdash;</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <!-- Payment details calculation -->
+                            <div class="col-md-5">
+                                <div class="bg-light rounded-3 p-4 border text-center">
+                                    <div class="text-muted small text-uppercase fw-semibold mb-1">Total Amount Due</div>
+                                    <div class="fs-2 fw-bold text-danger mb-3"><span id="invoice-total">0</span> VND</div>
+
+                                    <!-- Payment Method Selection -->
+                                    <div class="mb-4 text-start">
+                                        <label class="form-label fw-semibold text-navy">Payment Method</label>
+                                        <div class="d-flex gap-3">
+                                            <div class="form-check flex-fill p-3 border rounded bg-white" style="cursor: pointer;">
+                                                <input class="form-check-input ms-0 me-2" type="radio" name="paymentMethodRadio" id="pay-cash" value="CASH" checked style="cursor: pointer;">
+                                                <label class="form-check-label fw-bold text-navy" for="pay-cash" style="cursor: pointer;">
+                                                    <i class="bi bi-cash-stack text-success me-1"></i> Cash
+                                                </label>
+                                            </div>
+                                            <div class="form-check flex-fill p-3 border rounded bg-white" style="cursor: pointer;">
+                                                <input class="form-check-input ms-0 me-2" type="radio" name="paymentMethodRadio" id="pay-vnpay" value="VNPAY" style="cursor: pointer;">
+                                                <label class="form-check-label fw-bold text-navy" for="pay-vnpay" style="cursor: pointer;">
+                                                    <span class="text-primary me-1 fw-bold" style="font-style: italic; letter-spacing: -1px;">VNPAY</span>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Cash Payment Section -->
+                                    <div id="cash-payment-section">
+                                        <div class="mb-3 text-start">
+                                            <label class="form-label fw-semibold text-navy">Cash Received (VND)</label>
+                                            <input type="number" id="cash-received" class="form-control form-control-lg text-center fw-bold fs-4 text-primary" placeholder="0" min="0">
+                                        </div>
+
+                                        <div class="d-flex justify-content-between align-items-center border-top pt-3 text-start">
+                                            <span class="fw-semibold text-navy">Change Due:</span>
+                                            <span class="fs-4 fw-bold text-success"><span id="cash-change">0</span> VND</span>
+                                        </div>
+
+                                        <div id="cash-error" class="alert alert-warning py-2 mt-3 d-none">
+                                            <i class="bi bi-exclamation-triangle-fill"></i> Insufficient cash received.
+                                        </div>
+                                    </div>
+
+                                    <!-- VNPay Payment Section -->
+                                    <div id="vnpay-payment-section" class="d-none text-start">
+                                        <div class="alert alert-info py-3 mb-0">
+                                            <i class="bi bi-info-circle-fill me-2"></i> The system will generate a VNPay payment link and redirect. Please guide the customer to scan the QR code on the payment screen.
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between mt-5">
+                            <button class="btn btn-secondary px-4" onclick="goToStep(3)"><i class="bi bi-arrow-left me-1"></i> Back</button>
+                            <button class="btn btn-success px-5 fw-bold fs-6" id="btn-confirm-booking" disabled>
+                                <i class="bi bi-cash-stack me-2"></i>CONFIRM CASH PAYMENT
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <%-- ===== STEP 5: GENERATE & PRINT TICKET ===== --%>
+                <div class="wizard-panel" id="panel-5">
+                    <div class="card lc-elev p-4 text-center">
+                        <div class="mb-4">
+                            <div class="bg-success text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width:70px;height:70px;">
+                                <i class="bi bi-check-lg fs-1"></i>
+                            </div>
+                            <h4 class="text-success fw-bold">TRANSACTION COMPLETED SUCCESSFULLY!</h4>
+                            <p class="text-muted">The order has been saved and paid successfully.</p>
+                        </div>
+
+                        <div class="row justify-content-center mb-4">
+                            <div class="col-md-8 col-lg-6">
+                                <div class="card border rounded-3 p-4 bg-white shadow-sm">
+                                    <div class="small text-muted text-uppercase fw-semibold mb-1">Customer Booking Code</div>
+                                    <h2 class="text-primary fw-bold font-monospace" id="final-booking-code"></h2>
+
+                                    <div class="alert alert-light border my-3 py-2 small text-start">
+                                        <div class="d-flex justify-content-between mb-1">
+                                            <span>Movie:</span><strong id="final-movie"></strong>
+                                        </div>
+                                        <div class="d-flex justify-content-between mb-1">
+                                            <span>Showtime:</span><strong id="final-time"></strong>
+                                        </div>
+                                        <div class="d-flex justify-content-between">
+                                            <span>Seats:</span><strong id="final-seats"></strong>
+                                        </div>
+                                    </div>
+
+                                    <div class="d-grid gap-2">
+                                        <button class="btn btn-primary btn-lg fw-bold" id="btn-print-ticket">
+                                            <i class="bi bi-printer-fill me-2"></i>Print Ticket (PDF)
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr>
+
+                        <div class="d-flex justify-content-center gap-3">
+                            <button class="btn btn-primary-lc px-5 fw-bold" onclick="resetWizard()">
+                                <i class="bi bi-plus-lg me-2"></i>NEW TRANSACTION
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+
+        <!-- Bootstrap Bundle JS -->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+        <!-- Wizard Core Logic -->
+        <script>
+                                const contextPath = '${pageContext.request.contextPath}';
+                                const CURRENT_USER = '${sessionScope.username}';
+
+                                let ws = null;
+                                let wsRetryDelay = 2000;
+
+                                // Wizard State
+                                let state = {
+                                    currentStep: 1,
+                                    showtimeId: null,
+                                    basePrice: 0,
+                                    movieTitle: '',
+                                    startTime: '',
+                                    date: '',
+                                    roomName: '',
+                                    roomType: '',
+                                    selectedSeats: [], // Array of seat objects {seatId, rowLabel, colNumber, seatType}
+                                    memberUsername: 'guest01',
+                                    memberFullName: 'Walk-in Guest',
+                                    memberEmail: '',
+                                    promoCode: '',
+                                    promoDiscount: 0,
+                                    totalAmount: 0,
+                                    subtotalAmount: 0,
+                                    bookingCode: '',
+                                    bookingId: null
+                                };
+
+                                // DOM Elements
+                                const dateFilter = document.getElementById('date-filter');
+                                const movieSearch = document.getElementById('movie-search');
+                                const roomFilter = document.getElementById('room-filter');
+                                const showtimesContainer = document.getElementById('showtimes-container');
+                                const btnToStep2 = document.getElementById('btn-to-step2');
+
+                                // Pre-fill today's date in local YYYY-MM-DD
+                                const todayStr = new Date().toISOString().split('T')[0];
+                                dateFilter.value = todayStr;
+
+                                // Init Step 1 on Load
+                                document.addEventListener('DOMContentLoaded', () => {
+                                    // Event Listeners for Filters
+                                    dateFilter.addEventListener('change', loadShowtimes);
+                                    movieSearch.addEventListener('input', loadShowtimes);
+                                    roomFilter.addEventListener('change', loadShowtimes);
+
+                                    // Check if redirected on successful payment return
+                                    const successParam = '${success}';
+                                    if (successParam === '1') {
+                                        state.bookingCode = '${successBookingCode}';
+                                        state.bookingId = '${successBookingId}';
+
+                                        // Fetch booking detail to populate Step 5 UI
+                                        fetch(contextPath + '/staff/booking?action=getBookingDetail&bookingId=' + state.bookingId)
+                                                .then(res => res.json())
+                                                .then(ticket => {
+                                                    // Populate Step 5 elements
+                                                    document.getElementById('final-booking-code').innerText = ticket.bookingCode;
+                                                    document.getElementById('final-movie').innerText = ticket.movieTitle;
+
+                                                    // Format startTime (Jackson LocalDateTime can be serialized as array or string)
+                                                    let showtimeDateStr = '';
+                                                    if (ticket.startTime) {
+                                                        if (Array.isArray(ticket.startTime)) {
+                                                            const parts = ticket.startTime;
+                                                            const year = parts[0];
+                                                            const month = String(parts[1]).padStart(2, '0');
+                                                            const day = String(parts[2]).padStart(2, '0');
+                                                            const hour = String(parts[3]).padStart(2, '0');
+                                                            const minute = String(parts[4]).padStart(2, '0');
+                                                            showtimeDateStr = hour + ':' + minute + ' - ' + day + '/' + month + '/' + year;
+                                                        } else {
+                                                            const dt = new Date(ticket.startTime);
+                                                            const pad = (n) => n.toString().padStart(2, '0');
+                                                            showtimeDateStr = pad(dt.getHours()) + ':' + pad(dt.getMinutes()) + ' - ' + pad(dt.getDate()) + '/' + pad(dt.getMonth() + 1) + '/' + dt.getFullYear();
+                                                        }
+                                                    }
+                                                    document.getElementById('final-time').innerText = showtimeDateStr;
+                                                    document.getElementById('final-seats').innerText = (ticket.seatLabels || []).join(', ');
+
+                                                    // Navigate to step 5
+                                                    goToStep(5);
+                                                })
+                                                .catch(err => {
+                                                    console.error('Error loading ticket details: ', err);
+                                                    loadShowtimes();
+                                                });
+                                    } else {
+                                        loadShowtimes();
+                                    }
+
+                                    // Register radio toggle change listeners
+                                    document.querySelectorAll('input[name="paymentMethodRadio"]').forEach(r => {
+                                        r.addEventListener('change', updatePaymentMethodUI);
+                                    });
+                                });
+
+                                // ==========================================
+                                // STEP 1: SHOWTIMES LOADING & FILTERING
+                                // ==========================================
+                                function loadShowtimes() {
+                                    showtimesContainer.innerHTML = `
+                <div class="col-12 text-center text-muted py-5">
+                    <div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div>
+                    Loading showtimes...
+                </div>
+            `;
+
+                                    const movieVal = encodeURIComponent(movieSearch.value.trim());
+                                    const dateVal = dateFilter.value;
+                                    const roomVal = roomFilter.value;
+
+                                    let url = contextPath + '/staff/booking?action=getShowtimes&date=' + dateVal;
+                                    if (roomVal)
+                                        url += '&roomId=' + roomVal;
+
+                                    fetch(url)
+                                            .then(res => res.json())
+                                            .then(showtimes => {
+                                                // Filter in JS by movie search title
+                                                const query = movieSearch.value.toLowerCase().trim();
+                                                const filtered = showtimes.filter(st => {
+                                                    const titleMatch = st.movieTitle.toLowerCase().includes(query);
+                                                    const roomMatch = !roomVal || st.roomId == roomVal;
+                                                    return titleMatch && roomMatch;
+                                                });
+
+                                                if (filtered.length === 0) {
+                                                    showtimesContainer.innerHTML = `
+                            <div class="col-12 text-center text-muted py-5">
+                                <i class="bi bi-calendar-x fs-2 d-block mb-2"></i>
+                                No active showtimes match your filters.
+                            </div>
+                        `;
+                                                    btnToStep2.disabled = true;
+                                                    return;
+                                                }
+
+                                                showtimesContainer.innerHTML = '';
+                                                filtered.forEach(st => {
+                                                    const availableSeats = st.roomCapacity - st.bookedSeats;
+                                                    const percentSold = Math.round((st.bookedSeats / st.roomCapacity) * 100);
+
+                                                    const col = document.createElement('div');
+                                                    col.className = 'col-sm-6 col-lg-4';
+                                                    col.innerHTML =
+                                                            '<div class="card showtime-card p-3 h-100 ' + (state.showtimeId == st.showtimeId ? 'selected' : '') + '" ' +
+                                                            '     onclick="selectShowtime(this, ' + st.showtimeId + ', ' + st.basePrice + ', \'' + st.movieTitle.replace(/'/g, "\\'") + '\', \'' + st.startTime + '\', \'' + st.date + '\', \'' + st.roomName + '\', \'' + st.roomType + '\')">' +
+                                                            '    <div class="d-flex justify-content-between align-items-start mb-2">' +
+                                                            '        <span class="pill pill-blue">' + st.format + ' &middot; ' + st.subtitleType + '</span>' +
+                                                            '        <span class="fw-bold text-danger">' + st.basePrice.toLocaleString() + ' VND</span>' +
+                                                            '    </div>' +
+                                                            '    <h6 class="text-navy fw-bold mb-1">' + st.movieTitle + '</h6>' +
+                                                            '    <div class="small text-muted mb-2"><i class="bi bi-clock me-1"></i>' + st.startTime + ' &middot; Room: ' + st.roomName + ' (' + st.roomType + ')</div>' +
+                                                            '    <div class="d-flex justify-content-between align-items-center mb-1">' +
+                                                            '        <span class="small text-muted">Available: <strong>' + availableSeats + '/' + st.roomCapacity + '</strong> seats</span>' +
+                                                            '        <span class="small text-muted">' + percentSold + '% sold</span>' +
+                                                            '    </div>' +
+                                                            '    <div class="bar-track">' +
+                                                            '        <div class="bar-fill" style="width: ' + percentSold + '%; background-color: ' + (percentSold >= 90 ? '#ef4444' : 'var(--lc-primary)') + '"></div>' +
+                                                            '    </div>' +
+                                                            '</div>';
+                                                    showtimesContainer.appendChild(col);
+                                                });
+                                            })
+                                            .catch(err => {
+                                                console.error(err);
+                                                showtimesContainer.innerHTML =
+                                                        '<div class="col-12 text-center text-danger py-5">' +
+                                                        '    <i class="bi bi-exclamation-triangle-fill fs-2 d-block mb-2"></i>' +
+                                                        '    Error loading showtimes: ' + err.message +
+                                                        '</div>';
+                                            });
+                                }
+
+                                function selectShowtime(element, id, basePrice, movieTitle, startTime, date, roomName, roomType) {
+                                    document.querySelectorAll('.showtime-card').forEach(el => el.classList.remove('selected'));
+                                    element.classList.add('selected');
+
+                                    state.showtimeId = id;
+                                    state.basePrice = basePrice;
+                                    state.movieTitle = movieTitle;
+                                    state.startTime = startTime;
+                                    state.date = date;
+                                    state.roomName = roomName;
+                                    state.roomType = roomType;
+
+                                    btnToStep2.disabled = false;
+                                }
+
+                                btnToStep2.addEventListener('click', () => {
+                                    if (state.showtimeId) {
+                                        // Populate Step 2 Showtime Banner
+                                        document.getElementById('showtime-header-info').innerHTML =
+                                                '<i class="bi bi-film me-1"></i> ' + state.movieTitle + ' &middot; ' +
+                                                '<i class="bi bi-clock me-1"></i> ' + state.startTime + ' &middot; ' +
+                                                '<i class="bi bi-door-closed me-1"></i> Room: ' + state.roomName;
+
+                                        loadSeats();
+                                        goToStep(2);
+                                    }
+                                });
+
+                                // ==========================================
+                                // STEP 2: SEATS MAP DISPLAY & SELECTION
+                                // ==========================================
+                                function loadSeats() {
+                                    const container = document.getElementById('seat-map-container');
+                                    container.innerHTML = `
+                                        <div id="seatMap">
+                                            <div class="seat-header"></div>
+                                        </div>
+                                    `;
+
+                                    state.selectedSeats = [];
+                                    document.getElementById('selected-seats-display').innerText = '—';
+                                    document.getElementById('subtotal-display').innerText = '0';
+                                    document.getElementById('btn-to-step3').disabled = true;
+
+                                    const seatMapDiv = document.getElementById('seatMap');
+
+                                    fetch(contextPath + '/staff/booking?action=getSeats&showtimeId=' + state.showtimeId)
+                                            .then(res => res.json())
+                                            .then(data => {
+                                                // Remove existing rows (elements with class .seat-row)
+                                                seatMapDiv.querySelectorAll('.seat-row').forEach(r => r.remove());
+
+                                                const seatsByRow = data.seatsByRow;
+                                                const bookedSeatIds = new Set(data.bookedSeatIds);
+
+                                                for (const rowLabel in seatsByRow) {
+                                                    const rowDiv = document.createElement('div');
+                                                    rowDiv.className = 'seat-row';
+                                                    rowDiv.setAttribute('data-row', rowLabel);
+
+                                                    // Row Label Left
+                                                    const leftLabel = document.createElement('span');
+                                                    leftLabel.className = 'row-label';
+                                                    leftLabel.innerText = rowLabel;
+                                                    rowDiv.appendChild(leftLabel);
+
+                                                    // Row Seats
+                                                    seatsByRow[rowLabel].forEach(seat => {
+                                                        const seatDiv = document.createElement('button');
+                                                        const isBooked = bookedSeatIds.has(seat.seatId);
+                                                        const isVip = seat.seatType === 'VIP';
+
+                                                        seatDiv.className = 'seat-btn seat-' + seat.seatType;
+                                                        if (isBooked) {
+                                                            seatDiv.classList.add('seat-booked');
+                                                            seatDiv.disabled = true;
+                                                        } else if (!seat.active) {
+                                                            seatDiv.classList.add('seat-maintenance');
+                                                            seatDiv.disabled = true;
+                                                        } else {
+                                                            seatDiv.classList.add('seat-available');
+                                                        }
+
+                                                        if (!seat.active && !isBooked) {
+                                                            seatDiv.innerHTML = '<i class="bi bi-x-lg"></i>';
+                                                        } else {
+                                                            seatDiv.innerText = seat.colNumber;
+                                                        }
+
+                                                        seatDiv.title = seat.rowLabel + seat.colNumber + ' (' + seat.seatType + ') – ' + (isBooked ? 'BOOKED' : (!seat.active ? 'MAINTENANCE' : 'AVAILABLE'));
+
+                                                        seatDiv.setAttribute('data-seat-id', seat.seatId);
+                                                        seatDiv.setAttribute('data-seat-type', seat.seatType);
+                                                        seatDiv.setAttribute('data-seat-label', seat.rowLabel + seat.colNumber);
+                                                        seatDiv.setAttribute('data-col', seat.colNumber);
+
+                                                        if (!isBooked && seat.active) {
+                                                            seatDiv.addEventListener('click', () => toggleSeat(seatDiv, seat));
+                                                        }
+                                                        rowDiv.appendChild(seatDiv);
+                                                    });
+
+                                                    // Row Label Right
+                                                    const rightLabel = document.createElement('span');
+                                                    rightLabel.className = 'row-label';
+                                                    rightLabel.innerText = rowLabel;
+                                                    rowDiv.appendChild(rightLabel);
+
+                                                    seatMapDiv.appendChild(rowDiv);
+                                                }
+
+                                                // Dynamic aisle and column header generation
+                                                buildLayout();
+
+                                                // Connect WebSocket after seats are drawn in the DOM
+                                                connectWS(state.showtimeId);
+                                            })
+                                            .catch(err => {
+                                                console.error(err);
+                                                container.innerHTML =
+                                                        '<div class="text-center text-danger py-5">' +
+                                                        '    <i class="bi bi-exclamation-triangle-fill fs-2 d-block mb-2"></i>' +
+                                                        '    Error loading seat map: ' + err.message +
+                                                        '</div>';
+                                            });
+                                }
+
+                                function buildLayout() {
+                                    const rows = Array.from(document.querySelectorAll('.seat-row'));
+                                    if (!rows.length) return;
+
+                                    const header = document.querySelector('#seatMap .seat-header');
+                                    header.innerHTML = '';
+
+                                    document.querySelectorAll('.seat-row .aisle').forEach(el => el.remove());
+
+                                    const colSet = new Set();
+                                    rows.forEach(r => r.querySelectorAll('.seat-btn').forEach(b => colSet.add(+b.dataset.col)));
+                                    const cols = Array.from(colSet).sort((a, b) => a - b);
+                                    if (!cols.length) return;
+                                    const aisleAfter = cols[Math.ceil(cols.length / 2) - 1];
+
+                                    header.innerHTML = '<span class="row-label"></span>';
+                                    cols.forEach(c => {
+                                        if (c === aisleAfter + 1) header.insertAdjacentHTML('beforeend', '<span class="aisle"></span>');
+                                        header.insertAdjacentHTML('beforeend', '<span class="col-num">' + c + '</span>');
+                                    });
+                                    header.insertAdjacentHTML('beforeend', '<span class="row-label"></span>');
+
+                                    rows.forEach(r => {
+                                        const seats = r.querySelectorAll('.seat-btn');
+                                        for (const b of seats) {
+                                            if (+b.dataset.col === aisleAfter + 1) {
+                                                const sp = document.createElement('span');
+                                                sp.className = 'aisle';
+                                                r.insertBefore(sp, b);
+                                                break;
+                                            }
+                                        }
+                                    });
+                                }
+
+                                function toggleSeat(btn, seat) {
+                                    if (btn.classList.contains('seat-booked') || btn.classList.contains('seat-maintenance') || btn.classList.contains('seat-soft-locked')) {
+                                        return;
+                                    }
+
+                                    const index = state.selectedSeats.findIndex(s => s.seatId === seat.seatId);
+                                    const id = String(seat.seatId);
+
+                                    if (index > -1) {
+                                        state.selectedSeats.splice(index, 1);
+                                        setSeatState(btn, 'available');
+                                        sendWS({action: 'DESELECT', seatId: Number(id), showtimeId: state.showtimeId});
+                                    } else {
+                                        state.selectedSeats.push(seat);
+                                        setSeatState(btn, 'selected');
+                                        sendWS({action: 'SELECT', seatId: Number(id), showtimeId: state.showtimeId});
+                                    }
+
+                                    updateSeatsSummary();
+                                }
+
+                                function setSeatState(btn, stateStr) {
+                                    btn.classList.remove(
+                                        'seat-available', 'seat-selected',
+                                        'seat-soft-locked', 'seat-booked', 'seat-maintenance'
+                                    );
+
+                                    switch (stateStr) {
+                                        case 'available':    btn.classList.add('seat-available');    btn.disabled = false; break;
+                                        case 'selected':     btn.classList.add('seat-selected');     btn.disabled = false; break;
+                                        case 'soft-locked':  btn.classList.add('seat-soft-locked');  btn.disabled = true;  break;
+                                        case 'booked':       btn.classList.add('seat-booked');       btn.disabled = true;  break;
+                                        case 'maintenance':  btn.classList.add('seat-maintenance');  btn.disabled = true;  break;
+                                    }
+                                }
+
+                                function connectWS(showtimeId) {
+                                    closeWS();
+                                    const WS_URL = (location.protocol === 'https:' ? 'wss' : 'ws')
+                                            + '://' + location.host
+                                            + contextPath + '/ws/seats/' + showtimeId;
+
+                                    ws = new WebSocket(WS_URL);
+
+                                    ws.onopen = function () {
+                                        setWsBadge('Realtime Connected', 'bg-success');
+                                        wsRetryDelay = 2000;
+                                    };
+
+                                    ws.onmessage = function (event) {
+                                        let msg;
+                                        try {
+                                            msg = JSON.parse(event.data);
+                                        } catch (e) {
+                                            return;
+                                        }
+
+                                        const seatIdStr = String(msg.seatId);
+                                        const seatDiv = document.querySelector('[data-seat-id="' + msg.seatId + '"]');
+                                        if (!seatDiv)
+                                            return;
+
+                                        const isMySelection = state.selectedSeats.some(s => String(s.seatId) === seatIdStr);
+
+                                        switch (msg.action) {
+                                            case 'SELECT':
+                                                if (isMySelection)
+                                                    return;
+                                                setSeatState(seatDiv, 'soft-locked');
+                                                break;
+                                            case 'DESELECT':
+                                                if (isMySelection)
+                                                    return;
+                                                setSeatState(seatDiv, 'available');
+                                                flashRefreshBadge();
+                                                break;
+                                            case 'HARD_LOCK':
+                                                if (isMySelection) {
+                                                    if (msg.username !== CURRENT_USER) {
+                                                        const index = state.selectedSeats.findIndex(s => String(s.seatId) === seatIdStr);
+                                                        if (index > -1) {
+                                                            state.selectedSeats.splice(index, 1);
+                                                            updateSeatsSummary();
+                                                        }
+                                                        alert('Seat ' + seatDiv.getAttribute('data-seat-label') + ' was just selected by someone else. Please choose another seat.');
+                                                    }
+                                                }
+                                                setSeatState(seatDiv, 'booked');
+                                                flashRefreshBadge();
+                                                break;
+                                            case 'HARD_RELEASE':
+                                                if (isMySelection)
+                                                    return;
+                                                setSeatState(seatDiv, 'available');
+                                                flashRefreshBadge();
+                                                break;
+                                        }
+                                    };
+
+                                    ws.onclose = function () {
+                                        setWsBadge('Disconnected – retrying…', 'bg-warning text-dark');
+                                        setTimeout(() => {
+                                            if (state.currentStep >= 2 && state.showtimeId === showtimeId) {
+                                                connectWS(showtimeId);
+                                            }
+                                        }, Math.min(wsRetryDelay, 30000));
+                                        wsRetryDelay *= 2;
+                                    };
+
+                                    ws.onerror = function () {
+                                        ws.close();
+                                    };
+                                }
+
+                                function closeWS() {
+                                    if (ws) {
+                                        ws.onclose = null;
+                                        ws.close();
+                                        ws = null;
+                                    }
+                                    setWsBadge('Disconnected', 'bg-secondary');
+                                }
+
+                                function setWsBadge(text, cls) {
+                                    const b = document.getElementById('wsBadge');
+                                    if (b) {
+                                        b.textContent = text;
+                                        b.className = 'badge ' + cls;
+                                    }
+                                }
+
+                                function flashRefreshBadge() {
+                                    const b = document.getElementById('refreshBadge');
+                                    if (b) {
+                                        b.style.opacity = '1';
+                                        setTimeout(() => {
+                                            b.style.opacity = '0';
+                                        }, 2000);
+                                    }
+                                }
+
+                                function sendWS(payload) {
+                                    if (ws && ws.readyState === WebSocket.OPEN) {
+                                        ws.send(JSON.stringify(payload));
+                                    }
+                                }
+
+                                function updateSeatsSummary() {
+                                    if (state.selectedSeats.length === 0) {
+                                        document.getElementById('selected-seats-display').innerText = '—';
+                                        document.getElementById('subtotal-display').innerText = '0';
+                                        document.getElementById('btn-to-step3').disabled = true;
+                                        state.subtotalAmount = 0;
+                                        return;
+                                    }
+
+                                    const seatLabels = state.selectedSeats.map(s => s.rowLabel + s.colNumber);
+                                    document.getElementById('selected-seats-display').innerText = seatLabels.join(', ');
+
+                                    // Calculate total price based on seat multipliers
+                                    let subtotal = 0;
+                                    state.selectedSeats.forEach(s => {
+                                        const multiplier = s.seatType === 'VIP' ? 1.2 : 1.0;
+                                        subtotal += Math.round(state.basePrice * multiplier);
+                                    });
+
+                                    state.subtotalAmount = subtotal;
+                                    document.getElementById('subtotal-display').innerText = subtotal.toLocaleString();
+                                    document.getElementById('btn-to-step3').disabled = false;
+                                }
+
+                                document.getElementById('btn-to-step3').addEventListener('click', () => {
+                                    if (state.selectedSeats.length > 0) {
+                                        // Initialize step 3 pricing inputs
+                                        document.getElementById('summary-subtotal').innerText = state.subtotalAmount.toLocaleString();
+                                        document.getElementById('summary-discount').innerText = state.promoDiscount.toLocaleString();
+                                        calculateTotalCheckout();
+                                        goToStep(3);
+                                    }
+                                });
+
+                                // ==========================================
+                                // STEP 3: PROMO APPLICATION
+                                // ==========================================
+
+                                // Apply Promotion Code
+                                const btnApplyPromo = document.getElementById('btn-apply-promo');
+                                const promoCodeInput = document.getElementById('promo-code');
+                                const promoSuccess = document.getElementById('promo-success-alert');
+                                const promoError = document.getElementById('promo-error-alert');
+
+                                btnApplyPromo.addEventListener('click', () => {
+                                    const code = promoCodeInput.value.trim();
+                                    if (!code) {
+                                        // Clear promo
+                                        state.promoCode = '';
+                                        state.promoDiscount = 0;
+                                        promoSuccess.classList.add('d-none');
+                                        promoError.classList.add('d-none');
+                                        document.getElementById('summary-discount').innerText = '0';
+                                        calculateTotalCheckout();
+                                        return;
+                                    }
+
+                                    btnApplyPromo.disabled = true;
+
+                                    fetch(contextPath + '/staff/promo-validate?code=' + encodeURIComponent(code) + '&subtotal=' + state.subtotalAmount)
+                                            .then(res => res.json())
+                                            .then(data => {
+                                                btnApplyPromo.disabled = false;
+
+                                                if (data.valid) {
+                                                    state.promoCode = code;
+                                                    state.promoDiscount = data.discountAmount;
+
+                                                    promoSuccess.innerText = data.message;
+                                                    promoSuccess.classList.remove('d-none');
+                                                    promoError.classList.add('d-none');
+
+                                                    document.getElementById('summary-discount').innerText = data.discountAmount.toLocaleString();
+                                                    calculateTotalCheckout();
+                                                } else {
+                                                    state.promoCode = '';
+                                                    state.promoDiscount = 0;
+
+                                                    promoError.innerText = data.message;
+                                                    promoError.classList.remove('d-none');
+                                                    promoSuccess.classList.add('d-none');
+
+                                                    document.getElementById('summary-discount').innerText = '0';
+                                                    calculateTotalCheckout();
+                                                }
+                                            })
+                                            .catch(err => {
+                                                console.error(err);
+                                                btnApplyPromo.disabled = false;
+                                                alert('Error applying promotion');
+                                            });
+                                });
+
+                                function calculateTotalCheckout() {
+                                    state.totalAmount = state.subtotalAmount - state.promoDiscount;
+                                    if (state.totalAmount < 0)
+                                        state.totalAmount = 0;
+                                    document.getElementById('summary-total').innerText = state.totalAmount.toLocaleString();
+                                }
+
+                                document.getElementById('btn-to-step4').addEventListener('click', () => {
+                                    // Fill step 4 invoice summary
+                                    document.getElementById('invoice-movie').innerText = state.movieTitle;
+                                    document.getElementById('invoice-time').innerText = state.startTime + ' on ' + state.date;
+                                    document.getElementById('invoice-room').innerText = state.roomName + ' (' + state.roomType + ')';
+
+                                    const seatLabels = state.selectedSeats.map(s => s.rowLabel + s.colNumber);
+                                    document.getElementById('invoice-seats').innerText = seatLabels.join(', ');
+
+                                    document.getElementById('invoice-customer').innerText = 'Guest (guest01)';
+
+                                    document.getElementById('invoice-promo').innerText = state.promoCode
+                                            ? state.promoCode + ' (Discount ' + state.promoDiscount.toLocaleString() + ' VND)'
+                                            : 'None';
+
+                                    document.getElementById('invoice-total').innerText = state.totalAmount.toLocaleString();
+
+                                    // Reset payment method selection to CASH
+                                    const payCashRadio = document.getElementById('pay-cash');
+                                    if (payCashRadio) payCashRadio.checked = true;
+
+                                    // Clear inputs
+                                    document.getElementById('cash-received').value = '';
+                                    document.getElementById('cash-change').innerText = '0';
+                                    document.getElementById('cash-error').classList.add('d-none');
+                                    document.getElementById('btn-confirm-booking').disabled = true;
+
+                                    updatePaymentMethodUI();
+
+                                    goToStep(4);
+                                });
+
+                                // ==========================================
+                                // STEP 4: CASH PAYMENT FLOW
+                                // ==========================================
+                                const cashReceivedInput = document.getElementById('cash-received');
+                                const cashChangeText = document.getElementById('cash-change');
+                                const cashErrorAlert = document.getElementById('cash-error');
+                                const btnConfirmBooking = document.getElementById('btn-confirm-booking');
+
+                                cashReceivedInput.addEventListener('input', () => {
+                                    const selectedMethod = document.querySelector('input[name="paymentMethodRadio"]:checked').value;
+                                    if (selectedMethod === 'VNPAY') {
+                                        return;
+                                    }
+                                    const received = parseFloat(cashReceivedInput.value) || 0;
+                                    const due = state.totalAmount;
+
+                                    if (received < due) {
+                                        cashChangeText.innerText = '0';
+                                        cashErrorAlert.classList.remove('d-none');
+                                        btnConfirmBooking.disabled = true;
+                                    } else {
+                                        const change = received - due;
+                                        cashChangeText.innerText = change.toLocaleString();
+                                        cashErrorAlert.classList.add('d-none');
+                                        btnConfirmBooking.disabled = false;
+                                    }
+                                });
+
+                                function updatePaymentMethodUI() {
+                                    const selectedMethod = document.querySelector('input[name="paymentMethodRadio"]:checked').value;
+                                    const cashSection = document.getElementById('cash-payment-section');
+                                    const vnpaySection = document.getElementById('vnpay-payment-section');
+                                    const btnConfirm = document.getElementById('btn-confirm-booking');
+
+                                    if (selectedMethod === 'VNPAY') {
+                                        cashSection.classList.add('d-none');
+                                        vnpaySection.classList.remove('d-none');
+
+                                        // Update button
+                                        btnConfirm.disabled = false;
+                                        btnConfirm.className = "btn btn-primary px-5 fw-bold fs-6";
+                                        btnConfirm.innerHTML = `<i class="bi bi-qr-code-scan me-2"></i>GENERATE VNPAY PAYMENT REQUEST`;
+                                    } else {
+                                        cashSection.classList.remove('d-none');
+                                        vnpaySection.classList.add('d-none');
+
+                                        // Trigger cash received input event validation to set correct enabled state
+                                        const received = parseFloat(cashReceivedInput.value) || 0;
+                                        const due = state.totalAmount;
+                                        if (received < due) {
+                                            btnConfirm.disabled = true;
+                                        } else {
+                                            btnConfirm.disabled = false;
+                                        }
+                                        btnConfirm.className = "btn btn-success px-5 fw-bold fs-6";
+                                        btnConfirm.innerHTML = `<i class="bi bi-cash-stack me-2"></i>CONFIRM CASH PAYMENT`;
+                                    }
+                                }
+
+                                btnConfirmBooking.addEventListener('click', () => {
+                                    btnConfirmBooking.disabled = true;
+                                    const selectedMethod = document.querySelector('input[name="paymentMethodRadio"]:checked').value;
+                                    if (selectedMethod === 'VNPAY') {
+                                        btnConfirmBooking.innerHTML = `<span class="spinner-border spinner-border-sm me-2" role="status"></span>CREATING VNPAY REQUEST...`;
+                                    } else {
+                                        btnConfirmBooking.innerHTML = `<span class="spinner-border spinner-border-sm me-2" role="status"></span>PROCESSING PAYMENT...`;
+                                    }
+
+                                    // Prepare payload
+                                    const seatIdsString = state.selectedSeats.map(s => s.seatId).join(',');
+
+                                    const formData = new URLSearchParams();
+                                    formData.append('showtimeId', state.showtimeId);
+                                    formData.append('seatIds', seatIdsString);
+                                    formData.append('promoCode', state.promoCode);
+                                    formData.append('paymentMethod', selectedMethod);
+                                    formData.append('notes', selectedMethod === 'VNPAY' ? 'Counter booking via VNPay' : 'Counter booking via Cash');
+
+                                    fetch(contextPath + '/staff/booking', {
+                                        method: 'POST',
+                                        headers: {
+                                            'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'
+                                        },
+                                        body: formData.toString()
+                                    })
+                                            .then(res => res.json())
+                                            .then(data => {
+                                                if (data.success) {
+                                                    if (data.redirectUrl) {
+                                                        window.location.href = data.redirectUrl;
+                                                        return;
+                                                    }
+                                                    state.bookingCode = data.bookingCode;
+                                                    state.bookingId = data.bookingId;
+
+                                                    // Fill Step 5 E-Ticket Details
+                                                    document.getElementById('final-booking-code').innerText = data.bookingCode;
+                                                    document.getElementById('final-movie').innerText = state.movieTitle;
+                                                    document.getElementById('final-time').innerText = state.startTime + ' - ' + state.date;
+
+                                                    const seatLabels = state.selectedSeats.map(s => s.rowLabel + s.colNumber);
+                                                    document.getElementById('final-seats').innerText = seatLabels.join(', ');
+
+                                                    goToStep(5);
+                                                } else {
+                                                    btnConfirmBooking.disabled = false;
+                                                    if (selectedMethod === 'VNPAY') {
+                                                        btnConfirmBooking.className = "btn btn-primary px-5 fw-bold fs-6";
+                                                        btnConfirmBooking.innerHTML = `<i class="bi bi-qr-code-scan me-2"></i>GENERATE VNPAY PAYMENT REQUEST`;
+                                                    } else {
+                                                        btnConfirmBooking.className = "btn btn-success px-5 fw-bold fs-6";
+                                                        btnConfirmBooking.innerHTML = `<i class="bi bi-cash-stack me-2"></i>CONFIRM CASH PAYMENT`;
+                                                    }
+                                                    alert('Booking failed: ' + data.message);
+                                                }
+                                            })
+                                            .catch(err => {
+                                                console.error(err);
+                                                btnConfirmBooking.disabled = false;
+                                                if (selectedMethod === 'VNPAY') {
+                                                    btnConfirmBooking.className = "btn btn-primary px-5 fw-bold fs-6";
+                                                    btnConfirmBooking.innerHTML = `<i class="bi bi-qr-code-scan me-2"></i>GENERATE VNPAY PAYMENT REQUEST`;
+                                                } else {
+                                                    btnConfirmBooking.className = "btn btn-success px-5 fw-bold fs-6";
+                                                    btnConfirmBooking.innerHTML = `<i class="bi bi-cash-stack me-2"></i>CONFIRM CASH PAYMENT`;
+                                                }
+                                                alert('A network error occurred while processing booking.');
+                                            });
+                                });
+
+                                // ==========================================
+                                // STEP 5: TICKET UTILITIES
+                                // ==========================================
+                                const btnPrintTicket = document.getElementById('btn-print-ticket');
+                                btnPrintTicket.addEventListener('click', () => {
+                                    // Open generated PDF in new tab to trigger print
+                                    window.open(contextPath + '/staff/ticket-pdf?bookingCode=' + state.bookingCode, '_blank');
+                                });
+
+                                // ==========================================
+                                // HELPERS: NAVIGATOR & SYSTEM RESET
+                                // ==========================================
+                                function goToStep(stepNum) {
+                                    // Close WebSocket if leaving Step 2 to go back to Step 1
+                                    if (state.currentStep >= 2 && stepNum === 1) {
+                                        closeWS();
+                                    }
+                                    // Close WebSocket on Step 5 (successful booking completion)
+                                    if (stepNum === 5) {
+                                        closeWS();
+                                    }
+
+                                    state.currentStep = stepNum;
+
+                                    // Toggle panels
+                                    document.querySelectorAll('.wizard-panel').forEach(p => p.classList.remove('active'));
+                                    document.getElementById('panel-' + stepNum).classList.add('active');
+
+                                    // Toggle indicators
+                                    for (let i = 1; i <= 5; i++) {
+                                        const ind = document.getElementById('step-ind-' + i);
+                                        ind.classList.remove('active', 'completed');
+                                        if (i < stepNum) {
+                                            ind.classList.add('completed');
+                                        } else if (i === stepNum) {
+                                            ind.classList.add('active');
+                                        }
+                                    }
+                                }
+
+                                function resetWizard() {
+                                    state = {
+                                        currentStep: 1,
+                                        showtimeId: null,
+                                        basePrice: 0,
+                                        movieTitle: '',
+                                        startTime: '',
+                                        date: '',
+                                        roomName: '',
+                                        roomType: '',
+                                        selectedSeats: [],
+                                        memberUsername: 'guest01',
+                                        memberFullName: 'Walk-in Guest',
+                                        memberEmail: '',
+                                        promoCode: '',
+                                        promoDiscount: 0,
+                                        totalAmount: 0,
+                                        subtotalAmount: 0,
+                                        bookingCode: '',
+                                        bookingId: null
+                                    };
+
+                                    // Clear inputs
+                                    movieSearch.value = '';
+                                    roomFilter.value = '';
+                                    dateFilter.value = todayStr;
+                                    promoCodeInput.value = '';
+
+                                    // Clear UI elements
+                                    promoSuccess.classList.add('d-none');
+                                    promoError.classList.add('d-none');
+
+                                    // Ensure WebSocket connection is closed on reset
+                                    closeWS();
+
+                                    // Refresh first page
+                                    loadShowtimes();
+                                    goToStep(1);
+                                }
+        </script>
+    </body>
+</html>

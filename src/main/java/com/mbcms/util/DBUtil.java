@@ -10,10 +10,9 @@ import java.util.Properties;
 
 /**
  * DBUtil - Singleton DBCP2 Connection Pool
- * 
- * Cach dung:
- *   Connection conn = DBUtil.getConnection();
- *   try { ... } finally { DBUtil.closeConnection(conn); }
+ *
+ * Cach dung: Connection conn = DBUtil.getConnection(); try { ... } finally {
+ * DBUtil.closeConnection(conn); }
  */
 public class DBUtil {
 
@@ -64,7 +63,10 @@ public class DBUtil {
         }
     }
 
-    /** Goi khi deploy/redeploy de tao pool moi (tranh pool cu sau hot-reload Tomcat). */
+    /**
+     * Goi khi deploy/redeploy de tao pool moi (tranh pool cu sau hot-reload
+     * Tomcat).
+     */
     public static void reinitialize() {
         shutdown();
         initPool();
@@ -74,7 +76,8 @@ public class DBUtil {
         initPool();
     }
 
-    private DBUtil() {}
+    private DBUtil() {
+    }
 
     public static Connection getConnection() throws SQLException {
         if (dataSource == null) {

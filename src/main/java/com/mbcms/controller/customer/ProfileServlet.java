@@ -15,11 +15,12 @@ import java.time.format.DateTimeParseException;
 /**
  * ProfileServlet - owner: <b>HungNT</b> (UC12 View/Update Profile).
  *
- * GET  /customer/profile  -> show the profile.
- * POST /customer/profile  -> update personal information.
+ * GET /customer/profile -> show the profile. POST /customer/profile -> update
+ * personal information.
  *
- * Lives under /customer/* so AuthFilter already guarantees the user is logged in.
- * Change password is a separate feature at /auth/change-password (not handled here).
+ * Lives under /customer/* so AuthFilter already guarantees the user is logged
+ * in. Change password is a separate feature at /auth/change-password (not
+ * handled here).
  */
 @WebServlet("/customer/profile")
 public class ProfileServlet extends HttpServlet {
@@ -56,12 +57,14 @@ public class ProfileServlet extends HttpServlet {
         req.getRequestDispatcher(VIEW).forward(req, resp);
     }
 
-    /** Update personal information. */
+    /**
+     * Update personal information.
+     */
     private void handleUpdateProfile(HttpServletRequest req, Customer customer) {
         String fullName = trim(req.getParameter("fullName"));
-        String phone    = trim(req.getParameter("phone"));
-        String dobStr   = trim(req.getParameter("dateOfBirth"));
-        String address  = trim(req.getParameter("address"));
+        String phone = trim(req.getParameter("phone"));
+        String dobStr = trim(req.getParameter("dateOfBirth"));
+        String address = trim(req.getParameter("address"));
 
         // --- Validate ---
         if (ValidationUtil.isNullOrEmpty(fullName) || fullName.length() < 2 || fullName.length() > 100) {
@@ -105,7 +108,9 @@ public class ProfileServlet extends HttpServlet {
         }
     }
 
-    /** Get the logged-in Customer from session; null if not a Customer. */
+    /**
+     * Get the logged-in Customer from session; null if not a Customer.
+     */
     private Customer currentCustomer(HttpServletRequest req) {
         HttpSession session = req.getSession(false);
         Object principal = (session != null) ? session.getAttribute("currentUser") : null;

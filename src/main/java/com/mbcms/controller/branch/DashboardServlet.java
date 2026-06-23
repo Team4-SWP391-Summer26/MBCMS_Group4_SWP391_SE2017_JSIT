@@ -14,12 +14,12 @@ import java.time.LocalDate;
 import java.util.List;
 
 /**
- * DashboardServlet - Branch Manager Dashboard (owner: HungNT).
- * Layout theo man "29_manager-dashboard" cua Frontend demo prototype.
+ * DashboardServlet - Branch Manager Dashboard (owner: HungNT). Layout theo man
+ * "29_manager-dashboard" cua Frontend demo prototype.
  *
  * PHAM VI: chi hien du lieu SHOWTIME (phan cua HungNT). Cac so lieu
- * revenue/chart/top-movies thuoc module Reports (AnhND) va occupancy
- * (AnhPQ) - dashboard de san cho trong, KHONG fake so lieu.
+ * revenue/chart/top-movies thuoc module Reports (AnhND) va occupancy (AnhPQ) -
+ * dashboard de san cho trong, KHONG fake so lieu.
  */
 @WebServlet("/branch/dashboard")
 public class DashboardServlet extends HttpServlet {

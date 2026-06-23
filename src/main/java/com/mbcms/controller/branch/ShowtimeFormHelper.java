@@ -15,9 +15,9 @@ import java.time.format.DateTimeParseException;
 import java.util.Arrays;
 
 /**
- * ShowtimeFormHelper - parse + validate form showtime, dung chung cho
- * Create (UC20) va Edit (UC21) de khong lap lai validation.
- * Owner: HungNT. SRS 3.5.2.2 Showtime Details Screen.
+ * ShowtimeFormHelper - parse + validate form showtime, dung chung cho Create
+ * (UC20) va Edit (UC21) de khong lap lai validation. Owner: HungNT. SRS 3.5.2.2
+ * Showtime Details Screen.
  */
 final class ShowtimeFormHelper {
 
@@ -25,15 +25,16 @@ final class ShowtimeFormHelper {
     private static final BigDecimal PRICE_MIN = new BigDecimal("10000");
     private static final BigDecimal PRICE_MAX = new BigDecimal("500000");
 
-    private ShowtimeFormHelper() {}
+    private ShowtimeFormHelper() {
+    }
 
     /**
-     * Doc params tu form, validate, va do vao {@code target}
-     * (movieId, roomId, startTime, endTime tu tinh, basePrice, format, subtitleType).
+     * Doc params tu form, validate, va do vao {@code target} (movieId, roomId,
+     * startTime, endTime tu tinh, basePrice, format, subtitleType).
      *
      * @return null neu hop le; nguoc lai tra ve thong bao loi de hien len form.
      */
-    static String populate(HttpServletRequest req, Showtime target) {
+    static String populate(HttpServletRequest req, Showtime target, long branchId) {
         String movieIdStr = trim(req.getParameter("movieId"));
         String roomIdStr = trim(req.getParameter("roomId"));
         String dateStr = trim(req.getParameter("date"));
@@ -61,6 +62,16 @@ final class ShowtimeFormHelper {
         Movie movie = movieDAO.findById(movieId);
         if (movie == null || !movie.isActive()) {
             return "Invalid movie.";
+        }
+        // Khong xep lich cho phim da ket thuc chieu (movie_status = ENDED).
+        // Chi phim UPCOMING / NOW_SHOWING moi co the len lich.
+        if ("ENDED".equals(movie.getStatus())) {
+            return "This movie has ended and can no longer be scheduled.";
+        }
+        // Phim phai DA DUOC Admin cap cho chi nhanh nay (movie_branch). Chong tampering:
+        // movieId gui tu form co the bi sua tay sang phim chua cap cho rap minh.
+        if (!movieDAO.isAssignedToBranch(movieId, branchId)) {
+            return "This movie is not available at your branch.";
         }
 
         long roomId;

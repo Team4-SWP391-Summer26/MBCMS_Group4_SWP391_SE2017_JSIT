@@ -7,6 +7,7 @@ import java.time.LocalTime;
  * Branch - map bang `branches` (chi nhanh rap). Soft-delete qua active.
  */
 public class Branch {
+
     private long branchId;
     private String name;
     private String address;
@@ -25,28 +26,36 @@ public class Branch {
     private double monthlyRevenue;
     private String managerName;
 
-    public Branch() {}
+    public Branch() {
+    }
 
-    public long getBranchId() { return branchId; }
-    public void setBranchId(long branchId) { this.branchId = branchId; }
+    public long getBranchId() {
+        return branchId;
+    }
 
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
+    public void setBranchId(long branchId) {
+        this.branchId = branchId;
+    }
 
-    public String getAddress() { return address; }
-    public void setAddress(String address) { this.address = address; }
+    public String getName() {
+        return name;
+    }
 
-    public String getCity() { return city; }
-    public void setCity(String city) { this.city = city; }
+    public void setName(String name) {
+        this.name = name;
+    }
 
-    public String getPhone() { return phone; }
-    public void setPhone(String phone) { this.phone = phone; }
+    public String getAddress() {
+        return address;
+    }
 
-    public String getEmail() { return email; }
-    public void setEmail(String email) { this.email = email; }
+    public void setAddress(String address) {
+        this.address = address;
+    }
 
-    public boolean isActive() { return active; }
-    public void setActive(boolean active) { this.active = active; }
+    public String getCity() {
+        return city;
+    }
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
@@ -71,4 +80,32 @@ public class Branch {
 
     public String getManagerName() { return managerName; }
     public void setManagerName(String managerName) { this.managerName = managerName; }
+    public void setCity(String city) {
+        this.city = city;
+    }
+
+    public String getPhone() {
+        return phone;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public boolean isActive() {
+        return active;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
+    }
+
 }

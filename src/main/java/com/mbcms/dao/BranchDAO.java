@@ -5,12 +5,16 @@ import java.time.LocalTime;
 import java.util.List;
 
 /**
- * BranchDAO - truy van bang `branches`.
+ * BranchDAO - truy van bang `branches` (chi doc).
+ * Owner: HungNT - dung cho manager console (hien ten branch trong sidebar
+ * va scope notice) + man Admin cap phim cho chi nhanh. Day chi READ;
  * CRUD branch la phan cua HoangHM.
  */
 public interface BranchDAO {
 
-    /** Tim branch theo id; null neu khong ton tai. */
+    /**
+     * Tim branch theo id; null neu khong ton tai.
+     */
     Branch findById(long branchId);
 
     /** Lay tat ca chi nhanh. */
@@ -30,4 +34,12 @@ public interface BranchDAO {
 
     /** Lay tat ca chi nhanh kem cac thong ke (rooms, seats, today showtimes, monthly revenue, manager). */
     List<Branch> findAllWithStats(boolean includeInactive);
+    
+    /**
+     * Lay danh sach tat ca branch active = 1, sap xep theo ten.
+     * Dung cho customer flow: chon chi nhanh -> chon phim -> chon suat -> chon ghe.
+     */
+    List<Branch> findAllActive();
+
+    
 }

@@ -5,8 +5,7 @@ import jakarta.servlet.ServletContextListener;
 import jakarta.servlet.annotation.WebListener;
 
 /**
- * AppContextListener - Khoi dong va tat ung dung
- * - Start: khoi dong DBCP2 pool
+ * AppContextListener - Khoi dong va tat ung dung - Start: khoi dong DBCP2 pool
  * - Destroy: dong pool de tranh leak
  */
 @WebListener

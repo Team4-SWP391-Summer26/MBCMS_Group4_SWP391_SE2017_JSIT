@@ -15,6 +15,7 @@ import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
@@ -24,16 +25,17 @@ import java.util.Locale;
 import java.util.Map;
 
 /**
- * ShowtimeListServlet - owner: <b>HungNT</b>.
- * SRS 3.5.2.1 Showtime List Screen, layout theo man 22_mgr-showtimes
- * cua Frontend demo prototype (UC20/UC21/UC22).
+ * ShowtimeListServlet - owner: <b>HungNT</b>. SRS 3.5.2.1 Showtime List Screen,
+ * layout theo man 22_mgr-showtimes cua Frontend demo prototype
+ * (UC20/UC21/UC22).
  *
- * GET /branch/showtimes - man hinh day-centric: chon ngay (date pills),
- * KPI cua ngay do, schedule timeline theo phong, va bang showtime
- * (filter them theo movie/room).
+ * GET /branch/showtimes - man hinh day-centric: chon ngay (date pills), KPI cua
+ * ngay do, schedule timeline theo phong, va bang showtime (filter them theo
+ * movie/room).
  *
- * Nam duoi /branch/* nen AuthFilter + RoleFilter (BRANCH_MANAGER) + BranchFilter
- * da chay truoc; "currentBranchId" trong session chac chan != null.
+ * Nam duoi /branch/* nen AuthFilter + RoleFilter (BRANCH_MANAGER) +
+ * BranchFilter da chay truoc; "currentBranchId" trong session chac chan !=
+ * null.
  */
 @WebServlet("/branch/showtimes")
 public class ShowtimeListServlet extends HttpServlet {
@@ -91,7 +93,11 @@ public class ShowtimeListServlet extends HttpServlet {
 
         req.setAttribute("showtimes", tableShowtimes);
         req.setAttribute("dayShowtimes", dayShowtimes);
-        req.setAttribute("movies", movieDAO.findActiveMovies());
+        // "now" de JSP tinh status dong (suat SCHEDULED qua gio = Ended/Now showing)
+        // va an nut Edit/Cancel voi suat da bat dau. Tranh phu thuoc job set ENDED.
+        req.setAttribute("nowLdt", LocalDateTime.now());
+        // Dropdown filter chi liet ke phim da cap cho chi nhanh nay (movie_branch).
+        req.setAttribute("movies", movieDAO.findActiveMoviesForBranch(branchId));
         req.setAttribute("rooms", roomDAO.findActiveByBranch(branchId));
         req.setAttribute("filterMovieId", movieId);
         req.setAttribute("filterRoomId", roomId);
@@ -120,7 +126,7 @@ public class ShowtimeListServlet extends HttpServlet {
                     break;
                 case "NOT_EDITABLE":
                     req.setAttribute("errorMsg",
-                            "This showtime can no longer be cancelled (already cancelled or ended).");
+                            "This showtime can no longer be cancelled (already started, cancelled, or ended).");
                     break;
                 default:
                     req.setAttribute("errorMsg", "System error, please try again later.");

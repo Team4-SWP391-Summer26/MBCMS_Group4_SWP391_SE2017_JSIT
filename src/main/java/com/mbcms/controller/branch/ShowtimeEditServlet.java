@@ -16,15 +16,15 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 /**
- * ShowtimeEditServlet - owner: <b>HungNT</b>.
- * SRS 3.5.2.2 Showtime Details Screen - phan Edit (UC21 Edit showtime).
+ * ShowtimeEditServlet - owner: <b>HungNT</b>. SRS 3.5.2.2 Showtime Details
+ * Screen - phan Edit (UC21 Edit showtime).
  *
- * GET  /branch/showtimes/edit?id=N - hien form voi du lieu suat hien tai.
- * POST /branch/showtimes/edit      - validate + cap nhat; thanh cong redirect
- *      ve /branch/showtimes?updated=1 (PRG).
+ * GET /branch/showtimes/edit?id=N - hien form voi du lieu suat hien tai. POST
+ * /branch/showtimes/edit - validate + cap nhat; thanh cong redirect ve
+ * /branch/showtimes?updated=1 (PRG).
  *
- * Chi sua duoc suat SCHEDULED thuoc branch cua manager (service verify).
- * Tai dung form.jsp + ShowtimeFormHelper cua Create.
+ * Chi sua duoc suat SCHEDULED thuoc branch cua manager (service verify). Tai
+ * dung form.jsp + ShowtimeFormHelper cua Create.
  */
 @WebServlet("/branch/showtimes/edit")
 public class ShowtimeEditServlet extends HttpServlet {
@@ -41,8 +41,11 @@ public class ShowtimeEditServlet extends HttpServlet {
         Showtime st = (id == null) ? null
                 : new ShowtimeServiceImpl().getShowtimeForBranch(id, branchId);
 
-        // Khong ton tai / cua branch khac / da CANCELLED-ENDED -> ve list
-        if (st == null || !Showtime.STATUS_SCHEDULED.equals(st.getStatus())) {
+        // Khong ton tai / cua branch khac / da CANCELLED-ENDED / da bat dau -> ve list.
+        // Check gio o day chi de UX (khong mo form chac chan se loi); server van
+        // verify lai trong updateShowtime khi submit.
+        if (st == null || !Showtime.STATUS_SCHEDULED.equals(st.getStatus())
+                || !st.getStartTime().isAfter(java.time.LocalDateTime.now())) {
             resp.sendRedirect(req.getContextPath() + "/branch/showtimes?notFound=1");
             return;
         }
@@ -86,11 +89,12 @@ public class ShowtimeEditServlet extends HttpServlet {
 
     /**
      * Validate + cap nhat showtime.
+     *
      * @return null neu thanh cong; nguoc lai tra ve thong bao loi.
      */
     private String handleUpdate(HttpServletRequest req, long showtimeId, long branchId) {
         Showtime st = new Showtime();
-        String error = ShowtimeFormHelper.populate(req, st);
+        String error = ShowtimeFormHelper.populate(req, st, branchId);
         if (error != null) {
             return error;
         }
@@ -107,7 +111,7 @@ public class ShowtimeEditServlet extends HttpServlet {
             case ShowtimeService.RESULT_ROOM_INVALID:
                 return "Invalid room.";
             case ShowtimeService.RESULT_NOT_EDITABLE:
-                return "This showtime can no longer be edited (already cancelled or ended).";
+                return "This showtime can no longer be edited (already started, cancelled, or ended).";
             case ShowtimeService.RESULT_NOT_FOUND:
             default:
                 return "Showtime not found.";
@@ -119,7 +123,7 @@ public class ShowtimeEditServlet extends HttpServlet {
         ConsoleSupport.ensureBranchName(req);
         MovieDAO movieDAO = new MovieDAOImpl();
         RoomDAO roomDAO = new RoomDAOImpl();
-        req.setAttribute("movies", movieDAO.findActiveMovies());
+        req.setAttribute("movies", movieDAO.findActiveMoviesForBranch(branchId));
         req.setAttribute("rooms", roomDAO.findActiveByBranch(branchId));
     }
 

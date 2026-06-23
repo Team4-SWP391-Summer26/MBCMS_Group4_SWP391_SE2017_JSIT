@@ -24,12 +24,12 @@ public class RegisterServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
-        
-        String username        = req.getParameter("username");
-        String fullName        = req.getParameter("fullName");
-        String email           = req.getParameter("email");
-        String phone           = req.getParameter("phone");
-        String password        = req.getParameter("password");
+
+        String username = req.getParameter("username");
+        String fullName = req.getParameter("fullName");
+        String email = req.getParameter("email");
+        String phone = req.getParameter("phone");
+        String password = req.getParameter("password");
         String confirmPassword = req.getParameter("confirmPassword");
 
         // 1. Kiem tra cac truong bat buoc
@@ -38,7 +38,7 @@ public class RegisterServlet extends HttpServlet {
                 || ValidationUtil.isNullOrEmpty(email)
                 || ValidationUtil.isNullOrEmpty(password)
                 || ValidationUtil.isNullOrEmpty(confirmPassword)) {
-            
+
             req.setAttribute("errorMsg", "Vui lòng nhập đầy đủ các thông tin bắt buộc.");
             req.getRequestDispatcher("/WEB-INF/views/auth/register.jsp").forward(req, resp);
             return;
@@ -46,7 +46,7 @@ public class RegisterServlet extends HttpServlet {
 
         username = username.trim();
         fullName = fullName.trim();
-        email    = email.trim();
+        email = email.trim();
         if (phone != null) {
             phone = phone.trim();
         }

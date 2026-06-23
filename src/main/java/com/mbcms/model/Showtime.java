@@ -4,9 +4,9 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 /**
- * Showtime - map bang `showtimes` (suat chieu = movie + room + time).
- * format: 2D | 3D | IMAX ; subtitleType: SUB | DUB | ORIGINAL
- * status: SCHEDULED | CANCELLED | ENDED
+ * Showtime - map bang `showtimes` (suat chieu = movie + room + time). format:
+ * 2D | 3D | IMAX ; subtitleType: SUB | DUB | ORIGINAL status: SCHEDULED |
+ * CANCELLED | ENDED
  */
 public class Showtime {
 
@@ -31,47 +31,118 @@ public class Showtime {
     private int bookedSeats;
     private int roomCapacity;
 
-    public Showtime() {}
+    public Showtime() {
+    }
 
-    public long getShowtimeId() { return showtimeId; }
-    public void setShowtimeId(long showtimeId) { this.showtimeId = showtimeId; }
+    public long getShowtimeId() {
+        return showtimeId;
+    }
 
-    public long getRoomId() { return roomId; }
-    public void setRoomId(long roomId) { this.roomId = roomId; }
+    public void setShowtimeId(long showtimeId) {
+        this.showtimeId = showtimeId;
+    }
 
-    public long getMovieId() { return movieId; }
-    public void setMovieId(long movieId) { this.movieId = movieId; }
+    public long getRoomId() {
+        return roomId;
+    }
 
-    public LocalDateTime getStartTime() { return startTime; }
-    public void setStartTime(LocalDateTime startTime) { this.startTime = startTime; }
+    public void setRoomId(long roomId) {
+        this.roomId = roomId;
+    }
 
-    public LocalDateTime getEndTime() { return endTime; }
-    public void setEndTime(LocalDateTime endTime) { this.endTime = endTime; }
+    public long getMovieId() {
+        return movieId;
+    }
 
-    public BigDecimal getBasePrice() { return basePrice; }
-    public void setBasePrice(BigDecimal basePrice) { this.basePrice = basePrice; }
+    public void setMovieId(long movieId) {
+        this.movieId = movieId;
+    }
 
-    public String getFormat() { return format; }
-    public void setFormat(String format) { this.format = format; }
+    public LocalDateTime getStartTime() {
+        return startTime;
+    }
 
-    public String getSubtitleType() { return subtitleType; }
-    public void setSubtitleType(String subtitleType) { this.subtitleType = subtitleType; }
+    public void setStartTime(LocalDateTime startTime) {
+        this.startTime = startTime;
+    }
 
-    public String getStatus() { return status; }
-    public void setStatus(String status) { this.status = status; }
+    public LocalDateTime getEndTime() {
+        return endTime;
+    }
 
-    public String getMovieTitle() { return movieTitle; }
-    public void setMovieTitle(String movieTitle) { this.movieTitle = movieTitle; }
+    public void setEndTime(LocalDateTime endTime) {
+        this.endTime = endTime;
+    }
 
-    public String getRoomName() { return roomName; }
-    public void setRoomName(String roomName) { this.roomName = roomName; }
+    public BigDecimal getBasePrice() {
+        return basePrice;
+    }
 
-    public String getRoomType() { return roomType; }
-    public void setRoomType(String roomType) { this.roomType = roomType; }
+    public void setBasePrice(BigDecimal basePrice) {
+        this.basePrice = basePrice;
+    }
 
-    public int getBookedSeats() { return bookedSeats; }
-    public void setBookedSeats(int bookedSeats) { this.bookedSeats = bookedSeats; }
+    public String getFormat() {
+        return format;
+    }
 
-    public int getRoomCapacity() { return roomCapacity; }
-    public void setRoomCapacity(int roomCapacity) { this.roomCapacity = roomCapacity; }
+    public void setFormat(String format) {
+        this.format = format;
+    }
+
+    public String getSubtitleType() {
+        return subtitleType;
+    }
+
+    public void setSubtitleType(String subtitleType) {
+        this.subtitleType = subtitleType;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public String getMovieTitle() {
+        return movieTitle;
+    }
+
+    public void setMovieTitle(String movieTitle) {
+        this.movieTitle = movieTitle;
+    }
+
+    public String getRoomName() {
+        return roomName;
+    }
+
+    public void setRoomName(String roomName) {
+        this.roomName = roomName;
+    }
+
+    public String getRoomType() {
+        return roomType;
+    }
+
+    public void setRoomType(String roomType) {
+        this.roomType = roomType;
+    }
+
+    public int getBookedSeats() {
+        return bookedSeats;
+    }
+
+    public void setBookedSeats(int bookedSeats) {
+        this.bookedSeats = bookedSeats;
+    }
+
+    public int getRoomCapacity() {
+        return roomCapacity;
+    }
+
+    public void setRoomCapacity(int roomCapacity) {
+        this.roomCapacity = roomCapacity;
+    }
 }

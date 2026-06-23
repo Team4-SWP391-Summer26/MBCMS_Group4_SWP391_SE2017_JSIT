@@ -3,6 +3,8 @@ package com.mbcms.util;
 import jakarta.mail.*;
 import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeMessage;
+import jakarta.mail.internet.MimeBodyPart;
+import jakarta.mail.internet.MimeMultipart;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
@@ -193,6 +195,86 @@ public class EmailUtil {
 
         } catch (MessagingException e) {
             System.err.println("[ERROR] Failed to send verification email: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    /**
+     * Send Cinema Ticket PDF to recipient's email address.
+     *
+     * @param recipientEmail The recipient's email address.
+     * @param bookingCode The booking code.
+     * @param pdfBytes The generated PDF bytes.
+     * @return true if sent successfully, false otherwise.
+     */
+    public static boolean sendTicketEmail(String recipientEmail, String bookingCode, byte[] pdfBytes) {
+        final String senderEmail = emailProps.getProperty("mail.sender.email");
+        final String senderPassword = emailProps.getProperty("mail.sender.password");
+
+        if (senderEmail == null || senderEmail.equals("your-gmail@gmail.com")
+                || senderPassword == null || senderPassword.equals("your-app-password")) {
+            System.err.println("[ERROR] Gmail sender credentials are not configured in email.properties. Cannot send ticket email.");
+            return false;
+        }
+
+        Properties props = new Properties();
+        props.put("mail.smtp.host", emailProps.getProperty("mail.smtp.host", "smtp.gmail.com"));
+        props.put("mail.smtp.port", emailProps.getProperty("mail.smtp.port", "587"));
+        props.put("mail.smtp.auth", emailProps.getProperty("mail.smtp.auth", "true"));
+        props.put("mail.smtp.starttls.enable", emailProps.getProperty("mail.smtp.starttls.enable", "true"));
+        props.put("mail.smtp.connectiontimeout", "5000");
+        props.put("mail.smtp.timeout", "5000");
+
+        Session session = Session.getInstance(props, new Authenticator() {
+            @Override
+            protected PasswordAuthentication getPasswordAuthentication() {
+                return new PasswordAuthentication(senderEmail, senderPassword);
+            }
+        });
+
+        try {
+            MimeMessage message = new MimeMessage(session);
+            message.setFrom(new InternetAddress(senderEmail));
+            message.addRecipient(Message.RecipientType.TO, new InternetAddress(recipientEmail));
+            message.setSubject("[MBCMS] Vé Xem Phim Điện Tử - " + bookingCode, "UTF-8");
+
+            String htmlContent = "<div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e5e7eb; border-radius: 12px; background-color: #ffffff;'>"
+                    + "<div style='text-align: center; margin-bottom: 20px;'>"
+                    + "  <h2 style='color: #182c54; margin: 0;'>MBCMS Cinema</h2>"
+                    + "</div>"
+                    + "<hr style='border: 0; border-top: 1px solid #e5e7eb; margin-bottom: 20px;'>"
+                    + "<p>Xin chào quý khách,</p>"
+                    + "<p>Cảm ơn quý khách đã tin tưởng và sử dụng dịch vụ đặt vé của MBCMS.</p>"
+                    + "<p>Thông tin vé xem phim điện tử của quý khách đã được xuất thành công. Vui lòng xem chi tiết vé trong file đính kèm PDF của email này.</p>"
+                    + "<p>Hãy quét mã QR đính kèm trên vé tại cổng kiểm soát để vào phòng chiếu.</p>"
+                    + "<br>"
+                    + "<p>Chúc quý khách có những trải nghiệm xem phim tuyệt vời tại MBCMS!</p>"
+                    + "<p>Trân trọng,<br>Đội ngũ MBCMS</p>"
+                    + "</div>";
+
+            // Create multipart content
+            Multipart multipart = new jakarta.mail.internet.MimeMultipart();
+
+            // Body text part
+            MimeBodyPart messageBodyPart = new jakarta.mail.internet.MimeBodyPart();
+            messageBodyPart.setContent(htmlContent, "text/html; charset=UTF-8");
+            multipart.addBodyPart(messageBodyPart);
+
+            // Attachment part
+            MimeBodyPart attachPart = new jakarta.mail.internet.MimeBodyPart();
+            jakarta.activation.DataSource source = new jakarta.mail.util.ByteArrayDataSource(pdfBytes, "application/pdf");
+            attachPart.setDataHandler(new jakarta.activation.DataHandler(source));
+            attachPart.setFileName("Ticket_" + bookingCode + ".pdf");
+            multipart.addBodyPart(attachPart);
+
+            message.setContent(multipart);
+
+            Transport.send(message);
+            return true;
+
+        } catch (Exception e) {
+            System.err.println("[ERROR] Failed to send ticket email: " + e.getMessage());
             e.printStackTrace();
             return false;
         }
