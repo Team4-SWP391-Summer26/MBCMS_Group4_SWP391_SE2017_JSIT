@@ -1,6 +1,7 @@
 package com.mbcms.dao;
 
 import com.mbcms.model.Customer;
+import java.util.List;
 
 /**
  * CustomerDAO - truy cap bang {@code customers}. Them method khi implement
@@ -30,4 +31,6 @@ public interface CustomerDAO {
     boolean updateEmailVerified(String username, boolean verified);
 
     Customer findByPhone(String phone);
+    
+    public List<String> findAllActiveUsernames();
 }

@@ -461,6 +461,54 @@ public class BookingDAOImpl extends BaseDAO implements BookingDAO {
             closeAll(ps, conn);
         }
     }
+    
+    @Override
+    public List<Booking> findConfirmedForReminder(int minutesFrom, int minutesTo) {
+        // JOIN bookings → showtimes → movies de lay start_time va ten phim.
+        // SYSUTCDATETIME() phu hop voi created_at DEFAULT (SYSUTCDATETIME()) trong DDL.
+        String sql =
+            "SELECT b.booking_id, b.customer_username, b.booking_code, b.showtime_id, "
+            + "  st.start_time, m.title AS movie_title "
+            + "FROM dbo.bookings b "
+            + "JOIN dbo.showtimes st ON st.showtime_id = b.showtime_id "
+            + "JOIN dbo.movies   m  ON m.movie_id      = st.movie_id "
+            + "WHERE b.[status] = 'CONFIRMED' "
+            + "  AND st.start_time >= DATEADD(MINUTE, ?, SYSUTCDATETIME()) "
+            + "  AND st.start_time <  DATEADD(MINUTE, ?, SYSUTCDATETIME())";
+
+        Connection conn = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+        List<Booking> result = new ArrayList<>();
+
+        try {
+            conn = getConnection();
+            ps = conn.prepareStatement(sql);
+            ps.setInt(1, minutesFrom);
+            ps.setInt(2, minutesTo);
+            rs = ps.executeQuery();
+
+            while (rs.next()) {
+                Booking b = new Booking();
+                b.setBookingId(rs.getLong("booking_id"));
+                b.setCustomerUsername(rs.getString("customer_username"));
+                b.setBookingCode(rs.getString("booking_code"));
+                b.setShowtimeId(rs.getLong("showtime_id"));
+
+                java.sql.Timestamp st = rs.getTimestamp("start_time");
+                b.setShowtimeStartTime(st != null ? st.toLocalDateTime() : null);
+                b.setMovieTitle(rs.getString("movie_title"));
+
+                result.add(b);
+            }
+            return result;
+        } catch (SQLException e) {
+            throw new RuntimeException(
+                    "Loi truy van bookings.findConfirmedForReminder: " + e.getMessage(), e);
+        } finally {
+            closeAll(rs, ps, conn);
+        }
+    }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
     private Booking mapRow(ResultSet rs) throws SQLException {

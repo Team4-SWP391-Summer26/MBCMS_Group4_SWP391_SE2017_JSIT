@@ -31,6 +31,8 @@ public class Booking {
 
     private List<Long> seatIds; // tu booking_seats
     private List<String> seatLabels; // nhan hien thi: row_label + col_number (vd A5)
+    private java.time.LocalDateTime showtimeStartTime;
+    private String movieTitle;
 
     public Booking() {
     }
@@ -123,10 +125,35 @@ public class Booking {
         this.createdAt = createdAt;
     }
 
-    
-    public List<Long> getSeatIds() { return seatIds; }
-    public void setSeatIds(List<Long> seatIds) { this.seatIds = seatIds; }
+    public List<Long> getSeatIds() {
+        return seatIds;
+    }
 
-    public List<String> getSeatLabels() { return seatLabels; }
-    public void setSeatLabels(List<String> seatLabels) { this.seatLabels = seatLabels; }
+    public void setSeatIds(List<Long> seatIds) {
+        this.seatIds = seatIds;
+    }
+
+    public List<String> getSeatLabels() {
+        return seatLabels;
+    }
+
+    public void setSeatLabels(List<String> seatLabels) {
+        this.seatLabels = seatLabels;
+    }
+
+    public java.time.LocalDateTime getShowtimeStartTime() {
+        return showtimeStartTime;
+    }
+
+    public void setShowtimeStartTime(java.time.LocalDateTime showtimeStartTime) {
+        this.showtimeStartTime = showtimeStartTime;
+    }
+
+    public String getMovieTitle() {
+        return movieTitle;
+    }
+
+    public void setMovieTitle(String movieTitle) {
+        this.movieTitle = movieTitle;
+    }
 }
