@@ -1,6 +1,7 @@
 package com.mbcms.dao;
 
 import com.mbcms.model.Movie;
+import com.mbcms.model.Genre;
 
 import java.util.List;
 
@@ -38,4 +39,13 @@ public interface MovieDAO {
      * Sap xep theo title.
      */
     List<Movie> findByBranch(long branchId);
+
+    /** Lay danh sach phim theo trang thai kem theo the loai. */
+    List<Movie> findMoviesByStatus(String status, int limit);
+
+    /** Lay phim NOW_SHOWING moi nhat de lam featured banner. */
+    Movie findFeaturedMovie();
+
+    /** Lay tat ca the loai. */
+    List<Genre> findAllGenres();
 }

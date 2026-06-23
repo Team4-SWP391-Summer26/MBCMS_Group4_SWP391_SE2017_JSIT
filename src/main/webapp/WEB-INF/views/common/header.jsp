@@ -55,7 +55,8 @@
                         </svg>
                     </span>
                     <input type="text" class="search-input"
-                           placeholder="Search movies..." name="searchQuery" />
+                           placeholder="Search movies..." name="q" maxlength="100"
+                           value="<c:out value='${param.q}' />" />
                 </form>
 
                 <div class="d-flex align-items-center gap-3">

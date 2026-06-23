@@ -2,6 +2,7 @@ package com.mbcms.dao.impl;
 
 import com.mbcms.dao.MovieDAO;
 import com.mbcms.model.Movie;
+import com.mbcms.model.Genre;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -178,5 +179,99 @@ public class MovieDAOImpl extends BaseDAO implements MovieDAO {
         m.setStatus(rs.getString("status"));
         m.setActive(rs.getBoolean("active"));
         return m;
+    }
+
+    @Override
+    public List<Movie> findMoviesByStatus(String status, int limit) {
+        String sql = "SELECT TOP (" + limit + ") m.movie_id, m.title, m.description, m.duration_min, m.director, m.cast_list, "
+                + "m.language, m.country, m.rated, m.poster_url, m.trailer_url, m.release_date, m.status, m.active, "
+                + "g.name AS genre_name "
+                + "FROM movies m "
+                + "LEFT JOIN movie_genres mg ON m.movie_id = mg.movie_id "
+                + "LEFT JOIN genres g ON mg.genre_id = g.genre_id "
+                + "WHERE m.active = 1 AND m.status = ? "
+                + "ORDER BY m.movie_id DESC";
+
+        Connection conn = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+        try {
+            conn = getConnection();
+            ps = conn.prepareStatement(sql);
+            ps.setString(1, status);
+            rs = ps.executeQuery();
+
+            List<Movie> list = new ArrayList<>();
+            java.util.Map<Long, Movie> movieMap = new java.util.LinkedHashMap<>();
+
+            while (rs.next()) {
+                long mId = rs.getLong("movie_id");
+                Movie m = movieMap.get(mId);
+                if (m == null) {
+                    m = new Movie();
+                    m.setMovieId(mId);
+                    m.setTitle(rs.getString("title"));
+                    m.setDescription(rs.getString("description"));
+                    m.setDurationMin(rs.getInt("duration_min"));
+                    m.setDirector(rs.getString("director"));
+                    m.setCastList(rs.getString("cast_list"));
+                    m.setLanguage(rs.getString("language"));
+                    m.setCountry(rs.getString("country"));
+                    m.setRated(rs.getString("rated"));
+                    m.setPosterUrl(rs.getString("poster_url"));
+                    m.setTrailerUrl(rs.getString("trailer_url"));
+                    java.sql.Date rd = rs.getDate("release_date");
+                    if (rd != null) {
+                        m.setReleaseDate(rd.toLocalDate());
+                    }
+                    m.setStatus(rs.getString("status"));
+                    m.setActive(rs.getBoolean("active"));
+                    m.setGenres(new ArrayList<>());
+
+                    movieMap.put(mId, m);
+                    list.add(m);
+                }
+                String gName = rs.getString("genre_name");
+                if (gName != null) {
+                    m.getGenres().add(gName);
+                }
+            }
+            return list;
+        } catch (SQLException e) {
+            throw new RuntimeException("Loi in MovieDAOImpl.findMoviesByStatus: " + e.getMessage(), e);
+        } finally {
+            closeAll(rs, ps, conn);
+        }
+    }
+
+    @Override
+    public Movie findFeaturedMovie() {
+        List<Movie> list = findMoviesByStatus("NOW_SHOWING", 1);
+        return list.isEmpty() ? null : list.get(0);
+    }
+
+    @Override
+    public List<Genre> findAllGenres() {
+        String sql = "SELECT genre_id, name FROM genres ORDER BY name";
+        Connection conn = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+        try {
+            conn = getConnection();
+            ps = conn.prepareStatement(sql);
+            rs = ps.executeQuery();
+            List<Genre> list = new ArrayList<>();
+            while (rs.next()) {
+                Genre g = new Genre();
+                g.setGenreId(rs.getInt("genre_id"));
+                g.setName(rs.getString("name"));
+                list.add(g);
+            }
+            return list;
+        } catch (SQLException e) {
+            throw new RuntimeException("Loi in MovieDAOImpl.findAllGenres: " + e.getMessage(), e);
+        } finally {
+            closeAll(rs, ps, conn);
+        }
     }
 }
