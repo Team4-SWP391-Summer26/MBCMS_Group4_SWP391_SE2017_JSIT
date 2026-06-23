@@ -50,6 +50,12 @@ public class TicketPdfServlet extends HttpServlet {
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
 
+        Long branchId = (Long) req.getSession().getAttribute("currentBranchId");
+        if (branchId == null) {
+            resp.sendError(HttpServletResponse.SC_FORBIDDEN, "Phiên làm việc không hợp lệ");
+            return;
+        }
+
         String bookingCode = req.getParameter("bookingCode");
         if (bookingCode == null || bookingCode.trim().isEmpty()) {
             resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Mã đặt vé không hợp lệ");
@@ -65,6 +71,12 @@ public class TicketPdfServlet extends HttpServlet {
         BookingTicket ticket = bookingDAO.findTicket(booking.getBookingId());
         if (ticket == null) {
             resp.sendError(HttpServletResponse.SC_NOT_FOUND, "Không tìm thấy chi tiết vé");
+            return;
+        }
+
+        // Branch scope: staff can only print tickets for their own branch
+        if (ticket.getBranchId() != branchId) {
+            resp.sendError(HttpServletResponse.SC_FORBIDDEN, "Bạn không có quyền in vé của chi nhánh khác");
             return;
         }
 
@@ -160,10 +172,18 @@ public class TicketPdfServlet extends HttpServlet {
     protected void doPost(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
         resp.setContentType("application/json;charset=UTF-8");
+        java.util.Map<String, Object> result = new java.util.HashMap<>();
+
+        Long branchId = (Long) req.getSession().getAttribute("currentBranchId");
+        if (branchId == null) {
+            result.put("success", false);
+            result.put("message", "Phiên làm việc không hợp lệ");
+            new com.fasterxml.jackson.databind.ObjectMapper().writeValue(resp.getWriter(), result);
+            return;
+        }
+
         String bookingCode = req.getParameter("bookingCode");
         String email = req.getParameter("email");
-
-        java.util.Map<String, Object> result = new java.util.HashMap<>();
 
         if (bookingCode == null || bookingCode.trim().isEmpty() || email == null || email.trim().isEmpty()) {
             result.put("success", false);
@@ -184,6 +204,14 @@ public class TicketPdfServlet extends HttpServlet {
         if (ticket == null) {
             result.put("success", false);
             result.put("message", "Không tìm thấy chi tiết vé");
+            new com.fasterxml.jackson.databind.ObjectMapper().writeValue(resp.getWriter(), result);
+            return;
+        }
+
+        // Branch scope: staff can only email tickets for their own branch
+        if (ticket.getBranchId() != branchId) {
+            result.put("success", false);
+            result.put("message", "Bạn không có quyền gửi vé của chi nhánh khác");
             new com.fasterxml.jackson.databind.ObjectMapper().writeValue(resp.getWriter(), result);
             return;
         }

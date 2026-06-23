@@ -92,8 +92,40 @@ final class ShowtimeFormHelper {
             return "Start time must be in the future.";
         }
 
-        // --- End time: TINH O SERVER, khong tin client (SRS: auto = start + duration_min) ---
-        LocalDateTime endTime = startTime.plusMinutes(movie.getDurationMin());
+        // --- End time: 2 che do ---
+        // AUTO (mac dinh): end = start + duration_min (server tu tinh, khong tin client).
+        // CUSTOM: manager tu nhap gio ket thuc cho suat dac biet (premiere/Q&A) - van VALIDATE o server.
+        LocalDateTime autoEnd = startTime.plusMinutes(movie.getDurationMin());
+        LocalDateTime endTime;
+        String endMode = trim(req.getParameter("endMode"));
+        if ("custom".equals(endMode)) {
+            String endTimeStr = trim(req.getParameter("endTime"));
+            if (ValidationUtil.isNullOrEmpty(endTimeStr)) {
+                return "Please enter a custom end time.";
+            }
+            LocalTime endLocalTime;
+            try {
+                endLocalTime = LocalTime.parse(endTimeStr);
+            } catch (DateTimeParseException e) {
+                return "Invalid end time.";
+            }
+            // Cung ngay voi start; neu khong sau start (vd suat dem qua nua dem) -> +1 ngay.
+            endTime = LocalDateTime.of(startTime.toLocalDate(), endLocalTime);
+            if (!endTime.isAfter(startTime)) {
+                endTime = endTime.plusDays(1);
+            }
+            // Khong duoc ngan hon thoi luong phim (phim phai chieu het).
+            if (endTime.isBefore(autoEnd)) {
+                return "End time must be at least the movie duration ("
+                        + movie.getDurationMin() + " min) after start.";
+            }
+            // Chan slot phi ly (toi da 12 gio).
+            if (endTime.isAfter(startTime.plusHours(12))) {
+                return "Showtime slot is too long (max 12 hours). Please check the end time.";
+            }
+        } else {
+            endTime = autoEnd;
+        }
 
         // --- Base price: 10,000 - 500,000 VND ---
         BigDecimal basePrice;

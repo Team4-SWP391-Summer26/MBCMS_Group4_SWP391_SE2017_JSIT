@@ -102,6 +102,12 @@ public class CounterBookingServlet extends HttpServlet {
         req.getRequestDispatcher("/WEB-INF/views/branch/booking/counter-booking.jsp").forward(req, resp);
     }
 
+    /** True neu room thuoc branch (chong xem/dat cheo chi nhanh). */
+    private boolean roomBelongsToBranch(long roomId, long branchId) {
+        return roomDAO.findActiveByBranch(branchId).stream()
+                .anyMatch(r -> r.getRoomId() == roomId);
+    }
+
     private void handleAjax(String action, long branchId, HttpServletRequest req, HttpServletResponse resp)
             throws IOException {
         resp.setContentType("application/json;charset=UTF-8");
@@ -161,6 +167,11 @@ public class CounterBookingServlet extends HttpServlet {
                 resp.sendError(HttpServletResponse.SC_NOT_FOUND, "Showtime not found");
                 return;
             }
+            // Branch scope: chi load so do ghe cua suat thuoc chi nhanh staff
+            if (!roomBelongsToBranch(showtime.getRoomId(), branchId)) {
+                resp.sendError(HttpServletResponse.SC_FORBIDDEN, "Showtime not in your branch");
+                return;
+            }
 
             Map<String, List<Seat>> seatsByRow = seatService.getSeatsByRow(showtimeId);
             Set<Long> bookedSeatIds = seatService.getBookedSeatIds(showtimeId);
@@ -201,6 +212,11 @@ public class CounterBookingServlet extends HttpServlet {
                 resp.sendError(HttpServletResponse.SC_NOT_FOUND, "Booking not found");
                 return;
             }
+            // Branch scope: staff chi xem booking quay thuoc chi nhanh minh
+            if (ticket.getBranchId() != branchId) {
+                resp.sendError(HttpServletResponse.SC_FORBIDDEN, "Booking not in your branch");
+                return;
+            }
             mapper.writeValue(resp.getWriter(), ticket);
         } else if ("getFoodItems".equals(action)) {
             List<FoodItem> foodItems = foodService.getActiveFoodItems();
@@ -233,6 +249,11 @@ public class CounterBookingServlet extends HttpServlet {
         Map<String, Object> result = new HashMap<>();
 
         try {
+            Long branchId = (Long) req.getSession().getAttribute("currentBranchId");
+            if (branchId == null) {
+                throw new SecurityException("Phiên làm việc không hợp lệ.");
+            }
+
             String showtimeIdParam = req.getParameter("showtimeId");
             if (showtimeIdParam == null || showtimeIdParam.trim().isEmpty()) {
                 throw new IllegalArgumentException("Vui lòng chọn suất chiếu.");
@@ -242,6 +263,11 @@ public class CounterBookingServlet extends HttpServlet {
             Showtime showtime = showtimeDAO.findById(showtimeId);
             if (showtime == null) {
                 throw new IllegalArgumentException("Không tìm thấy suất chiếu tương ứng.");
+            }
+
+            // Verify showtime belongs to the staff's branch
+            if (!roomBelongsToBranch(showtime.getRoomId(), branchId)) {
+                throw new SecurityException("Suất chiếu không thuộc chi nhánh của bạn.");
             }
 
             // Parse selected seat IDs

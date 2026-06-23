@@ -31,6 +31,11 @@
         Cinemas
     </a>
 
+    <div class="lc-sb-section">Finance</div>
+    <a class="lc-sb-item ${param.active == 'payments' ? 'active' : ''}"
+       href="${pageContext.request.contextPath}/admin/payments">
+        <i class="bi bi-credit-card"></i> Payments</a>
+
     <span class="lc-sb-item disabled">
         <i class="bi bi-bar-chart"></i>
         System Reports

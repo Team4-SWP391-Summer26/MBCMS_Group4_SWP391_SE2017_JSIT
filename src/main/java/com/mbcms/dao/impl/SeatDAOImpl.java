@@ -50,12 +50,14 @@ public class SeatDAOImpl extends BaseDAO implements SeatDAO {
     @Override
     public Set<Long> findBookedSeatIds(long showtimeId) {
         Set<Long> booked = new HashSet<>();
-
+        // CONFIRMED/USED: always booked; PENDING: only if not yet expired (< 10 min)
         String sql = "SELECT bs.seat_id "
-                + "FROM dbo.booking_seats bs "
-                + "JOIN dbo.bookings b ON b.booking_id = bs.booking_id "
-                + "WHERE b.showtime_id = ? "
-                + "AND b.[status] IN ('PENDING', 'CONFIRMED')";
+                + "  FROM dbo.booking_seats bs "
+                + "  JOIN dbo.bookings b ON b.booking_id = bs.booking_id "
+                + " WHERE b.showtime_id = ? "
+                + "   AND b.[status] IN ('PENDING', 'CONFIRMED', 'USED') "
+                + "   AND (b.[status] != 'PENDING' "
+                + "        OR DATEDIFF(MINUTE, b.created_at, SYSUTCDATETIME()) < 10)";
 
         Connection conn = null;
         PreparedStatement ps = null;

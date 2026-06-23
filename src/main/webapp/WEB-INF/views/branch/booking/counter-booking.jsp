@@ -942,6 +942,10 @@
                                         setSeatState(btn, 'available');
                                         sendWS({action: 'DESELECT', seatId: Number(id), showtimeId: state.showtimeId});
                                     } else {
+                                        if (state.selectedSeats.length >= 8) {
+                                            alert('Tối đa 8 ghế mỗi lần đặt.');
+                                            return;
+                                        }
                                         state.selectedSeats.push(seat);
                                         setSeatState(btn, 'selected');
                                         sendWS({action: 'SELECT', seatId: Number(id), showtimeId: state.showtimeId});

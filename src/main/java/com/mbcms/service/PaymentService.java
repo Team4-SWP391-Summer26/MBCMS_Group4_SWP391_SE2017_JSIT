@@ -1,6 +1,11 @@
 package com.mbcms.service;
 
 import com.mbcms.model.Booking;
+import com.mbcms.model.PaymentRecord;
+import com.mbcms.model.PaymentSearchCriteria;
+import com.mbcms.model.PaymentSummary;
+
+import java.util.List;
 
 /**
  * PaymentService - business logic cho luong thanh toan online (VNPay).
@@ -49,4 +54,16 @@ public interface PaymentService {
      */
     Result markPaymentSuccess(long bookingId, String method,
                               String customerUsername, String transactionRef);
+
+    /**
+     * Payment history: danh sach giao dich theo bo loc (da phan trang).
+     * Scope (branchId/customerUsername) phai duoc Servlet set tu session.
+     */
+    List<PaymentRecord> searchPayments(PaymentSearchCriteria criteria);
+
+    /** Tong so giao dich khop bo loc - phuc vu phan trang. */
+    int countPayments(PaymentSearchCriteria criteria);
+
+    /** Payment status monitoring: tong hop trang thai/method. branchId=null -> toan he thong. */
+    PaymentSummary getPaymentSummary(Long branchId);
 }
