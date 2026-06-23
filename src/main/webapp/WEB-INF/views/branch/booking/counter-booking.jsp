@@ -155,6 +155,91 @@
                 background: #ffffff;
             }
 
+            /* F&B Custom Card Styles */
+            .food-card {
+                display: flex;
+                flex-direction: column;
+                border: 1px solid var(--bk-border);
+                border-radius: 16px;
+                overflow: hidden;
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                background: #fff;
+                position: relative;
+                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -1px rgba(0, 0, 0, 0.01);
+                height: 100%;
+            }
+            .food-card:hover {
+                border-color: rgba(37, 99, 235, 0.2) !important;
+                box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 10px 10px -5px rgba(0, 0, 0, 0.02);
+                transform: translateY(-6px);
+            }
+            .food-card.added {
+                border-color: var(--lc-primary) !important;
+                border-width: 1.5px !important;
+                box-shadow: 0 10px 25px -5px rgba(37, 99, 235, 0.15), 0 8px 10px -6px rgba(37, 99, 235, 0.1);
+            }
+
+            .drink-red { --item-theme: #dc2626; --item-bg: rgba(22, 163, 74, 0.08); --item-gradient: linear-gradient(135deg, rgba(220, 38, 38, 0.1) 0%, rgba(220, 38, 38, 0.01) 100%); }
+            .drink-cyan { --item-theme: #0284c7; --item-bg: rgba(2, 132, 199, 0.08); --item-gradient: linear-gradient(135deg, rgba(2, 132, 199, 0.1) 0%, rgba(2, 132, 199, 0.01) 100%); }
+            .snack-orange { --item-theme: #ea580c; --item-bg: rgba(234, 88, 12, 0.08); --item-gradient: linear-gradient(135deg, rgba(234, 88, 12, 0.1) 0%, rgba(234, 88, 12, 0.01) 100%); }
+            .snack-yellow { --item-theme: #ca8a04; --item-bg: rgba(202, 138, 4, 0.08); --item-gradient: linear-gradient(135deg, rgba(202, 138, 4, 0.1) 0%, rgba(202, 138, 4, 0.01) 100%); }
+            .combo-green { --item-theme: #059669; --item-bg: rgba(5, 150, 105, 0.08); --item-gradient: linear-gradient(135deg, rgba(5, 150, 105, 0.1) 0%, rgba(5, 150, 105, 0.01) 100%); }
+            .combo-red { --item-theme: #db2777; --item-bg: rgba(219, 39, 119, 0.08); --item-gradient: linear-gradient(135deg, rgba(219, 39, 119, 0.1) 0%, rgba(219, 39, 119, 0.01) 100%); }
+
+            .food-img-wrapper.themed {
+                height: 130px;
+                background: var(--item-gradient, radial-gradient(circle at 50% 50%, #ffffff 0%, #f8fafc 100%));
+                color: var(--item-theme);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border-bottom: 1px solid #f1f5f9;
+                position: relative;
+                overflow: hidden;
+            }
+            .food-card .glow-circle {
+                position: absolute;
+                width: 75px;
+                height: 75px;
+                border-radius: 50%;
+                background: var(--item-bg);
+                z-index: 1;
+                filter: blur(14px);
+                transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            }
+            .food-card:hover .glow-circle {
+                transform: scale(1.3) rotate(15deg);
+                filter: blur(10px);
+                opacity: 0.85;
+            }
+            .food-img-wrapper.themed i {
+                font-size: 2.4rem;
+                z-index: 2;
+                color: var(--item-theme);
+                filter: drop-shadow(0 4px 6px rgba(0,0,0,0.04));
+                transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+            }
+            .food-card:hover .themed i {
+                transform: scale(1.18) translateY(-4px) rotate(4deg);
+                filter: drop-shadow(0 8px 16px rgba(0,0,0,0.08));
+            }
+            .food-info {
+                padding: 1.2rem;
+                display: flex;
+                flex-direction: column;
+                justify-content: space-between;
+                flex-grow: 1;
+            }
+            .category-tab {
+                font-weight: 700;
+                font-size: 1.05rem;
+                color: #0f1e36;
+                border-bottom: 2px solid #e2e8f0;
+                padding-bottom: 0.4rem;
+                margin-top: 1rem;
+                margin-bottom: 1rem;
+            }
+
             .showtime-card:hover {
                 border-color: var(--lc-primary);
                 box-shadow: var(--lc-shadow);
@@ -1146,14 +1231,26 @@
                                         });
                                 }
 
+                                function getThemeClasses(name) {
+                                    let icon = 'bi-cookie';
+                                    let color = 'snack-yellow';
+                                    if (name === 'Coca-Cola') { icon = 'bi-cup-straw'; color = 'drink-red'; }
+                                    else if (name === 'Mineral Water') { icon = 'bi-droplet-fill'; color = 'drink-cyan'; }
+                                    else if (name === 'Popcorn (Medium)') { icon = 'bi-cookie'; color = 'snack-yellow'; }
+                                    else if (name === 'Popcorn (Large)') { icon = 'bi-cookie'; color = 'snack-orange'; }
+                                    else if (name === 'Combo Solo') { icon = 'bi-gift'; color = 'combo-green'; }
+                                    else if (name === 'Combo for 2') { icon = 'bi-gift-fill'; color = 'combo-red'; }
+                                    return { icon, color };
+                                }
+
                                 function renderFoodCatalog() {
                                     const container = document.getElementById('staff-food-items-container');
                                     container.innerHTML = '';
 
                                     const categories = {
-                                        'COMBO': { title: '✨ Combos & Deals', icon: 'bi-box2-heart' },
-                                        'SNACK': { title: '🍿 Popcorn & Snacks', icon: 'bi-egg-fried' },
-                                        'DRINK': { title: '🥤 Drinks', icon: 'bi-cup-straw' }
+                                        'COMBO': { title: '<i class="bi bi-gift text-primary me-2"></i>Combos & Deals' },
+                                        'SNACK': { title: '<i class="bi bi-egg-fried text-primary me-2"></i>Popcorn & Snacks' },
+                                        'DRINK': { title: '<i class="bi bi-cup-straw text-primary me-2"></i>Drinks' }
                                     };
 
                                     for (const catKey in categories) {
@@ -1170,26 +1267,39 @@
                                         // Render Items
                                         items.forEach(item => {
                                             const qty = state.foodItems[item.foodId] || 0;
+                                            const theme = getThemeClasses(item.name);
+                                            const isAdded = qty > 0;
                                             const col = document.createElement('div');
-                                            col.className = 'col-md-6';
+                                            col.className = 'col-lg-4 col-sm-6 mb-3';
                                             col.innerHTML = 
-                                                '<div class="food-card" style="display: flex; border: 1px solid var(--bk-border); border-radius: 12px; overflow: hidden; background: #fff; height: 120px; margin-bottom: 10px;">' +
-                                                '    <div class="food-img-wrapper" style="width: 120px; background: #f1f5f9; display: flex; align-items: center; justify-content: center; font-size: 2.2rem; color: var(--bk-muted); flex-shrink: 0;">' +
-                                                '        <i class="bi ' + cat.icon + '"></i>' +
+                                                '<div class="food-card ' + (isAdded ? 'added' : '') + '" id="staff_food_card_' + item.foodId + '">' +
+                                                '    <div id="staff_added_badge_' + item.foodId + '" class="added-badge position-absolute ' + (isAdded ? '' : 'd-none') + '" style="top: 12px; left: 12px; z-index: 10;">' +
+                                                '        <span class="badge bg-primary text-white border border-light" style="padding: 6px 12px; border-radius: 20px; font-size: 0.72rem; font-weight: 700;">' +
+                                                '            <i class="bi bi-check-circle-fill me-1"></i> Added' +
+                                                '        </span>' +
                                                 '    </div>' +
-                                                '    <div class="food-info" style="padding: 1rem; display: flex; flex-direction: column; justify-content: space-between; flex-grow: 1;">' +
+                                                '    <div class="food-img-wrapper themed ' + theme.color + '">' +
+                                                '        <div class="glow-circle"></div>' +
+                                                '        <i class="bi ' + theme.icon + '"></i>' +
+                                                '    </div>' +
+                                                '    <div class="food-info p-3 d-flex flex-column justify-content-between" style="min-height: 140px;">' +
                                                 '        <div>' +
                                                 '            <div class="fw-bold text-dark" style="font-size:0.95rem;">' + item.name + '</div>' +
-                                                '            <div class="text-muted small">' + (item.description || '') + '</div>' +
+                                                '            <div class="text-muted small mt-1">' + (item.description || '') + '</div>' +
                                                 '        </div>' +
-                                                '        <div class="d-flex justify-content-between align-items-center">' +
+                                                '        <div class="d-flex justify-content-between align-items-center mt-3">' +
                                                 '            <div class="fw-bold text-primary" style="font-size:1.05rem;">' +
-                                                                formatNumber(item.price) + ' VND' +
+                                                                formatNumber(item.price) + 'đ' +
                                                 '            </div>' +
-                                                '            <div class="d-flex align-items-center">' +
-                                                '                <button type="button" class="qty-btn" onclick="updateFoodQty(' + item.foodId + ', -1)" style="width: 32px; height: 32px; border-radius: 8px; border: 1px solid var(--bk-border); background: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.15s ease; font-weight: bold;">-</button>' +
-                                                '                <input type="text" class="qty-input" id="staff_food_qty_' + item.foodId + '" value="' + qty + '" readonly style="width: 35px; text-align: center; border: none; font-weight: 600; background: transparent;">' +
-                                                '                <button type="button" class="qty-btn" onclick="updateFoodQty(' + item.foodId + ', 1)" style="width: 32px; height: 32px; border-radius: 8px; border: 1px solid var(--bk-border); background: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.15s ease; font-weight: bold;">+</button>' +
+                                                '            <div>' +
+                                                '                <button type="button" id="staff_add_btn_' + item.foodId + '" class="btn btn-outline-primary btn-sm px-3 fw-bold ' + (isAdded ? 'd-none' : '') + '" onclick="updateFoodQty(' + item.foodId + ', 1)" style="border-radius: 20px;">' +
+                                                '                    + Add' +
+                                                '                </button>' +
+                                                '                <div id="staff_stepper_' + item.foodId + '" class="d-flex align-items-center justify-content-between bg-primary text-white px-2 py-1 ' + (isAdded ? '' : 'd-none') + '" style="border-radius: 20px; width: 90px; font-size: 0.85rem;">' +
+                                                '                    <button type="button" class="btn btn-sm text-white p-0 fw-bold" onclick="updateFoodQty(' + item.foodId + ', -1)" style="line-height:1; border:none; background:transparent;">-</button>' +
+                                                '                    <strong id="staff_food_qty_' + item.foodId + '">' + qty + '</strong>' +
+                                                '                    <button type="button" class="btn btn-sm text-white p-0 fw-bold" onclick="updateFoodQty(' + item.foodId + ', 1)" style="line-height:1; border:none; background:transparent;">+</button>' +
+                                                '                </div>' +
                                                 '            </div>' +
                                                 '        </div>' +
                                                 '    </div>' +
@@ -1210,9 +1320,23 @@
                                         delete state.foodItems[foodId];
                                     }
 
-                                    const input = document.getElementById('staff_food_qty_' + foodId);
-                                    if (input) {
-                                        input.value = qty;
+                                    const card = document.getElementById("staff_food_card_" + foodId);
+                                    const badge = document.getElementById("staff_added_badge_" + foodId);
+                                    const addBtn = document.getElementById("staff_add_btn_" + foodId);
+                                    const stepper = document.getElementById("staff_stepper_" + foodId);
+                                    const qtyText = document.getElementById("staff_food_qty_" + foodId);
+
+                                    if (qty > 0) {
+                                        if (card) card.classList.add("added");
+                                        if (badge) badge.classList.remove("d-none");
+                                        if (addBtn) addBtn.classList.add("d-none");
+                                        if (stepper) stepper.classList.remove("d-none");
+                                        if (qtyText) qtyText.textContent = qty;
+                                    } else {
+                                        if (card) card.classList.remove("added");
+                                        if (badge) badge.classList.add("d-none");
+                                        if (addBtn) addBtn.classList.remove("d-none");
+                                        if (stepper) stepper.classList.add("d-none");
                                     }
 
                                     recalculateFoodTotals();

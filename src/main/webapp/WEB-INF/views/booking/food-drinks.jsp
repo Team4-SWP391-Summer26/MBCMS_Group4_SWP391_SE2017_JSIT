@@ -39,59 +39,76 @@
 
         .food-card {
             display: flex;
+            flex-direction: column;
             border: 1px solid var(--bk-border);
-            border-radius: 12px;
+            border-radius: 16px;
             overflow: hidden;
-            transition: all 0.2s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             background: #fff;
-            height: 120px;
+            position: relative;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -1px rgba(0, 0, 0, 0.01);
+            height: 100%;
         }
         .food-card:hover {
-            border-color: #bfdbfe;
-            box-shadow: 0 4px 15px rgba(37,99,235,0.06);
-            transform: translateY(-2px);
+            border-color: rgba(37, 99, 235, 0.2);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 10px 10px -5px rgba(0, 0, 0, 0.02);
+            transform: translateY(-6px);
         }
-        .food-img-wrapper {
-            width: 120px;
-            background: #f1f5f9;
+        .food-card.added {
+            border-color: var(--bk-primary);
+            border-width: 1.5px;
+            box-shadow: 0 10px 25px -5px rgba(37, 99, 235, 0.15), 0 8px 10px -6px rgba(37, 99, 235, 0.1);
+        }
+        .drink-red { --item-theme: #dc2626; --item-bg: rgba(220, 38, 38, 0.08); --item-gradient: linear-gradient(135deg, rgba(220, 38, 38, 0.1) 0%, rgba(220, 38, 38, 0.01) 100%); }
+        .drink-cyan { --item-theme: #0284c7; --item-bg: rgba(2, 132, 199, 0.08); --item-gradient: linear-gradient(135deg, rgba(2, 132, 199, 0.1) 0%, rgba(2, 132, 199, 0.01) 100%); }
+        .snack-orange { --item-theme: #ea580c; --item-bg: rgba(234, 88, 12, 0.08); --item-gradient: linear-gradient(135deg, rgba(234, 88, 12, 0.1) 0%, rgba(234, 88, 12, 0.01) 100%); }
+        .snack-yellow { --item-theme: #ca8a04; --item-bg: rgba(202, 138, 4, 0.08); --item-gradient: linear-gradient(135deg, rgba(202, 138, 4, 0.1) 0%, rgba(202, 138, 4, 0.01) 100%); }
+        .combo-green { --item-theme: #059669; --item-bg: rgba(5, 150, 105, 0.08); --item-gradient: linear-gradient(135deg, rgba(5, 150, 105, 0.1) 0%, rgba(5, 150, 105, 0.01) 100%); }
+        .combo-red { --item-theme: #db2777; --item-bg: rgba(219, 39, 119, 0.08); --item-gradient: linear-gradient(135deg, rgba(219, 39, 119, 0.1) 0%, rgba(219, 39, 119, 0.01) 100%); }
+
+        .food-img-wrapper.themed {
+            background: var(--item-gradient, radial-gradient(circle at 50% 50%, #ffffff 0%, #f8fafc 100%));
+            color: var(--item-theme);
+            height: 150px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 2.2rem;
-            color: var(--bk-muted);
-            flex-shrink: 0;
+            border-bottom: 1px solid #f1f5f9;
+            position: relative;
+            overflow: hidden;
+        }
+        .food-card .glow-circle {
+            position: absolute;
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: var(--item-bg);
+            z-index: 1;
+            filter: blur(16px);
+            transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .food-card:hover .glow-circle {
+            transform: scale(1.3) rotate(15deg);
+            filter: blur(12px);
+            opacity: 0.85;
+        }
+        .food-img-wrapper.themed i {
+            font-size: 2.8rem;
+            z-index: 2;
+            color: var(--item-theme);
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.03));
+            transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .food-card:hover .themed i {
+            transform: scale(1.18) translateY(-4px) rotate(4deg);
+            filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.08));
         }
         .food-info {
-            padding: 1rem;
+            padding: 1.2rem;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
             flex-grow: 1;
-        }
-        .qty-btn {
-            width: 32px;
-            height: 32px;
-            border-radius: 8px;
-            border: 1px solid var(--bk-border);
-            background: #fff;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.15s ease;
-            font-weight: bold;
-        }
-        .qty-btn:hover {
-            background: var(--bk-light);
-            border-color: #bfdbfe;
-            color: var(--bk-primary);
-        }
-        .qty-input {
-            width: 40px;
-            text-align: center;
-            border: none;
-            font-weight: 600;
-            background: transparent;
         }
         .category-tab {
             font-weight: 700;
@@ -166,36 +183,60 @@
             <div class="col-lg-8">
                 
                 <%-- Category: COMBO --%>
-                <div class="category-tab mt-2">✨ Combo & Deals</div>
+                <div class="category-tab mt-2"><i class="bi bi-gift text-primary me-2"></i>Combos & Deals</div>
                 <div class="row g-3 mb-4">
                     <c:forEach var="item" items="${foodItems}">
                         <c:if test="${item.category == 'COMBO'}">
-                            <div class="col-md-6">
-                                <div class="food-card">
-                                    <div class="food-img-wrapper">
-                                        <i class="bi bi-box2-heart"></i>
+                            <c:set var="qty" value="0"/>
+                            <c:if test="${not empty existingFood}">
+                                <c:forEach var="entry" items="${existingFood}">
+                                    <c:if test="${entry.key.foodId == item.foodId}">
+                                        <c:set var="qty" value="${entry.value}"/>
+                                    </c:if>
+                                </c:forEach>
+                            </c:if>
+                            <c:set var="iconClass" value="bi-gift-fill"/>
+                            <c:set var="colorClass" value="combo-red"/>
+                            <c:choose>
+                                <c:when test="${item.name == 'Combo Solo'}">
+                                    <c:set var="iconClass" value="bi-gift"/>
+                                    <c:set var="colorClass" value="combo-green"/>
+                                </c:when>
+                                <c:when test="${item.name == 'Combo for 2'}">
+                                    <c:set var="iconClass" value="bi-gift-fill"/>
+                                    <c:set var="colorClass" value="combo-red"/>
+                                </c:when>
+                            </c:choose>
+                            <div class="col-lg-4 col-sm-6 mb-3">
+                                <div class="food-card ${qty > 0 ? 'added' : ''}" id="food_card_${item.foodId}">
+                                    <div id="added_badge_${item.foodId}" class="added-badge position-absolute ${qty > 0 ? '' : 'd-none'}" style="top: 12px; left: 12px; z-index: 10;">
+                                        <span class="badge bg-primary text-white border border-light" style="padding: 6px 12px; border-radius: 20px; font-size: 0.72rem; font-weight: 700;">
+                                            <i class="bi bi-check-circle-fill me-1"></i> Added
+                                        </span>
                                     </div>
-                                    <div class="food-info">
+                                    <div class="food-img-wrapper themed ${colorClass}">
+                                        <div class="glow-circle"></div>
+                                        <i class="bi ${iconClass}"></i>
+                                    </div>
+                                    <div class="food-info p-3 d-flex flex-column justify-content-between" style="min-height: 140px;">
                                         <div>
                                             <div class="fw-bold text-dark" style="font-size:0.95rem;">${item.name}</div>
-                                            <div class="text-muted small">${item.description}</div>
+                                            <div class="text-muted small mt-1">${item.description}</div>
                                         </div>
-                                        <div class="d-flex justify-content-between align-items-center">
+                                        <div class="d-flex justify-content-between align-items-center mt-3">
                                             <div class="fw-bold text-primary" style="font-size:1.05rem;">
                                                 <fmt:formatNumber value="${item.price}" pattern="#,###"/>đ
                                             </div>
-                                            <c:set var="qty" value="0"/>
-                                            <c:if test="${not empty existingFood}">
-                                                <c:forEach var="entry" items="${existingFood}">
-                                                    <c:if test="${entry.key.foodId == item.foodId}">
-                                                        <c:set var="qty" value="${entry.value}"/>
-                                                    </c:if>
-                                                </c:forEach>
-                                            </c:if>
-                                            <div class="d-flex align-items-center">
-                                                <button type="button" class="qty-btn minus-btn" onclick="updateQty(${item.foodId}, -1)">-</button>
-                                                <input type="text" class="qty-input" id="food_qty_input_${item.foodId}" name="food_qty_${item.foodId}" value="${qty}" readonly>
-                                                <button type="button" class="qty-btn plus-btn" onclick="updateQty(${item.foodId}, 1)">+</button>
+                                            <div>
+                                                <input type="hidden" id="food_qty_input_${item.foodId}" name="food_qty_${item.foodId}" value="${qty}">
+                                                <button type="button" id="add_btn_${item.foodId}" class="btn btn-outline-primary btn-sm px-3 fw-bold ${qty > 0 ? 'd-none' : ''}" onclick="updateQty(${item.foodId}, 1)" style="border-radius: 20px;">
+                                                    + Add
+                                                </button>
+                                                <div id="stepper_${item.foodId}" class="d-flex align-items-center justify-content-between bg-primary text-white px-2 py-1 ${qty > 0 ? '' : 'd-none'}" style="border-radius: 20px; width: 90px; font-size: 0.85rem;">
+                                                    <button type="button" class="btn btn-sm text-white p-0 fw-bold" onclick="updateQty(${item.foodId}, -1)" style="line-height:1; border:none; background:transparent;">-</button>
+                                                    <strong id="stepper_qty_${item.foodId}">${qty}</strong>
+                                                    <button type="button" class="btn btn-sm text-white p-0 fw-bold" onclick="updateQty(${item.foodId}, 1)" style="line-height:1; border:none; background:transparent;">+</button>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -206,36 +247,60 @@
                 </div>
 
                 <%-- Category: SNACK --%>
-                <div class="category-tab">🍿 Popcorn / Snacks</div>
+                <div class="category-tab"><i class="bi bi-egg-fried text-primary me-2"></i>Popcorn / Snacks</div>
                 <div class="row g-3 mb-4">
                     <c:forEach var="item" items="${foodItems}">
                         <c:if test="${item.category == 'SNACK'}">
-                            <div class="col-md-6">
-                                <div class="food-card">
-                                    <div class="food-img-wrapper">
-                                        <i class="bi bi-egg-fried"></i>
+                            <c:set var="qty" value="0"/>
+                            <c:if test="${not empty existingFood}">
+                                <c:forEach var="entry" items="${existingFood}">
+                                    <c:if test="${entry.key.foodId == item.foodId}">
+                                        <c:set var="qty" value="${entry.value}"/>
+                                    </c:if>
+                                </c:forEach>
+                            </c:if>
+                            <c:set var="iconClass" value="bi-cookie"/>
+                            <c:set var="colorClass" value="snack-yellow"/>
+                            <c:choose>
+                                <c:when test="${item.name == 'Popcorn (Large)'}">
+                                    <c:set var="iconClass" value="bi-cookie"/>
+                                    <c:set var="colorClass" value="snack-orange"/>
+                                </c:when>
+                                <c:when test="${item.name == 'Popcorn (Medium)'}">
+                                    <c:set var="iconClass" value="bi-cookie"/>
+                                    <c:set var="colorClass" value="snack-yellow"/>
+                                </c:when>
+                            </c:choose>
+                            <div class="col-lg-4 col-sm-6 mb-3">
+                                <div class="food-card ${qty > 0 ? 'added' : ''}" id="food_card_${item.foodId}">
+                                    <div id="added_badge_${item.foodId}" class="added-badge position-absolute ${qty > 0 ? '' : 'd-none'}" style="top: 12px; left: 12px; z-index: 10;">
+                                        <span class="badge bg-primary text-white border border-light" style="padding: 6px 12px; border-radius: 20px; font-size: 0.72rem; font-weight: 700;">
+                                            <i class="bi bi-check-circle-fill me-1"></i> Added
+                                        </span>
                                     </div>
-                                    <div class="food-info">
+                                    <div class="food-img-wrapper themed ${colorClass}">
+                                        <div class="glow-circle"></div>
+                                        <i class="bi ${iconClass}"></i>
+                                    </div>
+                                    <div class="food-info p-3 d-flex flex-column justify-content-between" style="min-height: 140px;">
                                         <div>
                                             <div class="fw-bold text-dark" style="font-size:0.95rem;">${item.name}</div>
-                                            <div class="text-muted small">${item.description}</div>
+                                            <div class="text-muted small mt-1">${item.description}</div>
                                         </div>
-                                        <div class="d-flex justify-content-between align-items-center">
+                                        <div class="d-flex justify-content-between align-items-center mt-3">
                                             <div class="fw-bold text-primary" style="font-size:1.05rem;">
                                                 <fmt:formatNumber value="${item.price}" pattern="#,###"/>đ
                                             </div>
-                                            <c:set var="qty" value="0"/>
-                                            <c:if test="${not empty existingFood}">
-                                                <c:forEach var="entry" items="${existingFood}">
-                                                    <c:if test="${entry.key.foodId == item.foodId}">
-                                                        <c:set var="qty" value="${entry.value}"/>
-                                                    </c:if>
-                                                </c:forEach>
-                                            </c:if>
-                                            <div class="d-flex align-items-center">
-                                                <button type="button" class="qty-btn minus-btn" onclick="updateQty(${item.foodId}, -1)">-</button>
-                                                <input type="text" class="qty-input" id="food_qty_input_${item.foodId}" name="food_qty_${item.foodId}" value="${qty}" readonly>
-                                                <button type="button" class="qty-btn plus-btn" onclick="updateQty(${item.foodId}, 1)">+</button>
+                                            <div>
+                                                <input type="hidden" id="food_qty_input_${item.foodId}" name="food_qty_${item.foodId}" value="${qty}">
+                                                <button type="button" id="add_btn_${item.foodId}" class="btn btn-outline-primary btn-sm px-3 fw-bold ${qty > 0 ? 'd-none' : ''}" onclick="updateQty(${item.foodId}, 1)" style="border-radius: 20px;">
+                                                    + Add
+                                                </button>
+                                                <div id="stepper_${item.foodId}" class="d-flex align-items-center justify-content-between bg-primary text-white px-2 py-1 ${qty > 0 ? '' : 'd-none'}" style="border-radius: 20px; width: 90px; font-size: 0.85rem;">
+                                                    <button type="button" class="btn btn-sm text-white p-0 fw-bold" onclick="updateQty(${item.foodId}, -1)" style="line-height:1; border:none; background:transparent;">-</button>
+                                                    <strong id="stepper_qty_${item.foodId}">${qty}</strong>
+                                                    <button type="button" class="btn btn-sm text-white p-0 fw-bold" onclick="updateQty(${item.foodId}, 1)" style="line-height:1; border:none; background:transparent;">+</button>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -246,36 +311,60 @@
                 </div>
 
                 <%-- Category: DRINK --%>
-                <div class="category-tab">🥤 Drinks</div>
+                <div class="category-tab"><i class="bi bi-cup-straw text-primary me-2"></i>Drinks</div>
                 <div class="row g-3 mb-4">
                     <c:forEach var="item" items="${foodItems}">
                         <c:if test="${item.category == 'DRINK'}">
-                            <div class="col-md-6">
-                                <div class="food-card">
-                                    <div class="food-img-wrapper">
-                                        <i class="bi bi-cup-straw"></i>
+                            <c:set var="qty" value="0"/>
+                            <c:if test="${not empty existingFood}">
+                                <c:forEach var="entry" items="${existingFood}">
+                                    <c:if test="${entry.key.foodId == item.foodId}">
+                                        <c:set var="qty" value="${entry.value}"/>
+                                    </c:if>
+                                </c:forEach>
+                            </c:if>
+                            <c:set var="iconClass" value="bi-cup-straw"/>
+                            <c:set var="colorClass" value="drink-blue"/>
+                            <c:choose>
+                                <c:when test="${item.name == 'Coca-Cola'}">
+                                    <c:set var="iconClass" value="bi-cup-straw"/>
+                                    <c:set var="colorClass" value="drink-red"/>
+                                </c:when>
+                                <c:when test="${item.name == 'Mineral Water'}">
+                                    <c:set var="iconClass" value="bi-droplet-fill"/>
+                                    <c:set var="colorClass" value="drink-cyan"/>
+                                </c:when>
+                            </c:choose>
+                            <div class="col-lg-4 col-sm-6 mb-3">
+                                <div class="food-card ${qty > 0 ? 'added' : ''}" id="food_card_${item.foodId}">
+                                    <div id="added_badge_${item.foodId}" class="added-badge position-absolute ${qty > 0 ? '' : 'd-none'}" style="top: 12px; left: 12px; z-index: 10;">
+                                        <span class="badge bg-primary text-white border border-light" style="padding: 6px 12px; border-radius: 20px; font-size: 0.72rem; font-weight: 700;">
+                                            <i class="bi bi-check-circle-fill me-1"></i> Added
+                                        </span>
                                     </div>
-                                    <div class="food-info">
+                                    <div class="food-img-wrapper themed ${colorClass}">
+                                        <div class="glow-circle"></div>
+                                        <i class="bi ${iconClass}"></i>
+                                    </div>
+                                    <div class="food-info p-3 d-flex flex-column justify-content-between" style="min-height: 140px;">
                                         <div>
                                             <div class="fw-bold text-dark" style="font-size:0.95rem;">${item.name}</div>
-                                            <div class="text-muted small">${item.description}</div>
+                                            <div class="text-muted small mt-1">${item.description}</div>
                                         </div>
-                                        <div class="d-flex justify-content-between align-items-center">
+                                        <div class="d-flex justify-content-between align-items-center mt-3">
                                             <div class="fw-bold text-primary" style="font-size:1.05rem;">
                                                 <fmt:formatNumber value="${item.price}" pattern="#,###"/>đ
                                             </div>
-                                            <c:set var="qty" value="0"/>
-                                            <c:if test="${not empty existingFood}">
-                                                <c:forEach var="entry" items="${existingFood}">
-                                                    <c:if test="${entry.key.foodId == item.foodId}">
-                                                        <c:set var="qty" value="${entry.value}"/>
-                                                    </c:if>
-                                                </c:forEach>
-                                            </c:if>
-                                            <div class="d-flex align-items-center">
-                                                <button type="button" class="qty-btn minus-btn" onclick="updateQty(${item.foodId}, -1)">-</button>
-                                                <input type="text" class="qty-input" id="food_qty_input_${item.foodId}" name="food_qty_${item.foodId}" value="${qty}" readonly>
-                                                <button type="button" class="qty-btn plus-btn" onclick="updateQty(${item.foodId}, 1)">+</button>
+                                            <div>
+                                                <input type="hidden" id="food_qty_input_${item.foodId}" name="food_qty_${item.foodId}" value="${qty}">
+                                                <button type="button" id="add_btn_${item.foodId}" class="btn btn-outline-primary btn-sm px-3 fw-bold ${qty > 0 ? 'd-none' : ''}" onclick="updateQty(${item.foodId}, 1)" style="border-radius: 20px;">
+                                                    + Add
+                                                </button>
+                                                <div id="stepper_${item.foodId}" class="d-flex align-items-center justify-content-between bg-primary text-white px-2 py-1 ${qty > 0 ? '' : 'd-none'}" style="border-radius: 20px; width: 90px; font-size: 0.85rem;">
+                                                    <button type="button" class="btn btn-sm text-white p-0 fw-bold" onclick="updateQty(${item.foodId}, -1)" style="line-height:1; border:none; background:transparent;">-</button>
+                                                    <strong id="stepper_qty_${item.foodId}">${qty}</strong>
+                                                    <button type="button" class="btn btn-sm text-white p-0 fw-bold" onclick="updateQty(${item.foodId}, 1)" style="line-height:1; border:none; background:transparent;">+</button>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -341,10 +430,25 @@
         if (qty > 10) qty = 10; // Cap at 10 (as per business specs)
         input.value = qty;
 
+        const card = document.getElementById("food_card_" + foodId);
+        const badge = document.getElementById("added_badge_" + foodId);
+        const addBtn = document.getElementById("add_btn_" + foodId);
+        const stepper = document.getElementById("stepper_" + foodId);
+        const qtyText = document.getElementById("stepper_qty_" + foodId);
+
         if (qty > 0) {
             selections[foodId] = qty;
+            if (card) card.classList.add("added");
+            if (badge) badge.classList.remove("d-none");
+            if (addBtn) addBtn.classList.add("d-none");
+            if (stepper) stepper.classList.remove("d-none");
+            if (qtyText) qtyText.textContent = qty;
         } else {
             delete selections[foodId];
+            if (card) card.classList.remove("added");
+            if (badge) badge.classList.add("d-none");
+            if (addBtn) addBtn.classList.remove("d-none");
+            if (stepper) stepper.classList.add("d-none");
         }
 
         recalculateSummary();
@@ -385,7 +489,7 @@
     // Initialize UI on load
     document.addEventListener("DOMContentLoaded", () => {
         // Initialize selections from inputs
-        document.querySelectorAll(".qty-input").forEach(input => {
+        document.querySelectorAll("input[name^='food_qty_']").forEach(input => {
             const id = input.name.replace("food_qty_", "");
             const qty = parseInt(input.value);
             if (qty > 0) {

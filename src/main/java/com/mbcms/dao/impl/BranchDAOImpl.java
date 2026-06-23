@@ -16,7 +16,7 @@ import java.util.List;
 public class BranchDAOImpl extends BaseDAO implements BranchDAO {
 
     public List<Branch> findAll() {
-        String sql = "SELECT branch_id, name, address, city, phone, email, active "
+        String sql = "SELECT branch_id, name, address, city, phone, email, active, created_at, opening_time, closing_time "
                 + "FROM branches ORDER BY name";
 
         Connection conn = null;
@@ -68,7 +68,7 @@ public class BranchDAOImpl extends BaseDAO implements BranchDAO {
     
     @Override
     public List<Branch> findAllActive() {
-        String sql = "SELECT branch_id, name, address, city, phone, email, active "
+        String sql = "SELECT branch_id, name, address, city, phone, email, active, created_at, opening_time, closing_time "
                 + "FROM branches WHERE active = 1 ORDER BY name";
 
         Connection conn = null;

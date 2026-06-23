@@ -132,8 +132,9 @@ public class CounterBookingServlet extends HttpServlet {
             DateTimeFormatter timeFmt = DateTimeFormatter.ofPattern("HH:mm");
             DateTimeFormatter dateFmt = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
+            java.time.LocalDateTime now = java.time.LocalDateTime.now();
             for (Showtime st : showtimes) {
-                if ("SCHEDULED".equals(st.getStatus())) {
+                if ("SCHEDULED".equals(st.getStatus()) && st.getStartTime().isAfter(now)) {
                     Map<String, Object> map = new HashMap<>();
                     map.put("showtimeId", st.getShowtimeId());
                     map.put("movieId", st.getMovieId());
@@ -322,18 +323,12 @@ public class CounterBookingServlet extends HttpServlet {
                     System.err.println("Lỗi parse foodItems: " + e.getMessage());
                 }
             }
-
             Booking createdBooking = null;
 
             if ("VNPAY".equalsIgnoreCase(paymentMethod.trim())) {
                 // For VNPay: create a pending booking first
-                createdBooking = bookingService.createPendingBooking("guest01", showtimeId, seatIds, promoCode, notes);
+                createdBooking = bookingService.createPendingBooking("guest01", showtimeId, seatIds, promoCode, notes, foodSubtotal);
 
-                if (foodSubtotal.compareTo(BigDecimal.ZERO) > 0) {
-                    createdBooking.setSubtotal(createdBooking.getSubtotal().add(foodSubtotal));
-                    createdBooking.setTotalAmount(createdBooking.getTotalAmount().add(foodSubtotal));
-                    bookingService.updateBookingTotals(createdBooking.getBookingId(), createdBooking.getSubtotal(), createdBooking.getTotalAmount());
-                }
                 foodService.saveFoodOrder(createdBooking.getBookingId(), selectedFood, "PENDING");
 
                 // Initialize payment status in payments table
@@ -369,14 +364,14 @@ public class CounterBookingServlet extends HttpServlet {
                 }
                 BigDecimal subtotal = pricingService.calculateTotal(showtime.getBasePrice(), selectedSeats);
 
-                // Construct Booking Model (Subtotal includes concessions total)
+                // Construct Booking Model (Subtotal is tickets subtotal only)
                 Booking booking = new Booking();
                 booking.setShowtimeId(showtimeId);
-                booking.setSubtotal(subtotal.add(foodSubtotal));
+                booking.setSubtotal(subtotal);
                 booking.setNotes(notes);
 
                 // Execute service transaction
-                createdBooking = bookingService.createCounterBooking(booking, seatIds, promoCode);
+                createdBooking = bookingService.createCounterBooking(booking, seatIds, promoCode, foodSubtotal);
 
                 if (!selectedFood.isEmpty()) {
                     foodService.saveFoodOrder(createdBooking.getBookingId(), selectedFood, "PREPARING");
@@ -395,7 +390,6 @@ public class CounterBookingServlet extends HttpServlet {
                 result.put("totalAmount", createdBooking.getTotalAmount());
                 result.put("message", "Đã thanh toán thành công và xác nhận đặt vé!");
             }
-
         } catch (Exception e) {
             result.put("success", false);
             result.put("message", "Lỗi đặt vé: " + e.getMessage());
