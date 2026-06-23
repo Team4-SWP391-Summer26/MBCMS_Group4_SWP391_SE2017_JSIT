@@ -94,4 +94,6 @@ public interface BookingDAO {
      * (CASH - SUCCESS) và cập nhật số lần dùng khuyến mãi.
      */
     Booking createCounterBooking(Booking booking, List<Long> seatIds);
+    
+    List<Booking> findConfirmedForReminder(int minutesFrom, int minutesTo);
 }

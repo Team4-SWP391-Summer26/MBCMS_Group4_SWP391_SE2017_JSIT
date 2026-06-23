@@ -28,8 +28,8 @@ import java.util.List;
  * PaymentServiceImpl - dieu phoi transaction thanh toan.
  *
  * markPaymentSuccess() mo 1 connection, setAutoCommit(false), goi 3 DAO
- * (payments + bookings + notifications) tren CUNG connection roi commit -> atomic
- * dung SRS 3.8.4. Idempotent nho dieu kien WHERE status='PENDING'.
+ * (payments + bookings + notifications) tren CUNG connection roi commit ->
+ * atomic dung SRS 3.8.4. Idempotent nho dieu kien WHERE status='PENDING'.
  */
 public class PaymentServiceImpl implements PaymentService {
 
@@ -70,7 +70,7 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Override
     public Result markPaymentSuccess(long bookingId, String method,
-                                     String customerUsername, String transactionRef) {
+            String customerUsername, String transactionRef) {
         String m = normalizeMethod(method);
 
         Booking b = bookingDao.findById(bookingId);
@@ -121,6 +121,16 @@ public class PaymentServiceImpl implements PaymentService {
             notificationDao.insert(conn, buildPaymentNotification(b));
 
             conn.commit();
+
+            Booking confirmed = bookingDao.findById(bookingId);
+            if (confirmed != null && confirmed.getPromoId() != null) {
+                try {
+                    promotionDao.incrementUsedCount(confirmed.getPromoId());
+                } catch (Exception e) {
+                    System.err.println("WARN: Could not increment promo used_count: " + e.getMessage());
+                }
+            }
+
             return Result.SUCCESS;
 
         } catch (SQLException e) {
@@ -180,13 +190,19 @@ public class PaymentServiceImpl implements PaymentService {
 
     private void rollbackQuietly(Connection conn) {
         if (conn != null) {
-            try { conn.rollback(); } catch (SQLException ignored) {}
+            try {
+                conn.rollback();
+            } catch (SQLException ignored) {
+            }
         }
     }
 
     private void restoreAndClose(Connection conn) {
         if (conn != null) {
-            try { conn.setAutoCommit(true); } catch (SQLException ignored) {}
+            try {
+                conn.setAutoCommit(true);
+            } catch (SQLException ignored) {
+            }
             DBUtil.closeConnection(conn);
         }
     }

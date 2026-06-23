@@ -1,18 +1,13 @@
 package com.mbcms.service.impl;
 
 import com.mbcms.dao.BookingDAO;
-import com.mbcms.dao.BranchDAO;
-import com.mbcms.dao.MovieDAO;
 import com.mbcms.dao.PromotionDAO;
 import com.mbcms.dao.SeatDAO;
 import com.mbcms.dao.ShowtimeDAO;
 import com.mbcms.dao.impl.BookingDAOImpl;
-import com.mbcms.dao.impl.BranchDAOImpl;
-import com.mbcms.dao.impl.MovieDAOImpl;
 import com.mbcms.dao.impl.PromotionDAOImpl;
 import com.mbcms.dao.impl.SeatDAOImpl;
 import com.mbcms.dao.impl.ShowtimeDAOImpl;
-import com.mbcms.dao.CustomerDAO;
 import com.mbcms.dao.impl.CustomerDAOImpl;
 import com.mbcms.model.Booking;
 import com.mbcms.model.BookingTicket;
@@ -21,6 +16,7 @@ import com.mbcms.model.Promotion;
 import com.mbcms.model.Seat;
 import com.mbcms.model.Showtime;
 import com.mbcms.service.BookingService;
+import com.mbcms.service.NotificationService;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -42,9 +38,7 @@ public class BookingServiceImpl implements BookingService {
     private final SeatDAO seatDao = new SeatDAOImpl();
     private final ShowtimeDAO showtimeDao = new ShowtimeDAOImpl();
     private final PromotionDAO promoDao = new PromotionDAOImpl();
-    private final BranchDAO  branchDao  = new BranchDAOImpl();
-    private final MovieDAO   movieDao   = new MovieDAOImpl();
-    private final CustomerDAO customerDao = new CustomerDAOImpl();
+    private final NotificationService notificationService = new NotificationServiceImpl();
 
     // ── validatePromoCode ─────────────────────────────────────────────────
     @Override
@@ -126,7 +120,7 @@ public class BookingServiceImpl implements BookingService {
     }
 
     // ── confirmBooking ────────────────────────────────────────────────────
-    @Override
+     @Override
     public Booking confirmBooking(long bookingId, String customerUsername) {
         int updated = bookingDao.confirmBooking(bookingId, customerUsername);
         if (updated == 0) {
@@ -157,6 +151,23 @@ public class BookingServiceImpl implements BookingService {
         if (confirmed != null && confirmed.getSeatIds() != null) {
             com.mbcms.ws.SeatWebSocketServer.notifyHardLock(
                     confirmed.getShowtimeId(), confirmed.getSeatIds(), customerUsername);
+        }
+
+        // ── Gui thong bao xac nhan dat ve + thanh toan cho customer ──────────
+        // Wrapped trong try/catch rieng: loi thong bao KHONG duoc anh huong
+        // den ket qua booking (giong pattern cua promo used_count o tren).
+        if (confirmed != null) {
+            try {
+                String email = null;
+                try {
+                    Customer c = new CustomerDAOImpl().findByUsername(confirmed.getCustomerUsername());
+                    if (c != null) email = c.getEmail();
+                } catch (Exception ignored) {}
+
+                notificationService.sendBookingConfirmation(confirmed, email);
+            } catch (Exception e) {
+                System.err.println("WARN: Khong tao duoc notification: " + e.getMessage());
+            }
         }
 
         return confirmed;

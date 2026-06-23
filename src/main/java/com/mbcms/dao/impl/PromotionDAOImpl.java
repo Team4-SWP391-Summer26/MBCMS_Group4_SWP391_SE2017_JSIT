@@ -361,7 +361,10 @@ public class PromotionDAOImpl extends BaseDAO implements PromotionDAO {
         @Override
     public boolean incrementUsedCount(long promoId) {
         String sql = "UPDATE dbo.promotions SET used_count = used_count + 1 WHERE promo_id = ?";
-        Connection conn = null; PreparedStatement ps = null;
+        
+        Connection conn = null; 
+        PreparedStatement ps = null;
+        
         try {
             conn = getConnection();
             ps = conn.prepareStatement(sql);

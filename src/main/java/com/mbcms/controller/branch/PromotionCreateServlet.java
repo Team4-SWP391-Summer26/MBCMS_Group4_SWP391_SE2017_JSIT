@@ -3,6 +3,8 @@ package com.mbcms.controller.branch;
 import com.mbcms.dao.PromotionDAO;
 import com.mbcms.dao.impl.PromotionDAOImpl;
 import com.mbcms.model.Promotion;
+import com.mbcms.service.NotificationService;
+import com.mbcms.service.impl.NotificationServiceImpl;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -20,6 +22,7 @@ import java.time.format.DateTimeParseException;
 public class PromotionCreateServlet extends HttpServlet {
 
     private static final String VIEW = "/WEB-INF/views/branch/promotions/form.jsp";
+    private NotificationService notificationService = new NotificationServiceImpl();
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
@@ -165,6 +168,14 @@ public class PromotionCreateServlet extends HttpServlet {
         // Save and redirect
         boolean success = promotionDAO.insert(p);
         if (success) {
+            if (p.isActive()) {
+                new Thread(() -> {
+                    Promotion saved = promotionDAO.findByCode(code);  // re-fetch → real promoId
+                    if (saved != null) {
+                        notificationService.broadcastPromotion(saved); // existing method, works as-is
+                    }
+                }, "promo-broadcast-" + code).start();
+            }
             resp.sendRedirect(req.getContextPath() + "/branch/promotions?created=1");
         } else {
             resp.sendRedirect(req.getContextPath() + "/branch/promotions?error=1");
