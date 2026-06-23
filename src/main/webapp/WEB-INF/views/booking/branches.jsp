@@ -41,8 +41,11 @@
             <div class="row row-cols-1 row-cols-md-2 g-3">
                 <c:forEach var="b" items="${branches}">
                     <div class="col">
-                        <a class="text-decoration-none"
-                           href="${pageContext.request.contextPath}/booking/movies?branchId=${b.branchId}">
+                        <c:set var="targetHref" value="${pageContext.request.contextPath}/booking/movies?branchId=${b.branchId}" />
+                        <c:if test="${not empty param.movieId}">
+                            <c:set var="targetHref" value="${pageContext.request.contextPath}/booking/showtimes?branchId=${b.branchId}&movieId=${param.movieId}" />
+                        </c:if>
+                        <a class="text-decoration-none" href="${targetHref}">
                             <div class="card h-100 movie-card branch-card p-3">
                                 <div class="d-flex align-items-start gap-3">
                                     <div class="branch-icon">
