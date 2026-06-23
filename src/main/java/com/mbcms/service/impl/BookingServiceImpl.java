@@ -42,18 +42,18 @@ public class BookingServiceImpl implements BookingService {
 
     // ── validatePromoCode ─────────────────────────────────────────────────
     @Override
-    public Promotion validatePromoCode(String code, BigDecimal subtotal) {
-        if (code == null || code.isBlank()) {
+    public Promotion validatePromoCode(String code, BigDecimal subtotal, BigDecimal concessionsSubtotal) {
+        if (code == null || code.trim().isEmpty()) {
             return null;
         }
 
-        Promotion p = promoDao.findByCode(code.trim());
+        Promotion p = promoDao.findByCode(code.trim().toUpperCase());
         if (p == null) {
             return null;
         }
 
         LocalDateTime now = LocalDateTime.now();
-        if (!p.isActive()) {
+        if (!p.isActive() || !"Active".equals(p.getStatus())) {
             throw new IllegalArgumentException("This promo code has been deactivated.");
         }
         if (p.getValidFrom() != null && now.isBefore(p.getValidFrom())) {
@@ -76,7 +76,7 @@ public class BookingServiceImpl implements BookingService {
     // ── createPendingBooking ──────────────────────────────────────────────
     @Override
     public Booking createPendingBooking(String customerUsername, long showtimeId,
-            List<Long> seatIds, String promoCode, String notes) {
+            List<Long> seatIds, String promoCode, String notes, BigDecimal concessionsSubtotal) {
         if (seatIds == null || seatIds.isEmpty()) {
             throw new IllegalArgumentException("Please select at least one seat.");
         }
@@ -102,12 +102,15 @@ public class BookingServiceImpl implements BookingService {
         for (Seat s : allSeats) {
             seatMap.put(s.getSeatId(), s);
         }
-        BigDecimal subtotal = calcSubtotal(seatIds, seatMap, st.getBasePrice());
+        BigDecimal ticketsSubtotal = calcSubtotal(seatIds, seatMap, st.getBasePrice());
 
         // Validate promo
-        Promotion promo = validatePromoCode(promoCode, subtotal);
-        BigDecimal discount = promo != null ? calcDiscount(promo, subtotal) : BigDecimal.ZERO;
-        BigDecimal total = subtotal.subtract(discount).max(BigDecimal.ZERO);
+        Promotion promo = validatePromoCode(promoCode, ticketsSubtotal, concessionsSubtotal);
+        BigDecimal discount = promo != null ? calcDiscount(promo, ticketsSubtotal) : BigDecimal.ZERO;
+        
+        BigDecimal totalConcessions = concessionsSubtotal != null ? concessionsSubtotal : BigDecimal.ZERO;
+        BigDecimal subtotal = ticketsSubtotal.add(totalConcessions);
+        BigDecimal total = ticketsSubtotal.subtract(discount).max(BigDecimal.ZERO).add(totalConcessions);
 
         // Tạo Booking model
         Booking booking = new Booking();
@@ -212,7 +215,7 @@ public class BookingServiceImpl implements BookingService {
         return bookingDao.findTicket(bookingId);
     }
     @Override
-    public Booking createCounterBooking(Booking booking, List<Long> seatIds, String promoCode) {
+    public Booking createCounterBooking(Booking booking, List<Long> seatIds, String promoCode, BigDecimal concessionsSubtotal) {
         if (seatIds == null || seatIds.isEmpty()) {
             throw new IllegalArgumentException("Vui lòng chọn ít nhất 1 ghế.");
         }
@@ -225,31 +228,39 @@ public class BookingServiceImpl implements BookingService {
         // 2. Ap dung ma khuyen mai neu co
         Long promoId = null;
         BigDecimal discount = BigDecimal.ZERO;
+        
+        // Note: booking.getSubtotal() passed from servlet is the tickets-only subtotal!
+        BigDecimal ticketsSubtotal = booking.getSubtotal();
+        
         if (promoCode != null && !promoCode.trim().isEmpty()) {
             Promotion promo = promoDao.findByCode(promoCode.trim().toUpperCase());
             if (promo != null && promo.isActive() && "Active".equals(promo.getStatus())) {
                 BigDecimal minAmt = promo.getMinOrderAmount();
-                // Kiem tra gia tri don hang toi thieu
-                if (minAmt == null || booking.getSubtotal().compareTo(minAmt) >= 0) {
+                // Kiem tra gia tri don hang toi thieu dua tren TICKETS subtotal
+                if (minAmt == null || ticketsSubtotal.compareTo(minAmt) >= 0) {
                     promoId = promo.getPromoId();
                     if (Promotion.TYPE_PERCENT.equals(promo.getDiscountType())) {
-                        discount = booking.getSubtotal()
+                        discount = ticketsSubtotal
                                 .multiply(promo.getDiscountValue())
                                 .divide(BigDecimal.valueOf(100), 0, java.math.RoundingMode.HALF_UP);
                     } else if (Promotion.TYPE_FIXED_AMOUNT.equals(promo.getDiscountType())) {
                         discount = promo.getDiscountValue();
                     }
 
-                    // Khong duoc giam nhieu hon gia tri don hang
-                    if (discount.compareTo(booking.getSubtotal()) > 0) {
-                        discount = booking.getSubtotal();
+                    // Khong duoc giam nhieu hon gia tri ve
+                    if (discount.compareTo(ticketsSubtotal) > 0) {
+                        discount = ticketsSubtotal;
                     }
                 }
             }
         }
+        
+        BigDecimal totalConcessions = concessionsSubtotal != null ? concessionsSubtotal : BigDecimal.ZERO;
+        
         booking.setPromoId(promoId);
         booking.setDiscountAmount(discount);
-        booking.setTotalAmount(booking.getSubtotal().subtract(discount));
+        booking.setSubtotal(ticketsSubtotal.add(totalConcessions));
+        booking.setTotalAmount(ticketsSubtotal.subtract(discount).max(BigDecimal.ZERO).add(totalConcessions));
 
         // 3. Goi DAO ghi nhan Booking + Seats + CASH Payment trong 1 transaction
         return bookingDao.createCounterBooking(booking, seatIds);

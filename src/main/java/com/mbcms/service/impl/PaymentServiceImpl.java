@@ -122,15 +122,6 @@ public class PaymentServiceImpl implements PaymentService {
 
             conn.commit();
 
-            Booking confirmed = bookingDao.findById(bookingId);
-            if (confirmed != null && confirmed.getPromoId() != null) {
-                try {
-                    promotionDao.incrementUsedCount(confirmed.getPromoId());
-                } catch (Exception e) {
-                    System.err.println("WARN: Could not increment promo used_count: " + e.getMessage());
-                }
-            }
-
             return Result.SUCCESS;
 
         } catch (SQLException e) {

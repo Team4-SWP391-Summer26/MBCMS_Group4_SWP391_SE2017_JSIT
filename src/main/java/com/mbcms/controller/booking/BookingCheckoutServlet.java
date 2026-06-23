@@ -78,9 +78,10 @@ public class BookingCheckoutServlet extends HttpServlet {
 
         // Tạo PENDING booking ngay khi người dùng vào trang checkout
         try {
+            BigDecimal foodSubtotal = getFoodSubtotal(session);
             Booking booking = bookingService.createPendingBooking(
                     customer.getUsername(), showtimeId, seatIds,
-                    req.getParameter("promoCode"), null);
+                    req.getParameter("promoCode"), null, foodSubtotal);
 
             processFoodOrder(booking, session, req);
 
@@ -170,8 +171,9 @@ public class BookingCheckoutServlet extends HttpServlet {
             try {
                 // Tạo lại pending booking (re-lock cùng ghế) với promo mới
                 // → subtotal/discount/total được tính lại đúng.
+                BigDecimal foodSubtotal = getFoodSubtotal(session);
                 Booking booking = bookingService.createPendingBooking(
-                        customer.getUsername(), showtimeId, seatIds, promoCode, null);
+                        customer.getUsername(), showtimeId, seatIds, promoCode, null, foodSubtotal);
                 processFoodOrder(booking, session, req);
                 session.setAttribute("pendingBookingId", booking.getBookingId());
                 req.setAttribute("booking", booking);
@@ -186,8 +188,9 @@ public class BookingCheckoutServlet extends HttpServlet {
                 // → vẫn re-lock ghế nhưng KHÔNG áp promo, để giá hiển thị đúng giá gốc.
                 req.setAttribute("checkoutError", e.getMessage());
                 try {
+                    BigDecimal foodSubtotal = getFoodSubtotal(session);
                     Booking fallback = bookingService.createPendingBooking(
-                            customer.getUsername(), showtimeId, seatIds, null, null);
+                            customer.getUsername(), showtimeId, seatIds, null, null, foodSubtotal);
                     processFoodOrder(fallback, session, req);
                     session.setAttribute("pendingBookingId", fallback.getBookingId());
                     req.setAttribute("booking", fallback);
@@ -218,6 +221,21 @@ public class BookingCheckoutServlet extends HttpServlet {
     }
 
     // ── Helpers ──────────────────────────────────────────────────────────
+
+    private BigDecimal getFoodSubtotal(HttpSession session) {
+        if (session == null) return BigDecimal.ZERO;
+        Map<Long, Integer> selectedFood = (Map<Long, Integer>) session.getAttribute("selectedFoodItems");
+        BigDecimal foodSubtotal = BigDecimal.ZERO;
+        if (selectedFood != null && !selectedFood.isEmpty()) {
+            for (Map.Entry<Long, Integer> entry : selectedFood.entrySet()) {
+                FoodItem item = foodService.getFoodItemById(entry.getKey());
+                if (item != null) {
+                    foodSubtotal = foodSubtotal.add(item.getPrice().multiply(BigDecimal.valueOf(entry.getValue())));
+                }
+            }
+        }
+        return foodSubtotal;
+    }
 
     /**
      * Parse seatIds từ request, hỗ trợ hai định dạng:
@@ -255,21 +273,8 @@ public class BookingCheckoutServlet extends HttpServlet {
     private void processFoodOrder(Booking booking, HttpSession session, HttpServletRequest req) {
         if (session == null) return;
         Map<Long, Integer> selectedFood = (Map<Long, Integer>) session.getAttribute("selectedFoodItems");
-        BigDecimal foodSubtotal = BigDecimal.ZERO;
+        BigDecimal foodSubtotal = getFoodSubtotal(session);
         if (selectedFood != null && !selectedFood.isEmpty()) {
-            for (Map.Entry<Long, Integer> entry : selectedFood.entrySet()) {
-                FoodItem item = foodService.getFoodItemById(entry.getKey());
-                if (item != null) {
-                    foodSubtotal = foodSubtotal.add(item.getPrice().multiply(BigDecimal.valueOf(entry.getValue())));
-                }
-            }
-            if (foodSubtotal.compareTo(BigDecimal.ZERO) > 0) {
-                // Update booking model
-                booking.setSubtotal(booking.getSubtotal().add(foodSubtotal));
-                booking.setTotalAmount(booking.getTotalAmount().add(foodSubtotal));
-                // Update booking DB
-                bookingService.updateBookingTotals(booking.getBookingId(), booking.getSubtotal(), booking.getTotalAmount());
-            }
             // Save food order as PENDING
             foodService.saveFoodOrder(booking.getBookingId(), selectedFood, "PENDING");
         } else {

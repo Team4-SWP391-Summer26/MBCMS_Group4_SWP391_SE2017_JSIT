@@ -33,7 +33,7 @@ public interface BookingService {
      * trống, áp dụng khuyến mãi, liên kết thành viên, và thanh toán tiền mặt
      * thành công (CASH) trong 1 Transaction.
      */
-    Booking createCounterBooking(Booking booking, List<Long> seatIds, String promoCode);
+    Booking createCounterBooking(Booking booking, List<Long> seatIds, String promoCode, BigDecimal concessionsSubtotal);
     // ── Promo ─────────────────────────────────────────────────────────────
     /**
      * Validate promo code: active, chưa hết hạn, chưa hết lượt, minOrderAmount.
@@ -41,7 +41,7 @@ public interface BookingService {
      * IllegalArgumentException với message cụ thể nếu tồn tại nhưng không dùng
      * được.
      */
-    Promotion validatePromoCode(String code, BigDecimal subtotal);
+    Promotion validatePromoCode(String code, BigDecimal subtotal, BigDecimal concessionsSubtotal);
 
     // ── Booking CRUD ──────────────────────────────────────────────────────
     /**
@@ -49,7 +49,7 @@ public interface BookingService {
      * SeatUnavailableException nếu có ghế bị chiếm.
      */
     Booking createPendingBooking(String customerUsername, long showtimeId,
-            List<Long> seatIds, String promoCode, String notes);
+            List<Long> seatIds, String promoCode, String notes, BigDecimal concessionsSubtotal);
 
     /**
      * PENDING → CONFIRMED sau payment thành công. Throw IllegalStateException
