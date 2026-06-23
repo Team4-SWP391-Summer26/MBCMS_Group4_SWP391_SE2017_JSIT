@@ -22,6 +22,7 @@ DELETE FROM dbo.showtimes;
 DELETE FROM dbo.seats;
 DELETE FROM dbo.rooms;
 DELETE FROM dbo.movie_genres;
+DELETE FROM dbo.movie_branch;
 DELETE FROM dbo.food_items;
 DELETE FROM dbo.promotions;
 DELETE FROM dbo.employees;
@@ -76,6 +77,16 @@ JOIN dbo.genres g ON g.name  = x.genre_name;
 INSERT INTO dbo.branches (name, address, city, phone, email) VALUES
  (N'MBCMS Nguyen Hue',  N'72 Nguyen Hue, District 1',        N'Ho Chi Minh', '02838111111', 'nguyenhue@mbcms.vn'),
  (N'MBCMS Ba Trieu',    N'25 Ba Trieu, Hoan Kiem',           N'Ha Noi',      '02438222222', 'batrieu@mbcms.vn');
+
+-- ---------------------------------------------------------------------
+-- 4b. Movie-branch assignment: Admin cap moi phim active cho moi chi nhanh
+--     (du lieu nen de BM xep lich duoc ngay; Admin tinh chinh sau).
+-- ---------------------------------------------------------------------
+INSERT INTO dbo.movie_branch (movie_id, branch_id)
+SELECT m.movie_id, b.branch_id
+FROM dbo.movies m
+CROSS JOIN dbo.branches b
+WHERE m.active = 1;
 
 -- ---------------------------------------------------------------------
 -- 5. Rooms (capacity 80 = 8 rows x 10 cols, matches seat generation below)
@@ -377,4 +388,23 @@ GO
 
 -- Sample report 2: bookings by status
 SELECT [status], COUNT(*) AS cnt FROM dbo.bookings GROUP BY [status] ORDER BY cnt DESC;
+GO
+-- Add opening_time and closing_time columns
+IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('dbo.branches') AND name = 'opening_time')
+BEGIN
+    ALTER TABLE dbo.branches ADD opening_time TIME NULL;
+END
+GO
+
+IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('dbo.branches') AND name = 'closing_time')
+BEGIN
+    ALTER TABLE dbo.branches ADD closing_time TIME NULL;
+END
+GO
+
+-- Seed default operating hours for existing branches
+UPDATE dbo.branches
+SET opening_time = '08:00:00',
+    closing_time = '23:00:00'
+WHERE opening_time IS NULL;
 GO

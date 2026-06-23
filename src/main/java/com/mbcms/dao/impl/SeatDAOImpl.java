@@ -1,11 +1,8 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package com.mbcms.dao.impl;
 
 import com.mbcms.dao.SeatDAO;
 import com.mbcms.model.Seat;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -15,10 +12,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-/**
- *
- * @author Lenovo
- */
 public class SeatDAOImpl extends BaseDAO implements SeatDAO {
 
     @Override
@@ -39,7 +32,6 @@ public class SeatDAOImpl extends BaseDAO implements SeatDAO {
             ps.setLong(1, roomId);
             rs = ps.executeQuery();
 
-            //tap hop ghe cua mot phong
             while (rs.next()) {
                 seats.add(mapRow(rs));
             }
@@ -48,7 +40,6 @@ public class SeatDAOImpl extends BaseDAO implements SeatDAO {
         } finally {
             closeAll(rs, ps, conn);
         }
-        //tra tat ca ghe thay vi mot doi tuong
         return seats;
     }
 
@@ -71,22 +62,147 @@ public class SeatDAOImpl extends BaseDAO implements SeatDAO {
             ps.setLong(1, showtimeId);
             rs = ps.executeQuery();
 
-            //tap hop ghe da duoc chon cua mot phong
             while (rs.next()) {
                 booked.add(rs.getLong("seat_id"));
             }
         } catch (SQLException e) {
-            throw new RuntimeException("Error querying seat.findByRoom: " + e.getMessage(), e);
+            throw new RuntimeException("Error querying seat.findBookedSeatIds: " + e.getMessage(), e);
         } finally {
             closeAll(rs, ps, conn);
         }
-        //tra tat ca ghe thay vi mot doi tuong
         return booked;
     }
 
-    /**
-     * Chuyen du lieu tu ResultSet thanh object Seat.
-     */
+    @Override
+    public boolean insertSeats(List<Seat> seats) {
+        if (seats == null || seats.isEmpty()) return true;
+        String sql = "INSERT INTO dbo.seats (room_id, row_label, col_number, seat_type, active) VALUES (?, ?, ?, ?, ?)";
+
+        Connection conn = null;
+        PreparedStatement ps = null;
+
+        try {
+            conn = getConnection();
+            conn.setAutoCommit(false);
+            ps = conn.prepareStatement(sql);
+
+            for (Seat seat : seats) {
+                ps.setLong(1, seat.getRoomId());
+                ps.setString(2, seat.getRowLabel());
+                ps.setInt(3, seat.getColNumber());
+                ps.setString(4, seat.getSeatType());
+                ps.setBoolean(5, seat.isActive());
+                ps.addBatch();
+            }
+
+            ps.executeBatch();
+            conn.commit();
+            return true;
+        } catch (SQLException e) {
+            if (conn != null) {
+                try { conn.rollback(); } catch (SQLException ex) { /* ignored */ }
+            }
+            throw new RuntimeException("Error inserting seats in batch: " + e.getMessage(), e);
+        } finally {
+            if (conn != null) {
+                try { conn.setAutoCommit(true); } catch (SQLException ex) { /* ignored */ }
+            }
+            closeAll(ps, conn);
+        }
+    }
+
+    @Override
+    public boolean deleteSeatsByRoom(long roomId) {
+        String sql = "DELETE FROM dbo.seats WHERE room_id = ?";
+
+        Connection conn = null;
+        PreparedStatement ps = null;
+
+        try {
+            conn = getConnection();
+            ps = conn.prepareStatement(sql);
+            ps.setLong(1, roomId);
+
+            return ps.executeUpdate() >= 0;
+        } catch (SQLException e) {
+            throw new RuntimeException("Error deleting seats by room: " + e.getMessage(), e);
+        } finally {
+            closeAll(ps, conn);
+        }
+    }
+
+    @Override
+    public boolean updateSeatStatus(long seatId, boolean active) {
+        String sql = "UPDATE dbo.seats SET active = ? WHERE seat_id = ?";
+
+        Connection conn = null;
+        PreparedStatement ps = null;
+
+        try {
+            conn = getConnection();
+            ps = conn.prepareStatement(sql);
+            ps.setBoolean(1, active);
+            ps.setLong(2, seatId);
+
+            return ps.executeUpdate() == 1;
+        } catch (SQLException e) {
+            throw new RuntimeException("Error updating seat status: " + e.getMessage(), e);
+        } finally {
+            closeAll(ps, conn);
+        }
+    }
+
+    @Override
+    public boolean updateSeatType(long seatId, String seatType) {
+        String sql = "UPDATE dbo.seats SET seat_type = ? WHERE seat_id = ?";
+
+        Connection conn = null;
+        PreparedStatement ps = null;
+
+        try {
+            conn = getConnection();
+            ps = conn.prepareStatement(sql);
+            ps.setString(1, seatType);
+            ps.setLong(2, seatId);
+
+            return ps.executeUpdate() == 1;
+        } catch (SQLException e) {
+            throw new RuntimeException("Error updating seat type: " + e.getMessage(), e);
+        } finally {
+            closeAll(ps, conn);
+        }
+    }
+
+    @Override
+    public boolean hasFutureBookings(long seatId) {
+        String sql = "SELECT COUNT(*) FROM dbo.booking_seats bs "
+                + "  JOIN dbo.bookings b ON b.booking_id = bs.booking_id "
+                + "  JOIN dbo.showtimes st ON st.showtime_id = b.showtime_id "
+                + " WHERE bs.seat_id = ? "
+                + "   AND st.start_time >= SYSUTCDATETIME() "
+                + "   AND b.[status] IN ('PENDING', 'CONFIRMED')";
+
+        Connection conn = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+
+        try {
+            conn = getConnection();
+            ps = conn.prepareStatement(sql);
+            ps.setLong(1, seatId);
+            rs = ps.executeQuery();
+
+            if (rs.next()) {
+                return rs.getInt(1) > 0;
+            }
+            return false;
+        } catch (SQLException e) {
+            throw new RuntimeException("Error checking future bookings for seat: " + e.getMessage(), e);
+        } finally {
+            closeAll(rs, ps, conn);
+        }
+    }
+
     private Seat mapRow(ResultSet rs) throws SQLException {
         Seat s = new Seat();
         s.setSeatId(rs.getLong("seat_id"));
