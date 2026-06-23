@@ -636,12 +636,18 @@ public class BookingDAOImpl extends BaseDAO implements BookingDAO {
         if (seatIds == null || seatIds.isEmpty()) {
             return new ArrayList<>();
         }
+        // UPDLOCK + HOLDLOCK: khoa hang trong transaction (giong checkAndLockSeats cua
+        // booking online) -> chong TOCTOU khi online + counter cung dat 1 ghe.
+        // Ghe bi chiem khi: CONFIRMED/USED, hoac PENDING chua het han (< 10 phut).
         StringBuilder sb = new StringBuilder(
                 "SELECT DISTINCT bs.seat_id "
-                + "FROM booking_seats bs "
+                + "FROM booking_seats bs WITH (UPDLOCK, HOLDLOCK) "
                 + "JOIN bookings b ON b.booking_id = bs.booking_id "
                 + "WHERE b.showtime_id = ? "
-                + "  AND b.status IN ('PENDING','CONFIRMED') "
+                + "  AND b.status != 'CANCELLED' "
+                + "  AND ( b.status IN ('CONFIRMED','USED') "
+                + "        OR ( b.status = 'PENDING' "
+                + "             AND DATEDIFF(MINUTE, b.created_at, SYSUTCDATETIME()) < 10 ) ) "
                 + "  AND bs.seat_id IN (");
         for (int i = 0; i < seatIds.size(); i++) {
             sb.append(i > 0 ? ",?" : "?");

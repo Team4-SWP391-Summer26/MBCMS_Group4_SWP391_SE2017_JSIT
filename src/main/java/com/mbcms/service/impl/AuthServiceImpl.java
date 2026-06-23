@@ -63,6 +63,19 @@ public class AuthServiceImpl implements AuthService {
         return customer;
     }
 
+    @Override
+    public boolean isUnverifiedAccount(String loginId, String rawPassword) {
+        if (loginId == null || rawPassword == null) {
+            return false;
+        }
+        Customer customer = customerDAO.findByEmail(loginId);
+        if (customer == null || !customer.isActive() || customer.isEmailVerified()) {
+            return false;
+        }
+        // Chi bao "chua verify" khi mat khau dung -> khong lo tai khoan nao ton tai.
+        return BCrypt.checkpw(rawPassword, customer.getPasswordHash());
+    }
+
     /**
      * Xac thuc Employee (staff/admin).
      *

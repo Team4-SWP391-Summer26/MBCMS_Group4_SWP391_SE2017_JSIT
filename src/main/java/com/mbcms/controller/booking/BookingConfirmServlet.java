@@ -91,7 +91,7 @@ public class BookingConfirmServlet extends HttpServlet {
             try {
                 long bookingId = Long.parseLong(bookingIdParam.trim());
                 response.sendRedirect(request.getContextPath()
-                        + "/booking/detail?bookingId=" + bookingId);
+                        + "/customer/booking/detail?bookingId=" + bookingId);
                 return;
             } catch (NumberFormatException ignored) {
             }

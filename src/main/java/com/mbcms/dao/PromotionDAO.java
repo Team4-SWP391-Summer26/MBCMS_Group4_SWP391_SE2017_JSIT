@@ -2,6 +2,8 @@ package com.mbcms.dao;
 
 import com.mbcms.model.Promotion;
 import java.math.BigDecimal;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.List;
 
 public interface PromotionDAO {
@@ -34,4 +36,7 @@ public interface PromotionDAO {
 
     boolean delete(long promoId);
     boolean incrementUsedCount(long promoId);
+
+    /** Connection-aware: tang used_count trong transaction co san (vd payment confirm). */
+    int incrementUsedCount(Connection conn, long promoId) throws SQLException;
 }

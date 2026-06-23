@@ -334,6 +334,10 @@
             setSeatState(btn, 'available');
             sendWS({ action: 'DESELECT', seatId: Number(id), showtimeId: SHOWTIME_ID });
         } else {
+            if (selectedSeats.size >= 8) {
+                alert('You can select a maximum of 8 seats per booking.');
+                return;
+            }
             selectedSeats.set(id, { label, type });
             setSeatState(btn, 'selected');
             sendWS({ action: 'SELECT', seatId: Number(id), showtimeId: SHOWTIME_ID });

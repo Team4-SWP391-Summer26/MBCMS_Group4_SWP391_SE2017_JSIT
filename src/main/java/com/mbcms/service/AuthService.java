@@ -12,6 +12,12 @@ public interface AuthService {
 
     Employee loginEmployee(String loginId, String rawPassword);
 
+    /**
+     * True khi thong tin dang nhap DUNG nhung tai khoan chua xac thuc email.
+     * Dung de Servlet hien thong bao "verify email" thay vi "sai mat khau".
+     */
+    boolean isUnverifiedAccount(String loginId, String rawPassword);
+
     boolean registerCustomer(Customer customer, String rawPassword);
 
     /**

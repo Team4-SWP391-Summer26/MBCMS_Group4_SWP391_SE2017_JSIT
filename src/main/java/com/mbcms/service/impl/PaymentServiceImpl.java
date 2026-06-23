@@ -3,9 +3,11 @@ package com.mbcms.service.impl;
 import com.mbcms.dao.BookingDAO;
 import com.mbcms.dao.NotificationDAO;
 import com.mbcms.dao.PaymentDAO;
+import com.mbcms.dao.PromotionDAO;
 import com.mbcms.dao.impl.BookingDAOImpl;
 import com.mbcms.dao.impl.NotificationDAOImpl;
 import com.mbcms.dao.impl.PaymentDAOImpl;
+import com.mbcms.dao.impl.PromotionDAOImpl;
 import com.mbcms.model.Booking;
 import com.mbcms.model.Notification;
 import com.mbcms.model.Payment;
@@ -34,6 +36,7 @@ public class PaymentServiceImpl implements PaymentService {
     private final PaymentDAO paymentDao = new PaymentDAOImpl();
     private final BookingDAO bookingDao = new BookingDAOImpl();
     private final NotificationDAO notificationDao = new NotificationDAOImpl();
+    private final PromotionDAO promotionDao = new PromotionDAOImpl();
 
     @Override
     public Booking preparePayment(long bookingId, String customerUsername) {
@@ -106,7 +109,12 @@ public class PaymentServiceImpl implements PaymentService {
             // 2) payments: PENDING -> SUCCESS + transaction_ref + paid_at
             paymentDao.markSuccess(conn, bookingId, transactionRef);
 
-            // 3) notification PAYMENT cho customer
+            // 3) promo used_count++ neu booking co ma (cung transaction, khong vuot max_uses)
+            if (b.getPromoId() != null) {
+                promotionDao.incrementUsedCount(conn, b.getPromoId());
+            }
+
+            // 4) notification PAYMENT cho customer
             notificationDao.insert(conn, buildPaymentNotification(b));
 
             conn.commit();

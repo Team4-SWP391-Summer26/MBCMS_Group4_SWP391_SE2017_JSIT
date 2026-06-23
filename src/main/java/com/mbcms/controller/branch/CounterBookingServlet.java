@@ -98,6 +98,12 @@ public class CounterBookingServlet extends HttpServlet {
         req.getRequestDispatcher("/WEB-INF/views/branch/booking/counter-booking.jsp").forward(req, resp);
     }
 
+    /** True neu room thuoc branch (chong xem/dat cheo chi nhanh). */
+    private boolean roomBelongsToBranch(long roomId, long branchId) {
+        return roomDAO.findActiveByBranch(branchId).stream()
+                .anyMatch(r -> r.getRoomId() == roomId);
+    }
+
     private void handleAjax(String action, long branchId, HttpServletRequest req, HttpServletResponse resp)
             throws IOException {
         resp.setContentType("application/json;charset=UTF-8");
@@ -157,6 +163,11 @@ public class CounterBookingServlet extends HttpServlet {
                 resp.sendError(HttpServletResponse.SC_NOT_FOUND, "Showtime not found");
                 return;
             }
+            // Branch scope: chi load so do ghe cua suat thuoc chi nhanh staff
+            if (!roomBelongsToBranch(showtime.getRoomId(), branchId)) {
+                resp.sendError(HttpServletResponse.SC_FORBIDDEN, "Showtime not in your branch");
+                return;
+            }
 
             Map<String, List<Seat>> seatsByRow = seatService.getSeatsByRow(showtimeId);
             Set<Long> bookedSeatIds = seatService.getBookedSeatIds(showtimeId);
@@ -197,6 +208,11 @@ public class CounterBookingServlet extends HttpServlet {
                 resp.sendError(HttpServletResponse.SC_NOT_FOUND, "Booking not found");
                 return;
             }
+            // Branch scope: staff chi xem booking quay thuoc chi nhanh minh
+            if (ticket.getBranchId() != branchId) {
+                resp.sendError(HttpServletResponse.SC_FORBIDDEN, "Booking not in your branch");
+                return;
+            }
             mapper.writeValue(resp.getWriter(), ticket);
         }
     }
@@ -225,9 +241,7 @@ public class CounterBookingServlet extends HttpServlet {
             }
 
             // Verify showtime belongs to the staff's branch
-            boolean roomInBranch = roomDAO.findActiveByBranch(branchId).stream()
-                    .anyMatch(r -> r.getRoomId() == showtime.getRoomId());
-            if (!roomInBranch) {
+            if (!roomBelongsToBranch(showtime.getRoomId(), branchId)) {
                 throw new SecurityException("Suất chiếu không thuộc chi nhánh của bạn.");
             }
 
