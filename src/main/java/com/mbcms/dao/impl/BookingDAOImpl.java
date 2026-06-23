@@ -379,6 +379,26 @@ public class BookingDAOImpl extends BaseDAO implements BookingDAO {
     }
 
     @Override
+    public boolean updateBookingTotals(long bookingId, BigDecimal newSubtotal, BigDecimal newTotalAmount) {
+        String sql = "UPDATE dbo.bookings SET subtotal = ?, total_amount = ? WHERE booking_id = ?";
+        Connection conn = null;
+        PreparedStatement ps = null;
+        try {
+            conn = getConnection();
+            ps = conn.prepareStatement(sql);
+            ps.setBigDecimal(1, newSubtotal);
+            ps.setBigDecimal(2, newTotalAmount);
+            ps.setLong(3, bookingId);
+            int rows = ps.executeUpdate();
+            return rows > 0;
+        } catch (SQLException e) {
+            throw new RuntimeException("Loi updateBookingTotals: " + e.getMessage(), e);
+        } finally {
+            closeAll(ps, conn);
+        }
+    }
+
+    @Override
     public int confirmBooking(long bookingId, String customerUsername) {
         // Chỉ confirm khi PENDING và chưa hết hạn
         String sql =

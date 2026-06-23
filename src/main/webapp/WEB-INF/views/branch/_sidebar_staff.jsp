@@ -19,6 +19,9 @@
     <a class="lc-sb-item ${param.active == 'booking' ? 'active' : ''}"
        href="${pageContext.request.contextPath}/staff/booking">
         <i class="bi bi-ticket-perforated"></i> Counter Booking</a>
+    <a class="lc-sb-item ${param.active == 'food-orders' ? 'active' : ''}"
+       href="${pageContext.request.contextPath}/staff/food-orders">
+        <i class="bi bi-cup-straw"></i> F&B Fulfillments</a>
 
     <div style="flex:1;"></div>
 

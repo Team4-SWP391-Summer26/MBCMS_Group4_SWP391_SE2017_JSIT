@@ -102,6 +102,9 @@ public class PaymentServiceImpl implements PaymentService {
             // 2) payments: PENDING -> SUCCESS + transaction_ref + paid_at
             paymentDao.markSuccess(conn, bookingId, transactionRef);
 
+            // 2.5) food_orders: PENDING -> PREPARING (if any concessions exist)
+            new com.mbcms.dao.impl.FoodDAOImpl().updateOrderStatusByBooking(conn, bookingId, "PREPARING");
+
             // 3) notification PAYMENT cho customer
             notificationDao.insert(conn, buildPaymentNotification(b));
 
