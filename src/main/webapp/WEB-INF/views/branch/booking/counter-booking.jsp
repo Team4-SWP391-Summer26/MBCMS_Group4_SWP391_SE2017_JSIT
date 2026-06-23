@@ -221,14 +221,18 @@
                         </div>
                         <div class="wizard-step" id="step-ind-3">
                             <div class="step-num">3</div>
-                            <div class="step-label">Promotion</div>
+                            <div class="step-label">Food & Drinks</div>
                         </div>
                         <div class="wizard-step" id="step-ind-4">
                             <div class="step-num">4</div>
-                            <div class="step-label">Payment</div>
+                            <div class="step-label">Promotion</div>
                         </div>
                         <div class="wizard-step" id="step-ind-5">
                             <div class="step-num">5</div>
+                            <div class="step-label">Payment</div>
+                        </div>
+                        <div class="wizard-step" id="step-ind-6">
+                            <div class="step-num">6</div>
                             <div class="step-label">Print Ticket</div>
                         </div>
                     </div>
@@ -329,20 +333,46 @@
                     </div>
                 </div>
 
-                <%-- ===== STEP 3: PROMOTION ===== --%>
+                <%-- ===== STEP 3: FOOD & DRINKS CONCESSIONS ===== --%>
                 <div class="wizard-panel" id="panel-3">
                     <div class="card lc-elev p-4">
-                        <h5 class="text-navy fw-bold mb-3"><i class="bi bi-3-circle-fill text-primary me-2"></i>Promotion &amp; Payment Details</h5>
+                        <h5 class="text-navy fw-bold mb-3"><i class="bi bi-3-circle-fill text-primary me-2"></i>Select Food &amp; Drinks</h5>
+                        
+                        <div class="row g-3 mb-4" id="staff-food-items-container" style="max-height: 450px; overflow-y: auto;">
+                            <!-- Concessions will be loaded dynamically via JS -->
+                            <div class="text-center py-4">
+                                <div class="spinner-border text-primary" role="status"></div>
+                                <div class="text-muted mt-2">Loading catalog...</div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center mt-3 pt-3 border-top">
+                            <div class="text-muted">Tickets Subtotal: <span id="staff-tickets-subtotal-display" class="fw-bold text-navy">0</span> VND</div>
+                            <div class="fs-5 fw-bold text-navy">Concessions Subtotal: <span id="staff-food-subtotal-display" class="text-danger">0</span> VND</div>
+                        </div>
+
+                        <div class="d-flex justify-content-between mt-4">
+                            <button class="btn btn-secondary px-4" onclick="goToStep(2)"><i class="bi bi-arrow-left me-1"></i> Back</button>
+                            <button class="btn btn-primary-lc px-4" id="btn-to-step4">Continue <i class="bi bi-arrow-right ms-1"></i></button>
+                        </div>
+                    </div>
+                </div>
+
+                <%-- ===== STEP 4: PROMOTION ===== --%>
+                <div class="wizard-panel" id="panel-4">
+                    <div class="card lc-elev p-4">
+                        <h5 class="text-navy fw-bold mb-3"><i class="bi bi-4-circle-fill text-primary me-2"></i>Promotion &amp; Payment Details</h5>
 
                         <div class="row justify-content-center">
                             <!-- Promotion Details -->
                             <div class="col-md-8 col-lg-6">
                                 <h6 class="text-navy fw-bold mb-3 text-uppercase small">Apply Promo Code</h6>
                                 <div class="mb-4">
-                                    <label class="form-label">Promo Code</label>
+                                    <label class="form-label fw-semibold text-muted small">Promo Code</label>
                                     <div class="input-group">
-                                        <input type="text" id="promo-code" class="form-control text-uppercase" placeholder="Enter promo code...">
-                                        <button class="btn btn-outline-primary" type="button" id="btn-apply-promo"><i class="bi bi-check-lg me-1"></i>Apply</button>
+                                        <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-tag-fill"></i></span>
+                                        <input type="text" id="promo-code" class="form-control border-start-0 text-uppercase fw-bold text-primary" placeholder="Enter promo code..." style="letter-spacing: 1px;">
+                                        <button class="btn btn-primary px-4 fw-semibold" type="button" id="btn-apply-promo"><i class="bi bi-check-lg me-1"></i>Apply</button>
                                     </div>
                                 </div>
 
@@ -355,8 +385,12 @@
                                     <span class="text-muted">Ticket Subtotal:</span>
                                     <span class="fw-semibold text-navy"><span id="summary-subtotal">0</span> VND</span>
                                 </div>
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span class="text-muted">Concessions Subtotal:</span>
+                                    <span class="fw-semibold text-navy"><span id="summary-food-subtotal">0</span> VND</span>
+                                </div>
                                 <div class="d-flex justify-content-between mb-2 text-success">
-                                    <span>Discount:</span>
+                                    <span>Discount (Tickets only):</span>
                                     <span>-<span id="summary-discount">0</span> VND</span>
                                 </div>
                                 <div class="d-flex justify-content-between border-top pt-2 fs-5 fw-bold text-navy">
@@ -367,16 +401,16 @@
                         </div>
 
                         <div class="d-flex justify-content-between mt-5">
-                            <button class="btn btn-secondary px-4" onclick="goToStep(2)"><i class="bi bi-arrow-left me-1"></i> Back</button>
-                            <button class="btn btn-primary-lc px-4" id="btn-to-step4">Continue <i class="bi bi-arrow-right ms-1"></i></button>
+                            <button class="btn btn-secondary px-4" onclick="goToStep(3)"><i class="bi bi-arrow-left me-1"></i> Back</button>
+                            <button class="btn btn-primary-lc px-4" id="btn-to-step5">Continue <i class="bi bi-arrow-right ms-1"></i></button>
                         </div>
                     </div>
                 </div>
 
-                <%-- ===== STEP 4: CONFIRMATION & PAYMENT ===== --%>
-                <div class="wizard-panel" id="panel-4">
+                <%-- ===== STEP 5: CONFIRMATION & PAYMENT ===== --%>
+                <div class="wizard-panel" id="panel-5">
                     <div class="card lc-elev p-4">
-                        <h5 class="text-navy fw-bold mb-3"><i class="bi bi-4-circle-fill text-primary me-2"></i>Confirmation &amp; Payment</h5>
+                        <h5 class="text-navy fw-bold mb-3"><i class="bi bi-5-circle-fill text-primary me-2"></i>Confirmation &amp; Payment</h5>
 
                         <div class="row g-4">
                             <!-- Invoice detail -->
@@ -400,6 +434,10 @@
                                             <tr>
                                                 <th class="bg-light text-navy">Selected Seats</th>
                                                 <td id="invoice-seats" class="font-monospace fw-bold text-navy"></td>
+                                            </tr>
+                                            <tr id="invoice-concessions-row" class="d-none">
+                                                <th class="bg-light text-navy">Concessions</th>
+                                                <td id="invoice-concessions" class="small text-navy"></td>
                                             </tr>
                                             <tr>
                                                 <th class="bg-light text-navy">Booking Account</th>
@@ -467,7 +505,7 @@
                         </div>
 
                         <div class="d-flex justify-content-between mt-5">
-                            <button class="btn btn-secondary px-4" onclick="goToStep(3)"><i class="bi bi-arrow-left me-1"></i> Back</button>
+                            <button class="btn btn-secondary px-4" onclick="goToStep(4)"><i class="bi bi-arrow-left me-1"></i> Back</button>
                             <button class="btn btn-success px-5 fw-bold fs-6" id="btn-confirm-booking" disabled>
                                 <i class="bi bi-cash-stack me-2"></i>CONFIRM CASH PAYMENT
                             </button>
@@ -475,8 +513,8 @@
                     </div>
                 </div>
 
-                <%-- ===== STEP 5: GENERATE & PRINT TICKET ===== --%>
-                <div class="wizard-panel" id="panel-5">
+                <%-- ===== STEP 6: GENERATE & PRINT TICKET ===== --%>
+                <div class="wizard-panel" id="panel-6">
                     <div class="card lc-elev p-4 text-center">
                         <div class="mb-4">
                             <div class="bg-success text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width:70px;height:70px;">
@@ -499,8 +537,11 @@
                                         <div class="d-flex justify-content-between mb-1">
                                             <span>Showtime:</span><strong id="final-time"></strong>
                                         </div>
-                                        <div class="d-flex justify-content-between">
+                                        <div class="d-flex justify-content-between mb-1">
                                             <span>Seats:</span><strong id="final-seats"></strong>
+                                        </div>
+                                        <div class="d-flex justify-content-between border-top mt-1 pt-1 d-none" id="final-concessions-row">
+                                            <span>Concessions:</span><strong id="final-concessions"></strong>
                                         </div>
                                     </div>
 
@@ -556,7 +597,9 @@
                                     totalAmount: 0,
                                     subtotalAmount: 0,
                                     bookingCode: '',
-                                    bookingId: null
+                                    bookingId: null,
+                                    foodItems: {}, // Map of foodId -> qty
+                                    foodSubtotalAmount: 0
                                 };
 
                                 // DOM Elements
@@ -583,11 +626,11 @@
                                         state.bookingCode = '${successBookingCode}';
                                         state.bookingId = '${successBookingId}';
 
-                                        // Fetch booking detail to populate Step 5 UI
+                                        // Fetch booking detail to populate Step 6 UI
                                         fetch(contextPath + '/staff/booking?action=getBookingDetail&bookingId=' + state.bookingId)
                                                 .then(res => res.json())
                                                 .then(ticket => {
-                                                    // Populate Step 5 elements
+                                                    // Populate final receipt elements
                                                     document.getElementById('final-booking-code').innerText = ticket.bookingCode;
                                                     document.getElementById('final-movie').innerText = ticket.movieTitle;
 
@@ -611,8 +654,28 @@
                                                     document.getElementById('final-time').innerText = showtimeDateStr;
                                                     document.getElementById('final-seats').innerText = (ticket.seatLabels || []).join(', ');
 
-                                                    // Navigate to step 5
-                                                    goToStep(5);
+                                                    // Fetch concessions for this booking
+                                                    fetch(contextPath + '/staff/booking?action=getBookingFoodItems&bookingId=' + state.bookingId)
+                                                            .then(r => r.json())
+                                                            .then(foodItems => {
+                                                                const concessionsList = [];
+                                                                (foodItems || []).forEach(f => {
+                                                                    concessionsList.push(f.name + ' x' + f.quantity);
+                                                                });
+                                                                const finalConRow = document.getElementById('final-concessions-row');
+                                                                const finalConText = document.getElementById('final-concessions');
+                                                                if (concessionsList.length > 0) {
+                                                                    finalConText.innerText = concessionsList.join(', ');
+                                                                    finalConRow.classList.remove('d-none');
+                                                                } else {
+                                                                    finalConRow.classList.add('d-none');
+                                                                }
+                                                                goToStep(6);
+                                                            })
+                                                            .catch(e => {
+                                                                console.error('Error fetching concessions:', e);
+                                                                goToStep(6);
+                                                            });
                                                 })
                                                 .catch(err => {
                                                     console.error('Error loading ticket details: ', err);
@@ -791,8 +854,6 @@
 
                                                         if (!seat.active && !isBooked) {
                                                             seatDiv.innerHTML = '<i class="bi bi-x-lg"></i>';
-                                                        } else {
-                                                            seatDiv.innerText = seat.colNumber;
                                                         }
 
                                                         seatDiv.title = seat.rowLabel + seat.colNumber + ' (' + seat.seatType + ') – ' + (isBooked ? 'BOOKED' : (!seat.active ? 'MAINTENANCE' : 'AVAILABLE'));
@@ -1041,16 +1102,138 @@
 
                                 document.getElementById('btn-to-step3').addEventListener('click', () => {
                                     if (state.selectedSeats.length > 0) {
-                                        // Initialize step 3 pricing inputs
-                                        document.getElementById('summary-subtotal').innerText = state.subtotalAmount.toLocaleString();
-                                        document.getElementById('summary-discount').innerText = state.promoDiscount.toLocaleString();
-                                        calculateTotalCheckout();
+                                        loadFoodCatalog();
+                                        recalculateFoodTotals();
                                         goToStep(3);
                                     }
                                 });
 
                                 // ==========================================
-                                // STEP 3: PROMO APPLICATION
+                                // STEP 3: FOOD & DRINKS UTILITIES
+                                // ==========================================
+                                let foodCatalog = [];
+
+                                function loadFoodCatalog() {
+                                    const container = document.getElementById('staff-food-items-container');
+                                    if (foodCatalog.length > 0) {
+                                        renderFoodCatalog();
+                                        return;
+                                    }
+
+                                    container.innerHTML = 
+                                        '<div class="col-12 text-center py-4">' +
+                                        '    <div class="spinner-border text-primary" role="status"></div>' +
+                                        '    <div class="text-muted mt-2">Loading catalog...</div>' +
+                                        '</div>';
+
+                                    fetch(contextPath + '/staff/booking?action=getFoodItems')
+                                        .then(res => res.json())
+                                        .then(data => {
+                                            foodCatalog = data;
+                                            renderFoodCatalog();
+                                        })
+                                        .catch(err => {
+                                            console.error('Error loading concessions catalog:', err);
+                                            container.innerHTML = 
+                                                '<div class="col-12 text-center text-danger py-4">' +
+                                                '    <i class="bi bi-exclamation-triangle-fill fs-2"></i>' +
+                                                '    <p class="mt-2">Failed to load Food & Drinks catalog.</p>' +
+                                                '</div>';
+                                        });
+                                }
+
+                                function renderFoodCatalog() {
+                                    const container = document.getElementById('staff-food-items-container');
+                                    container.innerHTML = '';
+
+                                    const categories = {
+                                        'COMBO': { title: '✨ Combos & Deals', icon: 'bi-box2-heart' },
+                                        'SNACK': { title: '🍿 Popcorn & Snacks', icon: 'bi-egg-fried' },
+                                        'DRINK': { title: '🥤 Drinks', icon: 'bi-cup-straw' }
+                                    };
+
+                                    for (const catKey in categories) {
+                                        const cat = categories[catKey];
+                                        const items = foodCatalog.filter(item => item.category === catKey && item.active);
+                                        if (items.length === 0) continue;
+
+                                        // Render Category Header
+                                        const headerCol = document.createElement('div');
+                                        headerCol.className = 'col-12 mt-3';
+                                        headerCol.innerHTML = '<h6 class="category-tab">' + cat.title + '</h6>';
+                                        container.appendChild(headerCol);
+
+                                        // Render Items
+                                        items.forEach(item => {
+                                            const qty = state.foodItems[item.foodId] || 0;
+                                            const col = document.createElement('div');
+                                            col.className = 'col-md-6';
+                                            col.innerHTML = 
+                                                '<div class="food-card" style="display: flex; border: 1px solid var(--bk-border); border-radius: 12px; overflow: hidden; background: #fff; height: 120px; margin-bottom: 10px;">' +
+                                                '    <div class="food-img-wrapper" style="width: 120px; background: #f1f5f9; display: flex; align-items: center; justify-content: center; font-size: 2.2rem; color: var(--bk-muted); flex-shrink: 0;">' +
+                                                '        <i class="bi ' + cat.icon + '"></i>' +
+                                                '    </div>' +
+                                                '    <div class="food-info" style="padding: 1rem; display: flex; flex-direction: column; justify-content: space-between; flex-grow: 1;">' +
+                                                '        <div>' +
+                                                '            <div class="fw-bold text-dark" style="font-size:0.95rem;">' + item.name + '</div>' +
+                                                '            <div class="text-muted small">' + (item.description || '') + '</div>' +
+                                                '        </div>' +
+                                                '        <div class="d-flex justify-content-between align-items-center">' +
+                                                '            <div class="fw-bold text-primary" style="font-size:1.05rem;">' +
+                                                                formatNumber(item.price) + ' VND' +
+                                                '            </div>' +
+                                                '            <div class="d-flex align-items-center">' +
+                                                '                <button type="button" class="qty-btn" onclick="updateFoodQty(' + item.foodId + ', -1)" style="width: 32px; height: 32px; border-radius: 8px; border: 1px solid var(--bk-border); background: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.15s ease; font-weight: bold;">-</button>' +
+                                                '                <input type="text" class="qty-input" id="staff_food_qty_' + item.foodId + '" value="' + qty + '" readonly style="width: 35px; text-align: center; border: none; font-weight: 600; background: transparent;">' +
+                                                '                <button type="button" class="qty-btn" onclick="updateFoodQty(' + item.foodId + ', 1)" style="width: 32px; height: 32px; border-radius: 8px; border: 1px solid var(--bk-border); background: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.15s ease; font-weight: bold;">+</button>' +
+                                                '            </div>' +
+                                                '        </div>' +
+                                                '    </div>' +
+                                                '</div>';
+                                            container.appendChild(col);
+                                        });
+                                    }
+                                }
+
+                                function updateFoodQty(foodId, change) {
+                                    let qty = (state.foodItems[foodId] || 0) + change;
+                                    if (qty < 0) qty = 0;
+                                    if (qty > 10) qty = 10;
+
+                                    if (qty > 0) {
+                                        state.foodItems[foodId] = qty;
+                                    } else {
+                                        delete state.foodItems[foodId];
+                                    }
+
+                                    const input = document.getElementById('staff_food_qty_' + foodId);
+                                    if (input) {
+                                        input.value = qty;
+                                    }
+
+                                    recalculateFoodTotals();
+                                }
+
+                                function recalculateFoodTotals() {
+                                    let foodSubtotal = 0;
+                                    for (const foodId in state.foodItems) {
+                                        const qty = state.foodItems[foodId];
+                                        const item = foodCatalog.find(f => f.foodId == foodId);
+                                        if (item) {
+                                            foodSubtotal += item.price * qty;
+                                        }
+                                    }
+                                    state.foodSubtotalAmount = foodSubtotal;
+                                    document.getElementById('staff-food-subtotal-display').innerText = foodSubtotal.toLocaleString();
+                                    document.getElementById('staff-tickets-subtotal-display').innerText = state.subtotalAmount.toLocaleString();
+                                }
+
+                                function formatNumber(val) {
+                                    return (val || 0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+                                }
+
+                                // ==========================================
+                                // STEP 4: PROMO APPLICATION
                                 // ==========================================
 
                                 // Apply Promotion Code
@@ -1109,20 +1292,47 @@
                                 });
 
                                 function calculateTotalCheckout() {
-                                    state.totalAmount = state.subtotalAmount - state.promoDiscount;
+                                    state.totalAmount = state.subtotalAmount + (state.foodSubtotalAmount || 0) - state.promoDiscount;
                                     if (state.totalAmount < 0)
                                         state.totalAmount = 0;
                                     document.getElementById('summary-total').innerText = state.totalAmount.toLocaleString();
                                 }
 
                                 document.getElementById('btn-to-step4').addEventListener('click', () => {
-                                    // Fill step 4 invoice summary
+                                    document.getElementById('summary-subtotal').innerText = state.subtotalAmount.toLocaleString();
+                                    document.getElementById('summary-food-subtotal').innerText = state.foodSubtotalAmount.toLocaleString();
+                                    document.getElementById('summary-discount').innerText = state.promoDiscount.toLocaleString();
+                                    calculateTotalCheckout();
+                                    goToStep(4);
+                                });
+
+                                document.getElementById('btn-to-step5').addEventListener('click', () => {
+                                    // Fill step 5 invoice summary
                                     document.getElementById('invoice-movie').innerText = state.movieTitle;
                                     document.getElementById('invoice-time').innerText = state.startTime + ' on ' + state.date;
                                     document.getElementById('invoice-room').innerText = state.roomName + ' (' + state.roomType + ')';
 
                                     const seatLabels = state.selectedSeats.map(s => s.rowLabel + s.colNumber);
                                     document.getElementById('invoice-seats').innerText = seatLabels.join(', ');
+
+                                    // Concessions
+                                    const concessionsList = [];
+                                    for (const foodId in state.foodItems) {
+                                        const qty = state.foodItems[foodId];
+                                        const item = foodCatalog.find(f => f.foodId == foodId);
+                                        if (item) {
+                                            concessionsList.push(item.name + ' x' + qty);
+                                        }
+                                    }
+
+                                    const concessionsRow = document.getElementById('invoice-concessions-row');
+                                    const concessionsText = document.getElementById('invoice-concessions');
+                                    if (concessionsList.length > 0) {
+                                        concessionsText.innerText = concessionsList.join(', ');
+                                        concessionsRow.classList.remove('d-none');
+                                    } else {
+                                        concessionsRow.classList.add('d-none');
+                                    }
 
                                     document.getElementById('invoice-customer').innerText = 'Guest (guest01)';
 
@@ -1144,7 +1354,7 @@
 
                                     updatePaymentMethodUI();
 
-                                    goToStep(4);
+                                    goToStep(5);
                                 });
 
                                 // ==========================================
@@ -1218,12 +1428,22 @@
                                     // Prepare payload
                                     const seatIdsString = state.selectedSeats.map(s => s.seatId).join(',');
 
+                                    const foodItemsArr = [];
+                                    for (const foodId in state.foodItems) {
+                                        foodItemsArr.push({
+                                            foodId: Number(foodId),
+                                            quantity: state.foodItems[foodId]
+                                        });
+                                    }
+                                    const foodItemsJson = JSON.stringify(foodItemsArr);
+
                                     const formData = new URLSearchParams();
                                     formData.append('showtimeId', state.showtimeId);
                                     formData.append('seatIds', seatIdsString);
                                     formData.append('promoCode', state.promoCode);
                                     formData.append('paymentMethod', selectedMethod);
                                     formData.append('notes', selectedMethod === 'VNPAY' ? 'Counter booking via VNPay' : 'Counter booking via Cash');
+                                    formData.append('foodItems', foodItemsJson);
 
                                     fetch(contextPath + '/staff/booking', {
                                         method: 'POST',
@@ -1242,7 +1462,7 @@
                                                     state.bookingCode = data.bookingCode;
                                                     state.bookingId = data.bookingId;
 
-                                                    // Fill Step 5 E-Ticket Details
+                                                    // Fill Step 6 E-Ticket Details
                                                     document.getElementById('final-booking-code').innerText = data.bookingCode;
                                                     document.getElementById('final-movie').innerText = state.movieTitle;
                                                     document.getElementById('final-time').innerText = state.startTime + ' - ' + state.date;
@@ -1250,7 +1470,25 @@
                                                     const seatLabels = state.selectedSeats.map(s => s.rowLabel + s.colNumber);
                                                     document.getElementById('final-seats').innerText = seatLabels.join(', ');
 
-                                                    goToStep(5);
+                                                    // Concessions
+                                                    const concessionsList = [];
+                                                    for (const foodId in state.foodItems) {
+                                                        const qty = state.foodItems[foodId];
+                                                        const item = foodCatalog.find(f => f.foodId == foodId);
+                                                        if (item) {
+                                                            concessionsList.push(item.name + ' x' + qty);
+                                                        }
+                                                    }
+                                                    const finalConRow = document.getElementById('final-concessions-row');
+                                                    const finalConText = document.getElementById('final-concessions');
+                                                    if (concessionsList.length > 0) {
+                                                        finalConText.innerText = concessionsList.join(', ');
+                                                        finalConRow.classList.remove('d-none');
+                                                    } else {
+                                                        finalConRow.classList.add('d-none');
+                                                    }
+
+                                                    goToStep(6);
                                                 } else {
                                                     btnConfirmBooking.disabled = false;
                                                     if (selectedMethod === 'VNPAY') {
@@ -1294,8 +1532,8 @@
                                     if (state.currentStep >= 2 && stepNum === 1) {
                                         closeWS();
                                     }
-                                    // Close WebSocket on Step 5 (successful booking completion)
-                                    if (stepNum === 5) {
+                                    // Close WebSocket on Step 6 (successful booking completion)
+                                    if (stepNum === 6) {
                                         closeWS();
                                     }
 
@@ -1305,14 +1543,16 @@
                                     document.querySelectorAll('.wizard-panel').forEach(p => p.classList.remove('active'));
                                     document.getElementById('panel-' + stepNum).classList.add('active');
 
-                                    // Toggle indicators
-                                    for (let i = 1; i <= 5; i++) {
+                                    // Toggle indicators (now 6 steps)
+                                    for (let i = 1; i <= 6; i++) {
                                         const ind = document.getElementById('step-ind-' + i);
-                                        ind.classList.remove('active', 'completed');
-                                        if (i < stepNum) {
-                                            ind.classList.add('completed');
-                                        } else if (i === stepNum) {
-                                            ind.classList.add('active');
+                                        if (ind) {
+                                            ind.classList.remove('active', 'completed');
+                                            if (i < stepNum) {
+                                                ind.classList.add('completed');
+                                            } else if (i === stepNum) {
+                                                ind.classList.add('active');
+                                            }
                                         }
                                     }
                                 }
@@ -1336,7 +1576,9 @@
                                         totalAmount: 0,
                                         subtotalAmount: 0,
                                         bookingCode: '',
-                                        bookingId: null
+                                        bookingId: null,
+                                        foodItems: {},
+                                        foodSubtotalAmount: 0
                                     };
 
                                     // Clear inputs

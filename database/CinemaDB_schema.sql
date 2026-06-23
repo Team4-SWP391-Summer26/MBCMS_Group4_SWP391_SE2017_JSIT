@@ -224,6 +224,7 @@ CREATE TABLE dbo.promotions (
     max_uses         INT           NULL,             -- NULL = unlimited
     used_count       INT           NOT NULL CONSTRAINT DF_promotions_used DEFAULT (0),
     active           BIT           NOT NULL CONSTRAINT DF_promotions_active DEFAULT (1),
+    is_deleted       BIT           NOT NULL CONSTRAINT DF_promotions_deleted DEFAULT (0),
     CONSTRAINT PK_promotions PRIMARY KEY (promo_id),
     CONSTRAINT UQ_promotions_code UNIQUE (code),
     CONSTRAINT CK_promotions_value CHECK (discount_value > 0),

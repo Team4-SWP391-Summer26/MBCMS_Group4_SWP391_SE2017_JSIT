@@ -135,11 +135,13 @@
         <div class="bk-line done"></div>
         <div class="bk-step active"><span class="bk-dot">2</span>Seats</div>
         <div class="bk-line"></div>
-        <div class="bk-step"><span class="bk-dot">3</span>Review</div>
+        <div class="bk-step"><span class="bk-dot">3</span>Food & Drinks</div>
         <div class="bk-line"></div>
-        <div class="bk-step"><span class="bk-dot">4</span>Payment</div>
+        <div class="bk-step"><span class="bk-dot">4</span>Review</div>
         <div class="bk-line"></div>
-        <div class="bk-step"><span class="bk-dot">5</span>Confirm</div>
+        <div class="bk-step"><span class="bk-dot">5</span>Payment</div>
+        <div class="bk-line"></div>
+        <div class="bk-step"><span class="bk-dot">6</span>Confirm</div>
     </div>
 
     <h3 class="fw-bold mb-1" style="color:var(--bk-navy);">Choose your seats</h3>
@@ -345,7 +347,7 @@
     function proceedToCheckout() {
         if (selectedSeats.size === 0) return;
         const ids = [...selectedSeats.keys()].join(',');
-        window.location.href = CTX + '/booking/checkout'
+        window.location.href = CTX + '/booking/food-drinks'
             + '?showtimeId=' + SHOWTIME_ID
             + '&seatIds='    + encodeURIComponent(ids);
     }

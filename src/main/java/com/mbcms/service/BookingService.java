@@ -58,6 +58,11 @@ public interface BookingService {
     Booking confirmBooking(long bookingId, String customerUsername);
 
     /**
+     * Cap nhat subtotal va total_amount cua booking.
+     */
+    boolean updateBookingTotals(long bookingId, java.math.BigDecimal newSubtotal, java.math.BigDecimal newTotalAmount);
+
+    /**
      * Lịch sử booking của customer, mới nhất trước.
      */
     List<Booking> getBookingHistory(String customerUsername);

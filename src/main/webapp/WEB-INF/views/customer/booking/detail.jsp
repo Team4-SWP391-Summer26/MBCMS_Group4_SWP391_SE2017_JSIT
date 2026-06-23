@@ -212,6 +212,13 @@
                 </div>
             </c:if>
 
+            <c:if test="${foodAdded}">
+                <div class="success-banner" style="background:#e0f2fe; border-color:#bae6fd;">
+                    <div class="title" style="color:#0369a1;">Concessions saved!</div>
+                    <div class="sub" style="color:#075985;">Please pay for concessions at the counter when you pick them up.</div>
+                </div>
+            </c:if>
+
             <c:if test="${not empty param.error}">
                 <div class="alert alert-danger border-0 mb-3" style="border-radius: 10px; font-size: .9rem;">
                     <c:out value="${param.error}"/>
@@ -275,6 +282,76 @@
                         </div>
                     </c:if>
 
+                    <c:if test="${not empty concessions}">
+                        <div class="ticket-divider" style="margin: 18px 0;"></div>
+                        <div class="detail-item mb-3">
+                            <div class="label">Food & Drinks Concessions</div>
+                            <div class="mt-2">
+                                <c:forEach var="entry" items="${concessions}">
+                                    <div class="d-flex justify-content-between align-items-center mb-1 small text-dark">
+                                        <span>${entry.key.name} <strong class="text-primary">x${entry.value}</strong></span>
+                                        <span><fmt:formatNumber value="${entry.key.price * entry.value}" pattern="#,###"/>₫</span>
+                                    </div>
+                                </c:forEach>
+                            </div>
+                            
+                            <%-- Food Order Status Tracking --%>
+                            <c:if test="${not empty foodOrder}">
+                                <div class="mt-3 p-3 bg-light rounded-3">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <span class="small fw-semibold text-secondary">Pickup Status:</span>
+                                        <span class="badge bg-primary text-white text-uppercase" style="font-size:0.75rem;">${foodOrder.status}</span>
+                                    </div>
+                                    
+                                    <%-- Visual status tracker --%>
+                                    <div class="d-flex justify-content-between align-items-center mt-3 position-relative px-2">
+                                        <div class="position-absolute start-0 end-0 top-50 translate-middle-y bg-secondary" style="height:3px; z-index:1; opacity:0.2;"></div>
+                                        <c:set var="statusVal" value="1"/>
+                                        <c:if test="${foodOrder.status == 'PREPARING'}"><c:set var="statusVal" value="2"/></c:if>
+                                        <c:if test="${foodOrder.status == 'READY'}"><c:set var="statusVal" value="3"/></c:if>
+                                        <c:if test="${foodOrder.status == 'DELIVERED'}"><c:set var="statusVal" value="4"/></c:if>
+                                        
+                                        <%-- Step 1: PENDING --%>
+                                        <div class="text-center" style="z-index:2;">
+                                            <div class="rounded-circle d-flex align-items-center justify-content-center ${statusVal >= 1 ? 'bg-success text-white' : 'bg-secondary text-white'}" style="width:24px; height:24px; font-size:0.7rem; font-weight:700;">
+                                                <c:choose><c:when test="${statusVal > 1}"><i class="bi bi-check-lg"></i></c:when><c:otherwise>1</c:otherwise></c:choose>
+                                            </div>
+                                            <div class="small mt-1 text-muted" style="font-size:0.68rem;">Pending</div>
+                                        </div>
+                                        <%-- Step 2: PREPARING --%>
+                                        <div class="text-center" style="z-index:2;">
+                                            <div class="rounded-circle d-flex align-items-center justify-content-center ${statusVal >= 2 ? 'bg-success text-white' : 'bg-secondary text-white'}" style="width:24px; height:24px; font-size:0.7rem; font-weight:700;">
+                                                <c:choose><c:when test="${statusVal > 2}"><i class="bi bi-check-lg"></i></c:when><c:otherwise>2</c:otherwise></c:choose>
+                                            </div>
+                                            <div class="small mt-1 text-muted" style="font-size:0.68rem;">Preparing</div>
+                                        </div>
+                                        <%-- Step 3: READY --%>
+                                        <div class="text-center" style="z-index:2;">
+                                            <div class="rounded-circle d-flex align-items-center justify-content-center ${statusVal >= 3 ? 'bg-success text-white' : 'bg-secondary text-white'}" style="width:24px; height:24px; font-size:0.7rem; font-weight:700;">
+                                                <c:choose><c:when test="${statusVal > 3}"><i class="bi bi-check-lg"></i></c:when><c:otherwise>3</c:otherwise></c:choose>
+                                            </div>
+                                            <div class="small mt-1 text-muted" style="font-size:0.68rem;">Ready</div>
+                                        </div>
+                                        <%-- Step 4: DELIVERED --%>
+                                        <div class="text-center" style="z-index:2;">
+                                            <div class="rounded-circle d-flex align-items-center justify-content-center ${statusVal >= 4 ? 'bg-success text-white' : 'bg-secondary text-white'}" style="width:24px; height:24px; font-size:0.7rem; font-weight:700;">
+                                                4
+                                            </div>
+                                            <div class="small mt-1 text-muted" style="font-size:0.68rem;">Delivered</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <c:if test="${foodOrder.status == 'PENDING' && booking.status == 'CONFIRMED'}">
+                                        <div class="alert alert-warning border-0 mt-3 mb-0 py-2 small d-flex align-items-center gap-2">
+                                            <i class="bi bi-info-circle-fill text-warning"></i>
+                                            <span>Please pay for concessions at the counter upon pickup (unpaid order).</span>
+                                        </div>
+                                    </c:if>
+                                </div>
+                            </c:if>
+                        </div>
+                    </c:if>
+
                     <div class="ticket-divider" style="margin: 0 0 4px;"></div>
 
                     <div class="price-line">
@@ -300,12 +377,22 @@
                     </c:if>
                 </div>
 
-                <div class="action-bar">
-                    <c:if test="${booking.status == 'PENDING'}">
-                        <a href="${pageContext.request.contextPath}/booking/payment?bookingId=${booking.bookingId}"
-                           class="btn btn-primary-lc">Pay Now</a>
-                        <button type="button" class="btn-cancel-lc" onclick="showCancelModal()">Cancel Booking</button>
-                    </c:if>
+                <div class="action-bar d-flex justify-content-between align-items-center w-100">
+                    <div>
+                        <c:if test="${booking.status == 'PENDING'}">
+                            <a href="${pageContext.request.contextPath}/booking/payment?bookingId=${booking.bookingId}"
+                               class="btn btn-primary-lc me-2">Pay Now</a>
+                            <button type="button" class="btn-cancel-lc" onclick="showCancelModal()">Cancel Booking</button>
+                        </c:if>
+                    </div>
+                    <div>
+                        <c:if test="${booking.status == 'CONFIRMED' && (empty foodOrder || foodOrder.status == 'PENDING')}">
+                            <a href="${pageContext.request.contextPath}/booking/food-drinks?bookingId=${booking.bookingId}"
+                               class="btn btn-outline-primary fw-bold px-3 py-2" style="border-radius:9px; font-size:.92rem; text-decoration:none;">
+                                <i class="bi bi-cart-plus"></i> <c:choose><c:when test="${not empty concessions}">Modify Concessions</c:when><c:otherwise>Add Food & Drinks</c:otherwise></c:choose>
+                            </a>
+                        </c:if>
+                    </div>
                 </div>
             </div>
 

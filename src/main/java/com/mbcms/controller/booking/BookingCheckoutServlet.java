@@ -5,16 +5,21 @@ import com.mbcms.dao.SeatDAO;
 import com.mbcms.dao.impl.SeatDAOImpl;
 import com.mbcms.model.Booking;
 import com.mbcms.model.Customer;
+import com.mbcms.model.FoodItem;
 import com.mbcms.service.BookingService;
+import com.mbcms.service.FoodService;
 import com.mbcms.service.impl.BookingServiceImpl;
+import com.mbcms.service.impl.FoodServiceImpl;
 import com.mbcms.ws.SeatWebSocketServer;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * BookingCheckoutServlet – /booking/checkout
@@ -34,11 +39,13 @@ public class BookingCheckoutServlet extends HttpServlet {
 
     private BookingService bookingService;
     private SeatDAO seatDao;
+    private FoodService foodService;
 
     @Override
     public void init() {
         bookingService = new BookingServiceImpl();
         seatDao = new SeatDAOImpl();
+        foodService = new FoodServiceImpl();
     }
 
     // ── GET: tạo PENDING booking rồi hiển thị checkout page ──────────────
@@ -74,6 +81,8 @@ public class BookingCheckoutServlet extends HttpServlet {
             Booking booking = bookingService.createPendingBooking(
                     customer.getUsername(), showtimeId, seatIds,
                     req.getParameter("promoCode"), null);
+
+            processFoodOrder(booking, session, req);
 
             // Lưu vào session để confirm page dùng
             session.setAttribute("pendingBookingId", booking.getBookingId());
@@ -163,6 +172,7 @@ public class BookingCheckoutServlet extends HttpServlet {
                 // → subtotal/discount/total được tính lại đúng.
                 Booking booking = bookingService.createPendingBooking(
                         customer.getUsername(), showtimeId, seatIds, promoCode, null);
+                processFoodOrder(booking, session, req);
                 session.setAttribute("pendingBookingId", booking.getBookingId());
                 req.setAttribute("booking", booking);
 
@@ -178,6 +188,7 @@ public class BookingCheckoutServlet extends HttpServlet {
                 try {
                     Booking fallback = bookingService.createPendingBooking(
                             customer.getUsername(), showtimeId, seatIds, null, null);
+                    processFoodOrder(fallback, session, req);
                     session.setAttribute("pendingBookingId", fallback.getBookingId());
                     req.setAttribute("booking", fallback);
                 } catch (Exception inner) {
@@ -239,5 +250,36 @@ public class BookingCheckoutServlet extends HttpServlet {
         if (sessionVal instanceof Long) return (Long) sessionVal;
         if (sessionVal instanceof Number) return ((Number) sessionVal).longValue();
         return null;
+    }
+
+    private void processFoodOrder(Booking booking, HttpSession session, HttpServletRequest req) {
+        if (session == null) return;
+        Map<Long, Integer> selectedFood = (Map<Long, Integer>) session.getAttribute("selectedFoodItems");
+        BigDecimal foodSubtotal = BigDecimal.ZERO;
+        if (selectedFood != null && !selectedFood.isEmpty()) {
+            for (Map.Entry<Long, Integer> entry : selectedFood.entrySet()) {
+                FoodItem item = foodService.getFoodItemById(entry.getKey());
+                if (item != null) {
+                    foodSubtotal = foodSubtotal.add(item.getPrice().multiply(BigDecimal.valueOf(entry.getValue())));
+                }
+            }
+            if (foodSubtotal.compareTo(BigDecimal.ZERO) > 0) {
+                // Update booking model
+                booking.setSubtotal(booking.getSubtotal().add(foodSubtotal));
+                booking.setTotalAmount(booking.getTotalAmount().add(foodSubtotal));
+                // Update booking DB
+                bookingService.updateBookingTotals(booking.getBookingId(), booking.getSubtotal(), booking.getTotalAmount());
+            }
+            // Save food order as PENDING
+            foodService.saveFoodOrder(booking.getBookingId(), selectedFood, "PENDING");
+        } else {
+            // clear food order if it was previously saved but user cleared it
+            foodService.saveFoodOrder(booking.getBookingId(), null, "PENDING");
+        }
+        
+        req.setAttribute("foodSubtotal", foodSubtotal);
+        if (selectedFood != null && !selectedFood.isEmpty()) {
+            req.setAttribute("concessions", foodService.getFoodItemsByBookingId(booking.getBookingId()));
+        }
     }
 }

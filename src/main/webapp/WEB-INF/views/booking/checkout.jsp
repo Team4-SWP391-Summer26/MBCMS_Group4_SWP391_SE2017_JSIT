@@ -109,17 +109,19 @@
 
 <div class="container bk-wrap py-4">
 
-    <%-- ===== Stepper (3/5 Review) ===== --%>
+    <%-- ===== Stepper (4/6 Review) ===== --%>
     <div class="bk-steps mb-4">
         <div class="bk-step done"><span class="bk-dot"><i class="bi bi-check-lg"></i></span>Showtime</div>
         <div class="bk-line done"></div>
         <div class="bk-step done"><span class="bk-dot"><i class="bi bi-check-lg"></i></span>Seats</div>
         <div class="bk-line done"></div>
-        <div class="bk-step active"><span class="bk-dot">3</span>Review</div>
+        <div class="bk-step done"><span class="bk-dot"><i class="bi bi-check-lg"></i></span>Food & Drinks</div>
+        <div class="bk-line done"></div>
+        <div class="bk-step active"><span class="bk-dot">4</span>Review</div>
         <div class="bk-line"></div>
-        <div class="bk-step"><span class="bk-dot">4</span>Payment</div>
+        <div class="bk-step"><span class="bk-dot">5</span>Payment</div>
         <div class="bk-line"></div>
-        <div class="bk-step"><span class="bk-dot">5</span>Confirm</div>
+        <div class="bk-step"><span class="bk-dot">6</span>Confirm</div>
     </div>
 
     <h3 class="fw-bold mb-1" style="color:var(--bk-navy);">Review your order</h3>
@@ -192,8 +194,29 @@
 
                 <c:choose>
                     <c:when test="${not empty booking}">
-                        <div class="bk-sum-line"><span class="text-muted">Subtotal</span>
-                            <span><fmt:formatNumber value="${booking.subtotal}" pattern="#,###"/>₫</span></div>
+                        <div class="bk-sum-line">
+                            <span class="text-muted">Tickets Subtotal</span>
+                            <span><fmt:formatNumber value="${booking.subtotal - foodSubtotal}" pattern="#,###"/>₫</span>
+                        </div>
+                        <c:if test="${foodSubtotal > 0}">
+                            <div class="bk-sum-line">
+                                <span class="text-muted">Concessions Subtotal</span>
+                                <span><fmt:formatNumber value="${foodSubtotal}" pattern="#,###"/>₫</span>
+                            </div>
+                        </c:if>
+                        
+                        <c:if test="${not empty concessions}">
+                            <div class="my-3 pt-3 border-top border-light">
+                                <div class="text-muted small mb-2">Selected Concessions</div>
+                                <c:forEach var="entry" items="${concessions}">
+                                    <div class="d-flex justify-content-between align-items-center mb-1 small text-dark">
+                                        <span>${entry.key.name} <strong class="text-primary">x${entry.value}</strong></span>
+                                        <span><fmt:formatNumber value="${entry.key.price * entry.value}" pattern="#,###"/>₫</span>
+                                    </div>
+                                </c:forEach>
+                            </div>
+                        </c:if>
+
                         <c:if test="${booking.discountAmount > 0}">
                             <div class="bk-sum-line text-success"><span>Discount
                                 <c:if test="${not empty promoCode}"><span class="badge bg-success-subtle text-success ms-1">${promoCode}</span></c:if>
