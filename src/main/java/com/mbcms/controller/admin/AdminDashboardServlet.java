@@ -1,11 +1,15 @@
 package com.mbcms.controller.admin;
 
-import com.mbcms.dao.BranchDAO;
-import com.mbcms.dao.MovieBranchDAO;
-import com.mbcms.dao.MovieDAO;
-import com.mbcms.dao.impl.BranchDAOImpl;
-import com.mbcms.dao.impl.MovieBranchDAOImpl;
-import com.mbcms.dao.impl.MovieDAOImpl;
+import com.mbcms.model.Branch;
+import com.mbcms.model.Room;
+import com.mbcms.model.Seat;
+import com.mbcms.service.BranchService;
+import com.mbcms.service.RoomService;
+import com.mbcms.service.SeatService;
+import com.mbcms.service.impl.BranchServiceImpl;
+import com.mbcms.service.impl.RoomServiceImpl;
+import com.mbcms.service.impl.SeatServiceImpl;
+
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -13,35 +17,69 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
+import java.util.List;
 
-/**
- * AdminDashboardServlet - owner: <b>HungNT</b>.
- * Trang chinh cua Admin console (/admin/dashboard): vai thong ke + loi vao
- * cac module. Nam duoi /admin/* nen RoleFilter (ADMIN) da chay truoc.
- */
 @WebServlet({"/admin/dashboard", "/admin"})
 public class AdminDashboardServlet extends HttpServlet {
 
-    private static final String VIEW = "/WEB-INF/views/admin/dashboard.jsp";
+    private final BranchService branchService = new BranchServiceImpl();
+    private final RoomService roomService = new RoomServiceImpl();
+    private final SeatService seatService = new SeatServiceImpl();
 
     @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp)
+    protected void doGet(HttpServletRequest req,
+                         HttpServletResponse resp)
             throws ServletException, IOException {
 
-        // /admin -> chuyen ve /admin/dashboard cho gon URL.
         if (req.getServletPath().equals("/admin")) {
             resp.sendRedirect(req.getContextPath() + "/admin/dashboard");
             return;
         }
 
-        MovieDAO movieDAO = new MovieDAOImpl();
-        BranchDAO branchDAO = new BranchDAOImpl();
-        MovieBranchDAO movieBranchDAO = new MovieBranchDAOImpl();
+        try {
 
-        req.setAttribute("movieCount", movieDAO.findActiveMovies().size());
-        req.setAttribute("branchCount", branchDAO.findAll().size());
-        req.setAttribute("distributionCount", movieBranchDAO.countAll());
+            List<Branch> branches =
+                    branchService.getAllBranches(true);
 
-        req.getRequestDispatcher(VIEW).forward(req, resp);
+            List<Room> rooms =
+                    roomService.getAllRooms(true);
+
+            int totalBranches = branches.size();
+
+            int activeBranches = (int) branches.stream()
+                    .filter(Branch::isActive)
+                    .count();
+
+            int totalRooms = rooms.size();
+
+            int totalSeats = 0;
+
+            for (Room room : rooms) {
+                List<Seat> seats =
+                        seatService.getSeatsByRoom(room.getRoomId());
+
+                totalSeats += seats.size();
+            }
+
+            req.setAttribute("totalBranches", totalBranches);
+            req.setAttribute("activeBranches", activeBranches);
+            req.setAttribute("totalRooms", totalRooms);
+            req.setAttribute("totalSeats", totalSeats);
+
+            req.setAttribute("branches", branches);
+
+            req.getRequestDispatcher(
+                    "/WEB-INF/views/admin/dashboard.jsp")
+                    .forward(req, resp);
+
+        } catch (Exception e) {
+
+            getServletContext().log(
+                    "Error loading admin dashboard", e);
+
+            resp.sendError(
+                    HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+                    "Unable to load dashboard.");
+        }
     }
 }

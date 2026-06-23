@@ -224,7 +224,7 @@ DECLARE @booking_id BIGINT = SCOPE_IDENTITY();
 INSERT INTO dbo.booking_seats (booking_id, seat_id) VALUES (@booking_id, @seat1), (@booking_id, @seat2);
 
 INSERT INTO dbo.payments (booking_id, method, amount, [status], transaction_ref, paid_at)
-VALUES (@booking_id, 'MOMO', @total, 'SUCCESS', 'MOMO-TXN-0001', SYSUTCDATETIME());
+VALUES (@booking_id, 'VNPAY', @total, 'SUCCESS', 'VNPAY-TXN-0001', SYSUTCDATETIME());
 
 UPDATE dbo.promotions SET used_count = used_count + 1 WHERE promo_id = @promo_id;
 
@@ -276,8 +276,11 @@ INSERT INTO #plan VALUES
  ('BK-000002','trangnt', N'MBCMS Ba Trieu',   N'Room 2',    N'Mai 2',            '2026-06-06 20:00', 2, 'CONFIRMED', 'SUMMER50K', 'VNPAY',       'SUCCESS', '2026-06-04 09:15'),
  ('BK-000003','hungnt',  N'MBCMS Nguyen Hue', N'IMAX Hall', N'Dune: Part Three', '2026-06-05 19:00', 3, 'USED',      NULL,        'VNPAY',       'SUCCESS', '2026-06-03 20:05'),
  ('BK-000004','guest01', N'MBCMS Nguyen Hue', N'Room 2',    N'Mai 2',            '2026-06-05 18:00', 1, 'CONFIRMED', NULL,        'CASH',        'SUCCESS', '2026-06-05 17:40'),
- ('BK-000005','trangnt', N'MBCMS Ba Trieu',   N'Room 1',    N'The Last Laugh',   '2026-06-06 16:00', 2, 'PENDING',   NULL,        NULL,          NULL,      '2026-06-06 15:50'),
- ('BK-000006','hungnt',  N'MBCMS Nguyen Hue', N'Room 1',    N'Dune: Part Three', '2026-06-05 14:00', 2, 'CANCELLED', NULL,        'MOMO',        'FAILED',  '2026-06-02 11:30');
+ -- PENDING "tuoi" (tao 3 phut truoc): hien thi giao dich dang cho thanh toan ngay
+ -- sau khi seed. Sau 10 phut, BookingExpiryScheduler se cancel booking + chuyen
+ -- payment nay -> FAILED (minh hoa Option A: khong giu pending xac song).
+ ('BK-000005','trangnt', N'MBCMS Ba Trieu',   N'Room 1',    N'The Last Laugh',   '2026-06-06 16:00', 2, 'PENDING',   NULL,        'VNPAY',       'PENDING', DATEADD(MINUTE, -3, SYSUTCDATETIME())),
+ ('BK-000006','hungnt',  N'MBCMS Nguyen Hue', N'Room 1',    N'Dune: Part Three', '2026-06-05 14:00', 2, 'CANCELLED', NULL,        'VNPAY',       'FAILED',  '2026-06-02 11:30');
 
 -- 14a. bookings (resolve showtime_id + promo_id; compute discount/total)
 INSERT INTO dbo.bookings
@@ -388,4 +391,23 @@ GO
 
 -- Sample report 2: bookings by status
 SELECT [status], COUNT(*) AS cnt FROM dbo.bookings GROUP BY [status] ORDER BY cnt DESC;
+GO
+-- Add opening_time and closing_time columns
+IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('dbo.branches') AND name = 'opening_time')
+BEGIN
+    ALTER TABLE dbo.branches ADD opening_time TIME NULL;
+END
+GO
+
+IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('dbo.branches') AND name = 'closing_time')
+BEGIN
+    ALTER TABLE dbo.branches ADD closing_time TIME NULL;
+END
+GO
+
+-- Seed default operating hours for existing branches
+UPDATE dbo.branches
+SET opening_time = '08:00:00',
+    closing_time = '23:00:00'
+WHERE opening_time IS NULL;
 GO

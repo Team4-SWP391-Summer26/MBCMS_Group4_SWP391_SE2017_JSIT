@@ -163,6 +163,17 @@
                                         </a>
                                     </li>
                                     <li>
+                                        <a class="dropdown-item py-2 px-3" href="${pageContext.request.contextPath}/customer/payments"
+                                           style="color: #4b5563; font-size: 0.9rem; display: flex; align-items: center; gap: 0.5rem;">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
+                                                <line x1="1" y1="10" x2="23" y2="10"></line>
+                                            </svg>
+                                            Payment History
+                                        </a>
+                                    </li>
+                                    <li>
                                         <a class="dropdown-item py-2 px-3"
                                            href="${pageContext.request.contextPath}/auth/change-password"
                                            style="color:#4b5563;font-size:.9rem;

@@ -224,6 +224,7 @@ CREATE TABLE dbo.promotions (
     max_uses         INT           NULL,             -- NULL = unlimited
     used_count       INT           NOT NULL CONSTRAINT DF_promotions_used DEFAULT (0),
     active           BIT           NOT NULL CONSTRAINT DF_promotions_active DEFAULT (1),
+    is_deleted       BIT           NOT NULL CONSTRAINT DF_promotions_deleted DEFAULT (0),
     CONSTRAINT PK_promotions PRIMARY KEY (promo_id),
     CONSTRAINT UQ_promotions_code UNIQUE (code),
     CONSTRAINT CK_promotions_value CHECK (discount_value > 0),
@@ -290,7 +291,7 @@ CREATE TABLE dbo.payments (
     CONSTRAINT FK_payments_booking FOREIGN KEY (booking_id)
         REFERENCES dbo.bookings (booking_id) ON DELETE CASCADE,
     CONSTRAINT CK_payments_amount CHECK (amount >= 0),
-    CONSTRAINT CK_payments_method CHECK (method IN ('CASH','MOMO','VNPAY')),
+    CONSTRAINT CK_payments_method CHECK (method IN ('CASH','VNPAY')),   -- VNPay (online) + Cash (counter); MoMo da bo
     CONSTRAINT CK_payments_status CHECK ([status] IN ('PENDING','SUCCESS','FAILED'))
 );
 GO

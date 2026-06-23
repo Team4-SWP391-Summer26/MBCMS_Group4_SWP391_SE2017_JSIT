@@ -15,11 +15,14 @@ import com.mbcms.model.Payment;
 import com.mbcms.model.Room;
 import com.mbcms.model.Seat;
 import com.mbcms.model.Showtime;
+import com.mbcms.model.FoodItem;
 import com.mbcms.service.BookingService;
+import com.mbcms.service.FoodService;
 import com.mbcms.service.PaymentService;
 import com.mbcms.service.PricingService;
 import com.mbcms.service.SeatAvailabilityService;
 import com.mbcms.service.impl.BookingServiceImpl;
+import com.mbcms.service.impl.FoodServiceImpl;
 import com.mbcms.service.impl.PaymentServiceImpl;
 import com.mbcms.service.impl.PricingServiceImpl;
 import com.mbcms.service.impl.SeatAvailabilityServiceImpl;
@@ -54,6 +57,7 @@ public class CounterBookingServlet extends HttpServlet {
     private final PricingService pricingService = new PricingServiceImpl();
     private final SeatAvailabilityService seatService = new SeatAvailabilityServiceImpl();
     private final PaymentService paymentService = new PaymentServiceImpl();
+    private final FoodService foodService = new FoodServiceImpl();
 
     private final ObjectMapper mapper = new ObjectMapper()
             .registerModule(new com.fasterxml.jackson.datatype.jsr310.JavaTimeModule());
@@ -96,6 +100,12 @@ public class CounterBookingServlet extends HttpServlet {
         req.setAttribute("movies", movies);
         req.setAttribute("rooms", rooms);
         req.getRequestDispatcher("/WEB-INF/views/branch/booking/counter-booking.jsp").forward(req, resp);
+    }
+
+    /** True neu room thuoc branch (chong xem/dat cheo chi nhanh). */
+    private boolean roomBelongsToBranch(long roomId, long branchId) {
+        return roomDAO.findActiveByBranch(branchId).stream()
+                .anyMatch(r -> r.getRoomId() == roomId);
     }
 
     private void handleAjax(String action, long branchId, HttpServletRequest req, HttpServletResponse resp)
@@ -157,6 +167,11 @@ public class CounterBookingServlet extends HttpServlet {
                 resp.sendError(HttpServletResponse.SC_NOT_FOUND, "Showtime not found");
                 return;
             }
+            // Branch scope: chi load so do ghe cua suat thuoc chi nhanh staff
+            if (!roomBelongsToBranch(showtime.getRoomId(), branchId)) {
+                resp.sendError(HttpServletResponse.SC_FORBIDDEN, "Showtime not in your branch");
+                return;
+            }
 
             Map<String, List<Seat>> seatsByRow = seatService.getSeatsByRow(showtimeId);
             Set<Long> bookedSeatIds = seatService.getBookedSeatIds(showtimeId);
@@ -197,7 +212,33 @@ public class CounterBookingServlet extends HttpServlet {
                 resp.sendError(HttpServletResponse.SC_NOT_FOUND, "Booking not found");
                 return;
             }
+            // Branch scope: staff chi xem booking quay thuoc chi nhanh minh
+            if (ticket.getBranchId() != branchId) {
+                resp.sendError(HttpServletResponse.SC_FORBIDDEN, "Booking not in your branch");
+                return;
+            }
             mapper.writeValue(resp.getWriter(), ticket);
+        } else if ("getFoodItems".equals(action)) {
+            List<FoodItem> foodItems = foodService.getActiveFoodItems();
+            mapper.writeValue(resp.getWriter(), foodItems);
+        } else if ("getBookingFoodItems".equals(action)) {
+            String bookingIdParam = req.getParameter("bookingId");
+            if (bookingIdParam == null || bookingIdParam.trim().isEmpty()) {
+                resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Missing bookingId");
+                return;
+            }
+            long bookingId = Long.parseLong(bookingIdParam.trim());
+            Map<FoodItem, Integer> foodItems = foodService.getFoodItemsByBookingId(bookingId);
+            List<Map<String, Object>> result = new ArrayList<>();
+            for (Map.Entry<FoodItem, Integer> entry : foodItems.entrySet()) {
+                Map<String, Object> itemMap = new HashMap<>();
+                itemMap.put("foodId", entry.getKey().getFoodId());
+                itemMap.put("name", entry.getKey().getName());
+                itemMap.put("quantity", entry.getValue());
+                itemMap.put("price", entry.getKey().getPrice());
+                result.add(itemMap);
+            }
+            mapper.writeValue(resp.getWriter(), result);
         }
     }
 
@@ -208,6 +249,11 @@ public class CounterBookingServlet extends HttpServlet {
         Map<String, Object> result = new HashMap<>();
 
         try {
+            Long branchId = (Long) req.getSession().getAttribute("currentBranchId");
+            if (branchId == null) {
+                throw new SecurityException("Phiên làm việc không hợp lệ.");
+            }
+
             String showtimeIdParam = req.getParameter("showtimeId");
             if (showtimeIdParam == null || showtimeIdParam.trim().isEmpty()) {
                 throw new IllegalArgumentException("Vui lòng chọn suất chiếu.");
@@ -217,6 +263,11 @@ public class CounterBookingServlet extends HttpServlet {
             Showtime showtime = showtimeDAO.findById(showtimeId);
             if (showtime == null) {
                 throw new IllegalArgumentException("Không tìm thấy suất chiếu tương ứng.");
+            }
+
+            // Verify showtime belongs to the staff's branch
+            if (!roomBelongsToBranch(showtime.getRoomId(), branchId)) {
+                throw new SecurityException("Suất chiếu không thuộc chi nhánh của bạn.");
             }
 
             // Parse selected seat IDs
@@ -248,11 +299,42 @@ public class CounterBookingServlet extends HttpServlet {
                 paymentMethod = "CASH";
             }
 
+            // Parse food items parameter
+            String foodItemsParam = req.getParameter("foodItems");
+            Map<Long, Integer> selectedFood = new HashMap<>();
+            BigDecimal foodSubtotal = BigDecimal.ZERO;
+            if (foodItemsParam != null && !foodItemsParam.trim().isEmpty()) {
+                try {
+                    List<Map<String, Object>> foodList = mapper.readValue(foodItemsParam, List.class);
+                    for (Map<String, Object> map : foodList) {
+                        Long foodId = Long.parseLong(map.get("foodId").toString());
+                        Integer qty = Integer.parseInt(map.get("quantity").toString());
+                        if (qty > 0) {
+                            qty = Math.min(qty, 10);
+                            selectedFood.put(foodId, qty);
+                            FoodItem item = foodService.getFoodItemById(foodId);
+                            if (item != null) {
+                                foodSubtotal = foodSubtotal.add(item.getPrice().multiply(BigDecimal.valueOf(qty)));
+                            }
+                        }
+                    }
+                } catch (Exception e) {
+                    System.err.println("Lỗi parse foodItems: " + e.getMessage());
+                }
+            }
+
             Booking createdBooking = null;
 
             if ("VNPAY".equalsIgnoreCase(paymentMethod.trim())) {
                 // For VNPay: create a pending booking first
                 createdBooking = bookingService.createPendingBooking("guest01", showtimeId, seatIds, promoCode, notes);
+
+                if (foodSubtotal.compareTo(BigDecimal.ZERO) > 0) {
+                    createdBooking.setSubtotal(createdBooking.getSubtotal().add(foodSubtotal));
+                    createdBooking.setTotalAmount(createdBooking.getTotalAmount().add(foodSubtotal));
+                    bookingService.updateBookingTotals(createdBooking.getBookingId(), createdBooking.getSubtotal(), createdBooking.getTotalAmount());
+                }
+                foodService.saveFoodOrder(createdBooking.getBookingId(), selectedFood, "PENDING");
 
                 // Initialize payment status in payments table
                 paymentService.initiatePayment(createdBooking.getBookingId(), Payment.METHOD_VNPAY, "guest01");
@@ -287,14 +369,18 @@ public class CounterBookingServlet extends HttpServlet {
                 }
                 BigDecimal subtotal = pricingService.calculateTotal(showtime.getBasePrice(), selectedSeats);
 
-                // Construct Booking Model
+                // Construct Booking Model (Subtotal includes concessions total)
                 Booking booking = new Booking();
                 booking.setShowtimeId(showtimeId);
-                booking.setSubtotal(subtotal);
+                booking.setSubtotal(subtotal.add(foodSubtotal));
                 booking.setNotes(notes);
 
                 // Execute service transaction
                 createdBooking = bookingService.createCounterBooking(booking, seatIds, promoCode);
+
+                if (!selectedFood.isEmpty()) {
+                    foodService.saveFoodOrder(createdBooking.getBookingId(), selectedFood, "PREPARING");
+                }
 
                 // Notify WebSocket server of the hard lock
                 String staffUsername = (String) req.getSession().getAttribute("username");

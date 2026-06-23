@@ -188,7 +188,7 @@ public class BookingDAOImpl extends BaseDAO implements BookingDAO {
             "       b.discount_amount, b.total_amount, b.created_at, " +
             "       m.title AS movie_title, m.rated, m.duration_min, m.poster_url, " +
             "       st.start_time, st.format, st.subtitle_type, " +
-            "       br.name AS branch_name, r.name AS room_name, " +
+            "       br.branch_id, br.name AS branch_name, r.name AS room_name, " +
             "       c.full_name, c.email " +
             "FROM dbo.bookings b " +
             "JOIN dbo.showtimes st ON st.showtime_id = b.showtime_id " +
@@ -265,6 +265,7 @@ public class BookingDAOImpl extends BaseDAO implements BookingDAO {
         t.setStartTime(start != null ? start.toLocalDateTime() : null);
         t.setFormat(rs.getString("format"));
         t.setSubtitleType(rs.getString("subtitle_type"));
+        t.setBranchId(rs.getLong("branch_id"));
         t.setBranchName(rs.getString("branch_name"));
         t.setRoomName(rs.getString("room_name"));
 
@@ -379,6 +380,26 @@ public class BookingDAOImpl extends BaseDAO implements BookingDAO {
     }
 
     @Override
+    public boolean updateBookingTotals(long bookingId, BigDecimal newSubtotal, BigDecimal newTotalAmount) {
+        String sql = "UPDATE dbo.bookings SET subtotal = ?, total_amount = ? WHERE booking_id = ?";
+        Connection conn = null;
+        PreparedStatement ps = null;
+        try {
+            conn = getConnection();
+            ps = conn.prepareStatement(sql);
+            ps.setBigDecimal(1, newSubtotal);
+            ps.setBigDecimal(2, newTotalAmount);
+            ps.setLong(3, bookingId);
+            int rows = ps.executeUpdate();
+            return rows > 0;
+        } catch (SQLException e) {
+            throw new RuntimeException("Loi updateBookingTotals: " + e.getMessage(), e);
+        } finally {
+            closeAll(ps, conn);
+        }
+    }
+
+    @Override
     public int confirmBooking(long bookingId, String customerUsername) {
         // Chỉ confirm khi PENDING và chưa hết hạn
         String sql =
@@ -446,19 +467,43 @@ public class BookingDAOImpl extends BaseDAO implements BookingDAO {
 // ── releaseExpiredLocks ───────────────────────────────────────────────────
     @Override
     public int releaseExpiredLocks() {
-        String sql = "UPDATE dbo.bookings SET [status] = 'CANCELLED' "
-                   + "WHERE [status] = 'PENDING' "
-                   + "  AND DATEADD(MINUTE, 10, created_at) < SYSUTCDATETIME()";
+        // 1 transaction, 2 buoc (booking het han = thanh toan that bai):
+        //  1) Cancel booking PENDING qua 10 phut (khong dung booking_seats).
+        //  2) Payment PENDING thuoc booking DA CANCELLED -> FAILED. Chay SAU (1)
+        //     nen bat ca booking vua het han LAN booking da huy tu truoc (du lieu cu
+        //     / khach tu huy) -> tu lanh, khong con "pending xac song".
+        String cancelBookings
+                = "UPDATE dbo.bookings SET [status] = 'CANCELLED' "
+                + "WHERE [status] = 'PENDING' "
+                + "  AND DATEDIFF(MINUTE, created_at, SYSUTCDATETIME()) >= 10";
+        String failPayments
+                = "UPDATE p SET p.[status] = 'FAILED' "
+                + "FROM dbo.payments p "
+                + "JOIN dbo.bookings b ON b.booking_id = p.booking_id "
+                + "WHERE p.[status] = 'PENDING' AND b.[status] = 'CANCELLED'";
+
         Connection conn = null;
-        PreparedStatement ps = null;
+        PreparedStatement psBk = null;
+        PreparedStatement psPay = null;
         try {
             conn = getConnection();
-            ps = conn.prepareStatement(sql);
-            return ps.executeUpdate();
+            conn.setAutoCommit(false);
+
+            psBk = conn.prepareStatement(cancelBookings);
+            int released = psBk.executeUpdate();
+
+            psPay = conn.prepareStatement(failPayments);
+            psPay.executeUpdate();
+
+            conn.commit();
+            return released; // so booking da huy (giu nguyen y nghia cu cho scheduler)
         } catch (SQLException e) {
+            rollbackQuietly(conn);
             throw new RuntimeException("Loi releaseExpiredLocks: " + e.getMessage(), e);
         } finally {
-            closeAll(ps, conn);
+            if (psBk != null) try { psBk.close(); } catch (SQLException ignored) {}
+            if (psPay != null) try { psPay.close(); } catch (SQLException ignored) {}
+            restoreAndClose(conn);
         }
     }
     
@@ -563,7 +608,7 @@ public class BookingDAOImpl extends BaseDAO implements BookingDAO {
         String insertBooking
                 = "INSERT INTO bookings (customer_username, showtime_id, promo_id, booking_code, "
                 + "  subtotal, discount_amount, total_amount, status, notes, created_at) "
-                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, GETDATE())";
+                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, SYSUTCDATETIME())";  // UTC dong nhat voi online
 
         String insertSeat
                 = "INSERT INTO booking_seats (booking_id, seat_id, is_checked_in, check_in_time) "
@@ -571,7 +616,7 @@ public class BookingDAOImpl extends BaseDAO implements BookingDAO {
 
         String insertPayment
                 = "INSERT INTO payments (booking_id, method, amount, status, transaction_ref, paid_at) "
-                + "VALUES (?, 'CASH', ?, 'SUCCESS', NULL, GETDATE())";
+                + "VALUES (?, 'CASH', ?, 'SUCCESS', NULL, SYSUTCDATETIME())";  // UTC dong nhat voi online
 
         String updatePromo
                 = "UPDATE promotions SET used_count = used_count + 1 WHERE promo_id = ?";
@@ -659,12 +704,18 @@ public class BookingDAOImpl extends BaseDAO implements BookingDAO {
         if (seatIds == null || seatIds.isEmpty()) {
             return new ArrayList<>();
         }
+        // UPDLOCK + HOLDLOCK: khoa hang trong transaction (giong checkAndLockSeats cua
+        // booking online) -> chong TOCTOU khi online + counter cung dat 1 ghe.
+        // Ghe bi chiem khi: CONFIRMED/USED, hoac PENDING chua het han (< 10 phut).
         StringBuilder sb = new StringBuilder(
                 "SELECT DISTINCT bs.seat_id "
-                + "FROM booking_seats bs "
+                + "FROM booking_seats bs WITH (UPDLOCK, HOLDLOCK) "
                 + "JOIN bookings b ON b.booking_id = bs.booking_id "
                 + "WHERE b.showtime_id = ? "
-                + "  AND b.status IN ('PENDING','CONFIRMED') "
+                + "  AND b.status != 'CANCELLED' "
+                + "  AND ( b.status IN ('CONFIRMED','USED') "
+                + "        OR ( b.status = 'PENDING' "
+                + "             AND DATEDIFF(MINUTE, b.created_at, SYSUTCDATETIME()) < 10 ) ) "
                 + "  AND bs.seat_id IN (");
         for (int i = 0; i < seatIds.size(); i++) {
             sb.append(i > 0 ? ",?" : "?");

@@ -80,6 +80,9 @@ public class BookingServiceImpl implements BookingService {
         if (seatIds == null || seatIds.isEmpty()) {
             throw new IllegalArgumentException("Please select at least one seat.");
         }
+        if (seatIds.size() > 8) {
+            throw new IllegalArgumentException("Maximum 8 seats per booking.");
+        }
 
         // Lấy showtime
         Showtime st = showtimeDao.findById(showtimeId);
@@ -170,6 +173,11 @@ public class BookingServiceImpl implements BookingService {
         return confirmed;
     }
 
+    @Override
+    public boolean updateBookingTotals(long bookingId, BigDecimal newSubtotal, BigDecimal newTotalAmount) {
+        return bookingDao.updateBookingTotals(bookingId, newSubtotal, newTotalAmount);
+    }
+
     // ── getBookingHistory / getBookingDetail ──────────────────────────────
     @Override
     public List<Booking> getBookingHistory(String customerUsername) {
@@ -202,6 +210,12 @@ public class BookingServiceImpl implements BookingService {
     }
     @Override
     public Booking createCounterBooking(Booking booking, List<Long> seatIds, String promoCode) {
+        if (seatIds == null || seatIds.isEmpty()) {
+            throw new IllegalArgumentException("Vui lòng chọn ít nhất 1 ghế.");
+        }
+        if (seatIds.size() > 8) {
+            throw new IllegalArgumentException("Tối đa 8 ghế mỗi lần đặt.");
+        }
         // 1. Luon set mac dinh guest01 cho khach vang lai mua tai quay
         booking.setCustomerUsername("guest01");
 

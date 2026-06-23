@@ -28,7 +28,8 @@ public class LoginServlet extends HttpServlet {
         if ("true".equals(req.getParameter("resetSuccess"))) {
             req.setAttribute("successMsg", "Your password has been reset successfully. Please sign in with your new password.");
         } else if ("true".equals(req.getParameter("registered"))) {
-            req.setAttribute("successMsg", "Your account has been registered successfully. Please sign in.");
+            req.setAttribute("successMsg", "Registration successful! Please check your email and "
+                    + "click the verification link before signing in.");
         }
 
         req.getRequestDispatcher("/WEB-INF/views/auth/login.jsp").forward(req, resp);
@@ -106,8 +107,13 @@ public class LoginServlet extends HttpServlet {
             return;
         }
 
-        // Ca hai null = thuc su sai tai khoan/mat khau.
-        req.setAttribute("errorMsg", "Username or password incorrect.");
+        // Phan biet: dung pass nhung chua verify email -> bao verify (khong phai "sai pass").
+        if (authService.isUnverifiedAccount(username, password)) {
+            req.setAttribute("errorMsg",
+                    "Your email is not verified yet. Please check your inbox for the verification link.");
+        } else {
+            req.setAttribute("errorMsg", "Username or password incorrect.");
+        }
         req.setAttribute("username", username);
         req.getRequestDispatcher("/WEB-INF/views/auth/login.jsp").forward(req, resp);
     }

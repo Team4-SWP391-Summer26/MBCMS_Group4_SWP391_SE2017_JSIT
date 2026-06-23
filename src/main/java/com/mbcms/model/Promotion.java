@@ -23,6 +23,7 @@ public class Promotion {
     private Integer maxUses;
     private int usedCount;
     private boolean active = true;
+    private boolean isDeleted = false;
 
     public Promotion() {
     }
@@ -113,6 +114,14 @@ public class Promotion {
 
     public void setActive(boolean active) {
         this.active = active;
+    }
+
+    public boolean isDeleted() {
+        return isDeleted;
+    }
+
+    public void setDeleted(boolean deleted) {
+        this.isDeleted = deleted;
     }
 
     public String getStatus() {

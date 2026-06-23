@@ -11,6 +11,9 @@ import com.mbcms.dao.impl.PromotionDAOImpl;
 import com.mbcms.model.Booking;
 import com.mbcms.model.Notification;
 import com.mbcms.model.Payment;
+import com.mbcms.model.PaymentRecord;
+import com.mbcms.model.PaymentSearchCriteria;
+import com.mbcms.model.PaymentSummary;
 import com.mbcms.service.PaymentService;
 import com.mbcms.util.DBUtil;
 
@@ -19,6 +22,7 @@ import java.sql.SQLException;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.List;
 
 /**
  * PaymentServiceImpl - dieu phoi transaction thanh toan.
@@ -32,7 +36,7 @@ public class PaymentServiceImpl implements PaymentService {
     private final PaymentDAO paymentDao = new PaymentDAOImpl();
     private final BookingDAO bookingDao = new BookingDAOImpl();
     private final NotificationDAO notificationDao = new NotificationDAOImpl();
-    private final PromotionDAO promoDAO = new PromotionDAOImpl();
+    private final PromotionDAO promotionDao = new PromotionDAOImpl();
 
     @Override
     public Booking preparePayment(long bookingId, String customerUsername) {
@@ -105,7 +109,15 @@ public class PaymentServiceImpl implements PaymentService {
             // 2) payments: PENDING -> SUCCESS + transaction_ref + paid_at
             paymentDao.markSuccess(conn, bookingId, transactionRef);
 
-            // 3) notification PAYMENT cho customer
+            // 3) promo used_count++ neu booking co ma (cung transaction, khong vuot max_uses)
+            if (b.getPromoId() != null) {
+                promotionDao.incrementUsedCount(conn, b.getPromoId());
+            }
+
+            // 3.5) food_orders: PENDING -> PREPARING (if any concessions exist)
+            new com.mbcms.dao.impl.FoodDAOImpl().updateOrderStatusByBooking(conn, bookingId, "PREPARING");
+
+            // 4) notification PAYMENT cho customer
             notificationDao.insert(conn, buildPaymentNotification(b));
 
             conn.commit();
@@ -113,7 +125,7 @@ public class PaymentServiceImpl implements PaymentService {
             Booking confirmed = bookingDao.findById(bookingId);
             if (confirmed != null && confirmed.getPromoId() != null) {
                 try {
-                    promoDAO.incrementUsedCount(confirmed.getPromoId());
+                    promotionDao.incrementUsedCount(confirmed.getPromoId());
                 } catch (Exception e) {
                     System.err.println("WARN: Could not increment promo used_count: " + e.getMessage());
                 }
@@ -129,9 +141,22 @@ public class PaymentServiceImpl implements PaymentService {
         }
     }
 
-    /**
-     * Cung logic 10 phut UTC nhu confirmBooking() va PaymentServlet.
-     */
+    @Override
+    public List<PaymentRecord> searchPayments(PaymentSearchCriteria criteria) {
+        return paymentDao.search(criteria);
+    }
+
+    @Override
+    public int countPayments(PaymentSearchCriteria criteria) {
+        return paymentDao.count(criteria);
+    }
+
+    @Override
+    public PaymentSummary getPaymentSummary(Long branchId) {
+        return paymentDao.summarize(branchId);
+    }
+
+    /** Cung logic 10 phut UTC nhu confirmBooking() va PaymentServlet. */
     private boolean isSeatHoldExpired(Booking booking) {
         if (booking.getCreatedAt() == null) {
             return false;

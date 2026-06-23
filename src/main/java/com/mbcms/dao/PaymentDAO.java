@@ -1,9 +1,13 @@
 package com.mbcms.dao;
 
 import com.mbcms.model.Payment;
+import com.mbcms.model.PaymentRecord;
+import com.mbcms.model.PaymentSearchCriteria;
+import com.mbcms.model.PaymentSummary;
 
 import java.math.BigDecimal;
 import java.sql.Connection;
+import java.util.List;
 
 /**
  * PaymentDAO - thao tac bang `payments` (1:1 voi bookings).
@@ -33,4 +37,19 @@ public interface PaymentDAO {
      * (0 = khong con PENDING -> da xu ly hoac chua khoi tao).
      */
     int markSuccess(Connection conn, long bookingId, String transactionRef);
+
+    /**
+     * Payment history: danh sach giao dich theo bo loc, da phan trang
+     * (criteria.offset/limit). Scope theo branchId/customerUsername trong criteria.
+     */
+    List<PaymentRecord> search(PaymentSearchCriteria criteria);
+
+    /** Tong so giao dich khop bo loc (bo qua offset/limit) - cho phan trang. */
+    int count(PaymentSearchCriteria criteria);
+
+    /**
+     * Payment status monitoring: tong hop so luong theo trang thai + method +
+     * giao dich PENDING cu nhat. branchId = null -> toan he thong (Admin).
+     */
+    PaymentSummary summarize(Long branchId);
 }

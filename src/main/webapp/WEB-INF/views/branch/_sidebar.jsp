@@ -29,11 +29,17 @@
        href="${pageContext.request.contextPath}/branch/showtimes">
         <i class="bi bi-calendar3"></i> Showtimes</a>
     <a class="lc-sb-item ${param.active == 'rooms' ? 'active' : ''}"
-       href="${pageContext.request.contextPath}/branch/seats">
+       href="${pageContext.request.contextPath}/branch/halls">
         <i class="bi bi-grid-3x3"></i> Rooms &amp; Seats</a>
+    <a class="lc-sb-item ${param.active == 'hours' ? 'active' : ''}"
+       href="${pageContext.request.contextPath}/branch/hours">
+        <i class="bi bi-clock"></i> Operating Hours</a>
     <a class="lc-sb-item ${param.active == 'promotions' ? 'active' : ''}"
        href="${pageContext.request.contextPath}/branch/promotions">
         <i class="bi bi-ticket-perforated"></i> Promotions</a>
+    <a class="lc-sb-item ${param.active == 'payments' ? 'active' : ''}"
+       href="${pageContext.request.contextPath}/branch/payments">
+        <i class="bi bi-credit-card"></i> Payments</a>
     <span class="lc-sb-item disabled"><i class="bi bi-cup-straw"></i> F&amp;B Menu <span class="lc-sb-soon">Soon</span></span>
     <span class="lc-sb-item disabled"><i class="bi bi-bar-chart"></i> Reports <span class="lc-sb-soon">Soon</span></span>
 

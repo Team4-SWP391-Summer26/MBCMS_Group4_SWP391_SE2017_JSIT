@@ -17,11 +17,11 @@ public class PromotionDAOImpl extends BaseDAO implements PromotionDAO {
 
     private static final String BASE_SELECT
             = "SELECT promo_id, code, name, discount_type, discount_value, min_order_amount, "
-            + "valid_from, valid_to, max_uses, used_count, active FROM promotions ";
+            + "valid_from, valid_to, max_uses, used_count, active, is_deleted FROM promotions ";
 
     @Override
     public List<Promotion> findAll() {
-        String sql = BASE_SELECT + "ORDER BY promo_id DESC";
+        String sql = BASE_SELECT + "WHERE is_deleted = 0 ORDER BY promo_id DESC";
         Connection conn = null;
         PreparedStatement ps = null;
         ResultSet rs = null;
@@ -43,7 +43,7 @@ public class PromotionDAOImpl extends BaseDAO implements PromotionDAO {
 
     @Override
     public List<Promotion> findByFilters(String search, String type, String status) {
-        StringBuilder sql = new StringBuilder(BASE_SELECT + "WHERE 1=1 ");
+        StringBuilder sql = new StringBuilder(BASE_SELECT + "WHERE is_deleted = 0 ");
 
         if (search != null && !search.trim().isEmpty()) {
             sql.append("AND (code LIKE ? OR name LIKE ?) ");
@@ -97,7 +97,7 @@ public class PromotionDAOImpl extends BaseDAO implements PromotionDAO {
 
     @Override
     public Promotion findById(long promoId) {
-        String sql = BASE_SELECT + "WHERE promo_id = ?";
+        String sql = BASE_SELECT + "WHERE promo_id = ? AND is_deleted = 0";
         Connection conn = null;
         PreparedStatement ps = null;
         ResultSet rs = null;
@@ -122,7 +122,7 @@ public class PromotionDAOImpl extends BaseDAO implements PromotionDAO {
         if (code == null) {
             return null;
         }
-        String sql = BASE_SELECT + "WHERE code = ?";
+        String sql = BASE_SELECT + "WHERE code = ? AND is_deleted = 0";
         Connection conn = null;
         PreparedStatement ps = null;
         ResultSet rs = null;
@@ -147,7 +147,7 @@ public class PromotionDAOImpl extends BaseDAO implements PromotionDAO {
         if (code == null) {
             return false;
         }
-        String sql = "SELECT 1 FROM promotions WHERE code = ?";
+        String sql = "SELECT 1 FROM promotions WHERE code = ? AND is_deleted = 0";
         Connection conn = null;
         PreparedStatement ps = null;
         ResultSet rs = null;
@@ -169,7 +169,7 @@ public class PromotionDAOImpl extends BaseDAO implements PromotionDAO {
         if (code == null) {
             return false;
         }
-        String sql = "SELECT 1 FROM promotions WHERE code = ? AND promo_id <> ?";
+        String sql = "SELECT 1 FROM promotions WHERE code = ? AND promo_id <> ? AND is_deleted = 0";
         Connection conn = null;
         PreparedStatement ps = null;
         ResultSet rs = null;
@@ -269,7 +269,7 @@ public class PromotionDAOImpl extends BaseDAO implements PromotionDAO {
 
     @Override
     public int getTotalPromotionsCount() {
-        String sql = "SELECT COUNT(*) FROM promotions";
+        String sql = "SELECT COUNT(*) FROM promotions WHERE is_deleted = 0";
         Connection conn = null;
         PreparedStatement ps = null;
         ResultSet rs = null;
@@ -290,7 +290,7 @@ public class PromotionDAOImpl extends BaseDAO implements PromotionDAO {
 
     @Override
     public int getActivePromotionsCount() {
-        String sql = "SELECT COUNT(*) FROM promotions WHERE active = 1 AND valid_from <= GETDATE() AND valid_to >= GETDATE()";
+        String sql = "SELECT COUNT(*) FROM promotions WHERE active = 1 AND is_deleted = 0 AND valid_from <= GETDATE() AND valid_to >= GETDATE()";
         Connection conn = null;
         PreparedStatement ps = null;
         ResultSet rs = null;
@@ -378,8 +378,19 @@ public class PromotionDAOImpl extends BaseDAO implements PromotionDAO {
     }
 
     @Override
+    public int incrementUsedCount(Connection conn, long promoId) throws SQLException {
+        // Dung conn truyen vao tu PaymentService de atomic voi confirm + payment.
+        // KHONG commit/close conn.
+        String sql = "UPDATE dbo.promotions SET used_count = used_count + 1 WHERE promo_id = ?";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setLong(1, promoId);
+            return ps.executeUpdate();
+        }
+    }
+
+    @Override
     public boolean delete(long promoId) {
-        String sql = "DELETE FROM promotions WHERE promo_id = ?";
+        String sql = "UPDATE promotions SET is_deleted = 1, active = 0 WHERE promo_id = ?";
         Connection conn = null;
         PreparedStatement ps = null;
         try {
@@ -388,10 +399,6 @@ public class PromotionDAOImpl extends BaseDAO implements PromotionDAO {
             ps.setLong(1, promoId);
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
-            // Check for SQL Server foreign key constraint violation (Error Code 547)
-            if (e.getErrorCode() == 547) {
-                throw new RuntimeException("IN_USE");
-            }
             throw new RuntimeException("Loi in PromotionDAOImpl.delete: " + e.getMessage(), e);
         } finally {
             closeAll(ps, conn);
@@ -418,6 +425,7 @@ public class PromotionDAOImpl extends BaseDAO implements PromotionDAO {
 
         p.setUsedCount(rs.getInt("used_count"));
         p.setActive(rs.getBoolean("active"));
+        p.setDeleted(rs.getBoolean("is_deleted"));
         return p;
     }
 }

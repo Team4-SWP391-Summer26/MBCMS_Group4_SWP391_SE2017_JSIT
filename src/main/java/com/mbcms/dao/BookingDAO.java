@@ -61,6 +61,11 @@ public interface BookingDAO {
     boolean updateStatus(long bookingId, String newStatus);
 
     /**
+     * Cap nhat subtotal va total_amount cua booking.
+     */
+    boolean updateBookingTotals(long bookingId, java.math.BigDecimal newSubtotal, java.math.BigDecimal newTotalAmount);
+
+    /**
      * Kiem tra ghe co bi lock / da dat boi booking khac khong. Return: list
      * seatId da bi chiem -> dung truoc khi tao booking.
      * PENDING → CONFIRMED (sau payment thành công).

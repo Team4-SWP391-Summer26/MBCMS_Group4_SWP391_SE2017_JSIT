@@ -39,7 +39,7 @@ public class MovieBranchAdminServlet extends HttpServlet {
             throws ServletException, IOException {
 
         BranchDAO branchDAO = new BranchDAOImpl();
-        List<Branch> branches = branchDAO.findAll();
+        List<Branch> branches = branchDAO.findAll(true);
         req.setAttribute("branches", branches);
 
         // Mac dinh chon chi nhanh dau neu URL khong chi dinh.
