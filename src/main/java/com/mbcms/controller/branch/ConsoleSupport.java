@@ -6,15 +6,16 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 
 /**
- * ConsoleSupport - tien ich nho cho cac man manager console (/branch/*).
- * Owner: HungNT.
+ * ConsoleSupport - tien ich nho cho cac man manager console (/branch/*). Owner:
+ * HungNT.
  *
- * Cache ten branch vao session 1 lan (key "currentBranchName") de sidebar
- * va scope notice khong phai query branches moi request.
+ * Cache ten branch vao session 1 lan (key "currentBranchName") de sidebar va
+ * scope notice khong phai query branches moi request.
  */
 public final class ConsoleSupport {
 
-    private ConsoleSupport() {}
+    private ConsoleSupport() {
+    }
 
     /** Dam bao session co "currentBranchName" (load tu DB lan dau). */
     public static void ensureBranchName(HttpServletRequest req) {

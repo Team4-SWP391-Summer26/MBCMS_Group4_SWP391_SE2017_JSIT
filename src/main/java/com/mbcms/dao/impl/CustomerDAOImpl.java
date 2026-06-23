@@ -9,8 +9,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 /**
- * MAU DAO - copy pattern nay khi tao *DAOImpl khac.
- * Chi giu 1 method mau; cac method khac team tu them vao interface + impl.
+ * MAU DAO - copy pattern nay khi tao *DAOImpl khac. Chi giu 1 method mau; cac
+ * method khac team tu them vao interface + impl.
  */
 public class CustomerDAOImpl extends BaseDAO implements CustomerDAO {
 
@@ -44,8 +44,8 @@ public class CustomerDAOImpl extends BaseDAO implements CustomerDAO {
     }
 
     /**
-     * Kiem tra email da ton tai trong bang customers hay chua.
-     * Dung cho chuc nang register de tranh trung email.
+     * Kiem tra email da ton tai trong bang customers hay chua. Dung cho chuc
+     * nang register de tranh trung email.
      */
     @Override
     public boolean existsByEmail(String email) {
@@ -120,8 +120,7 @@ public class CustomerDAOImpl extends BaseDAO implements CustomerDAO {
     }
 
     /**
-     * Them moi customer vao database.
-     * Dung cho chuc nang register customer.
+     * Them moi customer vao database. Dung cho chuc nang register customer.
      */
     @Override
     public boolean insert(Customer customer) {
@@ -164,8 +163,8 @@ public class CustomerDAOImpl extends BaseDAO implements CustomerDAO {
     }
 
     /**
-     * Update mat khau moi da duoc hash bang BCrypt.
-     * Luu y: DAO chi update DB, khong tu hash password o day.
+     * Update mat khau moi da duoc hash bang BCrypt. Luu y: DAO chi update DB,
+     * khong tu hash password o day.
      */
     @Override
     public boolean updatePassword(String username, String newPasswordHash) {
@@ -191,7 +190,9 @@ public class CustomerDAOImpl extends BaseDAO implements CustomerDAO {
         }
     }
 
-    /** Update personal info (full_name, phone, date_of_birth, address). UC12. */
+    /**
+     * Update personal info (full_name, phone, date_of_birth, address). UC12.
+     */
     @Override
     public boolean updateProfile(Customer customer) {
         String sql = "UPDATE customers SET full_name = ?, phone = ?, "
@@ -234,6 +235,33 @@ public class CustomerDAOImpl extends BaseDAO implements CustomerDAO {
             throw new RuntimeException("Loi thuc thi customers.updateEmailVerified: " + e.getMessage(), e);
         } finally {
             closeAll(ps, conn);
+        }
+    }
+
+    @Override
+    public Customer findByPhone(String phone) {
+        String sql = "SELECT username, email, password_hash, full_name, phone, "
+                + "date_of_birth, address, active, email_verified, reset_token, created_at "
+                + "FROM customers WHERE phone = ? AND active = 1";
+
+        Connection conn = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+
+        try {
+            conn = getConnection();
+            ps = conn.prepareStatement(sql);
+            ps.setString(1, phone);
+            rs = ps.executeQuery();
+
+            if (rs.next()) {
+                return mapRow(rs);
+            }
+            return null;
+        } catch (SQLException e) {
+            throw new RuntimeException("Loi truy van customers.findByPhone: " + e.getMessage(), e);
+        } finally {
+            closeAll(rs, ps, conn);
         }
     }
 

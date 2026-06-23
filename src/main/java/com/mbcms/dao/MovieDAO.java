@@ -5,12 +5,15 @@ import com.mbcms.model.Movie;
 import java.util.List;
 
 /**
- * MovieDAO - truy van bang `movies`.
- * Owner: HungNT (dung cho Showtime Management - UC20).
+ * MovieDAO - truy van bang `movies`. Owner: HungNT (dung cho Showtime
+ * Management - UC20).
  */
 public interface MovieDAO {
 
-    /** Lay danh sach phim active = 1 (do vao dropdown chon phim khi tao showtime). */
+    /**
+     * Lay danh sach phim active = 1 (do vao dropdown chon phim khi tao
+     * showtime).
+     */
     List<Movie> findActiveMovies();
 
     /**

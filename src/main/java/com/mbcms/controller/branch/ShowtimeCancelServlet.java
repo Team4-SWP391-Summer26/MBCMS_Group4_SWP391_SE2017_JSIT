@@ -13,12 +13,13 @@ import java.io.IOException;
 /**
  * ShowtimeCancelServlet - owner: <b>HungNT</b> (UC22 Cancel Showtime).
  *
- * POST /branch/showtimes/cancel (id=N) - huy suat chieu roi redirect ve list (PRG).
- * Chi nhan POST: cancel la hanh dong thay doi du lieu, khong duoc de
- * GET/crawler/prefetch kich hoat. Nut Cancel trong list.jsp la 1 form nho + confirm.
+ * POST /branch/showtimes/cancel (id=N) - huy suat chieu roi redirect ve list
+ * (PRG). Chi nhan POST: cancel la hanh dong thay doi du lieu, khong duoc de
+ * GET/crawler/prefetch kich hoat. Nut Cancel trong list.jsp la 1 form nho +
+ * confirm.
  *
- * Business rule (service): chi huy suat SCHEDULED cua branch minh,
- * va suat CHUA co booking con hieu luc. Notify customers -> module notifications (lam sau).
+ * Business rule (service): chi huy suat SCHEDULED cua branch minh, va suat CHUA
+ * co booking con hieu luc. Notify customers -> module notifications (lam sau).
  */
 @WebServlet("/branch/showtimes/cancel")
 public class ShowtimeCancelServlet extends HttpServlet {

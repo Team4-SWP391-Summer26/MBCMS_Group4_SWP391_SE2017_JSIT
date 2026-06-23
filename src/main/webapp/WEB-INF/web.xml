@@ -53,9 +53,9 @@
     </filter-mapping>
 
     <!-- ===== Servlets =====
-         Servlet dung @WebServlet annotation (xem class trong com.mbcms.controller.*).
-         KHONG khai bao servlet o day -> moi nguoi them servlet KHONG phai sua web.xml,
-         tranh xung dot merge. File nay chi giu filter / session / error / welcome. -->
+    Servlet dung @WebServlet annotation (xem class trong com.mbcms.controller.*).
+    KHONG khai bao servlet o day -> moi nguoi them servlet KHONG phai sua web.xml,
+    tranh xung dot merge. File nay chi giu filter / session / error / welcome. -->
 
     <!-- Session config -->
     <session-config>

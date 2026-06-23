@@ -25,16 +25,17 @@ import java.util.Locale;
 import java.util.Map;
 
 /**
- * ShowtimeListServlet - owner: <b>HungNT</b>.
- * SRS 3.5.2.1 Showtime List Screen, layout theo man 22_mgr-showtimes
- * cua Frontend demo prototype (UC20/UC21/UC22).
+ * ShowtimeListServlet - owner: <b>HungNT</b>. SRS 3.5.2.1 Showtime List Screen,
+ * layout theo man 22_mgr-showtimes cua Frontend demo prototype
+ * (UC20/UC21/UC22).
  *
- * GET /branch/showtimes - man hinh day-centric: chon ngay (date pills),
- * KPI cua ngay do, schedule timeline theo phong, va bang showtime
- * (filter them theo movie/room).
+ * GET /branch/showtimes - man hinh day-centric: chon ngay (date pills), KPI cua
+ * ngay do, schedule timeline theo phong, va bang showtime (filter them theo
+ * movie/room).
  *
- * Nam duoi /branch/* nen AuthFilter + RoleFilter (BRANCH_MANAGER) + BranchFilter
- * da chay truoc; "currentBranchId" trong session chac chan != null.
+ * Nam duoi /branch/* nen AuthFilter + RoleFilter (BRANCH_MANAGER) +
+ * BranchFilter da chay truoc; "currentBranchId" trong session chac chan !=
+ * null.
  */
 @WebServlet("/branch/showtimes")
 public class ShowtimeListServlet extends HttpServlet {

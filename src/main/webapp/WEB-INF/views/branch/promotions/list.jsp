@@ -275,6 +275,13 @@
                                                         <i class="bi ${p.active ? 'bi-pause-fill' : 'bi-play-fill'}"></i>
                                                     </button>
                                                 </form>
+                                                <form method="post" action="${pageContext.request.contextPath}/branch/promotions/delete" class="d-inline"
+                                                      onsubmit="return confirm('Are you sure you want to delete <c:out value="${p.code}"/>? This action cannot be undone and will delete it from the database.');">
+                                                    <input type="hidden" name="id" value="${p.promoId}">
+                                                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete">
+                                                        <i class="bi bi-trash-fill"></i>
+                                                    </button>
+                                                </form>
                                             </div>
                                         </td>
                                     </tr>
@@ -289,10 +296,10 @@
 
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
         <script>
-            function setStatusFilter(status) {
-                document.getElementById('statusField').value = status;
-                document.getElementById('filterForm').submit();
-            }
+                                                          function setStatusFilter(status) {
+                                                              document.getElementById('statusField').value = status;
+                                                              document.getElementById('filterForm').submit();
+                                                          }
         </script>
     </body>
 </html>

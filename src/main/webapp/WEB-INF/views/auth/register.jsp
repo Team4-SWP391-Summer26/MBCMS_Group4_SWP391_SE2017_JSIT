@@ -405,7 +405,7 @@
                                     <path d="M8 12L11 15L16 9" stroke="white" stroke-width="2.5"
                                           stroke-linecap="round" stroke-linejoin="round" />
                                     </svg>
-                                    <span class="text-white-50">1 point per 1,000đ spent · no expiry</span>
+                                    <span class="text-white-50">1 point per 1,000 VND spent · no expiry</span>
                                 </div>
                                 <div class="d-flex align-items-center gap-3">
                                     <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
@@ -414,7 +414,7 @@
                                     <path d="M8 12L11 15L16 9" stroke="white" stroke-width="2.5"
                                           stroke-linecap="round" stroke-linejoin="round" />
                                     </svg>
-                                    <span class="text-white-50">Welcome gift: 50,000đ off your first booking</span>
+                                    <span class="text-white-50">Welcome gift: 50,000 VND off your first booking</span>
                                 </div>
                                 <div class="d-flex align-items-center gap-3">
                                     <svg width="22" height="22" viewBox="0 0 24 24" fill="none"

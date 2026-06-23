@@ -12,8 +12,11 @@ import com.mbcms.dao.impl.MovieDAOImpl;
 import com.mbcms.dao.impl.PromotionDAOImpl;
 import com.mbcms.dao.impl.SeatDAOImpl;
 import com.mbcms.dao.impl.ShowtimeDAOImpl;
+import com.mbcms.dao.CustomerDAO;
+import com.mbcms.dao.impl.CustomerDAOImpl;
 import com.mbcms.model.Booking;
 import com.mbcms.model.BookingTicket;
+import com.mbcms.model.Customer;
 import com.mbcms.model.Promotion;
 import com.mbcms.model.Seat;
 import com.mbcms.model.Showtime;
@@ -41,6 +44,7 @@ public class BookingServiceImpl implements BookingService {
     private final PromotionDAO promoDao = new PromotionDAOImpl();
     private final BranchDAO  branchDao  = new BranchDAOImpl();
     private final MovieDAO   movieDao   = new MovieDAOImpl();
+    private final CustomerDAO customerDao = new CustomerDAOImpl();
 
     // ── validatePromoCode ─────────────────────────────────────────────────
     @Override
@@ -184,6 +188,43 @@ public class BookingServiceImpl implements BookingService {
             throw new SecurityException("You are not allowed to view this booking.");
         }
         return bookingDao.findTicket(bookingId);
+    }
+    @Override
+    public Booking createCounterBooking(Booking booking, List<Long> seatIds, String promoCode) {
+        // 1. Luon set mac dinh guest01 cho khach vang lai mua tai quay
+        booking.setCustomerUsername("guest01");
+
+        // 2. Ap dung ma khuyen mai neu co
+        Long promoId = null;
+        BigDecimal discount = BigDecimal.ZERO;
+        if (promoCode != null && !promoCode.trim().isEmpty()) {
+            Promotion promo = promoDao.findByCode(promoCode.trim().toUpperCase());
+            if (promo != null && promo.isActive() && "Active".equals(promo.getStatus())) {
+                BigDecimal minAmt = promo.getMinOrderAmount();
+                // Kiem tra gia tri don hang toi thieu
+                if (minAmt == null || booking.getSubtotal().compareTo(minAmt) >= 0) {
+                    promoId = promo.getPromoId();
+                    if (Promotion.TYPE_PERCENT.equals(promo.getDiscountType())) {
+                        discount = booking.getSubtotal()
+                                .multiply(promo.getDiscountValue())
+                                .divide(BigDecimal.valueOf(100), 0, java.math.RoundingMode.HALF_UP);
+                    } else if (Promotion.TYPE_FIXED_AMOUNT.equals(promo.getDiscountType())) {
+                        discount = promo.getDiscountValue();
+                    }
+
+                    // Khong duoc giam nhieu hon gia tri don hang
+                    if (discount.compareTo(booking.getSubtotal()) > 0) {
+                        discount = booking.getSubtotal();
+                    }
+                }
+            }
+        }
+        booking.setPromoId(promoId);
+        booking.setDiscountAmount(discount);
+        booking.setTotalAmount(booking.getSubtotal().subtract(discount));
+
+        // 3. Goi DAO ghi nhan Booking + Seats + CASH Payment trong 1 transaction
+        return bookingDao.createCounterBooking(booking, seatIds);
     }
 
     @Override

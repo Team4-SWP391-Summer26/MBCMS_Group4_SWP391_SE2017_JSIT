@@ -13,7 +13,9 @@ import java.util.List;
  */
 public interface BranchDAO {
 
-    /** Tim branch theo id; null neu khong ton tai. */
+    /**
+     * Tim branch theo id; null neu khong ton tai.
+     */
     Branch findById(long branchId);
     
     /**

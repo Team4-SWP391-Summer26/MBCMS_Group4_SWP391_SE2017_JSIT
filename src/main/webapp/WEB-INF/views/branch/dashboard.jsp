@@ -112,9 +112,9 @@
                             <tbody>
                                 <c:if test="${empty todayShowtimes}">
                                     <tr><td colspan="7" class="text-center text-muted py-4">
-                                        No showtimes scheduled for today.</td></tr>
-                                </c:if>
-                                <c:forEach var="st" items="${todayShowtimes}">
+                                            No showtimes scheduled for today.</td></tr>
+                                        </c:if>
+                                        <c:forEach var="st" items="${todayShowtimes}">
                                     <tr>
                                         <td class="fw-semibold text-navy"><c:out value="${st.movieTitle}" /></td>
                                         <td><c:out value="${st.roomName}" /></td>

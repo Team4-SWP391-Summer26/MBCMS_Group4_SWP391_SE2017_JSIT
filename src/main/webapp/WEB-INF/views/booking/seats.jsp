@@ -274,20 +274,20 @@
 
             switch (msg.action) {
 
-                /* Người khác vừa chọn ghế này → soft-lock */
+                /* Someone else just selected this seat → soft-lock */
                 case 'SELECT':
-                    if (selectedSeats.has(myId)) return;   // echo của chính mình
+                    if (selectedSeats.has(myId)) return;   // own echo
                     setSeatState(btn, 'soft-locked');
                     break;
 
-                /* Người khác bỏ chọn → trả về available */
+                /* Someone else deselected → return to available */
                 case 'DESELECT':
                     if (selectedSeats.has(myId)) return;
                     setSeatState(btn, 'available');
                     flashRefreshBadge();
                     break;
 
-                /* Booking đã INSERT vào DB → hard-lock */
+                /* Booking INSERTed into DB → hard-lock */
                 case 'HARD_LOCK':
                     if (selectedSeats.has(myId)) {
                         selectedSeats.delete(myId);
@@ -300,7 +300,7 @@
                     flashRefreshBadge();
                     break;
 
-                /* Booking bị huỷ / hết hạn → ghế trống lại */
+                /* Booking cancelled / expired → release seat */
                 case 'HARD_RELEASE':
                     if (selectedSeats.has(myId)) return;
                     setSeatState(btn, 'available');
@@ -317,7 +317,7 @@
         };
 
         ws.onerror = function () {
-            ws.close();    // onclose sẽ lo retry
+            ws.close();    // onclose will handle retry
         };
     }
 

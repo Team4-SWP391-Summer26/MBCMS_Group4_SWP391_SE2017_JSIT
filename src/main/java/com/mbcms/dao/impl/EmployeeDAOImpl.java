@@ -9,8 +9,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 /**
- * EmployeeDAOImpl - truy cap bang {@code employees}.
- * Pattern chuan: PreparedStatement + closeAll trong finally.
+ * EmployeeDAOImpl - truy cap bang {@code employees}. Pattern chuan:
+ * PreparedStatement + closeAll trong finally.
  */
 public class EmployeeDAOImpl extends BaseDAO implements EmployeeDAO {
 
@@ -40,9 +40,10 @@ public class EmployeeDAOImpl extends BaseDAO implements EmployeeDAO {
             closeAll(rs, ps, conn);
         }
     }
+
     /**
-     * Update mat khau moi da duoc hash bang BCrypt.
-     * Luu y: DAO chi update DB, khong tu hash password o day.
+     * Update mat khau moi da duoc hash bang BCrypt. Luu y: DAO chi update DB,
+     * khong tu hash password o day.
      */
     @Override
     public boolean updatePassword(String username, String newPasswordHash) {
@@ -65,6 +66,7 @@ public class EmployeeDAOImpl extends BaseDAO implements EmployeeDAO {
             closeAll(ps, conn);
         }
     }
+
     private Employee mapRow(ResultSet rs) throws SQLException {
         Employee e = new Employee();
         e.setUsername(rs.getString("username"));
