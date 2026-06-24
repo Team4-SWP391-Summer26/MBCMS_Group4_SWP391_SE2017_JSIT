@@ -54,6 +54,64 @@ public class FoodServiceImpl implements FoodService {
         return foodDao.updateOrderStatusByBooking(bookingId, status);
     }
 
+    // ── Branch menu management ───────────────────────────────────────
+
+    @Override
+    public List<FoodItem> getMenuByBranch(long branchId) {
+        return foodDao.findAllByBranch(branchId);
+    }
+
+    @Override
+    public boolean addItem(FoodItem item, long branchId) {
+        if (item.getName() == null || item.getName().trim().isEmpty())
+            throw new IllegalArgumentException("Ten mon khong duoc de trong.");
+        if (item.getPrice() == null || item.getPrice().compareTo(java.math.BigDecimal.ZERO) < 0)
+            throw new IllegalArgumentException("Gia khong hop le.");
+        if (item.getStock() < 0)
+            throw new IllegalArgumentException("Ton kho khong duoc am.");
+        item.setBranchId(branchId);
+        return foodDao.insert(item);
+    }
+
+    @Override
+    public boolean editItem(FoodItem item, long branchId) {
+        FoodItem existing = foodDao.findById(item.getFoodId());
+        if (existing == null || !Long.valueOf(branchId).equals(existing.getBranchId()))
+            throw new IllegalArgumentException("Mon khong ton tai hoac khong thuoc chi nhanh nay.");
+        if (item.getName() == null || item.getName().trim().isEmpty())
+            throw new IllegalArgumentException("Ten mon khong duoc de trong.");
+        if (item.getPrice() == null || item.getPrice().compareTo(java.math.BigDecimal.ZERO) < 0)
+            throw new IllegalArgumentException("Gia khong hop le.");
+        if (item.getStock() < 0)
+            throw new IllegalArgumentException("Ton kho khong duoc am.");
+        item.setBranchId(branchId);
+        return foodDao.update(item);
+    }
+
+    @Override
+    public boolean removeItem(long foodId, long branchId) {
+        FoodItem existing = foodDao.findById(foodId);
+        if (existing == null || !Long.valueOf(branchId).equals(existing.getBranchId()))
+            throw new IllegalArgumentException("Mon khong ton tai hoac khong thuoc chi nhanh nay.");
+        return foodDao.delete(foodId);
+    }
+
+    @Override
+    public boolean updateStock(long foodId, int stock, long branchId) {
+        if (stock < 0) throw new IllegalArgumentException("Ton kho khong duoc am.");
+        FoodItem existing = foodDao.findById(foodId);
+        if (existing == null || !Long.valueOf(branchId).equals(existing.getBranchId()))
+            throw new IllegalArgumentException("Mon khong ton tai hoac khong thuoc chi nhanh nay.");
+        return foodDao.updateStock(foodId, stock);
+    }
+
+    @Override
+    public boolean toggleStatus(long foodId, boolean active, long branchId) {
+        FoodItem existing = foodDao.findById(foodId);
+        if (existing == null || !Long.valueOf(branchId).equals(existing.getBranchId()))
+            throw new IllegalArgumentException("Mon khong ton tai hoac khong thuoc chi nhanh nay.");
+        return foodDao.updateStatus(foodId, active);
+    }
     @Override
     public void deleteOrderByBookingId(long bookingId) {
         foodDao.deleteOrderByBookingId(bookingId);

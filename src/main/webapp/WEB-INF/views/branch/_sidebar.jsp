@@ -40,7 +40,9 @@
     <a class="lc-sb-item ${param.active == 'payments' ? 'active' : ''}"
        href="${pageContext.request.contextPath}/branch/payments">
         <i class="bi bi-credit-card"></i> Payments</a>
-    <span class="lc-sb-item disabled"><i class="bi bi-cup-straw"></i> F&amp;B Menu <span class="lc-sb-soon">Soon</span></span>
+    <a class="lc-sb-item ${param.active == 'fnb' ? 'active' : ''}"
+       href="${pageContext.request.contextPath}/branch/food">
+        <i class="bi bi-cup-straw"></i> F&amp;B Menu</a>
     <span class="lc-sb-item disabled"><i class="bi bi-bar-chart"></i> Reports <span class="lc-sb-soon">Soon</span></span>
 
     <div style="flex:1;"></div>

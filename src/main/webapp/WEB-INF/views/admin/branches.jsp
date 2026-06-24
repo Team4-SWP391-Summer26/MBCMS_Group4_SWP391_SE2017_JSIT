@@ -370,28 +370,34 @@
                                 </c:choose>
                             </div>
 
-                            <div class="lc-cinema-actions">
-                                <%-- Edit Details button --%>
-                                <button type="button" class="lc-btn-outline edit-btn"
-                                        data-id="${b.branchId}"
-                                        data-name="${b.name}"
-                                        data-address="${b.address}"
-                                        data-city="${b.city}"
-                                        data-phone="${b.phone}"
-                                        data-email="${b.email}"
-                                        data-open="<c:choose><c:when test="${b.openingTime != null}">${fn:substring(b.openingTime, 0, 5)}</c:when><c:otherwise>08:00</c:otherwise></c:choose>"
-                                        data-close="<c:choose><c:when test="${b.closingTime != null}">${fn:substring(b.closingTime, 0, 5)}</c:when><c:otherwise>23:00</c:otherwise></c:choose>"
-                                        data-active="${b.active}"
-                                        data-bs-toggle="modal"
-                                        data-bs-target="#editModal">
-                                    <i class="bi bi-pencil me-1"></i> Edit Details
-                                </button>
-                                <%-- Manage Rooms button --%>
-                                <a href="${pageContext.request.contextPath}/admin/halls?branchId=${b.branchId}"
-                                   class="lc-btn-fill">
-                                    <i class="bi bi-grid me-1"></i> Manage Rooms
-                                </a>
-                            </div>
+                           <div class="lc-cinema-actions">
+
+                            <%-- Edit Details button --%>
+                            <button type="button"
+                                    class="lc-btn-outline edit-btn"
+                                    data-id="${b.branchId}"
+                                    data-name="${b.name}"
+                                    data-address="${b.address}"
+                                    data-city="${b.city}"
+                                    data-phone="${b.phone}"
+                                    data-email="${b.email}"
+                                    data-open="${b.openingTime}"
+                                    data-close="${b.closingTime}"
+                                    data-active="${b.active}"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#editModal">
+                                <i class="bi bi-pencil me-1"></i>
+                                Edit Details
+                            </button>
+
+                            <%-- Manage Rooms button --%>
+                            <a href="${pageContext.request.contextPath}/admin/halls?branchId=${b.branchId}"
+                               class="lc-btn-fill">
+                                <i class="bi bi-grid me-1"></i>
+                                Manage Rooms
+                            </a>
+
+                        </div>
                         </div>
 
                     </div>

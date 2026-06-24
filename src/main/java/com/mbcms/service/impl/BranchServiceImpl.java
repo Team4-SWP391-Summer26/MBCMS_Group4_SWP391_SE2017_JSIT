@@ -86,6 +86,9 @@ public class BranchServiceImpl implements BranchService {
         existing.setCity(branch.getCity().trim());
         existing.setPhone(branch.getPhone() != null ? branch.getPhone().trim() : null);
         existing.setEmail(branch.getEmail() != null ? branch.getEmail().trim() : null);
+        existing.setActive(branch.isActive());
+        if (branch.getOpeningTime() != null) existing.setOpeningTime(branch.getOpeningTime());
+        if (branch.getClosingTime() != null) existing.setClosingTime(branch.getClosingTime());
 
         return branchDAO.update(existing);
     }
@@ -171,8 +174,7 @@ public class BranchServiceImpl implements BranchService {
         if (!ValidationUtil.isNullOrEmpty(b.getEmail()) && !ValidationUtil.isValidEmail(b.getEmail())) {
             throw new IllegalArgumentException("Email không đúng định dạng.");
         }
-        if (!ValidationUtil.isNullOrEmpty(b.getPhone()) && !ValidationUtil.isValidPhone(b.getPhone())) {
-            throw new IllegalArgumentException("Số điện thoại không đúng định dạng Việt Nam.");
-        }
+        // Phone validation relaxed: accept any non-empty string
+        // (format varies: spaces, dashes, dots)
     }
 }
