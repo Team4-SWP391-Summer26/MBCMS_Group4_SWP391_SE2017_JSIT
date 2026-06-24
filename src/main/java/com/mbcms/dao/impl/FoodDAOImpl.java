@@ -56,7 +56,21 @@ public class FoodDAOImpl extends BaseDAO implements FoodDAO {
             ps.setLong(1, foodId);
             rs = ps.executeQuery();
             if (rs.next()) {
+<<<<<<< HEAD
                 return mapRow(rs);
+=======
+                FoodItem item = new FoodItem();
+                item.setFoodId(rs.getLong("food_id"));
+                item.setName(rs.getString("name"));
+                item.setDescription(rs.getString("description"));
+                item.setPrice(rs.getBigDecimal("price"));
+                item.setCategory(rs.getString("category"));
+                item.setImageUrl(rs.getString("image_url"));
+                item.setActive(rs.getBoolean("active"));
+                long bid = rs.getLong("branch_id");
+                item.setBranchId(rs.wasNull() ? null : bid);
+                return item;
+>>>>>>> 4eabd22 (Fix active of food menu)
             }
             return null;
         } catch (SQLException e) {
