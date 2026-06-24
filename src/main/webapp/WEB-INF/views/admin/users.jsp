@@ -98,10 +98,10 @@
                     <button type="button" class="btn btn-sm ${selectedStatus == 'Inactive' ? 'btn-primary' : 'btn-light border'}" onclick="setStatus('Inactive')">Inactive</button>
                 </div>
                 <div class="d-flex gap-2 ms-auto">
-                    <button type="button" onclick="exportCSV()" class="btn btn-light border d-flex align-items-center gap-1" style="height:38px;">
-                        <i class="bi bi-file-earmark-arrow-down"></i> Export</button>
-                    <a href="${pageContext.request.contextPath}/admin/users?action=add" class="btn btn-primary d-flex align-items-center gap-1" style="height:38px; white-space:nowrap;">
-                        <i class="bi bi-plus-circle"></i> Add User</a>
+                    <button type="button" onclick="exportCSV()" class="btn btn-light border btn-sm">
+                        <i class="bi bi-file-earmark-arrow-down me-1"></i>Export</button>
+                    <a href="${pageContext.request.contextPath}/admin/users?action=add" class="btn btn-primary btn-sm text-nowrap">
+                        <i class="bi bi-plus-circle me-1"></i>Add User</a>
                 </div>
             </form>
         </div>
@@ -130,17 +130,11 @@
                                 <c:if test="${fn:length(words) > 0}">
                                     <c:set var="initials" value="${fn:substring(words[0], 0, 1)}${fn:substring(words[fn:length(words) - 1], 0, 1)}" />
                                 </c:if>
-                                <c:choose>
-                                    <c:when test="${user.role == 'CUSTOMER'}"><c:set var="avBg" value="#2563eb" /></c:when>
-                                    <c:when test="${user.role == 'BRANCH_MANAGER'}"><c:set var="avBg" value="#8b5cf6" /></c:when>
-                                    <c:when test="${user.role == 'BRANCH_STAFF'}"><c:set var="avBg" value="#f59e0b" /></c:when>
-                                    <c:otherwise><c:set var="avBg" value="#ef4444" /></c:otherwise>
-                                </c:choose>
                                 <tr>
                                     <td><input class="form-check-input user-checkbox" type="checkbox" value="${user.username}"></td>
                                     <td>
                                         <div class="pay-cust">
-                                            <div class="pay-avatar" style="background:${avBg};"><c:out value="${fn:toUpperCase(initials)}"/></div>
+                                            <div class="pay-avatar"><c:out value="${fn:toUpperCase(initials)}"/></div>
                                             <div>
                                                 <div class="nm"><c:out value="${user.fullName}"/></div>
                                                 <div class="em">@<c:out value="${user.username}"/></div>

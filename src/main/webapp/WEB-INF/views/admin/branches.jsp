@@ -293,8 +293,8 @@
                 <option value="active">Active</option>
                 <option value="inactive">Inactive</option>
             </select>
-            <button class="lc-btn-add" data-bs-toggle="modal" data-bs-target="#addModal">
-                <i class="bi bi-plus-lg"></i> Add Cinema
+            <button class="btn btn-primary btn-sm ms-auto text-nowrap" data-bs-toggle="modal" data-bs-target="#addModal">
+                <i class="bi bi-plus-lg me-1"></i>Add Cinema
             </button>
         </div>
 
