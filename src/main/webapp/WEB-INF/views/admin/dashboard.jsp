@@ -107,8 +107,24 @@
                 </a>
             </div>
             <div class="col-md-6 col-xl-4">
-                <a class="tile is-live" href="${pageContext.request.contextPath}/admin/movie-branches">
+                <a class="tile is-live" href="${pageContext.request.contextPath}/admin/movies">
                     <span class="tile-ic"><i class="bi bi-film"></i></span>
+                    <div class="tile-tt">Movies</div>
+                    <div class="tile-ds">Add, edit and delete movies, upload posters/trailers and set their status.</div>
+                    <span class="tile-go">Open <i class="bi bi-arrow-right"></i></span>
+                </a>
+            </div>
+            <div class="col-md-6 col-xl-4">
+                <a class="tile is-live" href="${pageContext.request.contextPath}/admin/genres">
+                    <span class="tile-ic"><i class="bi bi-tags"></i></span>
+                    <div class="tile-tt">Genres</div>
+                    <div class="tile-ds">Maintain the list of movie genres used across the catalog.</div>
+                    <span class="tile-go">Open <i class="bi bi-arrow-right"></i></span>
+                </a>
+            </div>
+            <div class="col-md-6 col-xl-4">
+                <a class="tile is-live" href="${pageContext.request.contextPath}/admin/movie-branches">
+                    <span class="tile-ic"><i class="bi bi-diagram-3"></i></span>
                     <div class="tile-tt">Movie Assignment</div>
                     <div class="tile-ds">Assign movies to the cinemas allowed to schedule them.</div>
                     <span class="tile-go">Open <i class="bi bi-arrow-right"></i></span>
