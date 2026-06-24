@@ -7,6 +7,8 @@ import com.mbcms.service.VnPayCallbackService;
 import com.mbcms.service.impl.BookingServiceImpl;
 import com.mbcms.util.BookingCustomerGuard;
 import com.mbcms.util.VnPayUtil;
+import com.mbcms.service.NotificationService;
+import com.mbcms.service.impl.NotificationServiceImpl;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -20,14 +22,15 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * VNPay Return URL - browser redirect sau khi user thanh toan tren cong VNPay Sandbox.
- * Verify chu ky HMAC-SHA512, xac nhan booking neu vnp_ResponseCode=00.
+ * VNPay Return URL - browser redirect sau khi user thanh toan tren cong VNPay
+ * Sandbox. Verify chu ky HMAC-SHA512, xac nhan booking neu vnp_ResponseCode=00.
  */
 @WebServlet("/booking/payment/vnpay-return")
 public class VnPayReturnServlet extends HttpServlet {
 
     private final VnPayCallbackService callbackService = new VnPayCallbackService();
     private final BookingService bookingService = new BookingServiceImpl();
+    private final NotificationService notificationService = new NotificationServiceImpl();
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
@@ -54,14 +57,26 @@ public class VnPayReturnServlet extends HttpServlet {
         }
 
         switch (result.getOutcome()) {
-            case SUCCESS, ALREADY_PAID -> forwardConfirm(req, resp, result.getBooking());
+            case SUCCESS, ALREADY_PAID -> {
+                // Gui email xac nhan bat dong bo (khong block redirect)
+                Booking confirmed = result.getBooking();
+                if (confirmed != null) {
+                    HttpSession s = req.getSession(false);
+                    Customer c = (s != null) ? (Customer) s.getAttribute("currentUser") : null;
+                    if (c != null && c.getEmail() != null) {
+                        notificationService.sendBookingConfirmation(confirmed, c.getEmail());
+                    }
+                }
+                forwardConfirm(req, resp, confirmed);
+            }
             case EXPIRED -> redirectPayment(resp, req, bookingId, "expired");
             case PAYMENT_FAILED -> redirectPayment(resp, req, bookingId, "failed");
             case INVALID_SIGNATURE -> redirectPayment(resp, req, bookingId, "signature");
             case AMOUNT_MISMATCH -> redirectPayment(resp, req, bookingId, "amount");
             case INVALID_TXN_REF, BOOKING_NOT_FOUND ->
-                    resp.sendRedirect(req.getContextPath() + "/customer/booking/history");
-            default -> redirectPayment(resp, req, bookingId, "failed");
+                resp.sendRedirect(req.getContextPath() + "/customer/booking/history");
+            default ->
+                redirectPayment(resp, req, bookingId, "failed");
         }
     }
 
