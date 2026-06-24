@@ -19,7 +19,7 @@ public class CustomerDAOImpl extends BaseDAO implements CustomerDAO {
     @Override
     public Customer findByUsername(String username) {
         String sql = "SELECT username, email, password_hash, full_name, phone, "
-                + "date_of_birth, address, active, email_verified, reset_token, created_at "
+                + "date_of_birth, address, active, email_verified, reset_token, google_id, created_at "
                 + "FROM customers WHERE username = ?";
 
         Connection conn = null;
@@ -75,7 +75,7 @@ public class CustomerDAOImpl extends BaseDAO implements CustomerDAO {
     @Override
     public Customer findByEmail(String email) {
         String sql = "SELECT username, email, password_hash, full_name, phone, "
-                + "date_of_birth, address, active, email_verified, reset_token, created_at "
+                + "date_of_birth, address, active, email_verified, reset_token, google_id, created_at "
                 + "FROM customers WHERE email = ?";
 
         Connection conn = null;
@@ -243,7 +243,7 @@ public class CustomerDAOImpl extends BaseDAO implements CustomerDAO {
     @Override
     public Customer findByPhone(String phone) {
         String sql = "SELECT username, email, password_hash, full_name, phone, "
-                + "date_of_birth, address, active, email_verified, reset_token, created_at "
+                + "date_of_birth, address, active, email_verified, reset_token, google_id, created_at "
                 + "FROM customers WHERE phone = ? AND active = 1";
 
         Connection conn = null;
@@ -266,16 +266,16 @@ public class CustomerDAOImpl extends BaseDAO implements CustomerDAO {
             closeAll(rs, ps, conn);
         }
     }
-    
+
     @Override
     public List<String> findAllActiveUsernames() {
         String sql = "SELECT username FROM dbo.customers WHERE active = 1";
- 
+
         Connection conn = null;
         PreparedStatement ps = null;
         ResultSet rs = null;
         List<String> result = new ArrayList<>();
- 
+
         try {
             conn = getConnection();
             ps = conn.prepareStatement(sql);
@@ -289,6 +289,95 @@ public class CustomerDAOImpl extends BaseDAO implements CustomerDAO {
                     "Loi truy van customers.findAllActiveUsernames: " + e.getMessage(), e);
         } finally {
             closeAll(rs, ps, conn);
+        }
+    }
+
+     @Override
+    public Customer findByGoogleId(String googleId) {
+        String sql = "SELECT username, email, password_hash, full_name, phone, "
+                + "date_of_birth, address, active, email_verified, reset_token, google_id, created_at "
+                + "FROM customers WHERE google_id = ?";
+
+        Connection conn = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+
+        try {
+            conn = getConnection();
+            ps = conn.prepareStatement(sql);
+            ps.setString(1, googleId);
+            rs = ps.executeQuery();
+
+            if (rs.next()) {
+                return mapRow(rs);
+            }
+            return null;
+        } catch (SQLException e) {
+            throw new RuntimeException("Loi truy van customers.findByGoogleId: " + e.getMessage(), e);
+        } finally {
+            closeAll(rs, ps, conn);
+        }
+    }
+
+    @Override
+    public boolean linkGoogleId(String username, String googleId) {
+        String sql = "UPDATE customers SET google_id = ? WHERE username = ?";
+
+        Connection conn = null;
+        PreparedStatement ps = null;
+
+        try {
+            conn = getConnection();
+            ps = conn.prepareStatement(sql);
+            ps.setString(1, googleId);
+            ps.setString(2, username);
+            return ps.executeUpdate() == 1;
+        } catch (SQLException e) {
+            throw new RuntimeException("Loi cap nhat customers.linkGoogleId: " + e.getMessage(), e);
+        } finally {
+            closeAll(ps, conn);
+        }
+    }
+
+    @Override
+    public boolean insertGoogleCustomer(Customer customer) {
+        // password_hash = NULL (Google-only), google_id = sub cua Google
+        // email_verified = 1 vi Google da xac thuc email roi
+        String sql = "INSERT INTO customers "
+                + "(username, email, password_hash, full_name, phone, "
+                + "date_of_birth, address, active, email_verified, reset_token, google_id, created_at) "
+                + "VALUES (?, ?, NULL, ?, ?, ?, ?, ?, ?, NULL, ?, ?)";
+
+        Connection conn = null;
+        PreparedStatement ps = null;
+
+        try {
+            conn = getConnection();
+            ps = conn.prepareStatement(sql);
+
+            ps.setString(1, customer.getUsername());
+            ps.setString(2, customer.getEmail());
+            ps.setString(3, customer.getFullName());
+            ps.setString(4, customer.getPhone());
+
+            ps.setDate(5, customer.getDateOfBirth() != null
+                    ? java.sql.Date.valueOf(customer.getDateOfBirth())
+                    : null);
+
+            ps.setString(6, customer.getAddress());
+            ps.setBoolean(7, customer.isActive());
+            ps.setBoolean(8, customer.isEmailVerified());   // = true
+            ps.setString(9, customer.getGoogleId());
+
+            ps.setTimestamp(10, customer.getCreatedAt() != null
+                    ? java.sql.Timestamp.valueOf(customer.getCreatedAt())
+                    : java.sql.Timestamp.valueOf(java.time.LocalDateTime.now()));
+
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            throw new RuntimeException("Loi thuc thi customers.insertGoogleCustomer: " + e.getMessage(), e);
+        } finally {
+            closeAll(ps, conn);
         }
     }
 
@@ -311,6 +400,7 @@ public class CustomerDAOImpl extends BaseDAO implements CustomerDAO {
         c.setActive(rs.getBoolean("active"));
         c.setEmailVerified(rs.getBoolean("email_verified"));
         c.setResetToken(rs.getString("reset_token"));
+        c.setGoogleId(rs.getString("google_id"));
 
         java.sql.Timestamp created = rs.getTimestamp("created_at");
         c.setCreatedAt(created != null ? created.toLocalDateTime() : null);
