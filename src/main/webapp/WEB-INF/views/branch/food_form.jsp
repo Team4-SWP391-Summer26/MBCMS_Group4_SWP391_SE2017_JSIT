@@ -107,6 +107,7 @@
                   action="${pageContext.request.contextPath}/branch/food">
 
                 <input type="hidden" name="action" value="${isAdd ? 'add' : 'edit'}">
+                <%@ include file="/WEB-INF/views/common/csrf-hidden.jspf" %>
                 <c:if test="${not isAdd}">
                     <input type="hidden" name="foodId" value="${item.foodId}">
                 </c:if>
