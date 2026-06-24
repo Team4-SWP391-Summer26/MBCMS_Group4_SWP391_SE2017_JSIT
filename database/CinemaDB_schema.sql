@@ -107,6 +107,8 @@ CREATE TABLE dbo.branches (
     email      VARCHAR(150)  NULL,
     active     BIT           NOT NULL CONSTRAINT DF_branches_active DEFAULT (1),
     created_at DATETIME2     NOT NULL CONSTRAINT DF_branches_created DEFAULT (SYSUTCDATETIME()),
+    opening_time TIME         NULL,
+    closing_time TIME         NULL,
     CONSTRAINT PK_branches PRIMARY KEY (branch_id)
 );
 GO
@@ -306,6 +308,8 @@ CREATE TABLE dbo.food_items (
     price       DECIMAL(10,2) NOT NULL,
     category    VARCHAR(5)    NOT NULL,
     image_url   VARCHAR(500)  NULL,
+    branch_id   BIGINT        NOT NULL,
+    stock       INT           NOT NULL CONSTRAINT DF_food_items_stock DEFAULT (0),
     active      BIT           NOT NULL CONSTRAINT DF_food_items_active DEFAULT (1),
     CONSTRAINT PK_food_items PRIMARY KEY (food_id),
     CONSTRAINT CK_food_items_price    CHECK (price >= 0),

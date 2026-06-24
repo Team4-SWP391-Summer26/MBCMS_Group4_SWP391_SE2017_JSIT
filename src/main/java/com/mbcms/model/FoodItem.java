@@ -18,6 +18,8 @@ public class FoodItem {
     private String category;
     private String imageUrl;
     private boolean active = true;
+    private Long branchId;
+    private int stock;
 
     public FoodItem() {
     }
@@ -76,5 +78,21 @@ public class FoodItem {
 
     public void setActive(boolean active) {
         this.active = active;
+    }
+
+    public Long getBranchId() {
+        return branchId;
+    }
+
+    public void setBranchId(Long branchId) {
+        this.branchId = branchId;
+    }
+
+    public int getStock() {
+        return stock;
+    }
+
+    public void setStock(int stock) {
+        this.stock = stock;
     }
 }

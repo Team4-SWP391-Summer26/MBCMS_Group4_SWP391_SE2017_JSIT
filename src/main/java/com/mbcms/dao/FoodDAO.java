@@ -16,4 +16,22 @@ public interface FoodDAO {
     boolean updateOrderStatus(long foodOrderId, String status);
     boolean updateOrderStatusByBooking(long bookingId, String status);
     boolean updateOrderStatusByBooking(Connection conn, long bookingId, String status);
+    // ── Branch menu management ───────────────────────────────────────
+    /** Lay tat ca mon (ca inactive) cua 1 branch. */
+    List<FoodItem> findAllByBranch(long branchId);
+
+    /** Them mon moi. */
+    boolean insert(FoodItem item);
+
+    /** Cap nhat thong tin / gia mon. */
+    boolean update(FoodItem item);
+
+    /** Cap nhat ton kho. */
+    boolean updateStock(long foodId, int stock);
+
+    /** Bat/tat hien thi. */
+    boolean updateStatus(long foodId, boolean active);
+
+    /** Xoa vinh vien. */
+    boolean delete(long foodId);
 }

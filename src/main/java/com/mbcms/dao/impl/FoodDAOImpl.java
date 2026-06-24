@@ -366,4 +366,128 @@ public class FoodDAOImpl extends BaseDAO implements FoodDAO {
             }
         }
     }
+
+    // ── Branch menu management ───────────────────────────────────────
+
+    private FoodItem mapRow(ResultSet rs) throws java.sql.SQLException {
+        FoodItem item = new FoodItem();
+        item.setFoodId(rs.getLong("food_id"));
+        item.setName(rs.getString("name"));
+        item.setDescription(rs.getString("description"));
+        item.setPrice(rs.getBigDecimal("price"));
+        item.setCategory(rs.getString("category"));
+        item.setImageUrl(rs.getString("image_url"));
+        item.setActive(rs.getBoolean("active"));
+        long branchId = rs.getLong("branch_id");
+        item.setBranchId(rs.wasNull() ? null : branchId);
+        item.setStock(rs.getInt("stock"));
+        return item;
+    }
+
+    @Override
+    public List<FoodItem> findAllByBranch(long branchId) {
+        String sql = "SELECT * FROM dbo.food_items WHERE branch_id = ? ORDER BY category, name";
+        Connection conn = null; PreparedStatement ps = null; ResultSet rs = null;
+        List<FoodItem> list = new ArrayList<>();
+        try {
+            conn = getConnection();
+            ps = conn.prepareStatement(sql);
+            ps.setLong(1, branchId);
+            rs = ps.executeQuery();
+            while (rs.next()) list.add(mapRow(rs));
+            return list;
+        } catch (SQLException e) {
+            throw new RuntimeException("Loi findAllByBranch: " + e.getMessage(), e);
+        } finally { closeAll(rs, ps, conn); }
+    }
+
+    @Override
+    public boolean insert(FoodItem item) {
+        String sql = "INSERT INTO dbo.food_items (name, description, price, category, image_url, active, branch_id, stock) "
+                   + "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        Connection conn = null; PreparedStatement ps = null;
+        try {
+            conn = getConnection();
+            ps = conn.prepareStatement(sql);
+            ps.setString(1, item.getName());
+            ps.setString(2, item.getDescription());
+            ps.setBigDecimal(3, item.getPrice());
+            ps.setString(4, item.getCategory());
+            ps.setString(5, item.getImageUrl());
+            ps.setBoolean(6, item.isActive());
+            if (item.getBranchId() != null) ps.setLong(7, item.getBranchId());
+            else ps.setNull(7, java.sql.Types.BIGINT);
+            ps.setInt(8, item.getStock());
+            return ps.executeUpdate() == 1;
+        } catch (SQLException e) {
+            throw new RuntimeException("Loi insert food_item: " + e.getMessage(), e);
+        } finally { closeAll(ps, conn); }
+    }
+
+    @Override
+    public boolean update(FoodItem item) {
+        String sql = "UPDATE dbo.food_items SET name=?, description=?, price=?, category=?, image_url=?, active=?, stock=? "
+                   + "WHERE food_id=? AND branch_id=?";
+        Connection conn = null; PreparedStatement ps = null;
+        try {
+            conn = getConnection();
+            ps = conn.prepareStatement(sql);
+            ps.setString(1, item.getName());
+            ps.setString(2, item.getDescription());
+            ps.setBigDecimal(3, item.getPrice());
+            ps.setString(4, item.getCategory());
+            ps.setString(5, item.getImageUrl());
+            ps.setBoolean(6, item.isActive());
+            ps.setInt(7, item.getStock());
+            ps.setLong(8, item.getFoodId());
+            ps.setLong(9, item.getBranchId());
+            return ps.executeUpdate() == 1;
+        } catch (SQLException e) {
+            throw new RuntimeException("Loi update food_item: " + e.getMessage(), e);
+        } finally { closeAll(ps, conn); }
+    }
+
+    @Override
+    public boolean updateStock(long foodId, int stock) {
+        String sql = "UPDATE dbo.food_items SET stock=? WHERE food_id=?";
+        Connection conn = null; PreparedStatement ps = null;
+        try {
+            conn = getConnection();
+            ps = conn.prepareStatement(sql);
+            ps.setInt(1, stock);
+            ps.setLong(2, foodId);
+            return ps.executeUpdate() == 1;
+        } catch (SQLException e) {
+            throw new RuntimeException("Loi updateStock: " + e.getMessage(), e);
+        } finally { closeAll(ps, conn); }
+    }
+
+    @Override
+    public boolean updateStatus(long foodId, boolean active) {
+        String sql = "UPDATE dbo.food_items SET active=? WHERE food_id=?";
+        Connection conn = null; PreparedStatement ps = null;
+        try {
+            conn = getConnection();
+            ps = conn.prepareStatement(sql);
+            ps.setBoolean(1, active);
+            ps.setLong(2, foodId);
+            return ps.executeUpdate() == 1;
+        } catch (SQLException e) {
+            throw new RuntimeException("Loi updateStatus food_item: " + e.getMessage(), e);
+        } finally { closeAll(ps, conn); }
+    }
+
+    @Override
+    public boolean delete(long foodId) {
+        String sql = "DELETE FROM dbo.food_items WHERE food_id=?";
+        Connection conn = null; PreparedStatement ps = null;
+        try {
+            conn = getConnection();
+            ps = conn.prepareStatement(sql);
+            ps.setLong(1, foodId);
+            return ps.executeUpdate() == 1;
+        } catch (SQLException e) {
+            throw new RuntimeException("Loi delete food_item: " + e.getMessage(), e);
+        } finally { closeAll(ps, conn); }
+    }
 }

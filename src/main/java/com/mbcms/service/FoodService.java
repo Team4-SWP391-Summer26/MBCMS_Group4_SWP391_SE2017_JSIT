@@ -14,4 +14,11 @@ public interface FoodService {
     List<FoodOrderDetail> getFoodOrdersByBranch(long branchId);
     boolean updateOrderStatus(long foodOrderId, String status);
     boolean updateOrderStatusByBooking(long bookingId, String status);
+    // ── Branch menu management ───────────────────────────────────────
+    List<FoodItem> getMenuByBranch(long branchId);
+    boolean addItem(FoodItem item, long branchId);
+    boolean editItem(FoodItem item, long branchId);
+    boolean removeItem(long foodId, long branchId);
+    boolean updateStock(long foodId, int stock, long branchId);
+    boolean toggleStatus(long foodId, boolean active, long branchId);
 }
