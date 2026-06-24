@@ -449,6 +449,26 @@
                         <h5 class="text-navy fw-bold mb-3"><i class="bi bi-4-circle-fill text-primary me-2"></i>Promotion &amp; Payment Details</h5>
 
                         <div class="row justify-content-center">
+                            <!-- Customer lookup -->
+                            <div class="col-md-8 col-lg-6 mb-4">
+                                <h6 class="text-navy fw-bold mb-3 text-uppercase small">Customer Account</h6>
+                                <div class="mb-2">
+                                    <label class="form-label fw-semibold text-muted small">Phone number (optional)</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-telephone-fill"></i></span>
+                                        <input type="text" id="customer-phone" class="form-control border-start-0" placeholder="Enter phone to lookup member...">
+                                        <button class="btn btn-outline-primary px-3" type="button" id="btn-lookup-customer">Lookup</button>
+                                    </div>
+                                </div>
+                                <div class="alert alert-info py-2 small mb-0" id="customer-info-alert">
+                                    <i class="bi bi-person-fill me-1"></i>
+                                    <span id="customer-display-name">Walk-in Guest (guest01)</span>
+                                </div>
+                                <div class="alert alert-danger py-2 d-none small" id="customer-lookup-error"></div>
+                            </div>
+                        </div>
+
+                        <div class="row justify-content-center">
                             <!-- Promotion Details -->
                             <div class="col-md-8 col-lg-6">
                                 <h6 class="text-navy fw-bold mb-3 text-uppercase small">Apply Promo Code</h6>
@@ -526,7 +546,7 @@
                                             </tr>
                                             <tr>
                                                 <th class="bg-light text-navy">Booking Account</th>
-                                                <td id="invoice-customer">Guest (guest01)</td>
+                                                <td id="invoice-customer">Walk-in Guest (guest01)</td>
                                             </tr>
                                             <tr>
                                                 <th class="bg-light text-navy">Promo Code</th>
@@ -697,6 +717,47 @@
                                 // Pre-fill today's date in local YYYY-MM-DD
                                 const todayStr = new Date().toISOString().split('T')[0];
                                 dateFilter.value = todayStr;
+
+                                function formatCustomerLabel() {
+                                    if (state.memberUsername === 'guest01') {
+                                        return 'Walk-in Guest (guest01)';
+                                    }
+                                    return state.memberFullName + ' (' + state.memberUsername + ')';
+                                }
+
+                                function updateCustomerDisplay() {
+                                    document.getElementById('customer-display-name').innerText = formatCustomerLabel();
+                                }
+
+                                document.getElementById('btn-lookup-customer').addEventListener('click', () => {
+                                    const phone = document.getElementById('customer-phone').value.trim();
+                                    const errEl = document.getElementById('customer-lookup-error');
+                                    errEl.classList.add('d-none');
+                                    if (!phone) {
+                                        state.memberUsername = 'guest01';
+                                        state.memberFullName = 'Walk-in Guest';
+                                        state.memberEmail = '';
+                                        updateCustomerDisplay();
+                                        return;
+                                    }
+                                    fetch(contextPath + '/staff/customer-lookup?phone=' + encodeURIComponent(phone))
+                                            .then(res => res.json())
+                                            .then(data => {
+                                                if (data.exists) {
+                                                    state.memberUsername = data.username;
+                                                    state.memberFullName = data.fullName || data.username;
+                                                    state.memberEmail = data.email || '';
+                                                    updateCustomerDisplay();
+                                                } else {
+                                                    errEl.innerText = data.message || 'Không tìm thấy khách hàng với SĐT này.';
+                                                    errEl.classList.remove('d-none');
+                                                }
+                                            })
+                                            .catch(() => {
+                                                errEl.innerText = 'Lỗi tra cứu khách hàng.';
+                                                errEl.classList.remove('d-none');
+                                            });
+                                });
 
                                 // Init Step 1 on Load
                                 document.addEventListener('DOMContentLoaded', () => {
@@ -1462,7 +1523,7 @@
                                         concessionsRow.classList.add('d-none');
                                     }
 
-                                    document.getElementById('invoice-customer').innerText = 'Guest (guest01)';
+                                    document.getElementById('invoice-customer').innerText = formatCustomerLabel();
 
                                     document.getElementById('invoice-promo').innerText = state.promoCode
                                             ? state.promoCode + ' (Discount ' + state.promoDiscount.toLocaleString() + ' VND)'
@@ -1572,6 +1633,7 @@
                                     formData.append('paymentMethod', selectedMethod);
                                     formData.append('notes', selectedMethod === 'VNPAY' ? 'Counter booking via VNPay' : 'Counter booking via Cash');
                                     formData.append('foodItems', foodItemsJson);
+                                    formData.append('customerUsername', state.memberUsername);
 
                                     fetch(contextPath + '/staff/booking', {
                                         method: 'POST',
@@ -1714,6 +1776,8 @@
                                     roomFilter.value = '';
                                     dateFilter.value = todayStr;
                                     promoCodeInput.value = '';
+                                    document.getElementById('customer-phone').value = '';
+                                    updateCustomerDisplay();
 
                                     // Clear UI elements
                                     promoSuccess.classList.add('d-none');

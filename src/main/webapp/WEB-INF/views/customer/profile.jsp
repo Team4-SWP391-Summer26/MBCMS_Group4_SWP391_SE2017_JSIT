@@ -1,4 +1,4 @@
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+﻿<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 <!DOCTYPE html>
@@ -154,6 +154,7 @@
 
                     <%-- ---------- Personal Information ---------- --%>
                     <form method="post" action="${pageContext.request.contextPath}/customer/profile" class="profile-form">
+            <%@ include file="/WEB-INF/views/common/csrf-hidden.jspf" %>
                         <div class="card lc-elev p-4 mb-4">
                             <div class="d-flex justify-content-between align-items-start mb-3">
                                 <div>

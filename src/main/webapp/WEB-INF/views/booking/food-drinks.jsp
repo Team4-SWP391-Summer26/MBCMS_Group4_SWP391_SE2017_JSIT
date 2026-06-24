@@ -1,4 +1,4 @@
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+﻿<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 <!DOCTYPE html>
@@ -172,6 +172,7 @@
     </c:choose>
 
     <form id="foodForm" action="${pageContext.request.contextPath}/booking/food-drinks" method="POST">
+            <%@ include file="/WEB-INF/views/common/csrf-hidden.jspf" %>
         <input type="hidden" name="showtimeId" value="${showtimeId}">
         <input type="hidden" name="seatIds" value="${seatIds}">
         <c:if test="${not empty bookingId}">

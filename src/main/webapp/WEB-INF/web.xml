@@ -16,6 +16,16 @@
         <url-pattern>/*</url-pattern>
     </filter-mapping>
 
+    <!-- ===== CSRF Filter (sau EncodingFilter) ===== -->
+    <filter>
+        <filter-name>CsrfFilter</filter-name>
+        <filter-class>com.mbcms.filter.CsrfFilter</filter-class>
+    </filter>
+    <filter-mapping>
+        <filter-name>CsrfFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+
     <!-- ===== Auth Filter ===== -->
     <filter>
         <filter-name>AuthFilter</filter-name>
@@ -62,6 +72,7 @@
         <session-timeout>30</session-timeout>
         <cookie-config>
             <http-only>true</http-only>
+            <!-- SameSite=Lax: Tomcat 10.1+ session cookie; reduces CSRF on cross-site GET -->
         </cookie-config>
     </session-config>
 

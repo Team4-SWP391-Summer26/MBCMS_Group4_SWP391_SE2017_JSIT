@@ -7,10 +7,7 @@ import java.util.List;
 
 /**
  * BookingDAO - CRUD + seat-lock operations cho booking flow.
- *
- * Seat locking strategy (DB-level): booking_seats.lock_status = 'LOCKED' khi
- * PENDING, = 'CONFIRMED' khi payment xong, = 'RELEASED' khi het gio / cancel.
- * getSeatStatusForShowtime dung de ve so do ghe.
+ * Seat hold: PENDING bookings expire 10 minutes after created_at (SYSUTCDATETIME).
  */
 public interface BookingDAO {
 
@@ -63,7 +60,8 @@ public interface BookingDAO {
     /**
      * Cap nhat subtotal va total_amount cua booking.
      */
-    boolean updateBookingTotals(long bookingId, java.math.BigDecimal newSubtotal, java.math.BigDecimal newTotalAmount);
+    boolean updateBookingTotals(long bookingId, java.math.BigDecimal newSubtotal,
+            java.math.BigDecimal discountAmount, java.math.BigDecimal newTotalAmount);
 
     /**
      * Kiem tra ghe co bi lock / da dat boi booking khac khong. Return: list
@@ -87,6 +85,11 @@ public interface BookingDAO {
      * so booking duoc giai phong.
      */
     int releaseExpiredLocks();
+
+    /**
+     * True if booking is PENDING and created_at + 10 min has passed (UTC, same as confirmBooking SQL).
+     */
+    boolean isPendingHoldExpired(long bookingId);
 
     /**
      * Tạo đặt vé tại quầy cho nhân viên (Branch Staff) trong 1 Transaction. Bao

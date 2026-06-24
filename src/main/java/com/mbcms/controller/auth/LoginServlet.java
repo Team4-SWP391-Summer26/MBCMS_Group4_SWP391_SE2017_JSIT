@@ -72,14 +72,20 @@ public class LoginServlet extends HttpServlet {
 
         if (customer != null) {
             HttpSession old = req.getSession(false);
+            String redirectAfterLogin = null;
             if (old != null) {
+                Object saved = old.getAttribute("redirectAfterLogin");
+                if (saved instanceof String) {
+                    redirectAfterLogin = (String) saved;
+                }
                 old.invalidate();
             }
             HttpSession session = req.getSession(true);
             session.setAttribute("currentUser", customer);
             session.setAttribute("userRole", "CUSTOMER");
             session.setAttribute("username", customer.getUsername());
-            resp.sendRedirect(req.getContextPath() + "/home");
+            String target = resolveSafeRedirect(req, redirectAfterLogin);
+            resp.sendRedirect(target);
             return;
         }
 
@@ -94,6 +100,7 @@ public class LoginServlet extends HttpServlet {
             session.setAttribute("username", employee.getUsername());
             if (employee.getBranchId() != null) {
                 session.setAttribute("branchId", employee.getBranchId());
+                session.setAttribute("currentBranchId", employee.getBranchId());
             }
             String redirect;
             if (employee.isAdmin()) {
@@ -116,5 +123,22 @@ public class LoginServlet extends HttpServlet {
         }
         req.setAttribute("username", username);
         req.getRequestDispatcher("/WEB-INF/views/auth/login.jsp").forward(req, resp);
+    }
+
+    /** Chỉ cho redirect nội bộ app (chống open redirect). */
+    private String resolveSafeRedirect(HttpServletRequest req, String redirectAfterLogin) {
+        String fallback = req.getContextPath() + "/home";
+        if (redirectAfterLogin == null || redirectAfterLogin.isBlank()) {
+            return fallback;
+        }
+        String ctx = req.getContextPath();
+        if (!redirectAfterLogin.startsWith(ctx + "/")) {
+            return fallback;
+        }
+        if (redirectAfterLogin.startsWith(ctx + "/auth/login")
+                || redirectAfterLogin.startsWith(ctx + "/auth/register")) {
+            return fallback;
+        }
+        return redirectAfterLogin;
     }
 }

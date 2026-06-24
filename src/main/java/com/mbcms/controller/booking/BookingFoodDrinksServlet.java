@@ -1,9 +1,13 @@
 package com.mbcms.controller.booking;
 
+import com.mbcms.model.Booking;
 import com.mbcms.model.Customer;
 import com.mbcms.model.FoodItem;
+import com.mbcms.service.BookingService;
 import com.mbcms.service.FoodService;
+import com.mbcms.service.impl.BookingServiceImpl;
 import com.mbcms.service.impl.FoodServiceImpl;
+import com.mbcms.util.BookingCustomerGuard;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -21,22 +25,22 @@ import java.util.Map;
 public class BookingFoodDrinksServlet extends HttpServlet {
 
     private FoodService foodService;
+    private BookingService bookingService;
 
     @Override
     public void init() {
         foodService = new FoodServiceImpl();
+        bookingService = new BookingServiceImpl();
     }
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
 
-        HttpSession session = req.getSession(false);
-        if (session == null || session.getAttribute("currentUser") == null) {
-            resp.sendRedirect(req.getContextPath() + "/auth/login");
+        Customer customer = BookingCustomerGuard.requireCustomer(req, resp);
+        if (customer == null) {
             return;
         }
-        Customer customer = (Customer) session.getAttribute("currentUser");
 
         String bookingIdParam = req.getParameter("bookingId");
         String showtimeIdParam = req.getParameter("showtimeId");
@@ -45,27 +49,27 @@ public class BookingFoodDrinksServlet extends HttpServlet {
         if (bookingIdParam != null) {
             try {
                 long bookingId = Long.parseLong(bookingIdParam.trim());
-                com.mbcms.service.BookingService bookingService = new com.mbcms.service.impl.BookingServiceImpl();
-                com.mbcms.model.Booking booking = bookingService.getBookingDetail(bookingId, customer.getUsername());
+                Booking booking = bookingService.getBookingDetail(bookingId, customer.getUsername());
                 if (booking != null) {
                     showtimeIdParam = String.valueOf(booking.getShowtimeId());
-                    // Format seat labels or ids as CSV
                     List<Long> seatIds = booking.getSeatIds();
                     StringBuilder sb = new StringBuilder();
                     if (seatIds != null) {
                         for (int i = 0; i < seatIds.size(); i++) {
                             sb.append(seatIds.get(i));
-                            if (i < seatIds.size() - 1) sb.append(",");
+                            if (i < seatIds.size() - 1) {
+                                sb.append(",");
+                            }
                         }
                     }
                     seatIdsParam = sb.toString();
                     req.setAttribute("bookingId", bookingId);
-                    
-                    // Pre-load existing concessions
+
                     Map<FoodItem, Integer> existingFood = foodService.getFoodItemsByBookingId(bookingId);
                     req.setAttribute("existingFood", existingFood);
                 }
-            } catch (Exception ignored) {}
+            } catch (Exception ignored) {
+            }
         }
 
         if (showtimeIdParam == null || seatIdsParam == null || seatIdsParam.trim().isEmpty()) {
@@ -73,7 +77,6 @@ public class BookingFoodDrinksServlet extends HttpServlet {
             return;
         }
 
-        // Get list of active concessions
         List<FoodItem> foodItems = foodService.getActiveFoodItems();
 
         req.setAttribute("foodItems", foodItems);
@@ -87,9 +90,8 @@ public class BookingFoodDrinksServlet extends HttpServlet {
     protected void doPost(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
 
-        HttpSession session = req.getSession(false);
-        if (session == null || session.getAttribute("currentUser") == null) {
-            resp.sendRedirect(req.getContextPath() + "/auth/login");
+        Customer customer = BookingCustomerGuard.requireCustomer(req, resp);
+        if (customer == null) {
             return;
         }
 
@@ -109,18 +111,25 @@ public class BookingFoodDrinksServlet extends HttpServlet {
                         qty = Math.min(qty, 10);
                         selectedFood.put(item.getFoodId(), qty);
                     }
-                } catch (NumberFormatException ignored) {}
+                } catch (NumberFormatException ignored) {
+                }
             }
         }
 
         if (bookingIdParam != null && !bookingIdParam.trim().isEmpty()) {
             try {
                 long bookingId = Long.parseLong(bookingIdParam.trim());
-                // Save food order directly as PENDING
+                bookingService.getBookingDetail(bookingId, customer.getUsername());
                 foodService.saveFoodOrder(bookingId, selectedFood, "PENDING");
-                resp.sendRedirect(req.getContextPath() + "/customer/booking/detail?bookingId=" + bookingId + "&foodAdded=1");
+                bookingService.recalculateTotalsWithFood(bookingId, customer.getUsername(), selectedFood);
+                resp.sendRedirect(req.getContextPath()
+                        + "/customer/booking/detail?bookingId=" + bookingId + "&foodAdded=1");
                 return;
-            } catch (Exception ignored) {}
+            } catch (SecurityException e) {
+                resp.sendError(HttpServletResponse.SC_FORBIDDEN);
+                return;
+            } catch (Exception ignored) {
+            }
         }
 
         if (showtimeIdParam == null || seatIdsParam == null || seatIdsParam.trim().isEmpty()) {
@@ -128,11 +137,10 @@ public class BookingFoodDrinksServlet extends HttpServlet {
             return;
         }
 
-        // Store selected food in session
-        if (session != null) {
-            session.setAttribute("selectedFoodItems", selectedFood);
-        }
+        HttpSession session = req.getSession();
+        session.setAttribute("selectedFoodItems", selectedFood);
 
-        resp.sendRedirect(req.getContextPath() + "/booking/checkout?showtimeId=" + showtimeIdParam + "&seatIds=" + seatIdsParam);
+        resp.sendRedirect(req.getContextPath()
+                + "/booking/checkout?showtimeId=" + showtimeIdParam + "&seatIds=" + seatIdsParam);
     }
 }

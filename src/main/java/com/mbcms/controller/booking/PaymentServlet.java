@@ -1,5 +1,7 @@
 package com.mbcms.controller.booking;
 
+import com.mbcms.dao.BookingDAO;
+import com.mbcms.dao.impl.BookingDAOImpl;
 import com.mbcms.model.Booking;
 import com.mbcms.model.Customer;
 import com.mbcms.service.PaymentService;
@@ -10,7 +12,7 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
+import com.mbcms.util.BookingCustomerGuard;
 
 import java.io.IOException;
 import java.time.Duration;
@@ -33,17 +35,16 @@ public class PaymentServlet extends HttpServlet {
     private static final String VIEW = "/WEB-INF/views/booking/payment.jsp";
 
     private final PaymentService paymentService = new PaymentServiceImpl();
+    private final BookingDAO bookingDao = new BookingDAOImpl();
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
 
-        HttpSession session = req.getSession(false);
-        if (session == null || session.getAttribute("currentUser") == null) {
-            resp.sendRedirect(req.getContextPath() + "/auth/login");
+        Customer customer = BookingCustomerGuard.requireCustomer(req, resp);
+        if (customer == null) {
             return;
         }
-        Customer customer = (Customer) session.getAttribute("currentUser");
 
         Long bookingId = parseLong(req.getParameter("bookingId"));
         if (bookingId == null) {
@@ -84,8 +85,11 @@ public class PaymentServlet extends HttpServlet {
         if (booking.getCreatedAt() == null) {
             return 600;
         }
+        if (bookingDao.isPendingHoldExpired(booking.getBookingId())) {
+            return 0;
+        }
         long elapsed = Duration.between(
-                booking.getCreatedAt(), LocalDateTime.now(ZoneOffset.UTC)).getSeconds();
+                booking.getCreatedAt(), java.time.LocalDateTime.now(java.time.ZoneOffset.UTC)).getSeconds();
         long remaining = 600 - elapsed;
         return remaining < 0 ? 0 : remaining;
     }

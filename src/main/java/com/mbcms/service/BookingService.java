@@ -58,9 +58,20 @@ public interface BookingService {
     Booking confirmBooking(long bookingId, String customerUsername);
 
     /**
-     * Cap nhat subtotal va total_amount cua booking.
+     * Cap nhat subtotal, discount va total_amount — chi PENDING + owner.
      */
-    boolean updateBookingTotals(long bookingId, java.math.BigDecimal newSubtotal, java.math.BigDecimal newTotalAmount);
+    boolean updateBookingTotals(long bookingId, String customerUsername,
+            java.math.BigDecimal newSubtotal, java.math.BigDecimal discountAmount,
+            java.math.BigDecimal newTotalAmount);
+
+    /** True neu booking PENDING da qua 10 phut (UTC, cung logic SQL). */
+    boolean isPendingHoldExpired(long bookingId);
+
+    /**
+     * Tinh lai tickets + food + promo, cap nhat totals cho booking PENDING.
+     */
+    boolean recalculateTotalsWithFood(long bookingId, String username,
+            java.util.Map<Long, Integer> foodItems);
 
     /**
      * Lịch sử booking của customer, mới nhất trước.
@@ -79,6 +90,11 @@ public interface BookingService {
      * owner. Return null neu khong tim thay.
      */
     BookingTicket getTicket(long bookingId, String customerUsername);
+
+    /**
+     * Staff counter: load ticket by bookingId, verify branch scope (no owner username).
+     */
+    BookingTicket getTicketForBranch(long bookingId, long branchId);
 
     /**
      * Lich su booking dang view-model day du (movie/showtime/room/seat labels)

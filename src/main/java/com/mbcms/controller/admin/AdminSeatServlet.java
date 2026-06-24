@@ -62,7 +62,14 @@ public class AdminSeatServlet extends HttpServlet {
         
         String action = req.getParameter("action");
         if (action == null) {
-            resp.sendRedirect(req.getContextPath() + "/admin/seats?errorMsg=Hành động không hợp lệ.");
+            String roomIdParam = req.getParameter("roomId");
+            if (roomIdParam != null && !roomIdParam.isBlank()) {
+                resp.sendRedirect(req.getContextPath() + "/admin/seats?roomId=" + roomIdParam.trim()
+                        + "&errorMsg=" + java.net.URLEncoder.encode("Hành động không hợp lệ.", "UTF-8"));
+            } else {
+                resp.sendRedirect(req.getContextPath() + "/admin/halls?errorMsg="
+                        + java.net.URLEncoder.encode("Hành động không hợp lệ.", "UTF-8"));
+            }
             return;
         }
 
@@ -116,6 +123,7 @@ public class AdminSeatServlet extends HttpServlet {
 
     private void handleUpdateSeatAJAX(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         long seatId = Long.parseLong(req.getParameter("seatId"));
+        long roomId = Long.parseLong(req.getParameter("roomId"));
         String type = req.getParameter("seatType");
         String activeStr = req.getParameter("active");
 
@@ -126,9 +134,9 @@ public class AdminSeatServlet extends HttpServlet {
         boolean success = false;
         if (activeStr != null) {
             boolean active = Boolean.parseBoolean(activeStr);
-            success = seatService.updateSeatStatus(seatId, active);
+            success = seatService.updateSeatStatus(seatId, roomId, active);
         } else if (type != null) {
-            success = seatService.updateSeatType(seatId, type);
+            success = seatService.updateSeatType(seatId, roomId, type);
         }
 
         if (success) {

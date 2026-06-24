@@ -8,6 +8,7 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 
 import java.io.IOException;
 import java.time.LocalDate;
@@ -30,7 +31,17 @@ public class DashboardServlet extends HttpServlet {
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
 
-        long branchId = (Long) req.getSession(false).getAttribute("currentBranchId");
+        HttpSession session = req.getSession(false);
+        if (session == null) {
+            resp.sendRedirect(req.getContextPath() + "/auth/login");
+            return;
+        }
+        Long branchIdObj = (Long) session.getAttribute("currentBranchId");
+        if (branchIdObj == null) {
+            resp.sendError(HttpServletResponse.SC_FORBIDDEN, "Bạn không có quyền quản lý chi nhánh này.");
+            return;
+        }
+        long branchId = branchIdObj;
         ConsoleSupport.ensureBranchName(req);
 
         ShowtimeDAO showtimeDAO = new ShowtimeDAOImpl();

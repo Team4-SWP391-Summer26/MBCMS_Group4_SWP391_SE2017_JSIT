@@ -1,4 +1,4 @@
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+﻿<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
@@ -269,14 +269,16 @@
                                                     <i class="bi bi-pencil"></i>
                                                 </a>
                                                 <form method="post" action="${pageContext.request.contextPath}/branch/promotions/toggle" class="d-inline"
-                                                      onsubmit="return confirm('Toggle status for <c:out value="${p.code}"/>?');">
+                                                      onsubmit="return confirm('Toggle status for <c:out value="${p.code}"/>
+            <%@ include file="/WEB-INF/views/common/csrf-hidden.jspf" %>?');">
                                                     <input type="hidden" name="id" value="${p.promoId}">
                                                     <button type="submit" class="btn btn-sm ${p.active ? 'btn-outline-warning' : 'btn-outline-success'}" title="${p.active ? 'Pause' : 'Activate'}">
                                                         <i class="bi ${p.active ? 'bi-pause-fill' : 'bi-play-fill'}"></i>
                                                     </button>
                                                 </form>
                                                 <form method="post" action="${pageContext.request.contextPath}/branch/promotions/delete" class="d-inline"
-                                                      onsubmit="return confirm('Are you sure you want to delete <c:out value="${p.code}"/>? This action cannot be undone and will delete it from the database.');">
+                                                      onsubmit="return confirm('Are you sure you want to delete <c:out value="${p.code}"/>
+            <%@ include file="/WEB-INF/views/common/csrf-hidden.jspf" %>? This action cannot be undone and will delete it from the database.');">
                                                     <input type="hidden" name="id" value="${p.promoId}">
                                                     <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete">
                                                         <i class="bi bi-trash-fill"></i>

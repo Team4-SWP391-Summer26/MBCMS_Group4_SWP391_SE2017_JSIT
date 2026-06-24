@@ -67,6 +67,9 @@ public class StaffFoodOrderServlet extends HttpServlet {
                 }
 
                 long foodOrderId = Long.parseLong(orderIdParam.trim());
+                if (!foodService.belongsToBranch(foodOrderId, branchId)) {
+                    throw new IllegalArgumentException("Food order does not belong to your branch.");
+                }
                 boolean success = foodService.updateOrderStatus(foodOrderId, status.trim().toUpperCase());
 
                 result.put("success", success);

@@ -1,4 +1,4 @@
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+﻿<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 <%-- Admin Hall/Room management - card layout consistent with /branch/halls (mockup 24). --%>
@@ -83,7 +83,11 @@
                         <div class="room-head ${room.active ? tcls : 't-off'}">
                             <div>
                                 <div class="nm"><i class="bi bi-easel2-fill"></i><c:out value="${room.name}"/></div>
-                                <div class="ty">${room.roomType} &middot; Cinema #${room.branchId}</div>
+                                <div class="ty">${room.roomType} &middot;
+                                    <c:forEach items="${branches}" var="b">
+                                        <c:if test="${b.branchId == room.branchId}"><c:out value="${b.name}"/></c:if>
+                                    </c:forEach>
+                                </div>
                             </div>
                             <span class="room-chip">
                                 <i class="bi ${room.active ? 'bi-check-circle-fill' : 'bi-slash-circle-fill'}"></i>${room.active ? 'Active' : 'Inactive'}</span>
@@ -91,17 +95,21 @@
                         <div class="room-body">
                             <div class="room-seats">
                                 <span class="ic"><i class="bi bi-grid-3x3-gap"></i></span>
-                                <span class="n">${room.capacity}</span><span class="u">seats</span>
+                                <span class="n">${room.displaySeatCount}</span><span class="u">seats</span>
                             </div>
                             <div class="text-muted" style="font-size:.78rem;">
-                                <i class="bi bi-info-circle me-1"></i>Auto-calculated from the seat layout</div>
+                                <i class="bi bi-info-circle me-1"></i>Active bookable seats (edit layout via Seats)</div>
                         </div>
                         <div class="room-actrow">
                             <span class="fw-semibold small text-navy">Active</span>
                             <form method="post" action="${pageContext.request.contextPath}/admin/halls">
+            <%@ include file="/WEB-INF/views/common/csrf-hidden.jspf" %>
                                 <input type="hidden" name="action" value="toggleStatus">
                                 <input type="hidden" name="roomId" value="${room.roomId}">
                                 <input type="hidden" name="active" value="${!room.active}">
+                                <c:if test="${not empty selectedBranchId}">
+                                    <input type="hidden" name="filterBranchId" value="${selectedBranchId}">
+                                </c:if>
                                 <input class="form-check-input" type="checkbox" role="switch"
                                        ${room.active ? 'checked' : ''} onchange="this.form.submit()">
                             </form>
@@ -109,7 +117,7 @@
                         <div class="room-foot">
                             <button class="btn btn-light border btn-sm flex-fill edit-btn"
                                     data-id="${room.roomId}" data-name="${room.name}"
-                                    data-capacity="${room.capacity}" data-type="${room.roomType}"
+                                    data-type="${room.roomType}"
                                     data-bs-toggle="modal" data-bs-target="#editRoomModal">
                                 <i class="bi bi-pencil me-1"></i>Edit</button>
                             <a class="btn btn-primary btn-sm flex-fill" href="${pageContext.request.contextPath}/admin/seats?roomId=${room.roomId}">
@@ -138,7 +146,11 @@
 <div class="modal fade" id="addRoomModal" tabindex="-1">
     <div class="modal-dialog">
         <form class="modal-content" method="post" action="${pageContext.request.contextPath}/admin/halls">
+            <%@ include file="/WEB-INF/views/common/csrf-hidden.jspf" %>
             <input type="hidden" name="action" value="add">
+            <c:if test="${not empty selectedBranchId}">
+                <input type="hidden" name="filterBranchId" value="${selectedBranchId}">
+            </c:if>
             <div class="modal-header"><h5 class="modal-title">Add Room</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
             <div class="modal-body">
@@ -150,8 +162,9 @@
                     </select></div>
                 <div class="mb-3"><label class="form-label fw-semibold small">Room Name</label>
                     <input class="form-control" name="name" required></div>
-                <div class="mb-3"><label class="form-label fw-semibold small">Capacity</label>
-                    <input type="number" min="1" class="form-control" name="capacity" required></div>
+                <div class="mb-3"><label class="form-label fw-semibold small">Initial capacity</label>
+                    <input type="number" min="1" max="260" class="form-control" name="capacity" required>
+                    <div class="form-text">Max 260 for new rooms. Change layout later via Seats.</div></div>
                 <div class="mb-3"><label class="form-label fw-semibold small">Room Type</label>
                     <select class="form-select" name="roomType">
                         <option value="STANDARD">STANDARD</option>
@@ -170,15 +183,17 @@
 <div class="modal fade" id="editRoomModal" tabindex="-1">
     <div class="modal-dialog">
         <form class="modal-content" method="post" action="${pageContext.request.contextPath}/admin/halls">
+            <%@ include file="/WEB-INF/views/common/csrf-hidden.jspf" %>
             <input type="hidden" name="action" value="edit">
             <input type="hidden" id="editRoomId" name="roomId">
+            <c:if test="${not empty selectedBranchId}">
+                <input type="hidden" name="filterBranchId" value="${selectedBranchId}">
+            </c:if>
             <div class="modal-header"><h5 class="modal-title">Edit Room</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
             <div class="modal-body">
                 <div class="mb-3"><label class="form-label fw-semibold small">Room Name</label>
                     <input id="editName" class="form-control" name="name" required></div>
-                <div class="mb-3"><label class="form-label fw-semibold small">Capacity</label>
-                    <input id="editCapacity" type="number" min="1" class="form-control" name="capacity" required></div>
                 <div class="mb-3"><label class="form-label fw-semibold small">Room Type</label>
                     <select id="editType" class="form-select" name="roomType">
                         <option value="STANDARD">STANDARD</option>
@@ -199,7 +214,6 @@
         btn.addEventListener('click', function () {
             document.getElementById('editRoomId').value = this.dataset.id;
             document.getElementById('editName').value = this.dataset.name;
-            document.getElementById('editCapacity').value = this.dataset.capacity;
             document.getElementById('editType').value = this.dataset.type;
         });
     });

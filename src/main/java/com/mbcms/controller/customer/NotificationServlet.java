@@ -32,7 +32,10 @@ public class NotificationServlet extends HttpServlet {
             throws ServletException, IOException {
 
         HttpSession session = req.getSession(false);
-        Customer customer   = (Customer) session.getAttribute("currentUser");
+        if (session == null || !(session.getAttribute("currentUser") instanceof Customer customer)) {
+            resp.sendRedirect(req.getContextPath() + "/auth/login");
+            return;
+        }
         String username     = customer.getUsername();
 
         // Lay so trang tu query param, mac dinh la trang 1
@@ -68,7 +71,10 @@ public class NotificationServlet extends HttpServlet {
             throws ServletException, IOException {
 
         HttpSession session = req.getSession(false);
-        Customer customer   = (Customer) session.getAttribute("currentUser");
+        if (session == null || !(session.getAttribute("currentUser") instanceof Customer customer)) {
+            resp.sendRedirect(req.getContextPath() + "/auth/login");
+            return;
+        }
         String username     = customer.getUsername();
 
         notificationService.markAllAsRead(username);

@@ -1,4 +1,4 @@
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+﻿<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 <%-- Room management (Branch Manager) - card layout theo mockup 24_mgr-rooms. --%>
@@ -41,7 +41,7 @@
 <body class="lc-console">
 
 <jsp:include page="/WEB-INF/views/branch/_sidebar.jsp">
-    <jsp:param name="active" value="halls"/>
+    <jsp:param name="active" value="rooms"/>
 </jsp:include>
 
 <main class="lc-admin-main">
@@ -84,7 +84,7 @@
                         <div class="room-body">
                             <div class="room-seats">
                                 <span class="ic"><i class="bi bi-grid-3x3-gap"></i></span>
-                                <span class="n">${room.capacity}</span><span class="u">seats</span>
+                                <span class="n">${room.displaySeatCount}</span><span class="u">seats</span>
                             </div>
                             <div class="text-muted" style="font-size:.78rem;">
                                 <i class="bi bi-info-circle me-1"></i>Auto-calculated from the seat layout</div>
@@ -92,6 +92,7 @@
                         <div class="room-actrow">
                             <span class="fw-semibold small text-navy">Active</span>
                             <form method="post" action="${pageContext.request.contextPath}/branch/halls">
+            <%@ include file="/WEB-INF/views/common/csrf-hidden.jspf" %>
                                 <input type="hidden" name="action" value="toggleStatus">
                                 <input type="hidden" name="roomId" value="${room.roomId}">
                                 <input type="hidden" name="active" value="${!room.active}">
@@ -102,7 +103,7 @@
                         <div class="room-foot">
                             <button class="btn btn-light border btn-sm flex-fill edit-btn"
                                     data-id="${room.roomId}" data-name="${room.name}"
-                                    data-capacity="${room.capacity}" data-type="${room.roomType}"
+                                    data-type="${room.roomType}"
                                     data-bs-toggle="modal" data-bs-target="#editRoomModal">
                                 <i class="bi bi-pencil me-1"></i>Edit</button>
                             <a class="btn btn-primary btn-sm flex-fill"
@@ -135,14 +136,15 @@
 <div class="modal fade" id="addRoomModal" tabindex="-1">
     <div class="modal-dialog">
         <form class="modal-content" method="post" action="${pageContext.request.contextPath}/branch/halls">
+            <%@ include file="/WEB-INF/views/common/csrf-hidden.jspf" %>
             <input type="hidden" name="action" value="add">
             <div class="modal-header"><h5 class="modal-title">Add Room</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
             <div class="modal-body">
                 <div class="mb-3"><label class="form-label fw-semibold small">Room Name</label>
                     <input type="text" class="form-control" name="name" required></div>
-                <div class="mb-3"><label class="form-label fw-semibold small">Capacity</label>
-                    <input type="number" class="form-control" name="capacity" min="1" required></div>
+                <div class="mb-3"><label class="form-label fw-semibold small">Initial capacity</label>
+                    <input type="number" class="form-control" name="capacity" min="1" max="260" required></div>
                 <div class="mb-3"><label class="form-label fw-semibold small">Room Type</label>
                     <select class="form-select" name="roomType">
                         <option value="STANDARD">STANDARD</option>
@@ -161,6 +163,7 @@
 <div class="modal fade" id="editRoomModal" tabindex="-1">
     <div class="modal-dialog">
         <form class="modal-content" method="post" action="${pageContext.request.contextPath}/branch/halls">
+            <%@ include file="/WEB-INF/views/common/csrf-hidden.jspf" %>
             <input type="hidden" name="action" value="edit">
             <input type="hidden" id="editRoomId" name="roomId">
             <div class="modal-header"><h5 class="modal-title">Edit Room</h5>
@@ -168,8 +171,6 @@
             <div class="modal-body">
                 <div class="mb-3"><label class="form-label fw-semibold small">Room Name</label>
                     <input type="text" class="form-control" id="editName" name="name" required></div>
-                <div class="mb-3"><label class="form-label fw-semibold small">Capacity</label>
-                    <input type="number" class="form-control" id="editCapacity" name="capacity" min="1" required></div>
                 <div class="mb-3"><label class="form-label fw-semibold small">Room Type</label>
                     <select class="form-select" id="editType" name="roomType">
                         <option value="STANDARD">STANDARD</option>
@@ -190,7 +191,6 @@
         btn.addEventListener('click', function () {
             document.getElementById('editRoomId').value = this.dataset.id;
             document.getElementById('editName').value = this.dataset.name;
-            document.getElementById('editCapacity').value = this.dataset.capacity;
             document.getElementById('editType').value = this.dataset.type;
         });
     });

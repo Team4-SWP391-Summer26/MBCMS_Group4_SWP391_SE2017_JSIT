@@ -1,4 +1,4 @@
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+﻿<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 <%-- Admin User Management - rebuilt to match Payment console aesthetic (pay-table / pay-st / lc-kpi). --%>
@@ -174,12 +174,14 @@
                                                class="u-act a-edit" title="Edit"><i class="bi bi-pencil"></i></a>
                                             <form method="post" action="${pageContext.request.contextPath}/admin/users" class="d-inline"
                                                   onsubmit="return confirm('Send a password-reset email to this user?')">
+            <%@ include file="/WEB-INF/views/common/csrf-hidden.jspf" %>
                                                 <input type="hidden" name="action" value="resetPassword">
                                                 <input type="hidden" name="username" value="${user.username}">
                                                 <button type="submit" class="u-act a-key" title="Send reset link"><i class="bi bi-key"></i></button>
                                             </form>
                                             <form method="post" action="${pageContext.request.contextPath}/admin/users" class="d-inline"
                                                   onsubmit="return confirm('Change this user\'s active status?')">
+            <%@ include file="/WEB-INF/views/common/csrf-hidden.jspf" %>
                                                 <input type="hidden" name="action" value="toggleStatus">
                                                 <input type="hidden" name="username" value="${user.username}">
                                                 <input type="hidden" name="active" value="${user.active ? 'false' : 'true'}">
