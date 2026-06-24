@@ -111,7 +111,7 @@
                                         <button type="button"
                                                 class="sl-seat ${!seat.active ? 'is-off' : (seat.seatType == 'VIP' ? 'is-vip' : 'is-std')}"
                                                 data-seatid="${seat.seatId}"
-                                                title="${seat.rowLabel}${seat.colNumber}">${seat.colNumber}</button>
+                                                title="${seat.rowLabel}${seat.colNumber}"></button>
                                         <c:if test="${st.count == (rowLen / 2) and rowLen > 3}">
                                             <span class="sl-aisle"></span>
                                         </c:if>
