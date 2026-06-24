@@ -33,16 +33,8 @@
 </jsp:include>
 
 <main class="lc-admin-main">
-    <%-- Top header bar --%>
-    <header class="d-flex justify-content-between align-items-center px-4 py-3 border-bottom bg-white">
-        <div class="text-muted small">Admin / <span class="text-navy fw-semibold">Users</span></div>
-        <div class="d-flex align-items-center gap-3">
-            <span class="header-badge-admin"><i class="bi bi-shield-lock-fill"></i> ADMIN ACCESS</span>
-            <div class="header-profile-circle">SA</div>
-        </div>
-    </header>
-
     <div class="container-fluid px-4 py-4" style="max-width:1300px;">
+        <div class="text-muted small mb-1">Admin / <span class="fw-semibold">Users</span></div>
         <h4 class="fw-bold text-navy mb-1">User Management</h4>
         <div class="text-muted small mb-4">Manage customers, branch staff and administrators across the system.</div>
 

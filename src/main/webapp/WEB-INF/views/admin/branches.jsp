@@ -180,27 +180,11 @@
 
 <main class="lc-admin-main">
 
-    <%-- ── Topbar ──────────────────────────────────────────────── --%>
-    <div class="lc-topbar">
-        <div>
-            <div class="lc-topbar-breadcrumb">
-                <a href="${pageContext.request.contextPath}/admin/dashboard">Admin</a>
-                <span class="mx-1">/</span> Cinema Management
-            </div>
-            <div class="lc-topbar-title">Cinema Management</div>
-        </div>
-        <div class="d-flex align-items-center gap-3">
-            <span class="lc-admin-badge">
-                <i class="bi bi-shield-fill me-1"></i> ADMIN ACCESS
-            </span>
-            <button class="btn btn-sm btn-light border rounded-circle p-1 lh-1" style="width:34px;height:34px;">
-                <i class="bi bi-bell" style="font-size:1rem;"></i>
-            </button>
-            <div class="lc-avatar-circle">SA</div>
-        </div>
-    </div>
+    <div class="container-fluid px-4 py-4" style="max-width:1240px;">
 
-    <div class="container-fluid px-4 py-4">
+        <div class="text-muted small mb-1">Admin / <span class="fw-semibold">Cinemas</span></div>
+        <h4 class="fw-bold text-navy mb-1">Cinema Management</h4>
+        <div class="text-muted small mb-4">Manage cinemas, their rooms and operating hours across the network.</div>
 
         <%-- ── Alerts ─────────────────────────────────────────── --%>
         <c:if test="${not empty successMsg}">
