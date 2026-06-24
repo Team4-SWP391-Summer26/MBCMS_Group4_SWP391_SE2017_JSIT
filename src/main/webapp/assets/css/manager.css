@@ -4,6 +4,7 @@
    de cac man /branch/* dong nhat voi thiet ke da duyet trong SRS.
    KHONG dung den main.css (style chung cua team).
    ============================================================ */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@500;600;700;800&display=swap');
 
 :root {
     /* Bien rieng cua console, map theo prototype --lc-* */
@@ -20,7 +21,26 @@
 
 body.lc-console {
     background: var(--lc-bg);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-feature-settings: "cv11", "ss01";
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
+/* Headings use Sora display font (matches prototype) */
+body.lc-console h1,
+body.lc-console h2,
+body.lc-console h3,
+body.lc-console h4,
+body.lc-console h5,
+body.lc-console h6,
+body.lc-console .lc-sb-brand,
+body.lc-console .lc-display {
+    font-family: 'Sora', 'Inter', system-ui, sans-serif;
+    letter-spacing: -0.02em;
+}
+body.lc-console h1 { font-weight: 800; }
+body.lc-console h2,
+body.lc-console h3 { font-weight: 700; }
 
 /* ---------- Sidebar ---------- */
 .lc-sidebar {
@@ -212,6 +232,34 @@ body.lc-console {
     letter-spacing: -0.01em;
     font-weight: 700;
 }
+
+/* ---------- Canonical KPI card (dung chung admin/branch) ---------- */
+.lc-kpi {
+    background: #fff;
+    border: 1px solid var(--lc-border);
+    border-radius: 14px;
+    padding: 1.1rem 1.25rem;
+    box-shadow: var(--lc-shadow);
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    height: 100%;
+}
+.lc-kpi-icon {
+    width: 44px; height: 44px; border-radius: 11px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.3rem; flex-shrink: 0;
+    background: var(--lc-light); color: var(--lc-primary);
+}
+.lc-kpi-icon.i-green  { background: #e7f6ee; color: #15803d; }
+.lc-kpi-icon.i-amber  { background: #fff4d6; color: #b8770a; }
+.lc-kpi-icon.i-purple { background: #ece3f8; color: #6d28d9; }
+.lc-kpi-icon.i-red    { background: #fde7e7; color: #b91c1c; }
+.lc-kpi-label {
+    font-size: .72rem; color: var(--lc-muted); font-weight: 700;
+    text-transform: uppercase; letter-spacing: .05em;
+}
+.lc-kpi-value { font-size: 1.9rem; font-weight: 800; color: var(--lc-navy); line-height: 1.1; }
 
 /* ---------- Tables ---------- */
 .lc-table th {
@@ -441,6 +489,7 @@ body.lc-console {
 .pay-st.s-success { background:#E8F5EE; color:#146C43; } .pay-st.s-success .dot { background:#16a34a; }
 .pay-st.s-pending { background:#FFF4D6; color:#9a6700; } .pay-st.s-pending .dot { background:#d97706; }
 .pay-st.s-failed  { background:#FBE4E6; color:#b02a37; } .pay-st.s-failed  .dot { background:#dc2626; }
+.pay-st.s-off     { background:#EEF1F4; color:#475569; } .pay-st.s-off     .dot { background:#94a3b8; }
 
 .pay-empty { text-align:center; padding:3.5rem 1.5rem; color:var(--lc-muted); }
 .pay-empty i { font-size:2.6rem; color:#cbd5e1; display:block; margin-bottom:.6rem; }
@@ -579,25 +628,25 @@ body.lc-console {
     font-size: 0.88rem;
 }
 
-/* Statistics summary cards (Mockup 1) */
+/* Statistics summary cards - aligned with canonical .lc-kpi look */
 .user-stat-card {
-    border: none;
-    border-radius: 12px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    border: 1px solid var(--lc-border);
+    border-radius: 14px;
+    box-shadow: var(--lc-shadow);
     background: #ffffff;
-    transition: transform 0.15s ease;
+    transition: box-shadow 0.15s ease;
 }
 .user-stat-card:hover {
-    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(15,23,42,.1);
 }
 .user-stat-icon-wrapper {
-    width: 38px;
-    height: 38px;
-    border-radius: 8px;
+    width: 44px;
+    height: 44px;
+    border-radius: 11px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.15rem;
+    font-size: 1.3rem;
 }
 .icon-total { background: #eff6ff; color: #2563eb; }
 .icon-customer { background: #ecfdf5; color: #10b981; }

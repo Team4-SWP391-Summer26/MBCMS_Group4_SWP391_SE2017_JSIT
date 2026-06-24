@@ -107,6 +107,8 @@ CREATE TABLE dbo.branches (
     email      VARCHAR(150)  NULL,
     active     BIT           NOT NULL CONSTRAINT DF_branches_active DEFAULT (1),
     created_at DATETIME2     NOT NULL CONSTRAINT DF_branches_created DEFAULT (SYSUTCDATETIME()),
+    opening_time TIME         NULL,
+    closing_time TIME         NULL,
     CONSTRAINT PK_branches PRIMARY KEY (branch_id)
 );
 GO

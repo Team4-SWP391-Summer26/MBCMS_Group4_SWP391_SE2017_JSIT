@@ -2,16 +2,16 @@
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 <%--
-    Seat Layout editor (Branch Manager) - theo mockup 25_mgr-seat-layout.
-    Backend: BranchSeatServlet (/branch/seats): action=regenerate | action=updateSeat (AJAX).
-    Multi-select tool: chon nhieu ghe -> chon cong cu (Standard/VIP/Off) -> Apply -> updateSeat tung ghe.
+    Seat Layout editor (Admin) - theo mockup 25_mgr-seat-layout.
+    Backend: AdminSeatServlet (/admin/seats): action=regenerate | action=updateSeat (AJAX).
+    Dung chung style (.jspf) + JS (seat-layout.js) voi ban /branch/seats.
 --%>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Seat Layout - MBCMS Manager</title>
+    <title>Seat Layout - MBCMS Admin</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <link href="${pageContext.request.contextPath}/assets/css/manager.css?v=${applicationScope.assetVersion}" rel="stylesheet">
@@ -19,8 +19,8 @@
 </head>
 <body class="lc-console">
 
-<jsp:include page="/WEB-INF/views/branch/_sidebar.jsp">
-    <jsp:param name="active" value="halls"/>
+<jsp:include page="/WEB-INF/views/admin/_sidebar.jsp">
+    <jsp:param name="active" value="branches"/>
 </jsp:include>
 
 <main class="lc-admin-main">
@@ -28,18 +28,11 @@
 
         <%-- Header --%>
         <div class="text-muted small mb-1">
-            Dashboard / Rooms &amp; Seats / <span class="fw-semibold">${room.name} &middot; Seat Layout</span>
+            Admin / Cinemas / <span class="fw-semibold">${room.name} &middot; Seat Layout</span>
         </div>
         <h4 class="text-navy fw-bold mb-3">
             Seat Layout &middot; <c:out value="${room.name}"/> (${room.roomType})
         </h4>
-
-        <%-- Scope notice --%>
-        <div class="lc-scope mb-3">
-            <i class="bi bi-exclamation-triangle-fill" style="color:#cf9a00;"></i>
-            <span>Scoped to <strong><c:out value="${sessionScope.currentBranchName}"/></strong>
-                &mdash; you only see data for your assigned branch.</span>
-        </div>
 
         <c:if test="${not empty successMsg}">
             <div class="alert alert-success py-2">${successMsg}</div>
@@ -50,7 +43,7 @@
 
         <%-- Action bar --%>
         <div class="d-flex justify-content-between align-items-center mb-3">
-            <a class="btn btn-light btn-sm border" href="${pageContext.request.contextPath}/branch/halls">
+            <a class="btn btn-light btn-sm border" href="${pageContext.request.contextPath}/admin/halls?branchId=${room.branchId}">
                 <i class="bi bi-arrow-left me-1"></i>Back to rooms</a>
             <button class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#genModal">
                 <i class="bi bi-arrow-clockwise me-1"></i>Reset / Generate grid</button>
@@ -165,7 +158,7 @@
 <%-- Generate / reset modal --%>
 <div class="modal fade" id="genModal" tabindex="-1">
     <div class="modal-dialog">
-        <form class="modal-content" method="post" action="${pageContext.request.contextPath}/branch/seats"
+        <form class="modal-content" method="post" action="${pageContext.request.contextPath}/admin/seats"
               onsubmit="return confirm('Regenerate layout? All existing seats in this room will be replaced.');">
             <input type="hidden" name="action" value="regenerate">
             <input type="hidden" name="roomId" value="${roomId}">
@@ -207,7 +200,7 @@
 <script>
     const CTX = '${pageContext.request.contextPath}';
     const ROOM_ID = '${roomId}';
-    const ENDPOINT = CTX + '/branch/seats';
+    const ENDPOINT = CTX + '/admin/seats';
 </script>
 <script src="${pageContext.request.contextPath}/assets/js/seat-layout.js?v=${applicationScope.assetVersion}"></script>
 </body>
