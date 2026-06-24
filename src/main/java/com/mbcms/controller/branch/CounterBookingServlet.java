@@ -397,6 +397,7 @@ public class CounterBookingServlet extends HttpServlet {
 
                 if (!selectedFood.isEmpty()) {
                     foodService.saveFoodOrder(createdBooking.getBookingId(), selectedFood, "PREPARING");
+                    foodService.decrementStockForBooking(createdBooking.getBookingId());
                 }
 
                 // Notify WebSocket server of the hard lock

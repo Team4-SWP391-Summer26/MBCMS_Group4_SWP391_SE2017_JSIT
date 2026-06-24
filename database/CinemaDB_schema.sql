@@ -314,6 +314,7 @@ CREATE TABLE dbo.food_items (
     CONSTRAINT PK_food_items PRIMARY KEY (food_id),
     CONSTRAINT FK_food_items_branch FOREIGN KEY (branch_id) REFERENCES dbo.branches (branch_id),
     CONSTRAINT CK_food_items_price    CHECK (price >= 0),
+    CONSTRAINT CK_food_items_stock    CHECK (stock >= 0),
     CONSTRAINT CK_food_items_category CHECK (category IN ('SNACK','DRINK','COMBO'))
 );
 GO

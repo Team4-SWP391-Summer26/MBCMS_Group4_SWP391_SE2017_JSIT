@@ -132,6 +132,11 @@ public class FoodServiceImpl implements FoodService {
     }
 
     @Override
+    public void decrementStockForBooking(long bookingId) {
+        foodDao.decrementStockForBooking(bookingId);
+    }
+
+    @Override
     public boolean belongsToBranch(long foodOrderId, long branchId) {
         Long orderBranchId = foodDao.findBranchIdByFoodOrderId(foodOrderId);
         return orderBranchId != null && orderBranchId == branchId;

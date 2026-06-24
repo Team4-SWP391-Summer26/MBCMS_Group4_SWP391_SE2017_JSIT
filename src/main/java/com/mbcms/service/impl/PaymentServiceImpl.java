@@ -118,8 +118,10 @@ public class PaymentServiceImpl implements PaymentService {
                 }
             }
 
-            // 3.5) food_orders: PENDING -> PREPARING (if any concessions exist)
-            new com.mbcms.dao.impl.FoodDAOImpl().updateOrderStatusByBooking(conn, bookingId, "PREPARING");
+            // 3.5) food_orders: PENDING -> PREPARING (if any concessions exist) + tru ton kho
+            com.mbcms.dao.impl.FoodDAOImpl foodDao = new com.mbcms.dao.impl.FoodDAOImpl();
+            foodDao.updateOrderStatusByBooking(conn, bookingId, "PREPARING");
+            foodDao.decrementStockForBooking(conn, bookingId);
 
             // 4) notification PAYMENT cho customer
             notificationDao.insert(conn, buildPaymentNotification(b));

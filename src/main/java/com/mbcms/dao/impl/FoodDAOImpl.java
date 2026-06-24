@@ -146,6 +146,10 @@ public class FoodDAOImpl extends BaseDAO implements FoodDAO {
                 }
                 int qty = entry.getValue() == null ? 0 : entry.getValue();
                 qty = Math.max(1, Math.min(10, qty));
+                if (qty > food.getStock()) {
+                    throw new IllegalArgumentException(
+                            "Món \"" + food.getName() + "\" không đủ tồn kho (còn " + food.getStock() + ").");
+                }
                 psInsertItem.setLong(1, foodOrderId);
                 psInsertItem.setLong(2, entry.getKey());
                 psInsertItem.setInt(3, qty);
@@ -609,6 +613,37 @@ public class FoodDAOImpl extends BaseDAO implements FoodDAO {
         } catch (SQLException e) {
             throw new RuntimeException("Loi update food_item: " + e.getMessage(), e);
         } finally { closeAll(ps, conn); }
+    }
+
+    // Tru ton kho cho tat ca mon trong food order cua booking. Goi DUY NHAT khi
+    // don duoc commit (thanh toan thanh cong / counter cash) -> khong tru luc PENDING.
+    private static final String DECREMENT_STOCK_SQL =
+            "UPDATE fi SET stock = CASE WHEN fi.stock >= bfi.quantity "
+            + "THEN fi.stock - bfi.quantity ELSE 0 END "
+            + "FROM dbo.food_items fi "
+            + "JOIN dbo.booking_food_items bfi ON bfi.food_id = fi.food_id "
+            + "JOIN dbo.food_orders fo ON fo.food_order_id = bfi.food_order_id "
+            + "WHERE fo.booking_id = ?";
+
+    @Override
+    public void decrementStockForBooking(Connection conn, long bookingId) throws SQLException {
+        try (PreparedStatement ps = conn.prepareStatement(DECREMENT_STOCK_SQL)) {
+            ps.setLong(1, bookingId);
+            ps.executeUpdate();
+        }
+    }
+
+    @Override
+    public void decrementStockForBooking(long bookingId) {
+        Connection conn = null;
+        try {
+            conn = getConnection();
+            decrementStockForBooking(conn, bookingId);
+        } catch (SQLException e) {
+            throw new RuntimeException("Lỗi decrementStockForBooking: " + e.getMessage(), e);
+        } finally {
+            closeAll(null, conn);
+        }
     }
 
     @Override

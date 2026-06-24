@@ -22,6 +22,10 @@ public interface FoodDAO {
     List<FoodItem> findActiveByBranch(long branchId);
     boolean updateOrderStatusByBooking(long bookingId, String status);
     boolean updateOrderStatusByBooking(Connection conn, long bookingId, String status);
+    /** Tru ton kho cho cac mon trong food order cua booking (cung transaction). */
+    void decrementStockForBooking(Connection conn, long bookingId) throws java.sql.SQLException;
+    /** Tru ton kho cho cac mon trong food order cua booking (tu mo connection). */
+    void decrementStockForBooking(long bookingId);
     // ── Branch menu management ───────────────────────────────────────
     /** Lay tat ca mon (ca inactive) cua 1 branch. */
     List<FoodItem> findAllByBranch(long branchId);
