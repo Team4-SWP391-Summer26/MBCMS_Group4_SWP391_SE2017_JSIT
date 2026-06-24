@@ -299,6 +299,7 @@
                                         <input type="hidden" name="action"  value="toggleStatus">
                                         <input type="hidden" name="foodId"  value="${item.foodId}">
                                         <input type="hidden" name="active"  value="${!item.active}">
+                                        <%@ include file="/WEB-INF/views/common/csrf-hidden.jspf" %>
                                         <button type="submit"
                                                 class="btn btn-sm ${item.active ? 'btn-outline-warning' : 'btn-outline-success'}"
                                                 title="${item.active ? 'Deactivate' : 'Activate'}">
@@ -313,6 +314,7 @@
                                           onsubmit="return confirm('Delete \'${fn:escapeXml(item.name)}\'? This cannot be undone.');">
                                         <input type="hidden" name="action"  value="delete">
                                         <input type="hidden" name="foodId"  value="${item.foodId}">
+                                        <%@ include file="/WEB-INF/views/common/csrf-hidden.jspf" %>
                                         <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete">
                                             <i class="bi bi-trash-fill"></i>
                                         </button>
