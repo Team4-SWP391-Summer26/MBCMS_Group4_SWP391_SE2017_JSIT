@@ -1,7 +1,6 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
-<%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
-<%-- Admin dashboard - fresh design: hero + payment-style KPI + cinema cards + quick actions. --%>
+<%-- Admin dashboard - hero + payment-style KPI + uniform navigation tile grid. --%>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -14,24 +13,40 @@
     <style>
         .dash-hero {
             background: linear-gradient(120deg, #0F2247 0%, #1e3a5f 60%, #2563EB 130%);
-            border-radius: 16px; color: #fff; padding: 1.6rem 1.8rem;
+            border-radius: 16px; color: #fff; padding: 1.7rem 1.9rem;
             display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;
-            box-shadow: var(--lc-shadow); margin-bottom: 1.25rem;
+            box-shadow: var(--lc-shadow); margin-bottom: 1.5rem;
         }
         .dash-hero h3 { color: #fff; margin: 0; font-weight: 800; }
-        .dash-hero .sub { color: rgba(255,255,255,.75); font-size: .9rem; margin-top: .25rem; }
+        .dash-hero .sub { color: rgba(255,255,255,.75); font-size: .9rem; margin-top: .3rem; }
         .dash-hero .badge-soft { background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.22);
-            color: #fff; font-size: .72rem; font-weight: 700; letter-spacing: .04em; padding: .35rem .8rem; border-radius: 999px; }
-        .cin-card { background:#fff; border:1px solid var(--lc-border); border-radius:14px; box-shadow:var(--lc-shadow);
-            padding:1rem 1.1rem; display:flex; align-items:center; gap:.9rem; transition:box-shadow .15s, transform .15s; height:100%; }
-        .cin-card:hover { box-shadow:0 8px 24px rgba(15,23,42,.1); transform:translateY(-2px); }
-        .cin-pin { width:44px; height:44px; border-radius:12px; flex-shrink:0; display:flex; align-items:center; justify-content:center;
-            background:var(--lc-light); color:var(--lc-primary); font-size:1.3rem; }
-        .qa-row { display:flex; align-items:center; gap:.8rem; padding:.85rem .9rem; border:1px solid var(--lc-border);
-            border-radius:11px; text-decoration:none; color:var(--lc-navy); font-weight:600; transition:all .12s ease; margin-bottom:.6rem; }
-        .qa-row:hover { border-color:var(--lc-primary); background:var(--lc-light); transform:translateX(2px); }
-        .qa-ic { width:38px; height:38px; border-radius:10px; display:flex; align-items:center; justify-content:center;
-            background:var(--lc-light); color:var(--lc-primary); font-size:1.1rem; flex-shrink:0; }
+            color: #fff; font-size: .72rem; font-weight: 700; letter-spacing: .04em; padding: .4rem .85rem; border-radius: 999px; }
+
+        .sec-title { font-size: .8rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em;
+            color: var(--lc-muted); margin: 1.75rem 0 .9rem; }
+
+        /* Navigation tiles - uniform grid */
+        .nav-tile {
+            position: relative; display: flex; flex-direction: column; gap: .75rem;
+            background: #fff; border: 1px solid var(--lc-border); border-radius: 14px;
+            box-shadow: var(--lc-shadow); padding: 1.25rem 1.3rem; height: 100%;
+            text-decoration: none; color: inherit; transition: box-shadow .15s ease, transform .15s ease, border-color .15s ease;
+        }
+        .nav-tile.is-live:hover { transform: translateY(-3px); box-shadow: 0 12px 28px rgba(15,23,42,.12); border-color: #cdd9ee; }
+        .nav-tile .ic { width: 48px; height: 48px; border-radius: 13px; display: flex; align-items: center;
+            justify-content: center; font-size: 1.45rem; }
+        .nav-tile .tt { font-family: 'Sora','Inter',sans-serif; font-weight: 700; color: var(--lc-navy); font-size: 1.05rem; letter-spacing: -.01em; }
+        .nav-tile .ds { font-size: .82rem; color: var(--lc-muted); line-height: 1.4; }
+        .nav-tile .go { font-size: .8rem; font-weight: 600; color: var(--lc-primary); display: inline-flex; align-items: center; gap: .35rem; margin-top: auto; }
+        .nav-tile.is-soon { opacity: .72; }
+        .nav-tile.is-soon .ic { filter: grayscale(.35); }
+        .nav-tile .soon-tag { position: absolute; top: 1rem; right: 1rem; font-size: .64rem; font-weight: 700;
+            text-transform: uppercase; letter-spacing: .05em; background: #EEF1F4; color: #64748b; padding: .2rem .55rem; border-radius: 999px; }
+        .ic-blue   { background: #e7efff; color: #2563eb; }
+        .ic-purple { background: #ece3f8; color: #6d28d9; }
+        .ic-amber  { background: #fff4d6; color: #b8770a; }
+        .ic-green  { background: #e7f6ee; color: #15803d; }
+        .ic-slate  { background: #eef1f4; color: #475569; }
     </style>
 </head>
 <body class="lc-console">
@@ -52,8 +67,8 @@
             <span class="badge-soft"><i class="bi bi-shield-lock-fill me-1"></i>SYSTEM-WIDE ACCESS</span>
         </div>
 
-        <%-- KPI (payment-style accent cards) --%>
-        <div class="row g-3 mb-4">
+        <%-- KPI --%>
+        <div class="row g-3">
             <div class="col-md-3 col-6">
                 <div class="pay-kpi k-blue">
                     <div class="row1"><span class="ic" style="background:#e7efff;color:#2563eb;"><i class="bi bi-building"></i></span>
@@ -88,55 +103,55 @@
             </div>
         </div>
 
+        <%-- NAVIGATION TILES --%>
+        <div class="sec-title">Manage the system</div>
         <div class="row g-3">
-            <%-- Cinemas --%>
-            <div class="col-lg-8">
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                    <h6 class="text-navy fw-bold mb-0">Cinemas across the network</h6>
-                    <a href="${pageContext.request.contextPath}/admin/branches" class="btn btn-light border btn-sm">
-                        Manage all <i class="bi bi-arrow-right ms-1"></i></a>
-                </div>
-                <div class="row g-3">
-                    <c:forEach items="${branches}" var="b">
-                        <div class="col-md-6">
-                            <div class="cin-card">
-                                <div class="cin-pin"><i class="bi bi-geo-alt-fill"></i></div>
-                                <div class="flex-grow-1" style="min-width:0;">
-                                    <div class="d-flex justify-content-between align-items-start gap-2">
-                                        <div class="fw-bold text-navy text-truncate"><c:out value="${b.name}"/></div>
-                                        <c:choose>
-                                            <c:when test="${b.active}"><span class="pay-st s-success"><span class="dot"></span>Active</span></c:when>
-                                            <c:otherwise><span class="pay-st s-off"><span class="dot"></span>Inactive</span></c:otherwise>
-                                        </c:choose>
-                                    </div>
-                                    <div class="text-muted small text-truncate"><i class="bi bi-pin-map me-1"></i><c:out value="${b.city}"/></div>
-                                    <div class="text-muted small"><i class="bi bi-telephone me-1"></i><c:out value="${b.phone}"/></div>
-                                </div>
-                            </div>
-                        </div>
-                    </c:forEach>
-                    <c:if test="${empty branches}">
-                        <div class="col-12 text-center text-muted py-4">No cinemas yet.</div>
-                    </c:if>
+            <div class="col-md-6 col-xl-4">
+                <a class="nav-tile is-live" href="${pageContext.request.contextPath}/admin/branches">
+                    <span class="ic ic-blue"><i class="bi bi-building"></i></span>
+                    <div class="tt">Cinemas</div>
+                    <div class="ds">Add, edit and configure cinemas, their rooms and seat layouts.</div>
+                    <span class="go">Open <i class="bi bi-arrow-right"></i></span>
+                </a>
+            </div>
+            <div class="col-md-6 col-xl-4">
+                <a class="nav-tile is-live" href="${pageContext.request.contextPath}/admin/users">
+                    <span class="ic ic-purple"><i class="bi bi-people"></i></span>
+                    <div class="tt">Users</div>
+                    <div class="ds">Manage customers, branch managers, staff and administrators.</div>
+                    <span class="go">Open <i class="bi bi-arrow-right"></i></span>
+                </a>
+            </div>
+            <div class="col-md-6 col-xl-4">
+                <a class="nav-tile is-live" href="${pageContext.request.contextPath}/admin/movie-branches">
+                    <span class="ic ic-amber"><i class="bi bi-film"></i></span>
+                    <div class="tt">Movie Assignment</div>
+                    <div class="ds">Assign movies to the cinemas that are allowed to schedule them.</div>
+                    <span class="go">Open <i class="bi bi-arrow-right"></i></span>
+                </a>
+            </div>
+            <div class="col-md-6 col-xl-4">
+                <a class="nav-tile is-live" href="${pageContext.request.contextPath}/admin/payments">
+                    <span class="ic ic-green"><i class="bi bi-credit-card"></i></span>
+                    <div class="tt">Payments</div>
+                    <div class="ds">Review payment history and monitor transaction status network-wide.</div>
+                    <span class="go">Open <i class="bi bi-arrow-right"></i></span>
+                </a>
+            </div>
+            <div class="col-md-6 col-xl-4">
+                <div class="nav-tile is-soon">
+                    <span class="soon-tag">Soon</span>
+                    <span class="ic ic-slate"><i class="bi bi-bar-chart"></i></span>
+                    <div class="tt">System Reports</div>
+                    <div class="ds">Revenue, occupancy and performance analytics across the network.</div>
                 </div>
             </div>
-
-            <%-- Quick actions --%>
-            <div class="col-lg-4">
-                <h6 class="text-navy fw-bold mb-2">Quick actions</h6>
-                <div class="card lc-elev p-3">
-                    <a href="${pageContext.request.contextPath}/admin/branches" class="qa-row">
-                        <span class="qa-ic"><i class="bi bi-building"></i></span>Manage Cinemas
-                        <i class="bi bi-chevron-right ms-auto text-muted"></i></a>
-                    <a href="${pageContext.request.contextPath}/admin/users" class="qa-row">
-                        <span class="qa-ic"><i class="bi bi-people"></i></span>Manage Users
-                        <i class="bi bi-chevron-right ms-auto text-muted"></i></a>
-                    <a href="${pageContext.request.contextPath}/admin/movie-branches" class="qa-row">
-                        <span class="qa-ic"><i class="bi bi-film"></i></span>Movie Assignment
-                        <i class="bi bi-chevron-right ms-auto text-muted"></i></a>
-                    <a href="${pageContext.request.contextPath}/admin/payments" class="qa-row mb-0">
-                        <span class="qa-ic"><i class="bi bi-credit-card"></i></span>Payments
-                        <i class="bi bi-chevron-right ms-auto text-muted"></i></a>
+            <div class="col-md-6 col-xl-4">
+                <div class="nav-tile is-soon">
+                    <span class="soon-tag">Soon</span>
+                    <span class="ic ic-slate"><i class="bi bi-star"></i></span>
+                    <div class="tt">Review Approval</div>
+                    <div class="ds">Moderate and approve customer reviews before they go public.</div>
                 </div>
             </div>
         </div>
