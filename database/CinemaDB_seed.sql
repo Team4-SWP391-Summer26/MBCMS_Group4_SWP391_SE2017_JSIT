@@ -184,7 +184,6 @@ INSERT INTO dbo.promotions (code, name, discount_type, discount_value, min_order
 -- ---------------------------------------------------------------------
 -- 11. Food items
 -- ---------------------------------------------------------------------
-<<<<<<< HEAD
 -- Moi chi nhanh co menu F&B rieng (food_items.branch_id NOT NULL).
 -- CROSS JOIN bo mon mau voi tung chi nhanh -> moi branch co day du 6 mon.
 INSERT INTO dbo.food_items (name, description, price, category, branch_id, stock)
@@ -198,15 +197,6 @@ FROM (VALUES
     (N'Combo Solo',      N'1 drink + 1 medium popcorn',   CAST(75000  AS DECIMAL(10,2)), 'COMBO', 50)
 ) AS f(name, description, price, category, stock)
 CROSS JOIN dbo.branches b;
-=======
-INSERT INTO dbo.food_items (name, description, price, category, branch_id, stock) VALUES
- (N'Popcorn (Large)', N'Salted popcorn, large size',   65000,  'SNACK', 1, 100),
- (N'Popcorn (Medium)',N'Caramel popcorn, medium size', 55000,  'SNACK', 2, 100),
- (N'Coca-Cola',       N'Soft drink 500ml',             30000,  'DRINK', 1, 100),
- (N'Mineral Water',   N'Bottled water 500ml',          20000,  'DRINK', 2, 100),
- (N'Combo for 2',     N'2 drinks + 1 large popcorn',   120000, 'COMBO', 1, 100),
- (N'Combo Solo',      N'1 drink + 1 medium popcorn',   75000,  'COMBO', 2, 100);
->>>>>>> 4eabd22 (Fix active of food menu)
 
 PRINT 'Base data seeded (genres, movies, branches, rooms, seats, showtimes, customers, employees, promotions, food).';
 GO
