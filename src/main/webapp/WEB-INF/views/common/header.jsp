@@ -453,7 +453,7 @@
                       a.addEventListener('click', function (e) {
                           e.preventDefault();
                           fetch(ctx + '/api/notifications?id=' + n.id, {
-                              method: 'POST', credentials: 'same-origin'
+                              method: 'POST', credentials: 'same-origin', headers: { 'X-CSRF-TOKEN': '${sessionScope.csrfToken}' }
                           }).finally(function () {
                               window.location.href = a.href;
                           });
@@ -504,7 +504,7 @@
               markAllBtn.addEventListener('click', function (e) {
                   e.preventDefault();
                   fetch(ctx + '/api/notifications/mark-all-read', {
-                      method: 'POST', credentials: 'same-origin'
+                      method: 'POST', credentials: 'same-origin', headers: { 'X-CSRF-TOKEN': '${sessionScope.csrfToken}' }
                   }).then(loadNotifications);
               });
 

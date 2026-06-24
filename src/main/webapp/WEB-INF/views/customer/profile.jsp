@@ -143,8 +143,11 @@
                             </a>
                             <span class="lc-navitem disabled"><i class="bi bi-chat-dots"></i> Feedback <span class="lc-soon">Soon</span></span>
                             <hr style="margin:10px 0; border-color:#eef1f5;">
-                            <a class="lc-navitem" style="color:#dc3545;" href="${pageContext.request.contextPath}/auth/logout">
-                                <i class="bi bi-box-arrow-right"></i> Sign out</a>
+                            <form method="post" action="${pageContext.request.contextPath}/auth/logout" class="m-0">
+                                <%@ include file="/WEB-INF/views/common/csrf-hidden.jspf" %>
+                                <button type="submit" class="lc-navitem" style="color:#dc3545;border:0;background:none;width:100%;text-align:left;cursor:pointer;">
+                                    <i class="bi bi-box-arrow-right"></i> Sign out</button>
+                            </form>
                         </nav>
                     </div>
                 </div>

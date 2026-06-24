@@ -386,6 +386,13 @@ public class BranchDAOImpl extends BaseDAO implements BranchDAO {
             }
             throw new RuntimeException("Loi saveBranchDetails branches: " + e.getMessage(), e);
         } finally {
+            // Khoi phuc autoCommit truoc khi tra connection ve pool (tranh hong transaction request sau)
+            if (conn != null) {
+                try {
+                    conn.setAutoCommit(true);
+                } catch (SQLException ignored) {
+                }
+            }
             closeAll(ps, conn);
         }
     }

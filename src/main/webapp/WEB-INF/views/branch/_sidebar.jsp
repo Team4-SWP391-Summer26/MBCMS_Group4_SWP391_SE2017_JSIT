@@ -53,7 +53,9 @@
             <div style="font-size:.72rem; color:rgba(255,255,255,.55);" class="text-truncate">
                 <c:out value="${empty sessionScope.currentBranchName ? 'Branch Manager' : sessionScope.currentBranchName}" /></div>
         </div>
-        <a href="${pageContext.request.contextPath}/auth/logout" title="Sign out"
-           style="color:rgba(255,255,255,.6);"><i class="bi bi-box-arrow-right"></i></a>
+        <form method="post" action="${pageContext.request.contextPath}/auth/logout" class="m-0 d-inline">
+            <%@ include file="/WEB-INF/views/common/csrf-hidden.jspf" %>
+            <button type="submit" title="Sign out" style="color:rgba(255,255,255,.6);border:0;background:none;cursor:pointer;padding:0;"><i class="bi bi-box-arrow-right"></i></button>
+        </form>
     </div>
 </aside>

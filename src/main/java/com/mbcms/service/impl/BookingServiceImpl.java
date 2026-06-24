@@ -334,6 +334,24 @@ public class BookingServiceImpl implements BookingService {
         Showtime st = showtimeDao.findById(booking.getShowtimeId());
         validateShowtimeForBooking(st);
 
+        // Validate ghe: phai thuoc dung phong cua showtime va dang active
+        // (chong dat ghe sai phong / ghe inactive o luong quay tien mat).
+        List<Seat> roomSeats = seatDao.findByRoom(st.getRoomId());
+        Map<Long, Seat> counterSeatMap = new HashMap<>();
+        for (Seat s : roomSeats) {
+            counterSeatMap.put(s.getSeatId(), s);
+        }
+        for (Long seatId : seatIds) {
+            Seat seat = counterSeatMap.get(seatId);
+            if (seat == null || seat.getRoomId() != st.getRoomId()) {
+                throw new IllegalArgumentException("Ghế không hợp lệ cho suất chiếu này.");
+            }
+            if (!seat.isActive()) {
+                throw new IllegalArgumentException(
+                        "Ghế " + seat.getRowLabel() + seat.getColNumber() + " không khả dụng.");
+            }
+        }
+
         String customerUsername = booking.getCustomerUsername();
         if (customerUsername == null || customerUsername.trim().isEmpty()) {
             customerUsername = "guest01";

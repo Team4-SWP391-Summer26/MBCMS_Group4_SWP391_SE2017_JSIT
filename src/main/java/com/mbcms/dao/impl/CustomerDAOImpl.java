@@ -241,33 +241,6 @@ public class CustomerDAOImpl extends BaseDAO implements CustomerDAO {
     }
 
     @Override
-    public Customer findByPhone(String phone) {
-        String sql = "SELECT username, email, password_hash, full_name, phone, "
-                + "date_of_birth, address, active, email_verified, reset_token, google_id, created_at "
-                + "FROM customers WHERE phone = ? AND active = 1";
-
-        Connection conn = null;
-        PreparedStatement ps = null;
-        ResultSet rs = null;
-
-        try {
-            conn = getConnection();
-            ps = conn.prepareStatement(sql);
-            ps.setString(1, phone);
-            rs = ps.executeQuery();
-
-            if (rs.next()) {
-                return mapRow(rs);
-            }
-            return null;
-        } catch (SQLException e) {
-            throw new RuntimeException("Loi truy van customers.findByPhone: " + e.getMessage(), e);
-        } finally {
-            closeAll(rs, ps, conn);
-        }
-    }
-
-    @Override
     public List<String> findAllActiveUsernames() {
         String sql = "SELECT username FROM dbo.customers WHERE active = 1";
 

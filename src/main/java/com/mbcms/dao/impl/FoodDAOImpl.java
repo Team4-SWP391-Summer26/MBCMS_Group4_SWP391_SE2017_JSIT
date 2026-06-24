@@ -359,7 +359,13 @@ public class FoodDAOImpl extends BaseDAO implements FoodDAO {
 
     @Override
     public boolean updateOrderStatus(long foodOrderId, String status) {
-        if ("PREPARING".equalsIgnoreCase(status)) {
+        String normalized = (status == null) ? "" : status.trim().toUpperCase();
+
+        // Phuc vu mon (PREPARING/READY/DELIVERED) chi hop le khi ve da thanh toan
+        // (CONFIRMED/USED). Chan bypass tu booking PENDING (chua tra tien) / CANCELLED.
+        if ("PREPARING".equals(normalized)
+                || "READY".equals(normalized)
+                || "DELIVERED".equals(normalized)) {
             String bookingStatus = null;
             String getBookingSql =
                     "SELECT b.status FROM dbo.food_orders fo "
@@ -377,7 +383,7 @@ public class FoodDAOImpl extends BaseDAO implements FoodDAO {
                     bookingStatus = rs.getString("status");
                 }
             } catch (SQLException e) {
-                throw new RuntimeException("Lỗi updateOrderStatus (PREPARING): " + e.getMessage(), e);
+                throw new RuntimeException("Lỗi updateOrderStatus (kiem tra booking): " + e.getMessage(), e);
             } finally {
                 closeAll(rs, ps, conn);
             }
@@ -386,25 +392,22 @@ public class FoodDAOImpl extends BaseDAO implements FoodDAO {
                 return false;
             }
             if ("CANCELLED".equals(bookingStatus)) {
-                throw new IllegalStateException("Đơn đặt vé này đã bị hủy. Không thể chế biến đồ ăn.");
+                throw new IllegalStateException("Đơn đặt vé này đã bị hủy. Không thể phục vụ đồ ăn.");
             }
             if ("PENDING".equals(bookingStatus)) {
                 throw new IllegalStateException(
-                        "Vé chưa thanh toán. Không thể chế biến đồ ăn cho booking PENDING.");
+                        "Vé chưa thanh toán. Không thể phục vụ đồ ăn cho booking PENDING.");
             }
             if (!"CONFIRMED".equals(bookingStatus) && !"USED".equals(bookingStatus)) {
                 throw new IllegalStateException(
-                        "Trạng thái booking không hợp lệ để chế biến: " + bookingStatus);
+                        "Trạng thái booking không hợp lệ để phục vụ đồ ăn: " + bookingStatus);
             }
-
-            status = "PREPARING";
         }
 
-        // Default behavior for other statuses
         String sql;
-        if ("READY".equals(status)) {
+        if ("READY".equals(normalized)) {
             sql = "UPDATE dbo.food_orders SET status = ?, ready_at = SYSUTCDATETIME() WHERE food_order_id = ?";
-        } else if ("DELIVERED".equals(status)) {
+        } else if ("DELIVERED".equals(normalized)) {
             sql = "UPDATE dbo.food_orders SET status = ?, delivered_at = SYSUTCDATETIME() WHERE food_order_id = ?";
         } else {
             sql = "UPDATE dbo.food_orders SET status = ? WHERE food_order_id = ?";
@@ -414,7 +417,7 @@ public class FoodDAOImpl extends BaseDAO implements FoodDAO {
         try {
             conn = getConnection();
             ps = conn.prepareStatement(sql);
-            ps.setString(1, status);
+            ps.setString(1, normalized);
             ps.setLong(2, foodOrderId);
             int rows = ps.executeUpdate();
             return rows > 0;
