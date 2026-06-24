@@ -15,7 +15,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <link href="${pageContext.request.contextPath}/assets/css/manager.css?v=${applicationScope.assetVersion}" rel="stylesheet">
-    <jsp:include page="/WEB-INF/views/branch/seat-layout-style.jspf" />
+    <%@ include file="/WEB-INF/views/branch/seat-layout-style.jspf" %>
 </head>
 <body class="lc-console">
 
@@ -94,7 +94,7 @@
                                         <button type="button"
                                                 class="sl-seat ${!seat.active ? 'is-off' : (seat.seatType == 'VIP' ? 'is-vip' : 'is-std')}"
                                                 data-seatid="${seat.seatId}"
-                                                title="${seat.rowLabel}${seat.colNumber}"></button>
+                                                title="${seat.rowLabel}${seat.colNumber}">${seat.colNumber}</button>
                                         <c:if test="${st.count == (rowLen / 2) and rowLen > 3}">
                                             <span class="sl-aisle"></span>
                                         </c:if>
