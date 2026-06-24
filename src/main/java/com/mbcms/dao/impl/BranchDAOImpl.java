@@ -30,7 +30,7 @@ public class BranchDAOImpl extends BaseDAO implements BranchDAO {
 
             List<Branch> list = new ArrayList<>();
             while (rs.next()) {
-                list.add(mapRow(rs));
+                list.add(mapRowBasic(rs));  // only 7 base columns, no created_at
             }
             return list;
         } catch (SQLException e) {
@@ -82,7 +82,7 @@ public class BranchDAOImpl extends BaseDAO implements BranchDAO {
 
             List<Branch> branches = new ArrayList<>();
             while (rs.next()) {
-                branches.add(mapRow(rs));
+                branches.add(mapRowBasic(rs));  // only 7 base columns, no created_at
             }
             return branches;
         } catch (SQLException e) {
@@ -223,7 +223,11 @@ public class BranchDAOImpl extends BaseDAO implements BranchDAO {
         }
     }
 
-    private Branch mapRow(ResultSet rs) throws SQLException {
+    /**
+     * Map only the 7 base columns that every SELECT includes.
+     * Use this when the query does NOT select created_at / opening_time / closing_time.
+     */
+    private Branch mapRowBasic(ResultSet rs) throws SQLException {
         Branch b = new Branch();
         b.setBranchId(rs.getLong("branch_id"));
         b.setName(rs.getString("name"));
@@ -232,7 +236,16 @@ public class BranchDAOImpl extends BaseDAO implements BranchDAO {
         b.setPhone(rs.getString("phone"));
         b.setEmail(rs.getString("email"));
         b.setActive(rs.getBoolean("active"));
-        
+        return b;
+    }
+
+    /**
+     * Map all columns including created_at, opening_time, closing_time.
+     * Use only when the query explicitly SELECTs those columns.
+     */
+    private Branch mapRow(ResultSet rs) throws SQLException {
+        Branch b = mapRowBasic(rs);
+
         Timestamp ts = rs.getTimestamp("created_at");
         if (ts != null) {
             b.setCreatedAt(ts.toLocalDateTime());

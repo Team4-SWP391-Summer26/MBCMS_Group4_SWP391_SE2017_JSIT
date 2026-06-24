@@ -151,7 +151,7 @@ public class AdminBranchServlet extends HttpServlet {
         b.setEmail(email);
         b.setOpeningTime(openStr != null && !openStr.isBlank() ? LocalTime.parse(openStr) : LocalTime.of(8, 0));
         b.setClosingTime(closeStr != null && !closeStr.isBlank() ? LocalTime.parse(closeStr) : LocalTime.of(23, 0));
-        b.setActive(activeStr == null || "true".equalsIgnoreCase(activeStr) || "on".equalsIgnoreCase(activeStr));
+        b.setActive(activeStr != null && ("true".equalsIgnoreCase(activeStr) || "on".equalsIgnoreCase(activeStr)));
 
         boolean success = branchService.updateBranch(b);
         if (success) {

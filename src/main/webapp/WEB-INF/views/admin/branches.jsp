@@ -374,21 +374,11 @@
                             </div>
 
                             <div class="lc-cinema-actions">
-                                <%-- Edit Details button --%>
-                                <button type="button" class="lc-btn-outline edit-btn"
-                                        data-id="${b.branchId}"
-                                        data-name="${b.name}"
-                                        data-address="${b.address}"
-                                        data-city="${b.city}"
-                                        data-phone="${b.phone}"
-                                        data-email="${b.email}"
-                                        data-open="${b.openingTime}"
-                                        data-close="${b.closingTime}"
-                                        data-active="${b.active}"
-                                        data-bs-toggle="modal"
-                                        data-bs-target="#editModal">
+                                <%-- Edit Details button — goes directly to edit_branch.jsp --%>
+                                <a href="${pageContext.request.contextPath}/admin/branches?action=edit&branchId=${b.branchId}"
+                                   class="lc-btn-outline">
                                     <i class="bi bi-pencil me-1"></i> Edit Details
-                                </button>
+                                </a>
                                 <%-- Manage Rooms button --%>
                                 <a href="${pageContext.request.contextPath}/admin/halls?branchId=${b.branchId}"
                                    class="lc-btn-fill">

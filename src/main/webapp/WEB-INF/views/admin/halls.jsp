@@ -24,26 +24,49 @@
 <main class="lc-admin-main">
 
 <div class="container-fluid px-4 py-4">
+    
 
     <div class="d-flex justify-content-between align-items-center mb-4">
 
+    <div class="d-flex align-items-center gap-3">
+
+        <c:if test="${not empty selectedBranchId}">
+
+            <a href="${pageContext.request.contextPath}/admin/branches"
+               class="btn btn-outline-secondary">
+
+                <i class="bi bi-arrow-left"></i>
+                Back to Cinemas
+
+            </a>
+
+        </c:if>
+
         <div>
-            <div class="text-muted small">Administration</div>
+
+            <div class="text-muted small">
+                Administration
+            </div>
+
             <h4 class="fw-bold text-navy mb-0">
                 Hall Management
             </h4>
+
         </div>
 
-        <button class="btn btn-primary"
-                data-bs-toggle="modal"
-                data-bs-target="#addRoomModal">
-
-            <i class="bi bi-plus-circle me-1"></i>
-            Add Hall
-
-        </button>
-
     </div>
+
+    <button class="btn btn-primary"
+            data-bs-toggle="modal"
+            data-bs-target="#addRoomModal">
+
+        <i class="bi bi-plus-circle me-1"></i>
+        Add Hall
+
+    </button>
+
+</div>
+    
 
     <!-- Alerts -->
 
