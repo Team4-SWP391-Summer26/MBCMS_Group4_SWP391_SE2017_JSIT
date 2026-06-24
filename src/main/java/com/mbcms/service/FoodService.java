@@ -2,6 +2,7 @@ package com.mbcms.service;
 
 import com.mbcms.model.FoodItem;
 import com.mbcms.model.FoodOrderDetail;
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 
@@ -21,4 +22,9 @@ public interface FoodService {
     boolean removeItem(long foodId, long branchId);
     boolean updateStock(long foodId, int stock, long branchId);
     boolean toggleStatus(long foodId, boolean active, long branchId);
+    void deleteOrderByBookingId(long bookingId);
+    boolean belongsToBranch(long foodOrderId, long branchId);
+
+    /** Active items only; qty capped 1–10 per line. */
+    BigDecimal computeValidatedFoodSubtotal(Map<Long, Integer> items);
 }

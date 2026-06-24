@@ -9,7 +9,10 @@ import com.mbcms.dao.impl.MovieDAOImpl;
 import com.mbcms.dao.impl.RoomDAOImpl;
 import com.mbcms.dao.impl.SeatDAOImpl;
 import com.mbcms.dao.impl.ShowtimeDAOImpl;
+import com.mbcms.dao.CustomerDAO;
+import com.mbcms.dao.impl.CustomerDAOImpl;
 import com.mbcms.model.Booking;
+import com.mbcms.model.Customer;
 import com.mbcms.model.Movie;
 import com.mbcms.model.Payment;
 import com.mbcms.model.Room;
@@ -58,6 +61,7 @@ public class CounterBookingServlet extends HttpServlet {
     private final SeatAvailabilityService seatService = new SeatAvailabilityServiceImpl();
     private final PaymentService paymentService = new PaymentServiceImpl();
     private final FoodService foodService = new FoodServiceImpl();
+    private final CustomerDAO customerDAO = new CustomerDAOImpl();
 
     private final ObjectMapper mapper = new ObjectMapper()
             .registerModule(new com.fasterxml.jackson.datatype.jsr310.JavaTimeModule());
@@ -108,6 +112,22 @@ public class CounterBookingServlet extends HttpServlet {
                 .anyMatch(r -> r.getRoomId() == roomId);
     }
 
+    /** Walk-in fallback guest01; registered customer must exist in DB. */
+    private String resolveCustomerUsername(String param) {
+        if (param == null || param.trim().isEmpty()) {
+            return "guest01";
+        }
+        String username = param.trim();
+        if ("guest01".equalsIgnoreCase(username)) {
+            return "guest01";
+        }
+        Customer c = customerDAO.findByUsername(username);
+        if (c == null || !c.isActive()) {
+            throw new IllegalArgumentException("Khách hàng không tồn tại hoặc đã bị khóa.");
+        }
+        return c.getUsername();
+    }
+
     private void handleAjax(String action, long branchId, HttpServletRequest req, HttpServletResponse resp)
             throws IOException {
         resp.setContentType("application/json;charset=UTF-8");
@@ -132,8 +152,9 @@ public class CounterBookingServlet extends HttpServlet {
             DateTimeFormatter timeFmt = DateTimeFormatter.ofPattern("HH:mm");
             DateTimeFormatter dateFmt = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
+            java.time.LocalDateTime now = java.time.LocalDateTime.now();
             for (Showtime st : showtimes) {
-                if ("SCHEDULED".equals(st.getStatus())) {
+                if ("SCHEDULED".equals(st.getStatus()) && st.getStartTime().isAfter(now)) {
                     Map<String, Object> map = new HashMap<>();
                     map.put("showtimeId", st.getShowtimeId());
                     map.put("movieId", st.getMovieId());
@@ -207,14 +228,9 @@ public class CounterBookingServlet extends HttpServlet {
                 return;
             }
             long bookingId = Long.parseLong(bookingIdParam.trim());
-            com.mbcms.model.BookingTicket ticket = bookingService.getTicket(bookingId, "guest01");
+            com.mbcms.model.BookingTicket ticket = bookingService.getTicketForBranch(bookingId, branchId);
             if (ticket == null) {
                 resp.sendError(HttpServletResponse.SC_NOT_FOUND, "Booking not found");
-                return;
-            }
-            // Branch scope: staff chi xem booking quay thuoc chi nhanh minh
-            if (ticket.getBranchId() != branchId) {
-                resp.sendError(HttpServletResponse.SC_FORBIDDEN, "Booking not in your branch");
                 return;
             }
             mapper.writeValue(resp.getWriter(), ticket);
@@ -228,6 +244,10 @@ public class CounterBookingServlet extends HttpServlet {
                 return;
             }
             long bookingId = Long.parseLong(bookingIdParam.trim());
+            if (bookingService.getTicketForBranch(bookingId, branchId) == null) {
+                resp.sendError(HttpServletResponse.SC_NOT_FOUND, "Booking not found");
+                return;
+            }
             Map<FoodItem, Integer> foodItems = foodService.getFoodItemsByBookingId(bookingId);
             List<Map<String, Object>> result = new ArrayList<>();
             for (Map.Entry<FoodItem, Integer> entry : foodItems.entrySet()) {
@@ -322,22 +342,18 @@ public class CounterBookingServlet extends HttpServlet {
                     System.err.println("Lỗi parse foodItems: " + e.getMessage());
                 }
             }
-
             Booking createdBooking = null;
+
+            String customerUsername = resolveCustomerUsername(req.getParameter("customerUsername"));
 
             if ("VNPAY".equalsIgnoreCase(paymentMethod.trim())) {
                 // For VNPay: create a pending booking first
-                createdBooking = bookingService.createPendingBooking("guest01", showtimeId, seatIds, promoCode, notes);
+                createdBooking = bookingService.createPendingBooking(customerUsername, showtimeId, seatIds, promoCode, notes, foodSubtotal);
 
-                if (foodSubtotal.compareTo(BigDecimal.ZERO) > 0) {
-                    createdBooking.setSubtotal(createdBooking.getSubtotal().add(foodSubtotal));
-                    createdBooking.setTotalAmount(createdBooking.getTotalAmount().add(foodSubtotal));
-                    bookingService.updateBookingTotals(createdBooking.getBookingId(), createdBooking.getSubtotal(), createdBooking.getTotalAmount());
-                }
                 foodService.saveFoodOrder(createdBooking.getBookingId(), selectedFood, "PENDING");
 
                 // Initialize payment status in payments table
-                paymentService.initiatePayment(createdBooking.getBookingId(), Payment.METHOD_VNPAY, "guest01");
+                paymentService.initiatePayment(createdBooking.getBookingId(), Payment.METHOD_VNPAY, customerUsername);
 
                 // Generate VNPay URL redirecting back to staff callback
                 String returnUrl = VnPayUtil.buildAppUrl(req, "/staff/booking/vnpay-return");
@@ -369,14 +385,15 @@ public class CounterBookingServlet extends HttpServlet {
                 }
                 BigDecimal subtotal = pricingService.calculateTotal(showtime.getBasePrice(), selectedSeats);
 
-                // Construct Booking Model (Subtotal includes concessions total)
+                // Construct Booking Model (Subtotal is tickets subtotal only)
                 Booking booking = new Booking();
                 booking.setShowtimeId(showtimeId);
-                booking.setSubtotal(subtotal.add(foodSubtotal));
+                booking.setCustomerUsername(customerUsername);
+                booking.setSubtotal(subtotal);
                 booking.setNotes(notes);
 
                 // Execute service transaction
-                createdBooking = bookingService.createCounterBooking(booking, seatIds, promoCode);
+                createdBooking = bookingService.createCounterBooking(booking, seatIds, promoCode, foodSubtotal);
 
                 if (!selectedFood.isEmpty()) {
                     foodService.saveFoodOrder(createdBooking.getBookingId(), selectedFood, "PREPARING");
@@ -395,7 +412,6 @@ public class CounterBookingServlet extends HttpServlet {
                 result.put("totalAmount", createdBooking.getTotalAmount());
                 result.put("message", "Đã thanh toán thành công và xác nhận đặt vé!");
             }
-
         } catch (Exception e) {
             result.put("success", false);
             result.put("message", "Lỗi đặt vé: " + e.getMessage());

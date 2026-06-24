@@ -33,7 +33,7 @@ public interface BookingService {
      * trống, áp dụng khuyến mãi, liên kết thành viên, và thanh toán tiền mặt
      * thành công (CASH) trong 1 Transaction.
      */
-    Booking createCounterBooking(Booking booking, List<Long> seatIds, String promoCode);
+    Booking createCounterBooking(Booking booking, List<Long> seatIds, String promoCode, BigDecimal concessionsSubtotal);
     // ── Promo ─────────────────────────────────────────────────────────────
     /**
      * Validate promo code: active, chưa hết hạn, chưa hết lượt, minOrderAmount.
@@ -41,7 +41,7 @@ public interface BookingService {
      * IllegalArgumentException với message cụ thể nếu tồn tại nhưng không dùng
      * được.
      */
-    Promotion validatePromoCode(String code, BigDecimal subtotal);
+    Promotion validatePromoCode(String code, BigDecimal subtotal, BigDecimal concessionsSubtotal);
 
     // ── Booking CRUD ──────────────────────────────────────────────────────
     /**
@@ -49,7 +49,7 @@ public interface BookingService {
      * SeatUnavailableException nếu có ghế bị chiếm.
      */
     Booking createPendingBooking(String customerUsername, long showtimeId,
-            List<Long> seatIds, String promoCode, String notes);
+            List<Long> seatIds, String promoCode, String notes, BigDecimal concessionsSubtotal);
 
     /**
      * PENDING → CONFIRMED sau payment thành công. Throw IllegalStateException
@@ -58,9 +58,20 @@ public interface BookingService {
     Booking confirmBooking(long bookingId, String customerUsername);
 
     /**
-     * Cap nhat subtotal va total_amount cua booking.
+     * Cap nhat subtotal, discount va total_amount — chi PENDING + owner.
      */
-    boolean updateBookingTotals(long bookingId, java.math.BigDecimal newSubtotal, java.math.BigDecimal newTotalAmount);
+    boolean updateBookingTotals(long bookingId, String customerUsername,
+            java.math.BigDecimal newSubtotal, java.math.BigDecimal discountAmount,
+            java.math.BigDecimal newTotalAmount);
+
+    /** True neu booking PENDING da qua 10 phut (UTC, cung logic SQL). */
+    boolean isPendingHoldExpired(long bookingId);
+
+    /**
+     * Tinh lai tickets + food + promo, cap nhat totals cho booking PENDING.
+     */
+    boolean recalculateTotalsWithFood(long bookingId, String username,
+            java.util.Map<Long, Integer> foodItems);
 
     /**
      * Lịch sử booking của customer, mới nhất trước.
@@ -79,6 +90,11 @@ public interface BookingService {
      * owner. Return null neu khong tim thay.
      */
     BookingTicket getTicket(long bookingId, String customerUsername);
+
+    /**
+     * Staff counter: load ticket by bookingId, verify branch scope (no owner username).
+     */
+    BookingTicket getTicketForBranch(long bookingId, long branchId);
 
     /**
      * Lich su booking dang view-model day du (movie/showtime/room/seat labels)

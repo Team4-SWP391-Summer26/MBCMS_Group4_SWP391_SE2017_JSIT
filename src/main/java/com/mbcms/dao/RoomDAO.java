@@ -35,4 +35,10 @@ public interface RoomDAO {
 
     /** Kiem tra xem phong chieu co lich chieu nao trong tuong lai hay khong. */
     boolean hasFutureShowtimes(long roomId);
+
+    /** Insert room + seats atomically; sets roomId on success. */
+    boolean insertWithSeats(Room room, java.util.List<com.mbcms.model.Seat> seats);
+
+    /** Delete all seats, insert new grid, update room in one transaction. */
+    boolean replaceSeatsAndUpdateRoom(Room room, java.util.List<com.mbcms.model.Seat> seats);
 }

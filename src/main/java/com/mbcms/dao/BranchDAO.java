@@ -34,6 +34,10 @@ public interface BranchDAO {
 
     /** Lay tat ca chi nhanh kem cac thong ke (rooms, seats, today showtimes, monthly revenue, manager). */
     List<Branch> findAllWithStats(boolean includeInactive);
+
+    boolean hasFutureShowtimes(long branchId);
+
+    boolean hasActiveFutureBookings(long branchId);
     
     /**
      * Lay danh sach tat ca branch active = 1, sap xep theo ten.
@@ -41,5 +45,8 @@ public interface BranchDAO {
      */
     List<Branch> findAllActive();
 
-    
+    /**
+     * Cap nhat thong tin + gio + active trong 1 transaction.
+     */
+    boolean saveBranchDetails(Branch branch, LocalTime openingTime, LocalTime closingTime, boolean active);
 }

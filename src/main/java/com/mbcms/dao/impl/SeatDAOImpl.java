@@ -214,7 +214,9 @@ public class SeatDAOImpl extends BaseDAO implements SeatDAO {
                 + "JOIN dbo.showtimes st ON st.showtime_id = b.showtime_id "
                 + "WHERE bs.seat_id = ? "
                 + "AND st.start_time >= SYSUTCDATETIME() "
-                + "AND b.[status] IN ('PENDING', 'CONFIRMED')";
+                + "AND b.[status] IN ('PENDING', 'CONFIRMED') "
+                + "AND (b.[status] != 'PENDING' "
+                + "     OR DATEDIFF(MINUTE, b.created_at, SYSUTCDATETIME()) < 10)";
 
         Connection conn = null;
         PreparedStatement ps = null;
@@ -239,6 +241,106 @@ public class SeatDAOImpl extends BaseDAO implements SeatDAO {
         } finally {
             closeAll(rs, ps, conn);
         }
+    }
+
+    @Override
+    public boolean hasAnyBookingsForRoom(long roomId) {
+        String sql = "SELECT COUNT(*) FROM dbo.booking_seats bs "
+                + "JOIN dbo.seats s ON s.seat_id = bs.seat_id "
+                + "WHERE s.room_id = ?";
+        Connection conn = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+        try {
+            conn = getConnection();
+            ps = conn.prepareStatement(sql);
+            ps.setLong(1, roomId);
+            rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1) > 0;
+            }
+            return false;
+        } catch (SQLException e) {
+            throw new RuntimeException("Error checking bookings for room: " + e.getMessage(), e);
+        } finally {
+            closeAll(rs, ps, conn);
+        }
+    }
+
+    @Override
+    public Seat findById(long seatId) {
+        String sql = "SELECT seat_id, room_id, row_label, col_number, seat_type, active "
+                + "FROM dbo.seats WHERE seat_id = ?";
+        Connection conn = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+        try {
+            conn = getConnection();
+            ps = conn.prepareStatement(sql);
+            ps.setLong(1, seatId);
+            rs = ps.executeQuery();
+            if (rs.next()) {
+                return mapSeatRow(rs);
+            }
+            return null;
+        } catch (SQLException e) {
+            throw new RuntimeException("Error finding seat: " + e.getMessage(), e);
+        } finally {
+            closeAll(rs, ps, conn);
+        }
+    }
+
+    @Override
+    public int countActiveSeatsByRoom(long roomId) {
+        String sql = "SELECT COUNT(*) FROM dbo.seats WHERE room_id = ? AND active = 1";
+        Connection conn = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+        try {
+            conn = getConnection();
+            ps = conn.prepareStatement(sql);
+            ps.setLong(1, roomId);
+            rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+            return 0;
+        } catch (SQLException e) {
+            throw new RuntimeException("Error counting active seats: " + e.getMessage(), e);
+        } finally {
+            closeAll(rs, ps, conn);
+        }
+    }
+
+    @Override
+    public void syncRoomCapacityFromActiveSeats(long roomId) {
+        String sql = "UPDATE dbo.rooms SET capacity = ("
+                + "SELECT COUNT(*) FROM dbo.seats WHERE room_id = ? AND active = 1"
+                + ") WHERE room_id = ?";
+        Connection conn = null;
+        PreparedStatement ps = null;
+        try {
+            conn = getConnection();
+            ps = conn.prepareStatement(sql);
+            ps.setLong(1, roomId);
+            ps.setLong(2, roomId);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException("Error syncing room capacity: " + e.getMessage(), e);
+        } finally {
+            closeAll(ps, conn);
+        }
+    }
+
+    private Seat mapSeatRow(ResultSet rs) throws SQLException {
+        Seat seat = new Seat();
+        seat.setSeatId(rs.getLong("seat_id"));
+        seat.setRoomId(rs.getLong("room_id"));
+        seat.setRowLabel(rs.getString("row_label"));
+        seat.setColNumber(rs.getInt("col_number"));
+        seat.setSeatType(rs.getString("seat_type"));
+        seat.setActive(rs.getBoolean("active"));
+        return seat;
     }
 
     @Override
@@ -282,52 +384,6 @@ public class SeatDAOImpl extends BaseDAO implements SeatDAO {
         }
 
         return conflict;
-    }
-
-    @Override
-    public int updateSeatTypes(long roomId, Map<Long, String> seatTypes) {
-
-        String sql = "UPDATE dbo.seats "
-                + "SET seat_type = ? "
-                + "WHERE seat_id = ? AND room_id = ?";
-
-        Connection conn = null;
-        PreparedStatement ps = null;
-
-        try {
-            conn = getConnection();
-            conn.setAutoCommit(false);
-
-            ps = conn.prepareStatement(sql);
-
-            for (Map.Entry<Long, String> e : seatTypes.entrySet()) {
-                ps.setString(1, e.getValue());
-                ps.setLong(2, e.getKey());
-                ps.setLong(3, roomId);
-                ps.addBatch();
-            }
-
-            int[] results = ps.executeBatch();
-            conn.commit();
-
-            int affected = 0;
-
-            for (int r : results) {
-                affected += (r > 0 || r == PreparedStatement.SUCCESS_NO_INFO)
-                        ? 1 : 0;
-            }
-
-            return affected;
-
-        } catch (SQLException e) {
-            rollbackQuietly(conn);
-            throw new RuntimeException("Loi cap nhat seats.updateSeatTypes: "
-                    + e.getMessage(), e);
-
-        } finally {
-            restoreAutoCommitQuietly(conn);
-            closeAll(ps, conn);
-        }
     }
 
     @Override

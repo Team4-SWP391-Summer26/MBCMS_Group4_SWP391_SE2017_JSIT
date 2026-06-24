@@ -9,19 +9,18 @@ import com.mbcms.dao.impl.NotificationDAOImpl;
 import com.mbcms.dao.impl.PaymentDAOImpl;
 import com.mbcms.dao.impl.PromotionDAOImpl;
 import com.mbcms.model.Booking;
+import com.mbcms.model.Customer;
 import com.mbcms.model.Notification;
 import com.mbcms.model.Payment;
 import com.mbcms.model.PaymentRecord;
 import com.mbcms.model.PaymentSearchCriteria;
 import com.mbcms.model.PaymentSummary;
+import com.mbcms.service.NotificationService;
 import com.mbcms.service.PaymentService;
 import com.mbcms.util.DBUtil;
 
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.time.Duration;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 import java.util.List;
 
 /**
@@ -37,6 +36,7 @@ public class PaymentServiceImpl implements PaymentService {
     private final BookingDAO bookingDao = new BookingDAOImpl();
     private final NotificationDAO notificationDao = new NotificationDAOImpl();
     private final PromotionDAO promotionDao = new PromotionDAOImpl();
+    private final NotificationService notificationService = new NotificationServiceImpl();
 
     @Override
     public Booking preparePayment(long bookingId, String customerUsername) {
@@ -54,7 +54,7 @@ public class PaymentServiceImpl implements PaymentService {
             throw new IllegalStateException(
                     "Booking cannot be paid in its current status (" + b.getStatus() + ").");
         }
-        if (isSeatHoldExpired(b)) {
+        if (bookingDao.isPendingHoldExpired(bookingId)) {
             throw new IllegalStateException("Your seat hold has expired. Please book again.");
         }
         return b;
@@ -111,7 +111,11 @@ public class PaymentServiceImpl implements PaymentService {
 
             // 3) promo used_count++ neu booking co ma (cung transaction, khong vuot max_uses)
             if (b.getPromoId() != null) {
-                promotionDao.incrementUsedCount(conn, b.getPromoId());
+                int promoUpdated = promotionDao.incrementUsedCount(conn, b.getPromoId());
+                if (promoUpdated == 0) {
+                    System.err.println("WARN: Promo usage limit reached for promo_id="
+                            + b.getPromoId() + " — booking still confirmed (VNPay paid).");
+                }
             }
 
             // 3.5) food_orders: PENDING -> PREPARING (if any concessions exist)
@@ -122,14 +126,7 @@ public class PaymentServiceImpl implements PaymentService {
 
             conn.commit();
 
-            Booking confirmed = bookingDao.findById(bookingId);
-            if (confirmed != null && confirmed.getPromoId() != null) {
-                try {
-                    promotionDao.incrementUsedCount(confirmed.getPromoId());
-                } catch (Exception e) {
-                    System.err.println("WARN: Could not increment promo used_count: " + e.getMessage());
-                }
-            }
+            sendBookingConfirmationQuietly(bookingId, customerUsername);
 
             return Result.SUCCESS;
 
@@ -156,16 +153,6 @@ public class PaymentServiceImpl implements PaymentService {
         return paymentDao.summarize(branchId);
     }
 
-    /** Cung logic 10 phut UTC nhu confirmBooking() va PaymentServlet. */
-    private boolean isSeatHoldExpired(Booking booking) {
-        if (booking.getCreatedAt() == null) {
-            return false;
-        }
-        long elapsed = Duration.between(
-                booking.getCreatedAt(), LocalDateTime.now(ZoneOffset.UTC)).getSeconds();
-        return elapsed >= 600;
-    }
-
     private String normalizeMethod(String method) {
         if (method == null) {
             throw new IllegalArgumentException("Payment method is required.");
@@ -186,6 +173,27 @@ public class PaymentServiceImpl implements PaymentService {
         n.setType(Notification.TYPE_PAYMENT);
         n.setReferenceId(b.getBookingId());
         return n;
+    }
+
+    private void sendBookingConfirmationQuietly(long bookingId, String customerUsername) {
+        try {
+            Booking confirmed = bookingDao.findByIdWithSeats(bookingId);
+            if (confirmed == null) {
+                return;
+            }
+            String email = null;
+            Customer c = new com.mbcms.dao.impl.CustomerDAOImpl().findByUsername(customerUsername);
+            if (c != null) {
+                email = c.getEmail();
+            }
+            notificationService.sendBookingConfirmation(confirmed, email);
+            if (confirmed.getSeatIds() != null) {
+                com.mbcms.ws.SeatWebSocketServer.notifyHardLock(
+                        confirmed.getShowtimeId(), confirmed.getSeatIds(), customerUsername);
+            }
+        } catch (Exception e) {
+            System.err.println("WARN: sendBookingConfirmation after payment: " + e.getMessage());
+        }
     }
 
     private void rollbackQuietly(Connection conn) {

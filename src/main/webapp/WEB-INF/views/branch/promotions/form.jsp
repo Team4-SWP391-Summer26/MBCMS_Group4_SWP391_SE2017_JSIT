@@ -1,4 +1,4 @@
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+﻿<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
@@ -140,6 +140,7 @@
                     <%-- Left column: Form input fields --%>
                     <div class="col-lg-7">
                         <form id="promoForm" action="${pageContext.request.contextPath}/branch/promotions/${isEdit ? 'edit' : 'create'}" method="post">
+            <%@ include file="/WEB-INF/views/common/csrf-hidden.jspf" %>
                             <c:if test="${isEdit}">
                                 <input type="hidden" name="promoId" value="${promo.promoId}">
                             </c:if>

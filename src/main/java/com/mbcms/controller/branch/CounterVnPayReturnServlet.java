@@ -1,7 +1,13 @@
 package com.mbcms.controller.branch;
 
 import com.mbcms.model.Booking;
+import com.mbcms.model.BookingTicket;
+import com.mbcms.model.Employee;
+import com.mbcms.service.BookingService;
+import com.mbcms.service.FoodService;
 import com.mbcms.service.VnPayCallbackService;
+import com.mbcms.service.impl.BookingServiceImpl;
+import com.mbcms.service.impl.FoodServiceImpl;
 import com.mbcms.util.VnPayUtil;
 
 import jakarta.servlet.ServletException;
@@ -22,8 +28,9 @@ import java.util.Map;
 public class CounterVnPayReturnServlet extends HttpServlet {
 
     private final VnPayCallbackService callbackService = new VnPayCallbackService();
-    private final com.mbcms.service.BookingService bookingService = new com.mbcms.service.impl.BookingServiceImpl();
+    private final BookingService bookingService = new BookingServiceImpl();
     private final com.mbcms.dao.BookingDAO bookingDao = new com.mbcms.dao.impl.BookingDAOImpl();
+    private final FoodService foodService = new FoodServiceImpl();
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
@@ -35,7 +42,13 @@ public class CounterVnPayReturnServlet extends HttpServlet {
             throws ServletException, IOException {
 
         HttpSession session = req.getSession(false);
-        if (session == null || session.getAttribute("username") == null) {
+        if (session == null || !(session.getAttribute("currentUser") instanceof Employee)) {
+            resp.sendRedirect(req.getContextPath() + "/auth/login");
+            return;
+        }
+
+        Long currentBranchId = (Long) session.getAttribute("currentBranchId");
+        if (currentBranchId == null) {
             resp.sendRedirect(req.getContextPath() + "/auth/login");
             return;
         }
@@ -60,7 +73,6 @@ public class CounterVnPayReturnServlet extends HttpServlet {
 
         switch (result.getOutcome()) {
             case SUCCESS, ALREADY_PAID -> {
-                // Đăng ký WebSocket notifyHardLock ở đây
                 if (booking != null) {
                     try {
                         com.mbcms.ws.SeatWebSocketServer.notifyHardLock(
@@ -68,23 +80,32 @@ public class CounterVnPayReturnServlet extends HttpServlet {
                                 booking.getSeatIds(),
                                 "staff"
                         );
-                    } catch (Exception ignore) {}
+                    } catch (Exception ignore) {
+                    }
                 }
-                resp.sendRedirect(req.getContextPath() + "/staff/booking?success=1&bookingCode=" + bookingCode + "&bookingId=" + bookingId);
+                resp.sendRedirect(req.getContextPath()
+                        + "/staff/booking?success=1&bookingCode=" + bookingCode + "&bookingId=" + bookingId);
             }
             default -> {
                 if (bookingId > 0) {
                     try {
                         Booking b = bookingDao.findByIdWithSeats(bookingId);
                         if (b != null && Booking.STATUS_PENDING.equals(b.getStatus())) {
-                            bookingService.cancelBooking(bookingId, "guest01");
-                            com.mbcms.ws.SeatWebSocketServer.notifyHardRelease(b.getShowtimeId(), b.getSeatIds());
+                            BookingTicket ticket = bookingDao.findTicket(bookingId);
+                            if (ticket != null && ticket.getBranchId() == currentBranchId) {
+                                foodService.deleteOrderByBookingId(bookingId);
+                                bookingService.cancelBooking(bookingId, b.getCustomerUsername());
+                                com.mbcms.ws.SeatWebSocketServer.notifyHardRelease(
+                                        b.getShowtimeId(), b.getSeatIds());
+                            }
                         }
                     } catch (Exception e) {
                         System.err.println("Error cancelling failed counter booking: " + e.getMessage());
                     }
                 }
-                resp.sendRedirect(req.getContextPath() + "/staff/booking?err=vnpay_failed");
+                String err = result.getOutcome() == VnPayCallbackService.Outcome.AMOUNT_MISMATCH
+                        ? "vnpay_amount" : "vnpay_failed";
+                resp.sendRedirect(req.getContextPath() + "/staff/booking?err=" + err);
             }
         }
     }

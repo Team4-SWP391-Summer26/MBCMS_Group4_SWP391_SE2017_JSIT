@@ -104,7 +104,6 @@ public class BranchHallServlet extends HttpServlet {
     private void handleEdit(HttpServletRequest req, HttpServletResponse resp, long branchId) throws IOException {
         long roomId = Long.parseLong(req.getParameter("roomId"));
         String name = req.getParameter("name");
-        int capacity = Integer.parseInt(req.getParameter("capacity"));
         String roomType = req.getParameter("roomType");
 
         // Verify ownership
@@ -113,14 +112,10 @@ public class BranchHallServlet extends HttpServlet {
             throw new IllegalArgumentException("Không có quyền chỉnh sửa phòng chiếu này.");
         }
 
-        Room r = new Room();
-        r.setRoomId(roomId);
-        r.setBranchId(branchId);
-        r.setName(name);
-        r.setCapacity(capacity);
-        r.setRoomType(roomType);
+        room.setName(name);
+        room.setRoomType(roomType);
 
-        boolean success = roomService.updateRoom(r);
+        boolean success = roomService.updateRoom(room);
         if (success) {
             resp.sendRedirect(req.getContextPath() + "/branch/halls?successMsg=" + java.net.URLEncoder.encode("Cập nhật phòng chiếu thành công!", "UTF-8"));
         } else {

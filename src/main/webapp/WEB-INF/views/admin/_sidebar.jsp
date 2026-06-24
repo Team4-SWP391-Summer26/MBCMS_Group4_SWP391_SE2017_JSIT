@@ -68,8 +68,11 @@
                 System-wide access
             </div>
         </div>
-        <a href="${pageContext.request.contextPath}/auth/logout" style="color:rgba(255,255,255,.6);">
-            <i class="bi bi-box-arrow-right fs-5"></i>
-        </a>
+        <form method="post" action="${pageContext.request.contextPath}/auth/logout" class="m-0 d-inline">
+            <%@ include file="/WEB-INF/views/common/csrf-hidden.jspf" %>
+            <button type="submit" style="color:rgba(255,255,255,.6);border:0;background:none;cursor:pointer;padding:0;">
+                <i class="bi bi-box-arrow-right fs-5"></i>
+            </button>
+        </form>
     </div>
 </aside>

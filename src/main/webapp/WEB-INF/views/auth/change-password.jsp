@@ -1,4 +1,4 @@
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+﻿<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <!DOCTYPE html>
 <html lang="en">
@@ -39,6 +39,7 @@
                         </c:if>
 
                         <form method="post" action="${pageContext.request.contextPath}/auth/change-password">
+            <%@ include file="/WEB-INF/views/common/csrf-hidden.jspf" %>
                             <div class="mb-3">
                                 <label class="form-label fw-semibold">Current Password</label>
                                 <input type="password"

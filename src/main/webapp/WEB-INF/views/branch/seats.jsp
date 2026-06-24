@@ -1,474 +1,216 @@
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+﻿<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
-
+<%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
+<%--
+    Seat Layout editor (Branch Manager) - theo mockup 25_mgr-seat-layout.
+    Backend: BranchSeatServlet (/branch/seats): action=regenerate | action=updateSeat (AJAX).
+    Multi-select tool: chon nhieu ghe -> chon cong cu (Standard/VIP/Off) -> Apply -> updateSeat tung ghe.
+--%>
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Seat Layout Management</title>
-
-```
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
-
-<link href="${pageContext.request.contextPath}/assets/css/manager.css?v=${applicationScope.assetVersion}"
-      rel="stylesheet">
-
-<style>
-
-    .screen {
-        background: #1e293b;
-        color: white;
-        text-align: center;
-        padding: 12px;
-        border-radius: 10px;
-        margin-bottom: 30px;
-        font-weight: 600;
-        letter-spacing: 2px;
-    }
-
-    .seat-row {
-        display: flex;
-        align-items: center;
-        margin-bottom: 10px;
-        gap: 8px;
-    }
-
-    .row-label {
-        width: 40px;
-        font-weight: bold;
-        color: #334155;
-    }
-
-    .seat-btn {
-        min-width: 55px;
-        height: 42px;
-        border: none;
-        border-radius: 8px;
-        color: white;
-        font-size: 12px;
-        cursor: pointer;
-        transition: .2s;
-    }
-
-    .seat-btn:hover {
-        transform: scale(1.05);
-    }
-
-    .seat-standard {
-        background: #0d6efd;
-    }
-
-    .seat-vip {
-        background: #ffc107;
-        color: #000;
-    }
-
-    .seat-disabled {
-        background: #6c757d;
-    }
-
-    .legend-box{
-        width:20px;
-        height:20px;
-        border-radius:4px;
-        display:inline-block;
-        margin-right:6px;
-    }
-
-</style>
-```
-
+    <title>Seat Layout - MBCMS Manager</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="${pageContext.request.contextPath}/assets/css/manager.css?v=${applicationScope.assetVersion}" rel="stylesheet">
+    <%@ include file="/WEB-INF/views/branch/seat-layout-style.jspf" %>
 </head>
-
 <body class="lc-console">
 
 <jsp:include page="/WEB-INF/views/branch/_sidebar.jsp">
-<jsp:param name="active" value="halls"/>
+    <jsp:param name="active" value="halls"/>
 </jsp:include>
 
 <main class="lc-admin-main">
+    <div class="container-fluid px-4 py-4" style="max-width:1240px;">
 
-<div class="container-fluid px-4 py-4">
-
-```
-<div class="d-flex justify-content-between align-items-center mb-4">
-
-    <div>
-        <div class="text-muted small">Seat Layout</div>
-
-        <h4 class="fw-bold text-navy mb-0">
-            ${room.name}
+        <%-- Header --%>
+        <div class="text-muted small mb-1">
+            Dashboard / Rooms &amp; Seats / <span class="fw-semibold">${room.name} &middot; Seat Layout</span>
+        </div>
+        <h4 class="text-navy fw-bold mb-3">
+            Seat Layout &middot; <c:out value="${room.name}"/> (${room.roomType})
         </h4>
 
-        <small class="text-muted">
-            Capacity: ${room.capacity}
-            |
-            Type: ${room.roomType}
-        </small>
-    </div>
-
-    <a href="${pageContext.request.contextPath}/branch/halls"
-       class="btn btn-outline-secondary">
-
-        <i class="bi bi-arrow-left"></i>
-        Back
-
-    </a>
-
-</div>
-
-<c:if test="${not empty successMsg}">
-    <div class="alert alert-success">
-        ${successMsg}
-    </div>
-</c:if>
-
-<c:if test="${not empty errorMsg}">
-    <div class="alert alert-danger">
-        ${errorMsg}
-    </div>
-</c:if>
-
-<!-- REGENERATE -->
-
-<div class="card lc-elev mb-4">
-
-    <div class="card-header">
-        <strong>Regenerate Seat Layout</strong>
-    </div>
-
-    <div class="card-body">
-
-        <form method="post"
-              action="${pageContext.request.contextPath}/branch/seats">
-
-            <input type="hidden"
-                   name="action"
-                   value="regenerate">
-
-            <input type="hidden"
-                   name="roomId"
-                   value="${roomId}">
-
-            <div class="row">
-
-                <div class="col-md-3">
-
-                    <label class="form-label">
-                        Rows
-                    </label>
-
-                    <input type="number"
-                           class="form-control"
-                           name="rowsCount"
-                           required>
-
-                </div>
-
-                <div class="col-md-3">
-
-                    <label class="form-label">
-                        Columns
-                    </label>
-
-                    <input type="number"
-                           class="form-control"
-                           name="colsCount"
-                           required>
-
-                </div>
-
-                <div class="col-md-3">
-
-                    <label class="form-label">
-                        Default Type
-                    </label>
-
-                    <select class="form-select"
-                            name="defaultType">
-
-                        <option value="STANDARD">
-                            STANDARD
-                        </option>
-
-                        <option value="VIP">
-                            VIP
-                        </option>
-
-                    </select>
-
-                </div>
-
-                <div class="col-md-3 d-flex align-items-end">
-
-                    <button type="submit"
-                            class="btn btn-primary w-100"
-                            onclick="return confirm('Regenerate layout? Existing seats will be replaced.')">
-
-                        Regenerate
-
-                    </button>
-
-                </div>
-
-            </div>
-
-        </form>
-
-    </div>
-
-</div>
-
-<!-- LEGEND -->
-
-<div class="card lc-elev mb-4">
-
-    <div class="card-body">
-
-        <div class="d-flex gap-4">
-
-            <div>
-                <span class="legend-box bg-primary"></span>
-                Standard
-            </div>
-
-            <div>
-                <span class="legend-box bg-warning"></span>
-                VIP
-            </div>
-
-            <div>
-                <span class="legend-box bg-secondary"></span>
-                Disabled
-            </div>
-
+        <%-- Scope notice --%>
+        <div class="lc-scope mb-3">
+            <i class="bi bi-exclamation-triangle-fill" style="color:#cf9a00;"></i>
+            <span>Scoped to <strong><c:out value="${sessionScope.currentBranchName}"/></strong>
+                &mdash; you only see data for your assigned branch.</span>
         </div>
 
-    </div>
+        <c:if test="${not empty successMsg}">
+            <div class="alert alert-success py-2">${successMsg}</div>
+        </c:if>
+        <c:if test="${not empty errorMsg}">
+            <div class="alert alert-danger py-2">${errorMsg}</div>
+        </c:if>
 
-</div>
-
-<!-- SEAT MAP -->
-
-<div class="card lc-elev">
-
-    <div class="card-body">
-
-        <div class="screen">
-            SCREEN
+        <%-- Action bar --%>
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <a class="btn btn-light btn-sm border" href="${pageContext.request.contextPath}/branch/halls">
+                <i class="bi bi-arrow-left me-1"></i>Back to rooms</a>
+            <button class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#genModal">
+                <i class="bi bi-arrow-clockwise me-1"></i>Reset / Generate grid</button>
         </div>
 
-        <c:forEach var="row" items="${seatsByRow}">
-
-            <div class="seat-row">
-
-                <div class="row-label">
-                    ${row.key}
+        <div class="row g-3">
+            <%-- ===== LEFT: toolbar + seat map ===== --%>
+            <div class="col-lg-8">
+                <%-- Toolbar --%>
+                <div class="card lc-elev p-3 mb-3 sl-toolbar">
+                    <div class="d-flex flex-wrap align-items-center gap-2">
+                        <span class="fw-semibold me-1" style="font-size:.9rem;">Apply to selected:</span>
+                        <div class="sl-tools" id="slTools">
+                            <button type="button" class="sl-tool active" data-tool="STANDARD"><span class="dot d-std"></span>Standard</button>
+                            <button type="button" class="sl-tool" data-tool="VIP"><span class="dot d-vip"></span>VIP</button>
+                            <button type="button" class="sl-tool" data-tool="OFF"><span class="dot d-off"></span>Off</button>
+                        </div>
+                        <button type="button" class="btn btn-primary btn-sm px-3" id="applyBtn" disabled>Apply (<span id="selCount">0</span>)</button>
+                        <span class="vr mx-1"></span>
+                        <button type="button" class="btn btn-light btn-sm border" id="selectAllBtn">Select all</button>
+                        <button type="button" class="btn btn-light btn-sm border" id="clearBtn">Clear</button>
+                        <span class="text-muted ms-auto" style="font-size:.78rem;">
+                            <i class="bi bi-info-circle me-1"></i>Click to multi-select, then Apply</span>
+                    </div>
                 </div>
 
-                <c:forEach var="seat" items="${row.value}">
+                <%-- Seat map --%>
+                <div class="card lc-elev p-4">
+                    <div class="sl-screen-wrap mb-4">
+                        <div class="sl-screen-curve"></div>
+                        <div class="sl-screen-label">SCREEN</div>
+                    </div>
 
-                    <button type="button"
-                            class="seat-btn
-                            ${!seat.active ? 'seat-disabled' :
-                               (seat.seatType == 'VIP' ? 'seat-vip' : 'seat-standard')}"
-                            data-seatid="${seat.seatId}"
-                            data-type="${seat.seatType}"
-                            data-active="${seat.active}"
+                    <c:if test="${empty seatsByRow}">
+                        <div class="text-center text-muted py-5">
+                            <i class="bi bi-grid-3x3-gap fs-1 d-block mb-2 opacity-50"></i>
+                            No seats yet. Use <strong>Reset / Generate grid</strong> to create the layout.
+                        </div>
+                    </c:if>
 
-                            onclick="showSeatMenu(this)">
+                    <c:if test="${not empty seatsByRow}">
+                        <div class="sl-grid">
+                            <%-- Column-number header (built from the first row) --%>
+                            <c:set var="hdrDone" value="false"/>
+                            <c:forEach var="row" items="${seatsByRow}">
+                                <c:if test="${not hdrDone}">
+                                    <c:set var="hLen" value="${fn:length(row.value)}"/>
+                                    <div class="sl-row">
+                                        <span class="sl-rlabel"></span>
+                                        <c:forEach var="seat" items="${row.value}" varStatus="st">
+                                            <span class="sl-colnum">${seat.colNumber}</span>
+                                            <c:if test="${st.count == (hLen / 2) and hLen > 3}"><span class="sl-aisle"></span></c:if>
+                                        </c:forEach>
+                                        <span class="sl-rlabel"></span>
+                                    </div>
+                                    <c:set var="hdrDone" value="true"/>
+                                </c:if>
+                            </c:forEach>
+                            <%-- Seat rows --%>
+                            <c:forEach var="row" items="${seatsByRow}">
+                                <c:set var="rowLen" value="${fn:length(row.value)}"/>
+                                <div class="sl-row">
+                                    <span class="sl-rlabel">${row.key}</span>
+                                    <c:forEach var="seat" items="${row.value}" varStatus="st">
+                                        <button type="button"
+                                                class="sl-seat ${!seat.active ? 'is-off' : (seat.seatType == 'VIP' ? 'is-vip' : 'is-std')}"
+                                                data-seatid="${seat.seatId}"
+                                                title="${seat.rowLabel}${seat.colNumber}"></button>
+                                        <c:if test="${st.count == (rowLen / 2) and rowLen > 3}">
+                                            <span class="sl-aisle"></span>
+                                        </c:if>
+                                    </c:forEach>
+                                    <span class="sl-rlabel">${row.key}</span>
+                                </div>
+                            </c:forEach>
+                        </div>
 
-                        ${seat.rowLabel}${seat.colNumber}
-
-                    </button>
-
-                </c:forEach>
-
+                        <%-- Legend (like booking) --%>
+                        <div class="sl-legend">
+                            <span><span class="dot d-std"></span>Standard</span>
+                            <span><span class="dot d-vip"></span>VIP</span>
+                            <span><span class="dot d-off"></span>Off / removed</span>
+                            <span><span class="dot d-sel"></span>Selected</span>
+                        </div>
+                    </c:if>
+                </div>
             </div>
 
-        </c:forEach>
+            <%-- ===== RIGHT: summary ===== --%>
+            <div class="col-lg-4">
+                <div class="card lc-elev p-4" style="position:sticky; top:16px;">
+                    <h6 class="text-navy fw-bold mb-3">Summary</h6>
+                    <div class="sl-sum-row sl-sum-total">
+                        <span>Total seats</span><span class="fw-bold fs-5" id="sumTotal">0</span>
+                    </div>
+                    <div class="sl-sum-row"><span><span class="dot d-std"></span>Standard</span><span class="fw-semibold" id="sumStd">0</span></div>
+                    <div class="sl-sum-row"><span><span class="dot d-vip"></span>VIP</span><span class="fw-semibold" id="sumVip">0</span></div>
+                    <div class="sl-sum-row"><span><span class="dot d-off"></span>Off / removed</span><span class="fw-semibold" id="sumOff">0</span></div>
 
+                    <h6 class="text-navy fw-bold mt-4 mb-2">Pricing</h6>
+                    <div class="sl-note">
+                        <i class="bi bi-info-circle me-1"></i>
+                        VIP seats are charged at <strong>+30%</strong> of each showtime's base price.
+                        Saving updates capacity for all future showtimes.
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-
-</div>
-```
-
-</div>
-
 </main>
 
-<!-- MODAL -->
-
-<div class="modal fade" id="seatModal">
-
-```
-<div class="modal-dialog">
-
-    <div class="modal-content">
-
-        <div class="modal-header">
-
-            <h5 class="modal-title">
-                Seat Configuration
-            </h5>
-
-        </div>
-
-        <div class="modal-body">
-
-            <input type="hidden" id="seatId">
-
-            <div class="mb-3">
-
-                <label class="form-label">
-                    Seat Type
-                </label>
-
-                <select id="seatType"
-                        class="form-select">
-
-                    <option value="STANDARD">
-                        STANDARD
-                    </option>
-
-                    <option value="VIP">
-                        VIP
-                    </option>
-
-                </select>
-
+<%-- Generate / reset modal --%>
+<div class="modal fade" id="genModal" tabindex="-1">
+    <div class="modal-dialog">
+        <form class="modal-content" method="post" action="${pageContext.request.contextPath}/branch/seats"
+              onsubmit="return confirm('Regenerate layout? All existing seats in this room will be replaced.');">
+            <%@ include file="/WEB-INF/views/common/csrf-hidden.jspf" %>
+            <input type="hidden" name="action" value="regenerate">
+            <input type="hidden" name="roomId" value="${roomId}">
+            <div class="modal-header">
+                <h5 class="modal-title">Generate seat grid</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-
-            <div class="form-check">
-
-                <input class="form-check-input"
-                       type="checkbox"
-                       id="seatActive">
-
-                <label class="form-check-label">
-                    Active
-                </label>
-
+            <div class="modal-body">
+                <div class="alert alert-warning py-2 small">
+                    <i class="bi bi-exclamation-triangle me-1"></i>This replaces the entire current layout.
+                </div>
+                <div class="row g-3">
+                    <div class="col-6">
+                        <label class="form-label small fw-semibold">Rows</label>
+                        <input type="number" class="form-control" name="rowsCount" min="1" max="26" value="8" required>
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label small fw-semibold">Columns</label>
+                        <input type="number" class="form-control" name="colsCount" min="1" max="30" value="10" required>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label small fw-semibold">Default type</label>
+                        <select class="form-select" name="defaultType">
+                            <option value="STANDARD">STANDARD</option>
+                            <option value="VIP">VIP</option>
+                        </select>
+                    </div>
+                </div>
             </div>
-
-        </div>
-
-        <div class="modal-footer">
-
-            <button class="btn btn-secondary"
-                    data-bs-dismiss="modal">
-                Close
-            </button>
-
-            <button class="btn btn-primary"
-                    onclick="saveSeat()">
-
-                Save
-
-            </button>
-
-        </div>
-
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" class="btn btn-primary"><i class="bi bi-grid-3x3-gap me-1"></i>Generate</button>
+            </div>
+        </form>
     </div>
-
-</div>
-```
-
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-
 <script>
-
-let seatModal =
-    new bootstrap.Modal(document.getElementById('seatModal'));
-
-function showSeatMenu(btn){
-
-    document.getElementById('seatId').value =
-        btn.dataset.seatid;
-
-    document.getElementById('seatType').value =
-        btn.dataset.type;
-
-    document.getElementById('seatActive').checked =
-        btn.dataset.active === 'true';
-
-    seatModal.show();
-}
-
-async function saveSeat(){
-
-    const seatId =
-        document.getElementById('seatId').value;
-
-    const seatType =
-        document.getElementById('seatType').value;
-
-    const active =
-        document.getElementById('seatActive').checked;
-
-    try{
-
-        let response1 =
-            await fetch(
-                '${pageContext.request.contextPath}/branch/seats',
-                {
-                    method:'POST',
-                    headers:{
-                        'Content-Type':
-                            'application/x-www-form-urlencoded'
-                    },
-                    body:
-                        'action=updateSeat'
-                        +'&roomId=${roomId}'
-                        +'&seatId='+seatId
-                        +'&seatType='+seatType
-                });
-
-        let json1 = await response1.json();
-
-        if(!json1.success){
-            alert(json1.message);
-            return;
-        }
-
-        let response2 =
-            await fetch(
-                '${pageContext.request.contextPath}/branch/seats',
-                {
-                    method:'POST',
-                    headers:{
-                        'Content-Type':
-                            'application/x-www-form-urlencoded'
-                    },
-                    body:
-                        'action=updateSeat'
-                        +'&roomId=${roomId}'
-                        +'&seatId='+seatId
-                        +'&active='+active
-                });
-
-        let json2 = await response2.json();
-
-        if(!json2.success){
-            alert(json2.message);
-            return;
-        }
-
-        location.reload();
-
-    }catch(e){
-
-        alert('Update failed');
-
-    }
-}
-
+    const CTX = '${pageContext.request.contextPath}';
+    const ROOM_ID = '${roomId}';
+    const ENDPOINT = CTX + '/branch/seats';
+    const CSRF_TOKEN = '${sessionScope.csrfToken}';
 </script>
-
+<script src="${pageContext.request.contextPath}/assets/js/seat-layout.js?v=${applicationScope.assetVersion}"></script>
 </body>
 </html>

@@ -1,4 +1,4 @@
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+﻿<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 <!DOCTYPE html>
@@ -409,6 +409,7 @@
                     <div class="d-flex gap-2 mt-3">
                         <button type="button" class="btn btn-outline-secondary flex-fill" onclick="hideCancelModal()">Keep Booking</button>
                         <form method="POST" action="${pageContext.request.contextPath}/customer/booking/cancel" class="flex-fill">
+            <%@ include file="/WEB-INF/views/common/csrf-hidden.jspf" %>
                             <input type="hidden" name="bookingId" value="${booking.bookingId}">
                             <button type="submit" class="btn-cancel-lc w-100">Cancel Booking</button>
                         </form>

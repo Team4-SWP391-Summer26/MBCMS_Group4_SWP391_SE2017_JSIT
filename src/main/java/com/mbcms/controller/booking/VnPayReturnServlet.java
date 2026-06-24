@@ -5,6 +5,7 @@ import com.mbcms.model.Customer;
 import com.mbcms.service.BookingService;
 import com.mbcms.service.VnPayCallbackService;
 import com.mbcms.service.impl.BookingServiceImpl;
+import com.mbcms.util.BookingCustomerGuard;
 import com.mbcms.util.VnPayUtil;
 
 import jakarta.servlet.ServletException;
@@ -19,8 +20,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * VNPay Return URL - browser redirect sau khi user thanh toan tren cong VNPay Sandbox.
- * Verify chu ky HMAC-SHA512, xac nhan booking neu vnp_ResponseCode=00.
+ * VNPay Return URL - browser redirect sau khi user thanh toan tren cong VNPay
+ * Sandbox. Verify chu ky HMAC-SHA512, xac nhan booking neu vnp_ResponseCode=00.
  */
 @WebServlet("/booking/payment/vnpay-return")
 public class VnPayReturnServlet extends HttpServlet {
@@ -53,13 +54,17 @@ public class VnPayReturnServlet extends HttpServlet {
         }
 
         switch (result.getOutcome()) {
+            // Email xac nhan da duoc gui 1 lan trong PaymentServiceImpl.markPaymentSuccess
+            // -> KHONG gui lai o day (tranh trung email).
             case SUCCESS, ALREADY_PAID -> forwardConfirm(req, resp, result.getBooking());
             case EXPIRED -> redirectPayment(resp, req, bookingId, "expired");
             case PAYMENT_FAILED -> redirectPayment(resp, req, bookingId, "failed");
             case INVALID_SIGNATURE -> redirectPayment(resp, req, bookingId, "signature");
+            case AMOUNT_MISMATCH -> redirectPayment(resp, req, bookingId, "amount");
             case INVALID_TXN_REF, BOOKING_NOT_FOUND ->
-                    resp.sendRedirect(req.getContextPath() + "/customer/booking/history");
-            default -> redirectPayment(resp, req, bookingId, "failed");
+                resp.sendRedirect(req.getContextPath() + "/customer/booking/history");
+            default ->
+                redirectPayment(resp, req, bookingId, "failed");
         }
     }
 
@@ -69,23 +74,38 @@ public class VnPayReturnServlet extends HttpServlet {
             resp.sendRedirect(req.getContextPath() + "/customer/booking/history");
             return;
         }
-        HttpSession session = req.getSession(false);
-        if (session == null || session.getAttribute("currentUser") == null) {
-            resp.sendRedirect(req.getContextPath() + "/auth/login");
+        Customer customer = BookingCustomerGuard.requireCustomer(req, resp);
+        if (customer == null) {
             return;
         }
-        Customer customer = (Customer) session.getAttribute("currentUser");
+        HttpSession session = req.getSession();
         if (!booking.getCustomerUsername().equals(customer.getUsername())) {
             resp.setStatus(HttpServletResponse.SC_FORBIDDEN);
             req.getRequestDispatcher("/WEB-INF/views/common/error403.jsp").forward(req, resp);
             return;
         }
         session.removeAttribute("pendingBookingId");
+
+        Booking withSeats = booking;
+        try {
+            withSeats = bookingService.getBookingDetail(booking.getBookingId(), customer.getUsername());
+        } catch (Exception ignored) {
+        }
+
+        if (withSeats != null && withSeats.getSeatIds() != null) {
+            try {
+                com.mbcms.ws.SeatWebSocketServer.notifyHardLock(
+                        withSeats.getShowtimeId(), withSeats.getSeatIds(), customer.getUsername());
+            } catch (Exception e) {
+                System.err.println("WARN: notifyHardLock on VNPay return: " + e.getMessage());
+            }
+        }
+
         try {
             req.setAttribute("ticket",
                     bookingService.getTicket(booking.getBookingId(), customer.getUsername()));
         } catch (Exception ignore) { /* fallback: confirm.jsp dung 'booking' */ }
-        req.setAttribute("booking", booking);
+        req.setAttribute("booking", withSeats != null ? withSeats : booking);
         req.getRequestDispatcher("/WEB-INF/views/booking/confirm.jsp").forward(req, resp);
     }
 

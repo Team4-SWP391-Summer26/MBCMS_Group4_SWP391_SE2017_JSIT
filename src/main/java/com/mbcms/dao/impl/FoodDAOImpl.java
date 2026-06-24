@@ -135,9 +135,18 @@ public class FoodDAOImpl extends BaseDAO implements FoodDAO {
             String insertItemSql = "INSERT INTO dbo.booking_food_items (food_order_id, food_id, quantity) VALUES (?, ?, ?)";
             psInsertItem = conn.prepareStatement(insertItemSql);
             for (Map.Entry<Long, Integer> entry : items.entrySet()) {
+                FoodItem food = findById(entry.getKey());
+                if (food == null) {
+                    throw new IllegalArgumentException("Food item not found: " + entry.getKey());
+                }
+                if (!food.isActive()) {
+                    throw new IllegalArgumentException("Food item is not available: " + food.getName());
+                }
+                int qty = entry.getValue() == null ? 0 : entry.getValue();
+                qty = Math.max(1, Math.min(10, qty));
                 psInsertItem.setLong(1, foodOrderId);
                 psInsertItem.setLong(2, entry.getKey());
-                psInsertItem.setInt(3, entry.getValue());
+                psInsertItem.setInt(3, qty);
                 psInsertItem.addBatch();
             }
             psInsertItem.executeBatch();
@@ -145,7 +154,10 @@ public class FoodDAOImpl extends BaseDAO implements FoodDAO {
             conn.commit();
         } catch (SQLException e) {
             if (conn != null) {
-                try { conn.rollback(); } catch (SQLException ignored) {}
+                try {
+                    conn.rollback();
+                } catch (SQLException ignored) {
+                }
             }
             throw new RuntimeException("Lỗi saveFoodOrder: " + e.getMessage(), e);
         } finally {
@@ -157,28 +169,40 @@ public class FoodDAOImpl extends BaseDAO implements FoodDAO {
     }
 
     private void deleteOrderIfExists(long bookingId) {
-        String sql = "DELETE FROM dbo.food_orders WHERE booking_id = ?";
+        deleteOrderByBookingId(bookingId);
+    }
+
+    @Override
+    public void deleteOrderByBookingId(long bookingId) {
+        String deleteItems = "DELETE FROM dbo.booking_food_items WHERE food_order_id IN "
+                + "(SELECT food_order_id FROM dbo.food_orders WHERE booking_id = ?)";
+        String deleteOrder = "DELETE FROM dbo.food_orders WHERE booking_id = ?";
         Connection conn = null;
-        PreparedStatement ps = null;
+        PreparedStatement psItems = null;
+        PreparedStatement psOrder = null;
         try {
             conn = getConnection();
-            ps = conn.prepareStatement(sql);
-            ps.setLong(1, bookingId);
-            ps.executeUpdate();
+            psItems = conn.prepareStatement(deleteItems);
+            psItems.setLong(1, bookingId);
+            psItems.executeUpdate();
+            psOrder = conn.prepareStatement(deleteOrder);
+            psOrder.setLong(1, bookingId);
+            psOrder.executeUpdate();
         } catch (SQLException e) {
-            throw new RuntimeException("Lỗi deleteOrderIfExists: " + e.getMessage(), e);
+            throw new RuntimeException("Lỗi deleteOrderByBookingId: " + e.getMessage(), e);
         } finally {
-            closeAll(ps, conn);
+            closeAll(psItems, null);
+            closeAll(psOrder, conn);
         }
     }
 
     @Override
     public Map<FoodItem, Integer> findFoodItemsByBookingId(long bookingId) {
         String sql = "SELECT fi.*, bfi.quantity " +
-                     "FROM dbo.booking_food_items bfi " +
-                     "JOIN dbo.food_orders fo ON fo.food_order_id = bfi.food_order_id " +
-                     "JOIN dbo.food_items fi ON fi.food_id = bfi.food_id " +
-                     "WHERE fo.booking_id = ?";
+                "FROM dbo.booking_food_items bfi " +
+                "JOIN dbo.food_orders fo ON fo.food_order_id = bfi.food_order_id " +
+                "JOIN dbo.food_items fi ON fi.food_id = bfi.food_id " +
+                "WHERE fo.booking_id = ?";
         Connection conn = null;
         PreparedStatement ps = null;
         ResultSet rs = null;
@@ -197,7 +221,7 @@ public class FoodDAOImpl extends BaseDAO implements FoodDAO {
                 item.setCategory(rs.getString("category"));
                 item.setImageUrl(rs.getString("image_url"));
                 item.setActive(rs.getBoolean("active"));
-                
+
                 int qty = rs.getInt("quantity");
                 map.put(item, qty);
             }
@@ -243,19 +267,20 @@ public class FoodDAOImpl extends BaseDAO implements FoodDAO {
 
     @Override
     public List<FoodOrderDetail> findFoodOrdersByBranch(long branchId) {
-        String sql = "SELECT fo.food_order_id, fo.booking_id, fo.status, fo.created_at, fo.ready_at, fo.delivered_at, " +
-                     "       b.booking_code, s.start_time, m.title AS movie_title, r.name AS room_name, " +
-                     "       c.full_name AS customer_name, fi.name AS food_name, bfi.quantity " +
-                     "FROM dbo.food_orders fo " +
-                     "JOIN dbo.bookings b ON b.booking_id = fo.booking_id " +
-                     "JOIN dbo.showtimes s ON s.showtime_id = b.showtime_id " +
-                     "JOIN dbo.rooms r ON r.room_id = s.room_id " +
-                     "JOIN dbo.movies m ON m.movie_id = s.movie_id " +
-                     "LEFT JOIN dbo.customers c ON c.username = b.customer_username " +
-                     "JOIN dbo.booking_food_items bfi ON bfi.food_order_id = fo.food_order_id " +
-                     "JOIN dbo.food_items fi ON fi.food_id = bfi.food_id " +
-                     "WHERE r.branch_id = ? AND b.status <> 'CANCELLED' " +
-                     "ORDER BY fo.created_at DESC, fo.food_order_id";
+        String sql = "SELECT fo.food_order_id, fo.booking_id, fo.status, fo.created_at, fo.ready_at, fo.delivered_at, "
+                +
+                "       b.booking_code, s.start_time, m.title AS movie_title, r.name AS room_name, " +
+                "       c.full_name AS customer_name, fi.name AS food_name, bfi.quantity " +
+                "FROM dbo.food_orders fo " +
+                "JOIN dbo.bookings b ON b.booking_id = fo.booking_id " +
+                "JOIN dbo.showtimes s ON s.showtime_id = b.showtime_id " +
+                "JOIN dbo.rooms r ON r.room_id = s.room_id " +
+                "JOIN dbo.movies m ON m.movie_id = s.movie_id " +
+                "LEFT JOIN dbo.customers c ON c.username = b.customer_username " +
+                "JOIN dbo.booking_food_items bfi ON bfi.food_order_id = fo.food_order_id " +
+                "JOIN dbo.food_items fi ON fi.food_id = bfi.food_id " +
+                "WHERE r.branch_id = ? AND b.status <> 'CANCELLED' " +
+                "ORDER BY fo.created_at DESC, fo.food_order_id";
         Connection conn = null;
         PreparedStatement ps = null;
         ResultSet rs = null;
@@ -275,21 +300,23 @@ public class FoodDAOImpl extends BaseDAO implements FoodDAO {
                     detail.setBookingCode(rs.getString("booking_code"));
                     detail.setStatus(rs.getString("status"));
                     detail.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
-                    
+
                     Timestamp ready = rs.getTimestamp("ready_at");
                     detail.setReadyAt(ready != null ? ready.toLocalDateTime() : null);
-                    
+
                     Timestamp deliv = rs.getTimestamp("delivered_at");
                     detail.setDeliveredAt(deliv != null ? deliv.toLocalDateTime() : null);
-                    
+
                     String custName = rs.getString("customer_name");
-                    detail.setCustomerName(custName != null && !custName.trim().isEmpty() ? custName : "Guest (Walk-in)");
+                    detail.setCustomerName(
+                            custName != null && !custName.trim().isEmpty() ? custName : "Guest (Walk-in)");
                     detail.setMovieTitle(rs.getString("movie_title"));
                     detail.setRoomName(rs.getString("room_name"));
-                    
+
                     Timestamp stTime = rs.getTimestamp("start_time");
                     if (stTime != null) {
-                        detail.setStartTime(stTime.toLocalDateTime().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")));
+                        detail.setStartTime(stTime.toLocalDateTime()
+                                .format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")));
                     }
                     orderMap.put(oid, detail);
                 }
@@ -304,11 +331,83 @@ public class FoodDAOImpl extends BaseDAO implements FoodDAO {
     }
 
     @Override
+    public Long findBranchIdByFoodOrderId(long foodOrderId) {
+        String sql =
+                "SELECT r.branch_id FROM dbo.food_orders fo "
+                + "JOIN dbo.bookings b ON b.booking_id = fo.booking_id "
+                + "JOIN dbo.showtimes st ON st.showtime_id = b.showtime_id "
+                + "JOIN dbo.rooms r ON r.room_id = st.room_id "
+                + "WHERE fo.food_order_id = ?";
+        Connection conn = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+        try {
+            conn = getConnection();
+            ps = conn.prepareStatement(sql);
+            ps.setLong(1, foodOrderId);
+            rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getLong("branch_id");
+            }
+            return null;
+        } catch (SQLException e) {
+            throw new RuntimeException("Lỗi findBranchIdByFoodOrderId: " + e.getMessage(), e);
+        } finally {
+            closeAll(rs, ps, conn);
+        }
+    }
+
+    @Override
     public boolean updateOrderStatus(long foodOrderId, String status) {
+        String normalized = (status == null) ? "" : status.trim().toUpperCase();
+
+        // Phuc vu mon (PREPARING/READY/DELIVERED) chi hop le khi ve da thanh toan
+        // (CONFIRMED/USED). Chan bypass tu booking PENDING (chua tra tien) / CANCELLED.
+        if ("PREPARING".equals(normalized)
+                || "READY".equals(normalized)
+                || "DELIVERED".equals(normalized)) {
+            String bookingStatus = null;
+            String getBookingSql =
+                    "SELECT b.status FROM dbo.food_orders fo "
+                    + "JOIN dbo.bookings b ON b.booking_id = fo.booking_id "
+                    + "WHERE fo.food_order_id = ?";
+            Connection conn = null;
+            PreparedStatement ps = null;
+            ResultSet rs = null;
+            try {
+                conn = getConnection();
+                ps = conn.prepareStatement(getBookingSql);
+                ps.setLong(1, foodOrderId);
+                rs = ps.executeQuery();
+                if (rs.next()) {
+                    bookingStatus = rs.getString("status");
+                }
+            } catch (SQLException e) {
+                throw new RuntimeException("Lỗi updateOrderStatus (kiem tra booking): " + e.getMessage(), e);
+            } finally {
+                closeAll(rs, ps, conn);
+            }
+
+            if (bookingStatus == null) {
+                return false;
+            }
+            if ("CANCELLED".equals(bookingStatus)) {
+                throw new IllegalStateException("Đơn đặt vé này đã bị hủy. Không thể phục vụ đồ ăn.");
+            }
+            if ("PENDING".equals(bookingStatus)) {
+                throw new IllegalStateException(
+                        "Vé chưa thanh toán. Không thể phục vụ đồ ăn cho booking PENDING.");
+            }
+            if (!"CONFIRMED".equals(bookingStatus) && !"USED".equals(bookingStatus)) {
+                throw new IllegalStateException(
+                        "Trạng thái booking không hợp lệ để phục vụ đồ ăn: " + bookingStatus);
+            }
+        }
+
         String sql;
-        if ("READY".equals(status)) {
+        if ("READY".equals(normalized)) {
             sql = "UPDATE dbo.food_orders SET status = ?, ready_at = SYSUTCDATETIME() WHERE food_order_id = ?";
-        } else if ("DELIVERED".equals(status)) {
+        } else if ("DELIVERED".equals(normalized)) {
             sql = "UPDATE dbo.food_orders SET status = ?, delivered_at = SYSUTCDATETIME() WHERE food_order_id = ?";
         } else {
             sql = "UPDATE dbo.food_orders SET status = ? WHERE food_order_id = ?";
@@ -318,7 +417,7 @@ public class FoodDAOImpl extends BaseDAO implements FoodDAO {
         try {
             conn = getConnection();
             ps = conn.prepareStatement(sql);
-            ps.setString(1, status);
+            ps.setString(1, normalized);
             ps.setLong(2, foodOrderId);
             int rows = ps.executeUpdate();
             return rows > 0;
@@ -362,7 +461,10 @@ public class FoodDAOImpl extends BaseDAO implements FoodDAO {
             throw new RuntimeException("Lỗi updateOrderStatusByBooking(conn): " + e.getMessage(), e);
         } finally {
             if (ps != null) {
-                try { ps.close(); } catch (SQLException ignored) {}
+                try {
+                    ps.close();
+                } catch (SQLException ignored) {
+                }
             }
         }
     }

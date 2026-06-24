@@ -1,12 +1,13 @@
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+﻿<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cinema Management – LuminaCine</title>
+    <title>Cinema Management – MBCMS</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <link href="${pageContext.request.contextPath}/assets/css/manager.css?v=${applicationScope.assetVersion}" rel="stylesheet">
@@ -90,18 +91,30 @@
         }
         .lc-cinema-card:hover { box-shadow: 0 8px 24px rgba(15,23,42,.1); }
         .lc-cinema-banner {
-            height: 90px; position: relative;
+            height: 96px; position: relative; overflow: hidden;
             display: flex; align-items: center; justify-content: center;
+        }
+        /* graph-paper grid overlay (like mockup) */
+        .lc-cinema-banner::before {
+            content: ""; position: absolute; inset: 0;
+            background-image:
+                linear-gradient(rgba(15,23,42,.07) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(15,23,42,.07) 1px, transparent 1px);
+            background-size: 22px 22px;
+            -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,.9), rgba(0,0,0,.25));
+            mask-image: linear-gradient(to bottom, rgba(0,0,0,.9), rgba(0,0,0,.25));
+            pointer-events: none;
         }
         .lc-cinema-banner-pin {
-            width: 38px; height: 38px; border-radius: 999px;
-            background: rgba(255,255,255,.92);
+            position: relative; z-index: 1;
+            width: 40px; height: 40px; border-radius: 999px;
+            background: rgba(255,255,255,.95);
             display: flex; align-items: center; justify-content: center;
-            color: var(--lc-primary); font-size: 1.15rem;
-            box-shadow: 0 2px 8px rgba(0,0,0,.13);
+            color: var(--lc-primary); font-size: 1.2rem;
+            box-shadow: 0 3px 10px rgba(0,0,0,.15);
         }
         .lc-cinema-status {
-            position: absolute; top: 10px; right: 10px;
+            position: absolute; top: 10px; right: 10px; z-index: 1;
             font-size: .68rem; font-weight: 700;
             padding: .24rem .7rem; border-radius: 999px;
             display: flex; align-items: center; gap: .3rem;
@@ -180,27 +193,11 @@
 
 <main class="lc-admin-main">
 
-    <%-- ── Topbar ──────────────────────────────────────────────── --%>
-    <div class="lc-topbar">
-        <div>
-            <div class="lc-topbar-breadcrumb">
-                <a href="${pageContext.request.contextPath}/admin/dashboard">Admin</a>
-                <span class="mx-1">/</span> Cinema Management
-            </div>
-            <div class="lc-topbar-title">Cinema Management</div>
-        </div>
-        <div class="d-flex align-items-center gap-3">
-            <span class="lc-admin-badge">
-                <i class="bi bi-shield-fill me-1"></i> ADMIN ACCESS
-            </span>
-            <button class="btn btn-sm btn-light border rounded-circle p-1 lh-1" style="width:34px;height:34px;">
-                <i class="bi bi-bell" style="font-size:1rem;"></i>
-            </button>
-            <div class="lc-avatar-circle">SA</div>
-        </div>
-    </div>
+    <div class="container-fluid px-4 py-4" style="max-width:1240px;">
 
-    <div class="container-fluid px-4 py-4">
+        <div class="text-muted small mb-1">Admin / <span class="fw-semibold">Cinemas</span></div>
+        <h4 class="fw-bold text-navy mb-1">Cinema Management</h4>
+        <div class="text-muted small mb-4">Manage cinemas, their rooms and operating hours across the network.</div>
 
         <%-- ── Alerts ─────────────────────────────────────────── --%>
         <c:if test="${not empty successMsg}">
@@ -293,8 +290,8 @@
                 <option value="active">Active</option>
                 <option value="inactive">Inactive</option>
             </select>
-            <button class="lc-btn-add" data-bs-toggle="modal" data-bs-target="#addModal">
-                <i class="bi bi-plus-lg"></i> Add Cinema
+            <button class="btn btn-primary btn-sm ms-auto text-nowrap" data-bs-toggle="modal" data-bs-target="#addModal">
+                <i class="bi bi-plus-lg me-1"></i>Add Cinema
             </button>
         </div>
 
@@ -373,18 +370,34 @@
                                 </c:choose>
                             </div>
 
-                            <div class="lc-cinema-actions">
-                                <%-- Edit Details button — goes directly to edit_branch.jsp --%>
-                                <a href="${pageContext.request.contextPath}/admin/branches?action=edit&branchId=${b.branchId}"
-                                   class="lc-btn-outline">
-                                    <i class="bi bi-pencil me-1"></i> Edit Details
-                                </a>
-                                <%-- Manage Rooms button --%>
-                                <a href="${pageContext.request.contextPath}/admin/halls?branchId=${b.branchId}"
-                                   class="lc-btn-fill">
-                                    <i class="bi bi-grid me-1"></i> Manage Rooms
-                                </a>
-                            </div>
+                           <div class="lc-cinema-actions">
+
+                            <%-- Edit Details button --%>
+                            <button type="button"
+                                    class="lc-btn-outline edit-btn"
+                                    data-id="${b.branchId}"
+                                    data-name="${b.name}"
+                                    data-address="${b.address}"
+                                    data-city="${b.city}"
+                                    data-phone="${b.phone}"
+                                    data-email="${b.email}"
+                                    data-open="${b.openingTime}"
+                                    data-close="${b.closingTime}"
+                                    data-active="${b.active}"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#editModal">
+                                <i class="bi bi-pencil me-1"></i>
+                                Edit Details
+                            </button>
+
+                            <%-- Manage Rooms button --%>
+                            <a href="${pageContext.request.contextPath}/admin/halls?branchId=${b.branchId}"
+                               class="lc-btn-fill">
+                                <i class="bi bi-grid me-1"></i>
+                                Manage Rooms
+                            </a>
+
+                        </div>
                         </div>
 
                     </div>
@@ -420,6 +433,7 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <form method="post" action="${pageContext.request.contextPath}/admin/branches">
+            <%@ include file="/WEB-INF/views/common/csrf-hidden.jspf" %>
                 <input type="hidden" name="action" value="add">
 
                 <div class="modal-header">
@@ -480,6 +494,7 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <form method="post" action="${pageContext.request.contextPath}/admin/branches">
+            <%@ include file="/WEB-INF/views/common/csrf-hidden.jspf" %>
                 <input type="hidden" name="action" value="edit">
                 <input type="hidden" name="branchId" id="editId">
 
@@ -522,32 +537,24 @@
                         </div>
                     </div>
 
-                    <%-- Toggle status --%>
+                    <%-- Active status (submitted with Save) --%>
+                    <input type="hidden" name="active" id="editActiveHidden" value="false">
                     <div class="d-flex align-items-center justify-content-between p-3"
                          style="background:var(--lc-light);border-radius:10px;border:1px solid var(--lc-border);">
                         <div>
                             <div style="font-size:.85rem;font-weight:600;color:#0f1e36;">Cinema Status</div>
-                            <div style="font-size:.75rem;color:var(--lc-muted);">Toggle to activate or deactivate this cinema</div>
+                            <div style="font-size:.75rem;color:var(--lc-muted);">Inactive cinemas are hidden from customer booking</div>
                         </div>
                         <div class="form-check form-switch mb-0">
                             <input class="form-check-input" type="checkbox" role="switch"
-                                   id="editActiveToggle" name="activeToggle" style="width:2.5rem;height:1.3rem;">
+                                   id="editActiveToggle" style="width:2.5rem;height:1.3rem;">
                         </div>
                     </div>
                 </div>
 
                 <div class="modal-footer gap-2">
-                    <%-- Hidden form for toggle status (separate POST) --%>
-                    <form id="toggleForm" method="post"
-                          action="${pageContext.request.contextPath}/admin/branches"
-                          style="display:none;">
-                        <input type="hidden" name="action" value="toggleStatus">
-                        <input type="hidden" name="branchId" id="toggleBranchId">
-                        <input type="hidden" name="active" id="toggleActive">
-                    </form>
-
                     <button type="button" class="lc-modal-btn lc-modal-btn-cancel" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="lc-modal-btn lc-modal-btn-save">
+                    <button type="submit" class="lc-modal-btn lc-modal-btn-save" id="editSaveBtn">
                         <i class="bi bi-check-lg me-1"></i> Save Changes
                     </button>
                 </div>
@@ -555,6 +562,13 @@
         </div>
     </div>
 </div>
+
+<form id="toggleForm" method="post" action="${pageContext.request.contextPath}/admin/branches" class="d-none">
+            <%@ include file="/WEB-INF/views/common/csrf-hidden.jspf" %>
+    <input type="hidden" name="action" value="toggleStatus">
+    <input type="hidden" name="branchId" id="toggleBranchId">
+    <input type="hidden" name="active" id="toggleActive">
+</form>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
@@ -572,15 +586,18 @@
 
             const isActive = this.dataset.active === 'true';
             const toggle   = document.getElementById('editActiveToggle');
+            const hidden   = document.getElementById('editActiveHidden');
             toggle.checked = isActive;
-
-            /* Wire toggle switch to separate form */
+            hidden.value = isActive ? 'true' : 'false';
             toggle.onchange = function () {
-                document.getElementById('toggleBranchId').value = btn.dataset.id;
-                document.getElementById('toggleActive').value   = this.checked;
-                document.getElementById('toggleForm').submit();
+                hidden.value = this.checked ? 'true' : 'false';
             };
         });
+    });
+
+    document.getElementById('editSaveBtn').closest('form').addEventListener('submit', function () {
+        const toggle = document.getElementById('editActiveToggle');
+        document.getElementById('editActiveHidden').value = toggle.checked ? 'true' : 'false';
     });
 
     /* ── Client-side search + filter ─────────────────────── */

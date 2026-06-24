@@ -1,4 +1,4 @@
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+﻿<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%--
     Movie Distribution (Phase 2) - owner: HungNT.
@@ -79,6 +79,7 @@
                 <c:if test="${not empty selectedBranchId}">
                     <form id="distForm" method="post"
                           action="${pageContext.request.contextPath}/admin/movie-branches">
+            <%@ include file="/WEB-INF/views/common/csrf-hidden.jspf" %>
                         <input type="hidden" name="branchId" value="${selectedBranchId}">
 
                         <div class="lc-elev">

@@ -1,4 +1,4 @@
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+﻿<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 <!DOCTYPE html>
@@ -570,6 +570,7 @@
 
                             <form action="${pageContext.request.contextPath}/customer/booking/cancel"
                                   method="post" class="flex-fill m-0">
+            <%@ include file="/WEB-INF/views/common/csrf-hidden.jspf" %>
                                 <input type="hidden" name="bookingId" value="${booking.bookingId}"/>
                                 <button type="submit" class="btn-cancel-booking w-100" style="justify-content: center;">
                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"

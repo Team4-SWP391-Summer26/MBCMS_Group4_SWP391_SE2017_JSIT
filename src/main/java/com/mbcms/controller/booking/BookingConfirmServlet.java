@@ -5,9 +5,14 @@ import com.mbcms.model.Customer;
 import com.mbcms.service.BookingService;
 import com.mbcms.service.impl.BookingServiceImpl;
 
+import com.mbcms.util.BookingCustomerGuard;
+
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.http.*;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 
 /**
@@ -27,12 +32,11 @@ public class BookingConfirmServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        HttpSession session = request.getSession(false);
-        if (session == null || session.getAttribute("currentUser") == null) {
-            response.sendRedirect(request.getContextPath() + "/auth/login");
+        Customer customer = BookingCustomerGuard.requireCustomer(request, response);
+        if (customer == null) {
             return;
         }
-        Customer customer = (Customer) session.getAttribute("currentUser");
+        HttpSession session = request.getSession();
 
         String bookingIdParam = request.getParameter("bookingId");
         if (bookingIdParam == null) {
@@ -80,9 +84,8 @@ public class BookingConfirmServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        HttpSession session = request.getSession(false);
-        if (session == null || session.getAttribute("currentUser") == null) {
-            response.sendRedirect(request.getContextPath() + "/auth/login");
+        Customer customer = BookingCustomerGuard.requireCustomer(request, response);
+        if (customer == null) {
             return;
         }
 

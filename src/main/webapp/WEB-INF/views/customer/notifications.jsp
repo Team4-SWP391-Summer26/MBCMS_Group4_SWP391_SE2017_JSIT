@@ -268,10 +268,12 @@
                             </span>
                         </span>
                         <hr style="margin:10px 0;border-color:#eef1f5;">
-                        <a class="lc-navitem" style="color:#dc3545;"
-                           href="${pageContext.request.contextPath}/auth/logout">
-                            <i class="bi bi-box-arrow-right"></i> Sign out
-                        </a>
+                        <form method="post" action="${pageContext.request.contextPath}/auth/logout" class="m-0">
+                            <%@ include file="/WEB-INF/views/common/csrf-hidden.jspf" %>
+                            <button type="submit" class="lc-navitem" style="color:#dc3545;border:0;background:none;width:100%;text-align:left;cursor:pointer;">
+                                <i class="bi bi-box-arrow-right"></i> Sign out
+                            </button>
+                        </form>
                     </nav>
                 </div>
             </div>
@@ -419,7 +421,7 @@
                     if (!n.linkUrl || n.linkUrl === '#') return;
                     e.preventDefault();
                     fetch(ctx + '/api/notifications?id=' + n.id, {
-                        method: 'POST', credentials: 'same-origin'
+                        method: 'POST', credentials: 'same-origin', headers: { 'X-CSRF-TOKEN': '${sessionScope.csrfToken}' }
                     }).finally(function () {
                         window.location.href = n.linkUrl;
                     });
@@ -520,7 +522,7 @@
         if (markAllBtn) {
             markAllBtn.addEventListener('click', function () {
                 fetch(ctx + '/api/notifications/mark-all-read', {
-                    method: 'POST', credentials: 'same-origin'
+                    method: 'POST', credentials: 'same-origin', headers: { 'X-CSRF-TOKEN': '${sessionScope.csrfToken}' }
                 }).then(function () {
                     window.location.reload();
                 });

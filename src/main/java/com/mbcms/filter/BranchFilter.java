@@ -19,7 +19,7 @@ public class BranchFilter implements Filter {
         HttpServletRequest request = (HttpServletRequest) req;
         HttpSession session = request.getSession(false);
 
-        if (session != null && session.getAttribute("currentBranchId") == null) {
+        if (session != null) {
             Object principal = session.getAttribute("currentUser");
             if (principal instanceof Employee) {
                 Long branchId = ((Employee) principal).getBranchId();

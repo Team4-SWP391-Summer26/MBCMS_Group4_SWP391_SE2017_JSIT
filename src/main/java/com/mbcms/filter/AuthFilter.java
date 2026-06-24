@@ -1,5 +1,6 @@
 package com.mbcms.filter;
 
+import com.mbcms.model.Customer;
 import jakarta.servlet.*;
 import jakarta.servlet.http.*;
 import java.io.IOException;
@@ -21,11 +22,25 @@ public class AuthFilter implements Filter {
         boolean loggedIn = (session != null && session.getAttribute("currentUser") != null);
 
         if (!loggedIn) {
-            // Luu URL dang truy cap de redirect sau khi login
             String requestURI = request.getRequestURI();
-            request.getSession().setAttribute("redirectAfterLogin", requestURI);
+            String queryString = request.getQueryString();
+            if (queryString != null && !queryString.isBlank()) {
+                requestURI = requestURI + "?" + queryString;
+            }
+            HttpSession redirectSession = request.getSession(true);
+            redirectSession.setAttribute("redirectAfterLogin", requestURI);
             response.sendRedirect(request.getContextPath() + "/auth/login");
             return;
+        }
+
+        String ctx = request.getContextPath();
+        if (request.getRequestURI().startsWith(ctx + "/customer/")) {
+            Object principal = session.getAttribute("currentUser");
+            if (!(principal instanceof Customer)) {
+                response.sendError(HttpServletResponse.SC_FORBIDDEN,
+                        "Ban khong co quyen truy cap trang nay");
+                return;
+            }
         }
 
         chain.doFilter(req, res);

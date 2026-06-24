@@ -1,4 +1,4 @@
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+﻿<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <!DOCTYPE html>
 <html lang="en">
@@ -136,6 +136,7 @@
 
                             <form id="registerForm" method="post"
                                   action="${pageContext.request.contextPath}/auth/register">
+            <%@ include file="/WEB-INF/views/common/csrf-hidden.jspf" %>
                                 <div class="row g-3 mb-3">
                                     <!-- Username -->
                                     <div class="col-md-6">
