@@ -313,7 +313,7 @@
                         <div class="lc-panel p-3" style="font-size:.78rem;color:var(--lc-muted);">
                             <i class="bi bi-calendar3 me-1"></i> Member since
                             <strong>
-                                <fmt:formatDate value="${user.createdAt}" pattern="dd MMM yyyy" type="date"/>
+                                ${user.createdAt}
                             </strong>
                             <c:if test="${not empty user.branchName}">
                                 <hr class="lc-divider">
