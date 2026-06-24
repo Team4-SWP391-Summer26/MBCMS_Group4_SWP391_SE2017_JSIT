@@ -1,7 +1,10 @@
-package com.mbcms.controller.branch;
+package com.mbcms.controller.admin;
 
+import com.mbcms.dao.BranchDAO;
 import com.mbcms.dao.PromotionDAO;
+import com.mbcms.dao.impl.BranchDAOImpl;
 import com.mbcms.dao.impl.PromotionDAOImpl;
+import com.mbcms.model.Branch;
 import com.mbcms.model.Promotion;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -15,40 +18,38 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeParseException;
+import java.util.List;
 
-@WebServlet("/branch/promotions/edit")
-public class PromotionEditServlet extends HttpServlet {
+@WebServlet("/admin/promotions/edit")
+public class AdminPromotionEditServlet extends HttpServlet {
 
-    private static final String VIEW = "/WEB-INF/views/branch/promotions/form.jsp";
+    private static final String VIEW = "/WEB-INF/views/admin/promotions/form.jsp";
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
-        ConsoleSupport.ensureBranchName(req);
 
         String idStr = req.getParameter("id");
         if (idStr == null || idStr.trim().isEmpty()) {
-            resp.sendRedirect(req.getContextPath() + "/branch/promotions?error=1");
+            resp.sendRedirect(req.getContextPath() + "/admin/promotions?error=1");
             return;
         }
 
         try {
             long id = Long.parseLong(idStr.trim());
             PromotionDAO promotionDAO = new PromotionDAOImpl();
+            BranchDAO branchDAO = new BranchDAOImpl();
             Promotion p = promotionDAO.findById(id);
             if (p == null) {
-                resp.sendRedirect(req.getContextPath() + "/branch/promotions?error=1");
+                resp.sendRedirect(req.getContextPath() + "/admin/promotions?error=1");
                 return;
             }
 
-            Long sessionBranchId = (Long) req.getSession(false).getAttribute("currentBranchId");
-            if (sessionBranchId == null || !sessionBranchId.equals(p.getBranchId())) {
-                resp.sendRedirect(req.getContextPath() + "/branch/promotions?error=1");
-                return;
-            }
+            List<Branch> branches = branchDAO.findAll(true);
 
             req.setAttribute("isEdit", true);
             req.setAttribute("promo", p);
+            req.setAttribute("branches", branches);
 
             // Format dates back for HTML inputs
             req.setAttribute("rawStartDate", p.getValidFrom().toLocalDate().toString());
@@ -59,18 +60,17 @@ public class PromotionEditServlet extends HttpServlet {
 
             req.getRequestDispatcher(VIEW).forward(req, resp);
         } catch (NumberFormatException e) {
-            resp.sendRedirect(req.getContextPath() + "/branch/promotions?error=1");
+            resp.sendRedirect(req.getContextPath() + "/admin/promotions?error=1");
         }
     }
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
-        ConsoleSupport.ensureBranchName(req);
 
         String idStr = req.getParameter("promoId");
         if (idStr == null || idStr.trim().isEmpty()) {
-            resp.sendRedirect(req.getContextPath() + "/branch/promotions?error=1");
+            resp.sendRedirect(req.getContextPath() + "/admin/promotions?error=1");
             return;
         }
 
@@ -78,20 +78,17 @@ public class PromotionEditServlet extends HttpServlet {
         try {
             id = Long.parseLong(idStr.trim());
         } catch (NumberFormatException e) {
-            resp.sendRedirect(req.getContextPath() + "/branch/promotions?error=1");
+            resp.sendRedirect(req.getContextPath() + "/admin/promotions?error=1");
             return;
         }
 
         PromotionDAO promotionDAO = new PromotionDAOImpl();
+        BranchDAO branchDAO = new BranchDAOImpl();
+        List<Branch> branches = branchDAO.findAll(true);
+
         Promotion existing = promotionDAO.findById(id);
         if (existing == null) {
-            resp.sendRedirect(req.getContextPath() + "/branch/promotions?error=1");
-            return;
-        }
-
-        Long sessionBranchId = (Long) req.getSession(false).getAttribute("currentBranchId");
-        if (sessionBranchId == null || !sessionBranchId.equals(existing.getBranchId())) {
-            resp.sendRedirect(req.getContextPath() + "/branch/promotions?error=1");
+            resp.sendRedirect(req.getContextPath() + "/admin/promotions?error=1");
             return;
         }
 
@@ -103,6 +100,7 @@ public class PromotionEditServlet extends HttpServlet {
         String maxUsesStr = req.getParameter("maxUses");
         String startDateStr = req.getParameter("startDate");
         String endDateStr = req.getParameter("endDate");
+        String branchIdStr = req.getParameter("branchId");
         boolean active = req.getParameter("active") != null;
 
         Promotion p = new Promotion();
@@ -112,7 +110,14 @@ public class PromotionEditServlet extends HttpServlet {
         p.setDiscountType(discountType);
         p.setActive(active);
         p.setUsedCount(existing.getUsedCount()); // keep existing usage count
-        p.setBranchId(existing.getBranchId()); // preserve branchId on update!
+
+        Long branchId = null;
+        if (branchIdStr != null && !branchIdStr.trim().isEmpty()) {
+            try {
+                branchId = Long.parseLong(branchIdStr.trim());
+            } catch (NumberFormatException ignored) {}
+        }
+        p.setBranchId(branchId);
 
         String errorMsg = null;
 
@@ -203,6 +208,7 @@ public class PromotionEditServlet extends HttpServlet {
             req.setAttribute("errorMsg", errorMsg);
             req.setAttribute("isEdit", true);
             req.setAttribute("promo", p);
+            req.setAttribute("branches", branches);
             // Put raw string values back to restore input states
             req.setAttribute("rawDiscountValue", discountValueStr);
             req.setAttribute("rawMinOrderAmount", minOrderAmountStr);
@@ -216,9 +222,9 @@ public class PromotionEditServlet extends HttpServlet {
         // Update and redirect
         boolean success = promotionDAO.update(p);
         if (success) {
-            resp.sendRedirect(req.getContextPath() + "/branch/promotions?updated=1");
+            resp.sendRedirect(req.getContextPath() + "/admin/promotions?updated=1");
         } else {
-            resp.sendRedirect(req.getContextPath() + "/branch/promotions?error=1");
+            resp.sendRedirect(req.getContextPath() + "/admin/promotions?error=1");
         }
     }
 }

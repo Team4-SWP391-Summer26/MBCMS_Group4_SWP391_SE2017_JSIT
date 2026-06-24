@@ -41,7 +41,7 @@ public interface BookingService {
      * IllegalArgumentException với message cụ thể nếu tồn tại nhưng không dùng
      * được.
      */
-    Promotion validatePromoCode(String code, BigDecimal subtotal, BigDecimal concessionsSubtotal);
+    Promotion validatePromoCode(String code, BigDecimal subtotal, BigDecimal concessionsSubtotal, Long branchId);
 
     // ── Booking CRUD ──────────────────────────────────────────────────────
     /**

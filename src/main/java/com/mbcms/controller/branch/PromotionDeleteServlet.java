@@ -2,6 +2,7 @@ package com.mbcms.controller.branch;
 
 import com.mbcms.dao.PromotionDAO;
 import com.mbcms.dao.impl.PromotionDAOImpl;
+import com.mbcms.model.Promotion;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -25,6 +26,18 @@ public class PromotionDeleteServlet extends HttpServlet {
         try {
             long id = Long.parseLong(idStr.trim());
             PromotionDAO promotionDAO = new PromotionDAOImpl();
+            Promotion p = promotionDAO.findById(id);
+            if (p == null) {
+                resp.sendRedirect(req.getContextPath() + "/branch/promotions?error=1");
+                return;
+            }
+
+            Long sessionBranchId = (Long) req.getSession(false).getAttribute("currentBranchId");
+            if (sessionBranchId == null || !sessionBranchId.equals(p.getBranchId())) {
+                resp.sendRedirect(req.getContextPath() + "/branch/promotions?error=1");
+                return;
+            }
+
             boolean success = promotionDAO.delete(id);
             if (success) {
                 resp.sendRedirect(req.getContextPath() + "/branch/promotions?deleted=1");

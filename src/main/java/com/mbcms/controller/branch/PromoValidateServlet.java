@@ -52,11 +52,17 @@ public class PromoValidateServlet extends HttpServlet {
             return;
         }
 
+        jakarta.servlet.http.HttpSession session = req.getSession(false);
+        Long branchId = session != null ? (Long) session.getAttribute("currentBranchId") : null;
+
         try {
             Promotion promo = promotionDAO.findByCode(code.trim().toUpperCase());
             if (promo == null) {
                 result.put("valid", false);
                 result.put("message", "Mã khuyến mãi không tồn tại.");
+            } else if (promo.getBranchId() != null && (branchId == null || !promo.getBranchId().equals(branchId))) {
+                result.put("valid", false);
+                result.put("message", "Mã khuyến mãi không áp dụng cho chi nhánh này.");
             } else if (!promo.isActive() || !"Active".equals(promo.getStatus())) {
                 result.put("valid", false);
                 result.put("message", "Mã khuyến mãi hiện không kích hoạt hoặc đã hết hạn.");

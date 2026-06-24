@@ -9,6 +9,9 @@ import com.mbcms.dao.impl.PromotionDAOImpl;
 import com.mbcms.dao.impl.SeatDAOImpl;
 import com.mbcms.dao.impl.ShowtimeDAOImpl;
 import com.mbcms.dao.impl.CustomerDAOImpl;
+import com.mbcms.dao.RoomDAO;
+import com.mbcms.dao.impl.RoomDAOImpl;
+import com.mbcms.model.Room;
 import com.mbcms.model.Booking;
 import com.mbcms.model.BookingTicket;
 import com.mbcms.model.Customer;
@@ -71,7 +74,7 @@ public class BookingServiceImpl implements BookingService {
 
     // ── validatePromoCode ─────────────────────────────────────────────────
     @Override
-    public Promotion validatePromoCode(String code, BigDecimal subtotal, BigDecimal concessionsSubtotal) {
+    public Promotion validatePromoCode(String code, BigDecimal subtotal, BigDecimal concessionsSubtotal, Long branchId) {
         if (code == null || code.trim().isEmpty()) {
             return null;
         }
@@ -98,6 +101,9 @@ public class BookingServiceImpl implements BookingService {
             throw new IllegalArgumentException(String.format(
                     "Minimum order of %.0f VND required for this promo code.",
                     p.getMinOrderAmount().doubleValue()));
+        }
+        if (p.getBranchId() != null && branchId != null && !p.getBranchId().equals(branchId)) {
+            throw new IllegalArgumentException("This promo code is not applicable to this branch.");
         }
         return p;
     }
@@ -137,8 +143,12 @@ public class BookingServiceImpl implements BookingService {
 
         BigDecimal ticketsSubtotal = calcSubtotal(seatIds, seatMap, st.getBasePrice());
 
+        // Get branchId from showtime's room
+        Room room = new RoomDAOImpl().findById(st.getRoomId());
+        Long branchId = room != null ? room.getBranchId() : null;
+
         // Validate promo
-        Promotion promo = validatePromoCode(promoCode, ticketsSubtotal, concessionsSubtotal);
+        Promotion promo = validatePromoCode(promoCode, ticketsSubtotal, concessionsSubtotal, branchId);
         BigDecimal discount = promo != null ? calcDiscount(promo, ticketsSubtotal) : BigDecimal.ZERO;
         
         BigDecimal totalConcessions = concessionsSubtotal != null ? concessionsSubtotal : BigDecimal.ZERO;
@@ -360,7 +370,10 @@ public class BookingServiceImpl implements BookingService {
 
         BigDecimal ticketsSubtotal = booking.getSubtotal();
 
-        Promotion promo = validatePromoCode(promoCode, ticketsSubtotal, concessionsSubtotal);
+        Room room = new RoomDAOImpl().findById(st.getRoomId());
+        Long branchId = room != null ? room.getBranchId() : null;
+
+        Promotion promo = validatePromoCode(promoCode, ticketsSubtotal, concessionsSubtotal, branchId);
         BigDecimal discount = promo != null ? calcDiscount(promo, ticketsSubtotal) : BigDecimal.ZERO;
 
         BigDecimal totalConcessions = concessionsSubtotal != null ? concessionsSubtotal : BigDecimal.ZERO;

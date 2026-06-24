@@ -31,6 +31,12 @@
         Cinemas
     </a>
 
+    <a class="lc-sb-item ${param.active == 'promotions' ? 'active' : ''}"
+       href="${pageContext.request.contextPath}/admin/promotions">
+        <i class="bi bi-ticket-perforated"></i>
+        Promotions
+    </a>
+
     <div class="lc-sb-section">Finance</div>
     <a class="lc-sb-item ${param.active == 'payments' ? 'active' : ''}"
        href="${pageContext.request.contextPath}/admin/payments">
