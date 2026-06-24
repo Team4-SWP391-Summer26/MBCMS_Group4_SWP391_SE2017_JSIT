@@ -7,7 +7,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>User Management - LuminaCine</title>
+    <title>User Management - MBCMS</title>
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
@@ -42,7 +42,7 @@
     </header>
 
     <div class="container-fluid px-4 py-4" style="max-width: 1300px;">
-        <h2 class="fw-bold text-dark mb-4">User Management</h2>
+        <h4 class="fw-bold text-navy mb-4">User Management</h4>
 
         <!-- ALERTS -->
         <c:if test="${not empty successMsg}">
