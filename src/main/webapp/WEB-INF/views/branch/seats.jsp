@@ -93,6 +93,23 @@
 
                     <c:if test="${not empty seatsByRow}">
                         <div class="sl-grid">
+                            <%-- Column-number header (built from the first row) --%>
+                            <c:set var="hdrDone" value="false"/>
+                            <c:forEach var="row" items="${seatsByRow}">
+                                <c:if test="${not hdrDone}">
+                                    <c:set var="hLen" value="${fn:length(row.value)}"/>
+                                    <div class="sl-row">
+                                        <span class="sl-rlabel"></span>
+                                        <c:forEach var="seat" items="${row.value}" varStatus="st">
+                                            <span class="sl-colnum">${seat.colNumber}</span>
+                                            <c:if test="${st.count == (hLen / 2) and hLen > 3}"><span class="sl-aisle"></span></c:if>
+                                        </c:forEach>
+                                        <span class="sl-rlabel"></span>
+                                    </div>
+                                    <c:set var="hdrDone" value="true"/>
+                                </c:if>
+                            </c:forEach>
+                            <%-- Seat rows --%>
                             <c:forEach var="row" items="${seatsByRow}">
                                 <c:set var="rowLen" value="${fn:length(row.value)}"/>
                                 <div class="sl-row">
@@ -109,6 +126,14 @@
                                     <span class="sl-rlabel">${row.key}</span>
                                 </div>
                             </c:forEach>
+                        </div>
+
+                        <%-- Legend (like booking) --%>
+                        <div class="sl-legend">
+                            <span><span class="dot d-std"></span>Standard</span>
+                            <span><span class="dot d-vip"></span>VIP</span>
+                            <span><span class="dot d-off"></span>Off / removed</span>
+                            <span><span class="dot d-sel"></span>Selected</span>
                         </div>
                     </c:if>
                 </div>

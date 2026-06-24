@@ -3,9 +3,9 @@
     /* ----- Screen (same curve as booking) ----- */
     .sl-screen-wrap { margin: 4px 0 26px; }
     .sl-screen-curve {
-        height: 26px; margin: 0 auto; max-width: 70%;
+        height: 28px; margin: 0 auto; max-width: 80%;
         border-top: 3px solid #93b4f6;
-        border-radius: 50% / 26px 26px 0 0;
+        border-radius: 50% / 28px 28px 0 0;
         background: linear-gradient(to bottom, rgba(37,99,235,.14), rgba(37,99,235,0));
     }
     .sl-screen-label { text-align: center; font-size: .68rem; color: var(--lc-muted);
@@ -15,7 +15,15 @@
     .sl-grid { display: inline-flex; flex-direction: column; gap: 7px; width: 100%; align-items: center; }
     .sl-row { display: flex; align-items: center; gap: 7px; }
     .sl-rlabel { width: 22px; text-align: center; font-size: .72rem; font-weight: 700; color: var(--lc-muted); flex-shrink: 0; }
+    .sl-colnum { width: 34px; text-align: center; font-size: .68rem; font-weight: 600; color: #94a3b8; flex-shrink: 0; }
     .sl-aisle { width: 26px; flex-shrink: 0; }
+
+    /* ----- Bottom legend (like booking) ----- */
+    .sl-legend { display: flex; flex-wrap: wrap; gap: 1.3rem; justify-content: center;
+        padding-top: 1.1rem; margin-top: 1.2rem; border-top: 1px solid var(--lc-border);
+        font-size: .82rem; color: #475569; }
+    .sl-legend span { display: inline-flex; align-items: center; gap: .45rem; }
+    .d-sel { background: #16a34a; border-color: #15803d; }
 
     /* ----- Seats (cinema seat shape, like booking) ----- */
     .sl-seat {
