@@ -213,7 +213,7 @@ public class SeatDAOImpl extends BaseDAO implements SeatDAO {
                 + "JOIN dbo.bookings b ON b.booking_id = bs.booking_id "
                 + "JOIN dbo.showtimes st ON st.showtime_id = b.showtime_id "
                 + "WHERE bs.seat_id = ? "
-                + "AND st.start_time >= SYSUTCDATETIME() "
+                + "AND st.start_time >= GETDATE() "
                 + "AND b.[status] IN ('PENDING', 'CONFIRMED') "
                 + "AND (b.[status] != 'PENDING' "
                 + "     OR DATEDIFF(MINUTE, b.created_at, SYSUTCDATETIME()) < 10)";

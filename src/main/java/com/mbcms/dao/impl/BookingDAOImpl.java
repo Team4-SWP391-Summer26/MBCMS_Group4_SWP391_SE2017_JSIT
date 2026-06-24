@@ -556,8 +556,8 @@ public class BookingDAOImpl extends BaseDAO implements BookingDAO {
             + "JOIN dbo.showtimes st ON st.showtime_id = b.showtime_id "
             + "JOIN dbo.movies   m  ON m.movie_id      = st.movie_id "
             + "WHERE b.[status] = 'CONFIRMED' "
-            + "  AND st.start_time >= DATEADD(MINUTE, ?, SYSUTCDATETIME()) "
-            + "  AND st.start_time <  DATEADD(MINUTE, ?, SYSUTCDATETIME())";
+            + "  AND st.start_time >= DATEADD(MINUTE, ?, GETDATE()) "
+            + "  AND st.start_time <  DATEADD(MINUTE, ?, GETDATE())";
 
         Connection conn = null;
         PreparedStatement ps = null;
