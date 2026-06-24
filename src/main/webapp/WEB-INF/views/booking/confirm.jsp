@@ -138,7 +138,7 @@
         <div class="ticket-top">
             <c:choose>
                 <c:when test="${not empty ticket.posterUrl}">
-                    <img class="ticket-poster" src="${ticket.posterUrl}" alt="poster">
+                    <img class="ticket-poster" src="<c:url value='${ticket.posterUrl}'/>" alt="poster">
                 </c:when>
                 <c:otherwise><div class="ticket-poster"><i class="bi bi-film"></i></div></c:otherwise>
             </c:choose>

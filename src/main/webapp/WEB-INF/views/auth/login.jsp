@@ -1,4 +1,4 @@
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+﻿<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <!DOCTYPE html>
 <html lang="en">
@@ -181,6 +181,7 @@
                             </c:if>
 
                             <form method="post" action="${pageContext.request.contextPath}/auth/login">
+            <%@ include file="/WEB-INF/views/common/csrf-hidden.jspf" %>
                                 <!-- Email/Username field -->
                                 <div class="mb-3">
                                     <label class="form-label fw-semibold text-secondary" style="font-size: 0.85rem;">Email Address</label>

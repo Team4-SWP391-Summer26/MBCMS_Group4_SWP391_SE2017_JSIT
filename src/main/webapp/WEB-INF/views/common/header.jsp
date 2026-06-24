@@ -188,16 +188,18 @@
                                     </li>
                                     <li><hr class="dropdown-divider" style="border-top:1px solid #e5e7eb;"></li>
                                     <li>
-                                        <a class="dropdown-item py-2 px-3 text-danger"
-                                           href="${pageContext.request.contextPath}/auth/logout"
-                                           style="font-size:.9rem;display:flex;align-items:center;gap:.5rem;">
-                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-                                                 stroke="currentColor" stroke-width="2">
-                                                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-                                                <polyline points="16 17 21 12 16 7"></polyline>
-                                                <line x1="21" y1="12" x2="9" y2="12"></line>
-                                            </svg> Logout
-                                        </a>
+                                        <form method="post" action="${pageContext.request.contextPath}/auth/logout" class="d-inline m-0">
+                                            <%@ include file="/WEB-INF/views/common/csrf-hidden.jspf" %>
+                                            <button type="submit" class="dropdown-item py-2 px-3 text-danger border-0 bg-transparent w-100 text-start"
+                                                    style="font-size:.9rem;display:flex;align-items:center;gap:.5rem;">
+                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                                                     stroke="currentColor" stroke-width="2">
+                                                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                                                    <polyline points="16 17 21 12 16 7"></polyline>
+                                                    <line x1="21" y1="12" x2="9" y2="12"></line>
+                                                </svg> Logout
+                                            </button>
+                                        </form>
                                     </li>
                                 </ul>
                             </div>
@@ -451,7 +453,7 @@
                       a.addEventListener('click', function (e) {
                           e.preventDefault();
                           fetch(ctx + '/api/notifications?id=' + n.id, {
-                              method: 'POST', credentials: 'same-origin'
+                              method: 'POST', credentials: 'same-origin', headers: { 'X-CSRF-TOKEN': '${sessionScope.csrfToken}' }
                           }).finally(function () {
                               window.location.href = a.href;
                           });
@@ -502,7 +504,7 @@
               markAllBtn.addEventListener('click', function (e) {
                   e.preventDefault();
                   fetch(ctx + '/api/notifications/mark-all-read', {
-                      method: 'POST', credentials: 'same-origin'
+                      method: 'POST', credentials: 'same-origin', headers: { 'X-CSRF-TOKEN': '${sessionScope.csrfToken}' }
                   }).then(loadNotifications);
               });
 

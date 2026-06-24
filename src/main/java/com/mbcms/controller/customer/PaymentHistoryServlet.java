@@ -33,7 +33,10 @@ public class PaymentHistoryServlet extends HttpServlet {
             throws ServletException, IOException {
 
         HttpSession session = req.getSession(false);
-        Customer customer = (Customer) session.getAttribute("currentUser");
+        if (session == null || !(session.getAttribute("currentUser") instanceof Customer customer)) {
+            resp.sendRedirect(req.getContextPath() + "/auth/login");
+            return;
+        }
 
         PaymentSearchCriteria c = PaymentQuery.fromRequest(req);
         c.setCustomerUsername(customer.getUsername()); // scope: chinh chu

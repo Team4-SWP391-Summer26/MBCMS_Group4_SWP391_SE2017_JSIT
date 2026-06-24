@@ -1,4 +1,4 @@
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+﻿<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <!DOCTYPE html>
 <html lang="en">
@@ -200,6 +200,7 @@
 
                                 <form method="post"
                                       action="${pageContext.request.contextPath}/auth/forgot-password">
+            <%@ include file="/WEB-INF/views/common/csrf-hidden.jspf" %>
                                     <input type="hidden" name="action" value="send-code">
                                     <div class="mb-4">
                                         <label class="form-label fw-semibold text-secondary mb-1"
@@ -246,6 +247,7 @@
 
                                 <form method="post"
                                       action="${pageContext.request.contextPath}/auth/forgot-password">
+            <%@ include file="/WEB-INF/views/common/csrf-hidden.jspf" %>
                                     <input type="hidden" name="action" value="verify-code">
                                     <input type="hidden" name="email"
                                            value="${param.email != null ? param.email : email}">
@@ -293,6 +295,7 @@
 
                                 <form id="resetPasswordForm" method="post"
                                       action="${pageContext.request.contextPath}/auth/forgot-password">
+            <%@ include file="/WEB-INF/views/common/csrf-hidden.jspf" %>
                                     <input type="hidden" name="action" value="reset-password">
                                     <input type="hidden" name="email"
                                            value="${param.email != null ? param.email : email}">

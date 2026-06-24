@@ -48,11 +48,11 @@ INSERT INTO dbo.genres (name) VALUES
 INSERT INTO dbo.movies
  (title, description, duration_min, director, cast_list, [language], country, rated, poster_url, trailer_url, release_date, [status])
 VALUES
- (N'Dune: Part Three', N'The epic conclusion of the Dune saga.', 165, N'Denis Villeneuve', N'Timothee Chalamet, Zendaya', 'English', 'USA', 'C13', NULL, NULL, '2026-06-05', 'NOW_SHOWING'),
- (N'Mai 2', N'A heartfelt Vietnamese drama sequel.', 130, N'Tran Thanh', N'Phuong Anh Dao', 'Vietnamese', 'Vietnam', 'C16', NULL, NULL, '2026-05-20', 'NOW_SHOWING'),
- (N'The Last Laugh', N'A comedy about a stand-up comedian.', 105, N'Greta Gerwig', N'Emma Stone', 'English', 'USA', 'P', NULL, NULL, '2026-06-12', 'NOW_SHOWING'),
- (N'Silent Shadows', N'A horror film set in an abandoned hospital.', 98, N'James Wan', N'Vera Farmiga', 'English', 'USA', 'C18', NULL, NULL, '2026-07-01', 'UPCOMING'),
- (N'Stellar Voyage', N'A sci-fi journey across galaxies.', 142, N'Christopher Nolan', N'Cillian Murphy', 'English', 'USA', 'C13', NULL, NULL, '2026-06-20', 'UPCOMING'),
+ (N'Dune: Part Three', N'The epic conclusion of the Dune saga.', 165, N'Denis Villeneuve', N'Timothee Chalamet, Zendaya', 'English', 'USA', 'C13', N'/assets/img/posters/dune-part-three.jpg', NULL, '2026-06-05', 'NOW_SHOWING'),
+ (N'Mai 2', N'A heartfelt Vietnamese drama sequel.', 130, N'Tran Thanh', N'Phuong Anh Dao', 'Vietnamese', 'Vietnam', 'C16', N'/assets/img/posters/mai-2.jpg', NULL, '2026-05-20', 'NOW_SHOWING'),
+ (N'The Last Laugh', N'A comedy about a stand-up comedian.', 105, N'Greta Gerwig', N'Emma Stone', 'English', 'USA', 'P', N'/assets/img/posters/the-last-laugh.jpg', NULL, '2026-06-12', 'NOW_SHOWING'),
+ (N'Silent Shadows', N'A horror film set in an abandoned hospital.', 98, N'James Wan', N'Vera Farmiga', 'English', 'USA', 'C18', N'/assets/img/posters/silent-shadows.png', NULL, '2026-07-01', 'UPCOMING'),
+ (N'Stellar Voyage', N'A sci-fi journey across galaxies.', 142, N'Christopher Nolan', N'Cillian Murphy', 'English', 'USA', 'C13', N'/assets/img/posters/stellar-voyage.png', NULL, '2026-06-20', 'UPCOMING'),
  (N'Little Heroes', N'An animated adventure for the whole family.', 92, N'Pete Docter', N'Tom Holland', 'English', 'USA', 'P', NULL, NULL, '2026-04-10', 'ENDED');
 
 -- ---------------------------------------------------------------------

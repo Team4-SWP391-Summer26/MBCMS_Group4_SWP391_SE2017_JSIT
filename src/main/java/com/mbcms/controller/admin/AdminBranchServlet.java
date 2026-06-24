@@ -22,36 +22,19 @@ public class AdminBranchServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
-        
+
         String action = req.getParameter("action");
-        if (action == null) {
-            action = "list";
+        if ("edit".equals(action) || "add".equals(action)) {
+            resp.sendRedirect(req.getContextPath() + "/admin/branches");
+            return;
         }
 
         try {
-            if ("edit".equals(action)) {
-                long branchId = Long.parseLong(req.getParameter("branchId"));
-                Branch b = branchService.getBranchById(branchId);
-                req.setAttribute("branch", b);
-                req.setAttribute("isAdd", false);
-                req.setAttribute("successMsg", req.getParameter("successMsg"));
-                req.setAttribute("errorMsg", req.getParameter("errorMsg"));
-                req.getRequestDispatcher("/WEB-INF/views/admin/edit_branch.jsp").forward(req, resp);
-                return;
-            } else if ("add".equals(action)) {
-                req.setAttribute("isAdd", true);
-                req.setAttribute("errorMsg", req.getParameter("errorMsg"));
-                req.getRequestDispatcher("/WEB-INF/views/admin/edit_branch.jsp").forward(req, resp);
-                return;
-            }
-            
-            // List view
             List<Branch> branches = branchService.getAllBranchesWithStats(true);
             req.setAttribute("branches", branches);
             req.setAttribute("successMsg", req.getParameter("successMsg"));
             req.setAttribute("errorMsg", req.getParameter("errorMsg"));
             req.getRequestDispatcher("/WEB-INF/views/admin/branches.jsp").forward(req, resp);
-            
         } catch (Exception e) {
             getServletContext().log("Lỗi doGet AdminBranchServlet: ", e);
             resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Lỗi khi tải dữ liệu chi nhánh.");
@@ -61,7 +44,7 @@ public class AdminBranchServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
-        
+
         String action = req.getParameter("action");
         if (action == null) {
             resp.sendRedirect(req.getContextPath() + "/admin/branches?errorMsg=Hành động không hợp lệ.");
@@ -79,9 +62,6 @@ public class AdminBranchServlet extends HttpServlet {
                 case "toggleStatus":
                     handleToggleStatus(req, resp);
                     break;
-                case "updateHours":
-                    handleUpdateHours(req, resp);
-                    break;
                 case "delete":
                     handleDelete(req, resp);
                     break;
@@ -89,16 +69,8 @@ public class AdminBranchServlet extends HttpServlet {
                     resp.sendRedirect(req.getContextPath() + "/admin/branches?errorMsg=Hành động không xác định.");
             }
         } catch (IllegalArgumentException e) {
-            String redirAction = req.getParameter("action");
-            String branchId = req.getParameter("branchId");
-            String path = req.getContextPath() + "/admin/branches";
-            if ("edit".equals(redirAction) && branchId != null) {
-                path += "?action=edit&branchId=" + branchId;
-            } else if ("add".equals(redirAction)) {
-                path += "?action=add";
-            }
-            String separator = path.contains("?") ? "&" : "?";
-            resp.sendRedirect(path + separator + "errorMsg=" + java.net.URLEncoder.encode(e.getMessage(), "UTF-8"));
+            resp.sendRedirect(req.getContextPath() + "/admin/branches?errorMsg="
+                    + java.net.URLEncoder.encode(e.getMessage(), "UTF-8"));
         } catch (Exception e) {
             getServletContext().log("Lỗi trong AdminBranchServlet: ", e);
             resp.sendRedirect(req.getContextPath() + "/admin/branches?errorMsg=Đã xảy ra lỗi hệ thống.");
@@ -106,60 +78,33 @@ public class AdminBranchServlet extends HttpServlet {
     }
 
     private void handleAdd(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        String name = req.getParameter("name");
-        String address = req.getParameter("address");
-        String city = req.getParameter("city");
-        String phone = req.getParameter("phone");
-        String email = req.getParameter("email");
-        String openStr = req.getParameter("openingTime");
-        String closeStr = req.getParameter("closingTime");
-
-        Branch b = new Branch();
-        b.setName(name);
-        b.setAddress(address);
-        b.setCity(city);
-        b.setPhone(phone);
-        b.setEmail(email);
-        b.setOpeningTime(openStr != null && !openStr.isBlank() ? LocalTime.parse(openStr) : LocalTime.of(8, 0));
-        b.setClosingTime(closeStr != null && !closeStr.isBlank() ? LocalTime.parse(closeStr) : LocalTime.of(23, 0));
-
+        Branch b = parseBranchFromRequest(req);
         boolean success = branchService.addBranch(b);
         if (success) {
-            resp.sendRedirect(req.getContextPath() + "/admin/branches?successMsg=" + java.net.URLEncoder.encode("Thêm chi nhánh mới thành công!", "UTF-8"));
+            resp.sendRedirect(req.getContextPath() + "/admin/branches?successMsg="
+                    + java.net.URLEncoder.encode("Thêm chi nhánh mới thành công!", "UTF-8"));
         } else {
-            resp.sendRedirect(req.getContextPath() + "/admin/branches?action=add&errorMsg=" + java.net.URLEncoder.encode("Thêm chi nhánh thất bại.", "UTF-8"));
+            resp.sendRedirect(req.getContextPath() + "/admin/branches?errorMsg="
+                    + java.net.URLEncoder.encode("Thêm chi nhánh thất bại.", "UTF-8"));
         }
     }
 
     private void handleEdit(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         long branchId = Long.parseLong(req.getParameter("branchId"));
-        String name = req.getParameter("name");
-        String address = req.getParameter("address");
-        String city = req.getParameter("city");
-        String phone = req.getParameter("phone");
-        String email = req.getParameter("email");
-        String openStr = req.getParameter("openingTime");
-        String closeStr = req.getParameter("closingTime");
-        String activeStr = req.getParameter("active");
-
-        Branch b = new Branch();
+        Branch b = parseBranchFromRequest(req);
         b.setBranchId(branchId);
-        b.setName(name);
-        b.setAddress(address);
-        b.setCity(city);
-        b.setPhone(phone);
-        b.setEmail(email);
-        b.setOpeningTime(openStr != null && !openStr.isBlank() ? LocalTime.parse(openStr) : LocalTime.of(8, 0));
-        b.setClosingTime(closeStr != null && !closeStr.isBlank() ? LocalTime.parse(closeStr) : LocalTime.of(23, 0));
-        b.setActive(activeStr == null || "true".equalsIgnoreCase(activeStr) || "on".equalsIgnoreCase(activeStr));
 
-        boolean success = branchService.updateBranch(b);
+        LocalTime open = parseTime(req.getParameter("openingTime"), LocalTime.of(8, 0));
+        LocalTime close = parseTime(req.getParameter("closingTime"), LocalTime.of(23, 0));
+        boolean active = "true".equalsIgnoreCase(req.getParameter("active"));
+
+        boolean success = branchService.saveBranchDetails(b, open, close, active);
         if (success) {
-            branchService.updateOperatingHours(branchId, b.getOpeningTime(), b.getClosingTime());
-            branchService.toggleBranchStatus(branchId, b.isActive());
-            resp.sendRedirect(req.getContextPath() + "/admin/branches?successMsg=" + java.net.URLEncoder.encode("Cập nhật thông tin chi nhánh thành công!", "UTF-8"));
+            resp.sendRedirect(req.getContextPath() + "/admin/branches?successMsg="
+                    + java.net.URLEncoder.encode("Cập nhật thông tin chi nhánh thành công!", "UTF-8"));
         } else {
-            resp.sendRedirect(req.getContextPath() + "/admin/branches?action=edit&branchId=" + branchId + "&errorMsg=" + java.net.URLEncoder.encode("Cập nhật thất bại.", "UTF-8"));
+            resp.sendRedirect(req.getContextPath() + "/admin/branches?errorMsg="
+                    + java.net.URLEncoder.encode("Cập nhật thất bại.", "UTF-8"));
         }
     }
 
@@ -170,40 +115,51 @@ public class AdminBranchServlet extends HttpServlet {
         boolean success = branchService.toggleBranchStatus(branchId, active);
         String msg = active ? "Kích hoạt chi nhánh thành công!" : "Vô hiệu hóa chi nhánh thành công!";
         if (success) {
-            resp.sendRedirect(req.getContextPath() + "/admin/branches?successMsg=" + java.net.URLEncoder.encode(msg, "UTF-8"));
+            resp.sendRedirect(req.getContextPath() + "/admin/branches?successMsg="
+                    + java.net.URLEncoder.encode(msg, "UTF-8"));
         } else {
-            resp.sendRedirect(req.getContextPath() + "/admin/branches?errorMsg=" + java.net.URLEncoder.encode("Thay đổi trạng thái thất bại.", "UTF-8"));
+            resp.sendRedirect(req.getContextPath() + "/admin/branches?errorMsg="
+                    + java.net.URLEncoder.encode("Thay đổi trạng thái thất bại.", "UTF-8"));
         }
     }
 
     private void handleDelete(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         long branchId = Long.parseLong(req.getParameter("branchId"));
-
         boolean success = branchService.toggleBranchStatus(branchId, false);
         if (success) {
-            resp.sendRedirect(req.getContextPath() + "/admin/branches?successMsg=" + java.net.URLEncoder.encode("Đã vô hiệu hóa chi nhánh thành công!", "UTF-8"));
+            resp.sendRedirect(req.getContextPath() + "/admin/branches?successMsg="
+                    + java.net.URLEncoder.encode("Đã vô hiệu hóa chi nhánh thành công!", "UTF-8"));
         } else {
-            resp.sendRedirect(req.getContextPath() + "/admin/branches?errorMsg=" + java.net.URLEncoder.encode("Xóa/vô hiệu hóa chi nhánh thất bại.", "UTF-8"));
+            resp.sendRedirect(req.getContextPath() + "/admin/branches?errorMsg="
+                    + java.net.URLEncoder.encode("Xóa/vô hiệu hóa chi nhánh thất bại.", "UTF-8"));
         }
     }
 
-    private void handleUpdateHours(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        long branchId = Long.parseLong(req.getParameter("branchId"));
+    private Branch parseBranchFromRequest(HttpServletRequest req) {
+        Branch b = new Branch();
+        b.setName(req.getParameter("name"));
+        b.setAddress(req.getParameter("address"));
+        b.setCity(req.getParameter("city"));
+        b.setPhone(req.getParameter("phone"));
+        b.setEmail(req.getParameter("email"));
         String openStr = req.getParameter("openingTime");
         String closeStr = req.getParameter("closingTime");
+        b.setOpeningTime(openStr != null && !openStr.isBlank() ? parseTime(openStr, LocalTime.of(8, 0)) : LocalTime.of(8, 0));
+        b.setClosingTime(closeStr != null && !closeStr.isBlank() ? parseTime(closeStr, LocalTime.of(23, 0)) : LocalTime.of(23, 0));
+        return b;
+    }
 
+    private LocalTime parseTime(String value, LocalTime fallback) {
+        if (value == null || value.isBlank()) {
+            return fallback;
+        }
         try {
-            LocalTime open = LocalTime.parse(openStr);
-            LocalTime close = LocalTime.parse(closeStr);
-
-            boolean success = branchService.updateOperatingHours(branchId, open, close);
-            if (success) {
-                resp.sendRedirect(req.getContextPath() + "/admin/branches?successMsg=" + java.net.URLEncoder.encode("Cập nhật giờ hoạt động thành công!", "UTF-8"));
-            } else {
-                resp.sendRedirect(req.getContextPath() + "/admin/branches?errorMsg=" + java.net.URLEncoder.encode("Cập nhật giờ hoạt động thất bại.", "UTF-8"));
+            if (value.length() > 5) {
+                return LocalTime.parse(value.substring(0, 5));
             }
+            return LocalTime.parse(value);
         } catch (DateTimeParseException e) {
-            throw new IllegalArgumentException("Định dạng thời gian không hợp lệ. Vui lòng thử lại.");
+            throw new IllegalArgumentException("Định dạng thời gian không hợp lệ.");
         }
     }
 }

@@ -1,5 +1,6 @@
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+﻿<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 
 <!DOCTYPE html>
 
@@ -67,6 +68,7 @@
 
             <form method="post"
                   action="${pageContext.request.contextPath}/branch/hours">
+            <%@ include file="/WEB-INF/views/common/csrf-hidden.jspf" %>
 
                 <div class="row">
 
@@ -79,7 +81,7 @@
                         <input type="time"
                                class="form-control"
                                name="openingTime"
-                               value="${branch.openingTime}"
+                               value="<c:choose><c:when test="${branch.openingTime != null}">${fn:substring(branch.openingTime, 0, 5)}</c:when><c:otherwise>08:00</c:otherwise></c:choose>"
                                required>
 
                     </div>
@@ -93,7 +95,7 @@
                         <input type="time"
                                class="form-control"
                                name="closingTime"
-                               value="${branch.closingTime}"
+                               value="<c:choose><c:when test="${branch.closingTime != null}">${fn:substring(branch.closingTime, 0, 5)}</c:when><c:otherwise>23:00</c:otherwise></c:choose>"
                                required>
 
                     </div>

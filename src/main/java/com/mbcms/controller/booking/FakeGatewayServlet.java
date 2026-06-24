@@ -5,6 +5,7 @@ import com.mbcms.model.Customer;
 import com.mbcms.model.Payment;
 import com.mbcms.service.PaymentService;
 import com.mbcms.service.impl.PaymentServiceImpl;
+import com.mbcms.util.BookingCustomerGuard;
 import com.mbcms.util.VnPayConfig;
 import com.mbcms.util.VnPayUtil;
 
@@ -42,12 +43,10 @@ public class FakeGatewayServlet extends HttpServlet {
     private void handle(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
 
-        HttpSession session = req.getSession(false);
-        if (session == null || session.getAttribute("currentUser") == null) {
-            resp.sendRedirect(req.getContextPath() + "/auth/login");
+        Customer customer = BookingCustomerGuard.requireCustomer(req, resp);
+        if (customer == null) {
             return;
         }
-        Customer customer = (Customer) session.getAttribute("currentUser");
 
         Long bookingId = parseLong(req.getParameter("bookingId"));
         if (bookingId == null) {

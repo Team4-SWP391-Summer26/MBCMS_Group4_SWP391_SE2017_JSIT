@@ -238,4 +238,124 @@ public class RoomDAOImpl extends BaseDAO implements RoomDAO {
         r.setActive(rs.getBoolean("active"));
         return r;
     }
+
+    @Override
+    public boolean insertWithSeats(Room room, List<com.mbcms.model.Seat> seats) {
+        String insertRoom = "INSERT INTO rooms (branch_id, name, capacity, room_type, active) VALUES (?, ?, ?, ?, ?)";
+        String insertSeat = "INSERT INTO seats (room_id, row_label, col_number, seat_type, active) VALUES (?, ?, ?, ?, ?)";
+
+        Connection conn = null;
+        PreparedStatement psRoom = null;
+        PreparedStatement psSeat = null;
+        ResultSet keys = null;
+        try {
+            conn = getConnection();
+            conn.setAutoCommit(false);
+
+            psRoom = conn.prepareStatement(insertRoom, Statement.RETURN_GENERATED_KEYS);
+            psRoom.setLong(1, room.getBranchId());
+            psRoom.setString(2, room.getName());
+            psRoom.setInt(3, room.getCapacity());
+            psRoom.setString(4, room.getRoomType());
+            psRoom.setBoolean(5, room.isActive());
+            if (psRoom.executeUpdate() != 1) {
+                conn.rollback();
+                return false;
+            }
+            keys = psRoom.getGeneratedKeys();
+            if (!keys.next()) {
+                conn.rollback();
+                return false;
+            }
+            long roomId = keys.getLong(1);
+            room.setRoomId(roomId);
+            keys.close();
+            psRoom.close();
+
+            psSeat = conn.prepareStatement(insertSeat);
+            for (com.mbcms.model.Seat seat : seats) {
+                seat.setRoomId(roomId);
+                psSeat.setLong(1, roomId);
+                psSeat.setString(2, seat.getRowLabel());
+                psSeat.setInt(3, seat.getColNumber());
+                psSeat.setString(4, seat.getSeatType());
+                psSeat.setBoolean(5, seat.isActive());
+                psSeat.addBatch();
+            }
+            psSeat.executeBatch();
+            conn.commit();
+            return true;
+        } catch (SQLException e) {
+            if (conn != null) {
+                try {
+                    conn.rollback();
+                } catch (SQLException ignored) {
+                }
+            }
+            throw new RuntimeException("Loi insertWithSeats: " + e.getMessage(), e);
+        } finally {
+            closeAll(keys, psSeat, conn);
+        }
+    }
+
+    @Override
+    public boolean replaceSeatsAndUpdateRoom(Room room, List<com.mbcms.model.Seat> seats) {
+        String updateRoom = "UPDATE rooms SET name = ?, capacity = ?, room_type = ? WHERE room_id = ?";
+        String deleteSeats = "DELETE FROM dbo.seats WHERE room_id = ?";
+        String insertSeat = "INSERT INTO seats (room_id, row_label, col_number, seat_type, active) VALUES (?, ?, ?, ?, ?)";
+
+        Connection conn = null;
+        PreparedStatement ps = null;
+        try {
+            conn = getConnection();
+            conn.setAutoCommit(false);
+
+            ps = conn.prepareStatement(deleteSeats);
+            ps.setLong(1, room.getRoomId());
+            ps.executeUpdate();
+            ps.close();
+
+            ps = conn.prepareStatement(insertSeat);
+            for (com.mbcms.model.Seat seat : seats) {
+                ps.setLong(1, room.getRoomId());
+                ps.setString(2, seat.getRowLabel());
+                ps.setInt(3, seat.getColNumber());
+                ps.setString(4, seat.getSeatType());
+                ps.setBoolean(5, seat.isActive());
+                ps.addBatch();
+            }
+            ps.executeBatch();
+            ps.close();
+
+            ps = conn.prepareStatement(updateRoom);
+            ps.setString(1, room.getName());
+            ps.setInt(2, room.getCapacity());
+            ps.setString(3, room.getRoomType());
+            ps.setLong(4, room.getRoomId());
+            if (ps.executeUpdate() != 1) {
+                conn.rollback();
+                return false;
+            }
+            ps.close();
+
+            conn.commit();
+            return true;
+        } catch (SQLException e) {
+            if (conn != null) {
+                try {
+                    conn.rollback();
+                } catch (SQLException ignored) {
+                }
+            }
+            throw new RuntimeException("Loi replaceSeatsAndUpdateRoom: " + e.getMessage(), e);
+        } finally {
+            if (conn != null) {
+                try {
+                    conn.setAutoCommit(true);
+                } catch (SQLException ignored) {
+                }
+            }
+            closeAll(ps, conn);
+        }
+    }
 }

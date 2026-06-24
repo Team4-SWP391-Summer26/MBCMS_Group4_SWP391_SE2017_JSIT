@@ -279,6 +279,7 @@
                 formData.append('action', 'updateStatus');
                 formData.append('foodOrderId', foodOrderId);
                 formData.append('status', newStatus);
+                formData.append('_csrf', '${sessionScope.csrfToken}');
 
                 fetch('${pageContext.request.contextPath}/staff/food-orders', {
                     method: 'POST',

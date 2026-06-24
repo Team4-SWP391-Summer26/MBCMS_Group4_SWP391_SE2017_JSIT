@@ -1,4 +1,4 @@
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+﻿<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
@@ -203,6 +203,7 @@
 
         <%-- ── Main form ─────────────────────────────────────── --%>
         <form method="post" action="${pageContext.request.contextPath}/admin/users" id="mainForm">
+            <%@ include file="/WEB-INF/views/common/csrf-hidden.jspf" %>
             <input type="hidden" name="action" value="${isAdd ? 'add' : 'edit'}">
             <c:if test="${not isAdd}">
                 <input type="hidden" name="username" value="${user.username}">
@@ -283,6 +284,7 @@
 
                                 <%-- Send reset password --%>
                                 <form method="post" action="${pageContext.request.contextPath}/admin/users" id="resetForm">
+            <%@ include file="/WEB-INF/views/common/csrf-hidden.jspf" %>
                                     <input type="hidden" name="action" value="resetPassword">
                                     <input type="hidden" name="username" value="${user.username}">
                                     <button type="submit" class="lc-btn lc-btn-warn-soft lc-btn-sm lc-btn-block"
@@ -293,6 +295,7 @@
 
                                 <%-- Delete user --%>
                                 <form method="post" action="${pageContext.request.contextPath}/admin/users" id="deleteForm">
+            <%@ include file="/WEB-INF/views/common/csrf-hidden.jspf" %>
                                     <input type="hidden" name="action" value="delete">
                                     <input type="hidden" name="username" value="${user.username}">
                                     <button type="submit" class="lc-btn lc-btn-danger-soft lc-btn-sm lc-btn-block"

@@ -295,4 +295,105 @@ public class BranchDAOImpl extends BaseDAO implements BranchDAO {
         }
         return list;
     }
+
+    @Override
+    public boolean hasFutureShowtimes(long branchId) {
+        String sql = "SELECT COUNT(*) FROM dbo.showtimes st "
+                + "JOIN dbo.rooms r ON r.room_id = st.room_id "
+                + "WHERE r.branch_id = ? AND st.start_time >= SYSUTCDATETIME() "
+                + "AND st.status <> 'CANCELLED'";
+        Connection conn = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+        try {
+            conn = getConnection();
+            ps = conn.prepareStatement(sql);
+            ps.setLong(1, branchId);
+            rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1) > 0;
+            }
+            return false;
+        } catch (SQLException e) {
+            throw new RuntimeException("Loi hasFutureShowtimes branch: " + e.getMessage(), e);
+        } finally {
+            closeAll(rs, ps, conn);
+        }
+    }
+
+    @Override
+    public boolean hasActiveFutureBookings(long branchId) {
+        String sql = "SELECT COUNT(*) FROM dbo.bookings b "
+                + "JOIN dbo.showtimes st ON st.showtime_id = b.showtime_id "
+                + "JOIN dbo.rooms r ON r.room_id = st.room_id "
+                + "WHERE r.branch_id = ? AND st.start_time >= SYSUTCDATETIME() "
+                + "AND b.status IN ('PENDING','CONFIRMED') "
+                + "AND (b.status != 'PENDING' "
+                + "     OR DATEDIFF(MINUTE, b.created_at, SYSUTCDATETIME()) < 10)";
+        Connection conn = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+        try {
+            conn = getConnection();
+            ps = conn.prepareStatement(sql);
+            ps.setLong(1, branchId);
+            rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1) > 0;
+            }
+            return false;
+        } catch (SQLException e) {
+            throw new RuntimeException("Loi hasActiveFutureBookings branch: " + e.getMessage(), e);
+        } finally {
+            closeAll(rs, ps, conn);
+        }
+    }
+
+    @Override
+    public boolean saveBranchDetails(Branch branch, LocalTime openingTime, LocalTime closingTime, boolean active) {
+        String sql = "UPDATE branches SET name = ?, address = ?, city = ?, phone = ?, email = ?, "
+                + "opening_time = ?, closing_time = ?, active = ? WHERE branch_id = ?";
+
+        Connection conn = null;
+        PreparedStatement ps = null;
+        try {
+            conn = getConnection();
+            conn.setAutoCommit(false);
+            ps = conn.prepareStatement(sql);
+            ps.setString(1, branch.getName());
+            ps.setString(2, branch.getAddress());
+            ps.setString(3, branch.getCity());
+            ps.setString(4, branch.getPhone());
+            ps.setString(5, branch.getEmail());
+            ps.setTime(6, openingTime != null ? Time.valueOf(openingTime) : null);
+            ps.setTime(7, closingTime != null ? Time.valueOf(closingTime) : null);
+            ps.setBoolean(8, active);
+            ps.setLong(9, branch.getBranchId());
+
+            boolean ok = ps.executeUpdate() == 1;
+            if (!ok) {
+                conn.rollback();
+                return false;
+            }
+            conn.commit();
+            return true;
+        } catch (SQLException e) {
+            if (conn != null) {
+                try {
+                    conn.rollback();
+                } catch (SQLException ignored) {
+                }
+            }
+            throw new RuntimeException("Loi saveBranchDetails branches: " + e.getMessage(), e);
+        } finally {
+            // Khoi phuc autoCommit truoc khi tra connection ve pool (tranh hong transaction request sau)
+            if (conn != null) {
+                try {
+                    conn.setAutoCommit(true);
+                } catch (SQLException ignored) {
+                }
+            }
+            closeAll(ps, conn);
+        }
+    }
 }

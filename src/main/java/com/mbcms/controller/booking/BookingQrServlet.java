@@ -4,6 +4,7 @@ import com.mbcms.model.Booking;
 import com.mbcms.model.Customer;
 import com.mbcms.service.BookingService;
 import com.mbcms.service.impl.BookingServiceImpl;
+import com.mbcms.util.BookingCustomerGuard;
 import com.mbcms.util.QRCodeUtil;
 
 import com.google.zxing.WriterException;
@@ -36,12 +37,10 @@ public class BookingQrServlet extends HttpServlet {
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
 
-        HttpSession session = req.getSession(false);
-        if (session == null || session.getAttribute("currentUser") == null) {
-            resp.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+        Customer customer = BookingCustomerGuard.requireCustomer(req, resp);
+        if (customer == null) {
             return;
         }
-        Customer customer = (Customer) session.getAttribute("currentUser");
 
         long bookingId;
         try {

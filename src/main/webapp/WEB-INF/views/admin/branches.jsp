@@ -1,5 +1,6 @@
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+﻿<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 
 <!DOCTYPE html>
 <html lang="en">
@@ -378,8 +379,8 @@
                                         data-city="${b.city}"
                                         data-phone="${b.phone}"
                                         data-email="${b.email}"
-                                        data-open="${b.openingTime}"
-                                        data-close="${b.closingTime}"
+                                        data-open="<c:choose><c:when test="${b.openingTime != null}">${fn:substring(b.openingTime, 0, 5)}</c:when><c:otherwise>08:00</c:otherwise></c:choose>"
+                                        data-close="<c:choose><c:when test="${b.closingTime != null}">${fn:substring(b.closingTime, 0, 5)}</c:when><c:otherwise>23:00</c:otherwise></c:choose>"
                                         data-active="${b.active}"
                                         data-bs-toggle="modal"
                                         data-bs-target="#editModal">
@@ -426,6 +427,7 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <form method="post" action="${pageContext.request.contextPath}/admin/branches">
+            <%@ include file="/WEB-INF/views/common/csrf-hidden.jspf" %>
                 <input type="hidden" name="action" value="add">
 
                 <div class="modal-header">
@@ -486,6 +488,7 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <form method="post" action="${pageContext.request.contextPath}/admin/branches">
+            <%@ include file="/WEB-INF/views/common/csrf-hidden.jspf" %>
                 <input type="hidden" name="action" value="edit">
                 <input type="hidden" name="branchId" id="editId">
 
@@ -528,32 +531,24 @@
                         </div>
                     </div>
 
-                    <%-- Toggle status --%>
+                    <%-- Active status (submitted with Save) --%>
+                    <input type="hidden" name="active" id="editActiveHidden" value="false">
                     <div class="d-flex align-items-center justify-content-between p-3"
                          style="background:var(--lc-light);border-radius:10px;border:1px solid var(--lc-border);">
                         <div>
                             <div style="font-size:.85rem;font-weight:600;color:#0f1e36;">Cinema Status</div>
-                            <div style="font-size:.75rem;color:var(--lc-muted);">Toggle to activate or deactivate this cinema</div>
+                            <div style="font-size:.75rem;color:var(--lc-muted);">Inactive cinemas are hidden from customer booking</div>
                         </div>
                         <div class="form-check form-switch mb-0">
                             <input class="form-check-input" type="checkbox" role="switch"
-                                   id="editActiveToggle" name="activeToggle" style="width:2.5rem;height:1.3rem;">
+                                   id="editActiveToggle" style="width:2.5rem;height:1.3rem;">
                         </div>
                     </div>
                 </div>
 
                 <div class="modal-footer gap-2">
-                    <%-- Hidden form for toggle status (separate POST) --%>
-                    <form id="toggleForm" method="post"
-                          action="${pageContext.request.contextPath}/admin/branches"
-                          style="display:none;">
-                        <input type="hidden" name="action" value="toggleStatus">
-                        <input type="hidden" name="branchId" id="toggleBranchId">
-                        <input type="hidden" name="active" id="toggleActive">
-                    </form>
-
                     <button type="button" class="lc-modal-btn lc-modal-btn-cancel" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="lc-modal-btn lc-modal-btn-save">
+                    <button type="submit" class="lc-modal-btn lc-modal-btn-save" id="editSaveBtn">
                         <i class="bi bi-check-lg me-1"></i> Save Changes
                     </button>
                 </div>
@@ -561,6 +556,13 @@
         </div>
     </div>
 </div>
+
+<form id="toggleForm" method="post" action="${pageContext.request.contextPath}/admin/branches" class="d-none">
+            <%@ include file="/WEB-INF/views/common/csrf-hidden.jspf" %>
+    <input type="hidden" name="action" value="toggleStatus">
+    <input type="hidden" name="branchId" id="toggleBranchId">
+    <input type="hidden" name="active" id="toggleActive">
+</form>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
@@ -578,15 +580,18 @@
 
             const isActive = this.dataset.active === 'true';
             const toggle   = document.getElementById('editActiveToggle');
+            const hidden   = document.getElementById('editActiveHidden');
             toggle.checked = isActive;
-
-            /* Wire toggle switch to separate form */
+            hidden.value = isActive ? 'true' : 'false';
             toggle.onchange = function () {
-                document.getElementById('toggleBranchId').value = btn.dataset.id;
-                document.getElementById('toggleActive').value   = this.checked;
-                document.getElementById('toggleForm').submit();
+                hidden.value = this.checked ? 'true' : 'false';
             };
         });
+    });
+
+    document.getElementById('editSaveBtn').closest('form').addEventListener('submit', function () {
+        const toggle = document.getElementById('editActiveToggle');
+        document.getElementById('editActiveHidden').value = toggle.checked ? 'true' : 'false';
     });
 
     /* ── Client-side search + filter ─────────────────────── */

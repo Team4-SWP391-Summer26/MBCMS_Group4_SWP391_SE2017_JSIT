@@ -49,7 +49,7 @@
                                 <div class="poster-wrap position-relative">
                                     <c:choose>
                                         <c:when test="${not empty m.posterUrl}">
-                                            <img src="${m.posterUrl}" alt="${m.title}">
+                                            <img src="<c:url value='${m.posterUrl}'/>" alt="${m.title}">
                                         </c:when>
                                         <c:otherwise>
                                             <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#9ca3af"

@@ -16,6 +16,8 @@ public class Room {
     private int capacity;
     private String roomType;
     private boolean active = true;
+    /** Active bookable seats (populated for list views only). */
+    private Integer activeSeatCount;
 
     public Room() {
     }
@@ -66,5 +68,18 @@ public class Room {
 
     public void setActive(boolean active) {
         this.active = active;
+    }
+
+    public Integer getActiveSeatCount() {
+        return activeSeatCount;
+    }
+
+    public void setActiveSeatCount(Integer activeSeatCount) {
+        this.activeSeatCount = activeSeatCount;
+    }
+
+    /** Seats shown on cards: active count when loaded, else stored capacity. */
+    public int getDisplaySeatCount() {
+        return activeSeatCount != null ? activeSeatCount : capacity;
     }
 }

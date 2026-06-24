@@ -1,4 +1,4 @@
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+﻿<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 <%--
@@ -130,6 +130,7 @@
     </c:if>
 
     <form method="post" action="${pageContext.request.contextPath}/booking/payment/gateway" id="pay-form">
+            <%@ include file="/WEB-INF/views/common/csrf-hidden.jspf" %>
         <input type="hidden" name="bookingId" value="${booking.bookingId}">
         <input type="hidden" name="method" value="VNPAY">
 

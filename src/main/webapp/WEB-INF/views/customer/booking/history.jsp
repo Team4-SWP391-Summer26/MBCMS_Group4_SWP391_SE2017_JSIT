@@ -150,7 +150,7 @@
                      data-search="${fn:escapeXml(t.movieTitle)} ${fn:escapeXml(t.bookingCode)}">
                     <c:choose>
                         <c:when test="${not empty t.posterUrl}">
-                            <img class="mb-poster" src="<c:out value='${t.posterUrl}'/>" alt="">
+                            <img class="mb-poster" src="<c:url value='${t.posterUrl}'/>" alt="">
                         </c:when>
                         <c:otherwise><div class="mb-poster"><i class="bi bi-film"></i></div></c:otherwise>
                     </c:choose>

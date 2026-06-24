@@ -20,8 +20,10 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-@WebServlet("/branch/seats")
+@WebServlet(urlPatterns = {"/branch/seats", "/branch/seats-type"})
 public class BranchSeatServlet extends HttpServlet {
+
+    private static final String LEGACY_PATH = "/branch/seats-type";
 
     private final SeatService seatService = new SeatServiceImpl();
     private final RoomService roomService = new RoomServiceImpl();
@@ -29,7 +31,10 @@ public class BranchSeatServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
-        
+        if (redirectLegacySeatType(req, resp)) {
+            return;
+        }
+
         HttpSession session = req.getSession(false);
         Long branchId = (session != null) ? (Long) session.getAttribute("currentBranchId") : null;
 
@@ -71,7 +76,10 @@ public class BranchSeatServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
-        
+        if (redirectLegacySeatType(req, resp)) {
+            return;
+        }
+
         HttpSession session = req.getSession(false);
         Long branchId = (session != null) ? (Long) session.getAttribute("currentBranchId") : null;
 
@@ -136,6 +144,7 @@ public class BranchSeatServlet extends HttpServlet {
 
     private void handleUpdateSeatAJAX(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         long seatId = Long.parseLong(req.getParameter("seatId"));
+        long roomId = Long.parseLong(req.getParameter("roomId"));
         String type = req.getParameter("seatType");
         String activeStr = req.getParameter("active");
 
@@ -146,9 +155,9 @@ public class BranchSeatServlet extends HttpServlet {
         boolean success = false;
         if (activeStr != null) {
             boolean active = Boolean.parseBoolean(activeStr);
-            success = seatService.updateSeatStatus(seatId, active);
+            success = seatService.updateSeatStatus(seatId, roomId, active);
         } else if (type != null) {
-            success = seatService.updateSeatType(seatId, type);
+            success = seatService.updateSeatType(seatId, roomId, type);
         }
 
         if (success) {
@@ -171,5 +180,20 @@ public class BranchSeatServlet extends HttpServlet {
         if (s == null || s.isBlank()) return null;
         try { return Long.parseLong(s.trim()); }
         catch (NumberFormatException e) { return null; }
+    }
+
+    /** Redirect old /branch/seats-type URLs to the unified seat layout flow. */
+    private boolean redirectLegacySeatType(HttpServletRequest req, HttpServletResponse resp)
+            throws IOException {
+        if (!LEGACY_PATH.equals(req.getServletPath())) {
+            return false;
+        }
+        String roomId = req.getParameter("roomId");
+        String target = req.getContextPath()
+                + ((roomId != null && !roomId.isBlank())
+                ? "/branch/seats?roomId=" + roomId.trim()
+                : "/branch/halls");
+        resp.sendRedirect(target);
+        return true;
     }
 }

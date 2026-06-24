@@ -14,6 +14,9 @@ public interface FoodDAO {
     com.mbcms.model.FoodOrder findByBookingId(long bookingId);
     List<FoodOrderDetail> findFoodOrdersByBranch(long branchId);
     boolean updateOrderStatus(long foodOrderId, String status);
+    /** Branch of the showtime linked to this food order; null if order not found. */
+    Long findBranchIdByFoodOrderId(long foodOrderId);
     boolean updateOrderStatusByBooking(long bookingId, String status);
     boolean updateOrderStatusByBooking(Connection conn, long bookingId, String status);
+    void deleteOrderByBookingId(long bookingId);
 }

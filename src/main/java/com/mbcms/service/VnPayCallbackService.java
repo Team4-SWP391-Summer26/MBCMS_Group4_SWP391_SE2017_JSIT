@@ -8,6 +8,8 @@ import com.mbcms.service.impl.PaymentServiceImpl;
 import com.mbcms.util.VnPayUtil;
 
 import java.util.Map;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 
 /**
  * Xu ly ket qua tra ve tu VNPay (Return URL + IPN) sau khi verify chu ky.
@@ -16,7 +18,7 @@ public class VnPayCallbackService {
 
     public enum Outcome {
         SUCCESS, ALREADY_PAID, EXPIRED, PAYMENT_FAILED,
-        INVALID_SIGNATURE, INVALID_TXN_REF, BOOKING_NOT_FOUND
+        INVALID_SIGNATURE, INVALID_TXN_REF, BOOKING_NOT_FOUND, AMOUNT_MISMATCH
     }
 
     public static final class Result {
@@ -35,8 +37,18 @@ public class VnPayCallbackService {
         }
     }
 
-    private final PaymentService paymentService = new PaymentServiceImpl();
-    private final BookingDAO bookingDao = new BookingDAOImpl();
+    private final PaymentService paymentService;
+    private final BookingDAO bookingDao;
+
+    public VnPayCallbackService() {
+        this(new PaymentServiceImpl(), new BookingDAOImpl());
+    }
+
+    /** For unit tests. */
+    VnPayCallbackService(PaymentService paymentService, BookingDAO bookingDao) {
+        this.paymentService = paymentService;
+        this.bookingDao = bookingDao;
+    }
 
     public Result process(Map<String, String> vnpParams) {
         if (!VnPayUtil.verifyReturn(vnpParams)) {
@@ -58,6 +70,21 @@ public class VnPayCallbackService {
         String transStatus = vnpParams.get("vnp_TransactionStatus");
         if (!VnPayUtil.isSuccessResponse(responseCode, transStatus)) {
             return new Result(Outcome.PAYMENT_FAILED, booking);
+        }
+
+        String amountStr = vnpParams.get("vnp_Amount");
+        if (amountStr == null || amountStr.isBlank()) {
+            return new Result(Outcome.AMOUNT_MISMATCH, booking);
+        }
+        try {
+            long amountVnd = Long.parseLong(amountStr.trim()) / 100L;
+            long expectedVnd = booking.getTotalAmount()
+                    .setScale(0, RoundingMode.HALF_UP).longValue();
+            if (amountVnd != expectedVnd) {
+                return new Result(Outcome.AMOUNT_MISMATCH, booking);
+            }
+        } catch (NumberFormatException ignored) {
+            return new Result(Outcome.AMOUNT_MISMATCH, booking);
         }
 
         String gatewayRef = vnpParams.get("vnp_TransactionNo");

@@ -1,4 +1,4 @@
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+﻿<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 <%--
@@ -154,6 +154,7 @@
                         <form method="post" id="stForm"
                               action="${pageContext.request.contextPath}/branch/showtimes/${editing ? 'edit' : 'create'}"
                               class="st-form d-flex flex-column gap-3">
+            <%@ include file="/WEB-INF/views/common/csrf-hidden.jspf" %>
                             <c:if test="${editing}">
                                 <input type="hidden" name="id" value="${st.showtimeId}">
                             </c:if>

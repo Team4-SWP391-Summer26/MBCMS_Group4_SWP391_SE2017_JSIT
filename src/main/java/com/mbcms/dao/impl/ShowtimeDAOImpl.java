@@ -14,9 +14,14 @@ import java.util.List;
 
 public class ShowtimeDAOImpl extends BaseDAO implements ShowtimeDAO {
 
+    /** PENDING counts only if hold not expired (align with SeatDAOImpl.findBookedSeatIds). */
+    private static final String ACTIVE_BOOKING_FILTER =
+            " AND b.status IN ('PENDING','CONFIRMED','USED') "
+            + " AND (b.[status] != 'PENDING' "
+            + "      OR DATEDIFF(MINUTE, b.created_at, SYSUTCDATETIME()) < 10) ";
+
     // SELECT chung cho findByBranch + findById.
-    // Subquery dem ghe da dat: chi tinh booking con hieu luc (PENDING/CONFIRMED/USED),
-    // khong tinh CANCELLED - dung quy tac SRS 3.5.2.1 (Seats booked/total).
+    // Subquery dem ghe da dat: chi tinh booking con hieu luc, bo PENDING het han.
     private static final String BASE_SELECT
             = "SELECT st.showtime_id, st.room_id, st.movie_id, st.start_time, st.end_time, "
             + "st.base_price, st.format, st.subtitle_type, st.status, "
@@ -24,7 +29,8 @@ public class ShowtimeDAOImpl extends BaseDAO implements ShowtimeDAO {
             + "(SELECT COUNT(*) FROM booking_seats bs "
             + " JOIN bookings b ON bs.booking_id = b.booking_id "
             + " WHERE b.showtime_id = st.showtime_id "
-            + " AND b.status IN ('PENDING','CONFIRMED','USED')) AS booked_seats "
+            + ACTIVE_BOOKING_FILTER
+            + ") AS booked_seats "
             + "FROM showtimes st "
             + "JOIN movies m ON st.movie_id = m.movie_id "
             + "JOIN rooms r ON st.room_id = r.room_id ";
@@ -268,8 +274,9 @@ public class ShowtimeDAOImpl extends BaseDAO implements ShowtimeDAO {
      */
     @Override
     public boolean hasActiveBookings(long showtimeId) {
-        String sql = "SELECT 1 FROM bookings "
-                + "WHERE showtime_id = ? AND status IN ('PENDING','CONFIRMED','USED')";
+        String sql = "SELECT 1 FROM bookings b "
+                + "WHERE b.showtime_id = ? "
+                + ACTIVE_BOOKING_FILTER;
 
         Connection conn = null;
         PreparedStatement ps = null;

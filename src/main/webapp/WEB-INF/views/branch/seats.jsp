@@ -1,4 +1,4 @@
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+﻿<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 <%--
@@ -167,6 +167,7 @@
     <div class="modal-dialog">
         <form class="modal-content" method="post" action="${pageContext.request.contextPath}/branch/seats"
               onsubmit="return confirm('Regenerate layout? All existing seats in this room will be replaced.');">
+            <%@ include file="/WEB-INF/views/common/csrf-hidden.jspf" %>
             <input type="hidden" name="action" value="regenerate">
             <input type="hidden" name="roomId" value="${roomId}">
             <div class="modal-header">
@@ -208,6 +209,7 @@
     const CTX = '${pageContext.request.contextPath}';
     const ROOM_ID = '${roomId}';
     const ENDPOINT = CTX + '/branch/seats';
+    const CSRF_TOKEN = '${sessionScope.csrfToken}';
 </script>
 <script src="${pageContext.request.contextPath}/assets/js/seat-layout.js?v=${applicationScope.assetVersion}"></script>
 </body>

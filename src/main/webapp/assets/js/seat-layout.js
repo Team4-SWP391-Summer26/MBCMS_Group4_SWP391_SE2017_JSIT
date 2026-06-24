@@ -76,9 +76,16 @@
     }
 
     async function rawPost(body) {
+        if (typeof CSRF_TOKEN !== 'undefined' && CSRF_TOKEN) {
+            body.append('_csrf', CSRF_TOKEN);
+        }
+        const headers = { 'Content-Type': 'application/x-www-form-urlencoded' };
+        if (typeof CSRF_TOKEN !== 'undefined' && CSRF_TOKEN) {
+            headers['X-CSRF-TOKEN'] = CSRF_TOKEN;
+        }
         const res = await fetch(ENDPOINT, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            headers: headers,
             body: body.toString()
         });
         const json = await res.json();

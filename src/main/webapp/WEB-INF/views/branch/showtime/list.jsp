@@ -1,4 +1,4 @@
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+﻿<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
@@ -295,6 +295,7 @@
                                                     <form method="post" class="d-inline"
                                                           action="${pageContext.request.contextPath}/branch/showtimes/cancel"
                                                           onsubmit="return confirm('Cancel this showtime?');">
+            <%@ include file="/WEB-INF/views/common/csrf-hidden.jspf" %>
                                                         <input type="hidden" name="id" value="${st.showtimeId}">
                                                         <button type="submit" class="btn btn-sm btn-outline-danger" title="Cancel">
                                                             <i class="bi bi-x-lg"></i></button>
