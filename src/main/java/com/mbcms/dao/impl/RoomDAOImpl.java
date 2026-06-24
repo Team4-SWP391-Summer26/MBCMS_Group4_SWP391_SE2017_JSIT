@@ -205,7 +205,7 @@ public class RoomDAOImpl extends BaseDAO implements RoomDAO {
 
     @Override
     public boolean hasFutureShowtimes(long roomId) {
-        String sql = "SELECT COUNT(*) FROM showtimes WHERE room_id = ? AND start_time >= SYSUTCDATETIME() AND status <> 'CANCELLED'";
+        String sql = "SELECT COUNT(*) FROM showtimes WHERE room_id = ? AND start_time >= GETDATE() AND status <> 'CANCELLED'";
 
         Connection conn = null;
         PreparedStatement ps = null;

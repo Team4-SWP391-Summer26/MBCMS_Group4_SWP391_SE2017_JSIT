@@ -63,7 +63,7 @@ public class ShowtimeReminderScheduler implements ServletContextListener {
         try {
             // Lay cac booking CONFIRMED co showtime bat dau trong 30–60 phut nua
             // (window 30 phut de tranh gui qua som, nhung du thoi gian di den rap)
-            List<Booking> bookings = bookingDAO.findConfirmedForReminder(5, 20);
+            List<Booking> bookings = bookingDAO.findConfirmedForReminder(5, 65);
             if (bookings == null || bookings.isEmpty()) return;
 
             int sent = 0;

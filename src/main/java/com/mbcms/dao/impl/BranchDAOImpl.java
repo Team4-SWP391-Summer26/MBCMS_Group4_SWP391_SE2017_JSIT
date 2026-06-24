@@ -313,7 +313,7 @@ public class BranchDAOImpl extends BaseDAO implements BranchDAO {
     public boolean hasFutureShowtimes(long branchId) {
         String sql = "SELECT COUNT(*) FROM dbo.showtimes st "
                 + "JOIN dbo.rooms r ON r.room_id = st.room_id "
-                + "WHERE r.branch_id = ? AND st.start_time >= SYSUTCDATETIME() "
+                + "WHERE r.branch_id = ? AND st.start_time >= GETDATE() "
                 + "AND st.status <> 'CANCELLED'";
         Connection conn = null;
         PreparedStatement ps = null;
@@ -339,7 +339,7 @@ public class BranchDAOImpl extends BaseDAO implements BranchDAO {
         String sql = "SELECT COUNT(*) FROM dbo.bookings b "
                 + "JOIN dbo.showtimes st ON st.showtime_id = b.showtime_id "
                 + "JOIN dbo.rooms r ON r.room_id = st.room_id "
-                + "WHERE r.branch_id = ? AND st.start_time >= SYSUTCDATETIME() "
+                + "WHERE r.branch_id = ? AND st.start_time >= GETDATE()"
                 + "AND b.status IN ('PENDING','CONFIRMED') "
                 + "AND (b.status != 'PENDING' "
                 + "     OR DATEDIFF(MINUTE, b.created_at, SYSUTCDATETIME()) < 10)";
