@@ -12,20 +12,29 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <link href="${pageContext.request.contextPath}/assets/css/manager.css?v=${applicationScope.assetVersion}" rel="stylesheet">
     <style>
-        .room-card { background:#fff; border:1px solid var(--lc-border); border-radius:14px; box-shadow:var(--lc-shadow); overflow:hidden; height:100%; display:flex; flex-direction:column; }
-        .room-top { padding:1rem 1.1rem; color:#fff; display:flex; justify-content:space-between; align-items:flex-start; }
-        .room-top.t-standard { background:linear-gradient(135deg,#2563eb,#1e3a8a); }
-        .room-top.t-vip { background:linear-gradient(135deg,#d99a1c,#b8770a); }
-        .room-top.t-imax { background:linear-gradient(135deg,#7c3aed,#5b21b6); }
-        .room-top .rt-name { font-weight:800; font-size:1.05rem; line-height:1.1; }
-        .room-top .rt-type { font-size:.72rem; opacity:.85; letter-spacing:.04em; text-transform:uppercase; }
-        .room-pill { font-size:.66rem; font-weight:700; padding:.18rem .5rem; border-radius:999px; background:rgba(255,255,255,.22); }
-        .room-pill.off { background:rgba(0,0,0,.18); }
-        .room-body { padding:1.1rem; flex:1; }
-        .room-cap { font-size:1.9rem; font-weight:800; color:var(--lc-navy); line-height:1; }
-        .room-cap small { font-size:.8rem; font-weight:600; color:var(--lc-muted); }
-        .room-foot { padding:.85rem 1.1rem; border-top:1px solid var(--lc-border); display:flex; gap:.5rem; }
-        .add-room-card { border:2px dashed #cdd6e6; border-radius:14px; background:var(--lc-light); display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:220px; color:var(--lc-primary); cursor:pointer; transition:all .15s ease; height:100%; }
+        .room-card { background:#fff; border:1px solid var(--lc-border); border-radius:14px; box-shadow:var(--lc-shadow); overflow:hidden; height:100%; display:flex; flex-direction:column; transition:box-shadow .15s, transform .15s; }
+        .room-card:hover { box-shadow:0 10px 26px rgba(15,23,42,.10); transform:translateY(-2px); }
+        .room-head { padding:.85rem 1rem; color:#fff; display:flex; justify-content:space-between; align-items:flex-start; gap:.5rem; }
+        .room-head.t-standard { background:linear-gradient(135deg,#3b82f6,#1d4ed8); }
+        .room-head.t-vip { background:linear-gradient(135deg,#eab308,#ca8a04); }
+        .room-head.t-imax { background:linear-gradient(135deg,#8b5cf6,#6d28d9); }
+        .room-head.t-off { background:linear-gradient(135deg,#94a3b8,#64748b); }
+        .room-head .nm { display:flex; align-items:center; gap:.4rem; font-weight:800; font-size:1rem; line-height:1.1; }
+        .room-head .ty { font-size:.66rem; opacity:.9; letter-spacing:.05em; text-transform:uppercase; margin-top:.2rem; }
+        .room-chip { font-size:.62rem; font-weight:700; padding:.18rem .5rem; border-radius:999px; background:rgba(255,255,255,.22); display:inline-flex; align-items:center; gap:.25rem; white-space:nowrap; }
+        .room-body { padding:.9rem 1rem; flex:1; }
+        .room-seats { display:flex; align-items:center; gap:.55rem; margin-bottom:.75rem; }
+        .room-seats .ic { width:30px; height:30px; border-radius:8px; background:#f1f5f9; color:#64748b; display:flex; align-items:center; justify-content:center; font-size:.95rem; }
+        .room-seats .n { font-size:1.45rem; font-weight:800; color:var(--lc-navy); line-height:1; }
+        .room-seats .u { font-size:.78rem; color:var(--lc-muted); }
+        .room-typebar { display:flex; justify-content:space-between; align-items:center; padding:.45rem .7rem; border-radius:8px; font-size:.8rem; font-weight:600; }
+        .room-typebar.tb-standard { background:#eff6ff; color:#1d4ed8; }
+        .room-typebar.tb-vip { background:#fffbeb; color:#b45309; }
+        .room-typebar.tb-imax { background:#f5f3ff; color:#6d28d9; }
+        .room-actrow { display:flex; justify-content:space-between; align-items:center; padding:.6rem 1rem; border-top:1px solid var(--lc-border); }
+        .room-actrow .form-check-input { width:2.4em; height:1.3em; cursor:pointer; margin:0; }
+        .room-foot { padding:.75rem 1rem; border-top:1px solid var(--lc-border); display:flex; gap:.5rem; }
+        .add-room-card { border:2px dashed #cdd6e6; border-radius:14px; background:var(--lc-light); display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:200px; color:var(--lc-primary); cursor:pointer; transition:all .15s ease; height:100%; }
         .add-room-card:hover { border-color:var(--lc-primary); background:#e7efff; }
     </style>
 </head>
@@ -36,7 +45,7 @@
 </jsp:include>
 
 <main class="lc-admin-main">
-    <div class="container-fluid px-4 py-4" style="max-width:1240px;">
+    <div class="container-fluid px-4 py-4" style="max-width:1320px;">
 
         <div class="text-muted small mb-1">Dashboard / <span class="fw-semibold">Rooms &amp; Seats</span></div>
         <div class="d-flex justify-content-between align-items-center mb-3">
@@ -60,20 +69,36 @@
 
         <div class="row g-3">
             <c:forEach items="${rooms}" var="room">
-                <div class="col-md-6 col-xl-4">
+                <c:set var="tcls" value="${room.roomType == 'VIP' ? 't-vip' : (room.roomType == 'IMAX' ? 't-imax' : 't-standard')}"/>
+                <c:set var="tbcls" value="${room.roomType == 'VIP' ? 'tb-vip' : (room.roomType == 'IMAX' ? 'tb-imax' : 'tb-standard')}"/>
+                <div class="col-sm-6 col-lg-4 col-xl-3">
                     <div class="room-card">
-                        <div class="room-top ${room.roomType == 'VIP' ? 't-vip' : (room.roomType == 'IMAX' ? 't-imax' : 't-standard')}">
+                        <div class="room-head ${room.active ? tcls : 't-off'}">
                             <div>
-                                <div class="rt-name"><c:out value="${room.name}"/></div>
-                                <div class="rt-type">${room.roomType}</div>
+                                <div class="nm"><i class="bi bi-easel2-fill"></i><c:out value="${room.name}"/></div>
+                                <div class="ty">${room.roomType}</div>
                             </div>
-                            <span class="room-pill ${room.active ? '' : 'off'}">
-                                <i class="bi ${room.active ? 'bi-check-circle' : 'bi-slash-circle'} me-1"></i>${room.active ? 'Active' : 'Inactive'}</span>
+                            <span class="room-chip">
+                                <i class="bi ${room.active ? 'bi-check-circle-fill' : 'bi-slash-circle-fill'}"></i>${room.active ? 'Active' : 'Inactive'}</span>
                         </div>
                         <div class="room-body">
-                            <div class="room-cap">${room.capacity} <small>seats</small></div>
-                            <div class="text-muted small mt-2">
-                                <i class="bi bi-info-circle me-1"></i>Capacity is auto-calculated from the seat layout.</div>
+                            <div class="room-seats">
+                                <span class="ic"><i class="bi bi-grid-3x3-gap"></i></span>
+                                <span class="n">${room.capacity}</span><span class="u">seats</span>
+                            </div>
+                            <div class="room-typebar ${tbcls}">
+                                <span>${room.roomType}</span><span>${room.capacity}</span>
+                            </div>
+                        </div>
+                        <div class="room-actrow">
+                            <span class="fw-semibold small text-navy">Active</span>
+                            <form method="post" action="${pageContext.request.contextPath}/branch/halls">
+                                <input type="hidden" name="action" value="toggleStatus">
+                                <input type="hidden" name="roomId" value="${room.roomId}">
+                                <input type="hidden" name="active" value="${!room.active}">
+                                <input class="form-check-input" type="checkbox" role="switch"
+                                       ${room.active ? 'checked' : ''} onchange="this.form.submit()">
+                            </form>
                         </div>
                         <div class="room-foot">
                             <button class="btn btn-light border btn-sm flex-fill edit-btn"
@@ -84,20 +109,13 @@
                             <a class="btn btn-primary btn-sm flex-fill"
                                href="${pageContext.request.contextPath}/branch/seats?roomId=${room.roomId}">
                                 <i class="bi bi-grid-3x3-gap me-1"></i>Seats</a>
-                            <form method="post" action="${pageContext.request.contextPath}/branch/halls" class="d-inline">
-                                <input type="hidden" name="action" value="toggleStatus">
-                                <input type="hidden" name="roomId" value="${room.roomId}">
-                                <input type="hidden" name="active" value="${!room.active}">
-                                <button type="submit" class="btn btn-light border btn-sm" title="${room.active ? 'Disable' : 'Enable'}">
-                                    <i class="bi ${room.active ? 'bi-toggle-on text-success' : 'bi-toggle-off text-muted'}"></i></button>
-                            </form>
                         </div>
                     </div>
                 </div>
             </c:forEach>
 
             <%-- Add new room card --%>
-            <div class="col-md-6 col-xl-4">
+            <div class="col-sm-6 col-lg-4 col-xl-3">
                 <div class="add-room-card" data-bs-toggle="modal" data-bs-target="#addRoomModal">
                     <i class="bi bi-plus-circle fs-1 mb-2"></i>
                     <div class="fw-semibold">Add new room</div>
