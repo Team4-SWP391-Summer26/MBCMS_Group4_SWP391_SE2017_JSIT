@@ -526,7 +526,7 @@
                                             </tr>
                                             <tr>
                                                 <th class="bg-light text-navy">Booking Account</th>
-                                                <td id="invoice-customer">Guest (guest01)</td>
+                                                <td id="invoice-customer">Walk-in Guest (guest01)</td>
                                             </tr>
                                             <tr>
                                                 <th class="bg-light text-navy">Promo Code</th>
@@ -697,6 +697,15 @@
                                 // Pre-fill today's date in local YYYY-MM-DD
                                 const todayStr = new Date().toISOString().split('T')[0];
                                 dateFilter.value = todayStr;
+
+                                function formatCustomerLabel() {
+                                    if (state.memberUsername === 'guest01') {
+                                        return 'Walk-in Guest (guest01)';
+                                    }
+                                    return state.memberFullName + ' (' + state.memberUsername + ')';
+                                }
+
+                                // (Customer account UI removed — counter bookings are always walk-in guest01)
 
                                 // Init Step 1 on Load
                                 document.addEventListener('DOMContentLoaded', () => {
@@ -1027,6 +1036,10 @@
                                         setSeatState(btn, 'available');
                                         sendWS({action: 'DESELECT', seatId: Number(id), showtimeId: state.showtimeId});
                                     } else {
+                                        if (state.selectedSeats.length >= 8) {
+                                            alert('Tối đa 8 ghế mỗi lần đặt.');
+                                            return;
+                                        }
                                         state.selectedSeats.push(seat);
                                         setSeatState(btn, 'selected');
                                         sendWS({action: 'SELECT', seatId: Number(id), showtimeId: state.showtimeId});
@@ -1458,7 +1471,7 @@
                                         concessionsRow.classList.add('d-none');
                                     }
 
-                                    document.getElementById('invoice-customer').innerText = 'Guest (guest01)';
+                                    document.getElementById('invoice-customer').innerText = formatCustomerLabel();
 
                                     document.getElementById('invoice-promo').innerText = state.promoCode
                                             ? state.promoCode + ' (Discount ' + state.promoDiscount.toLocaleString() + ' VND)'
@@ -1568,6 +1581,8 @@
                                     formData.append('paymentMethod', selectedMethod);
                                     formData.append('notes', selectedMethod === 'VNPAY' ? 'Counter booking via VNPay' : 'Counter booking via Cash');
                                     formData.append('foodItems', foodItemsJson);
+                                    formData.append('customerUsername', state.memberUsername);
+                                    formData.append('_csrf', '${sessionScope.csrfToken}');
 
                                     fetch(contextPath + '/staff/booking', {
                                         method: 'POST',

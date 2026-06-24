@@ -9,6 +9,9 @@ import com.mbcms.dao.impl.PromotionDAOImpl;
 import com.mbcms.dao.impl.SeatDAOImpl;
 import com.mbcms.dao.impl.ShowtimeDAOImpl;
 import com.mbcms.dao.impl.CustomerDAOImpl;
+import com.mbcms.dao.RoomDAO;
+import com.mbcms.dao.impl.RoomDAOImpl;
+import com.mbcms.model.Room;
 import com.mbcms.model.Booking;
 import com.mbcms.model.BookingTicket;
 import com.mbcms.model.Customer;
@@ -16,11 +19,14 @@ import com.mbcms.model.Promotion;
 import com.mbcms.model.Seat;
 import com.mbcms.model.Showtime;
 import com.mbcms.service.BookingService;
+import com.mbcms.service.FoodService;
 import com.mbcms.service.NotificationService;
+import com.mbcms.service.impl.FoodServiceImpl;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.*;
 
 /**
@@ -34,15 +40,41 @@ public class BookingServiceImpl implements BookingService {
 
     private static final double VIP_SURCHARGE = 0.30;
 
-    private final BookingDAO bookingDao = new BookingDAOImpl();
-    private final SeatDAO seatDao = new SeatDAOImpl();
-    private final ShowtimeDAO showtimeDao = new ShowtimeDAOImpl();
-    private final PromotionDAO promoDao = new PromotionDAOImpl();
-    private final NotificationService notificationService = new NotificationServiceImpl();
+    public BookingServiceImpl() {
+        this.bookingDao = new BookingDAOImpl();
+        this.seatDao = new SeatDAOImpl();
+        this.showtimeDao = new ShowtimeDAOImpl();
+        this.promoDao = new PromotionDAOImpl();
+        this.notificationService = new NotificationServiceImpl();
+        this.foodService = new FoodServiceImpl();
+    }
+
+    /** Constructor for unit tests (inject mocks). */
+    BookingServiceImpl(BookingDAO bookingDao, SeatDAO seatDao, ShowtimeDAO showtimeDao,
+            PromotionDAO promoDao, NotificationService notificationService) {
+        this(bookingDao, seatDao, showtimeDao, promoDao, notificationService, new FoodServiceImpl());
+    }
+
+    BookingServiceImpl(BookingDAO bookingDao, SeatDAO seatDao, ShowtimeDAO showtimeDao,
+            PromotionDAO promoDao, NotificationService notificationService, FoodService foodService) {
+        this.bookingDao = bookingDao;
+        this.seatDao = seatDao;
+        this.showtimeDao = showtimeDao;
+        this.promoDao = promoDao;
+        this.notificationService = notificationService;
+        this.foodService = foodService;
+    }
+
+    private final BookingDAO bookingDao;
+    private final SeatDAO seatDao;
+    private final ShowtimeDAO showtimeDao;
+    private final PromotionDAO promoDao;
+    private final NotificationService notificationService;
+    private final FoodService foodService;
 
     // ── validatePromoCode ─────────────────────────────────────────────────
     @Override
-    public Promotion validatePromoCode(String code, BigDecimal subtotal, BigDecimal concessionsSubtotal) {
+    public Promotion validatePromoCode(String code, BigDecimal subtotal, BigDecimal concessionsSubtotal, Long branchId) {
         if (code == null || code.trim().isEmpty()) {
             return null;
         }
@@ -52,7 +84,7 @@ public class BookingServiceImpl implements BookingService {
             return null;
         }
 
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now(ZoneOffset.UTC);
         if (!p.isActive() || !"Active".equals(p.getStatus())) {
             throw new IllegalArgumentException("This promo code has been deactivated.");
         }
@@ -70,6 +102,9 @@ public class BookingServiceImpl implements BookingService {
                     "Minimum order of %.0f VND required for this promo code.",
                     p.getMinOrderAmount().doubleValue()));
         }
+        if (p.getBranchId() != null && branchId != null && !p.getBranchId().equals(branchId)) {
+            throw new IllegalArgumentException("This promo code is not applicable to this branch.");
+        }
         return p;
     }
 
@@ -86,15 +121,7 @@ public class BookingServiceImpl implements BookingService {
 
         // Lấy showtime
         Showtime st = showtimeDao.findById(showtimeId);
-        if (st == null) {
-            throw new IllegalArgumentException("Showtime not found.");
-        }
-        if (!"SCHEDULED".equals(st.getStatus())) {
-            throw new IllegalArgumentException("This showtime is no longer available.");
-        }
-        if (st.getStartTime().isBefore(java.time.LocalDateTime.now())) {
-            throw new IllegalArgumentException("Cannot book a showtime in the past.");
-        }
+        validateShowtimeForBooking(st);
 
         // Lấy seats để tính surcharge – dùng List<Seat> từ seatDao
         List<Seat> allSeats = seatDao.findByRoom(st.getRoomId());
@@ -102,10 +129,26 @@ public class BookingServiceImpl implements BookingService {
         for (Seat s : allSeats) {
             seatMap.put(s.getSeatId(), s);
         }
+
+        for (Long seatId : seatIds) {
+            Seat seat = seatMap.get(seatId);
+            if (seat == null || seat.getRoomId() != st.getRoomId()) {
+                throw new IllegalArgumentException("Invalid seat selection.");
+            }
+            if (!seat.isActive()) {
+                throw new IllegalArgumentException(
+                        "Seat " + seat.getRowLabel() + seat.getColNumber() + " is unavailable.");
+            }
+        }
+
         BigDecimal ticketsSubtotal = calcSubtotal(seatIds, seatMap, st.getBasePrice());
 
+        // Get branchId from showtime's room
+        Room room = new RoomDAOImpl().findById(st.getRoomId());
+        Long branchId = room != null ? room.getBranchId() : null;
+
         // Validate promo
-        Promotion promo = validatePromoCode(promoCode, ticketsSubtotal, concessionsSubtotal);
+        Promotion promo = validatePromoCode(promoCode, ticketsSubtotal, concessionsSubtotal, branchId);
         BigDecimal discount = promo != null ? calcDiscount(promo, ticketsSubtotal) : BigDecimal.ZERO;
         
         BigDecimal totalConcessions = concessionsSubtotal != null ? concessionsSubtotal : BigDecimal.ZERO;
@@ -147,7 +190,9 @@ public class BookingServiceImpl implements BookingService {
         Booking confirmed = bookingDao.findByIdWithSeats(bookingId);
         if (confirmed != null && confirmed.getPromoId() != null) {
             try {
-                promoDao.incrementUsedCount(confirmed.getPromoId());
+                if (!promoDao.incrementUsedCount(confirmed.getPromoId())) {
+                    System.err.println("WARN: Promo usage limit reached for promo_id=" + confirmed.getPromoId());
+                }
             } catch (Exception e) {
                 System.err.println("WARN: Không tăng được promo used_count: " + e.getMessage());
             }
@@ -180,8 +225,69 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public boolean updateBookingTotals(long bookingId, BigDecimal newSubtotal, BigDecimal newTotalAmount) {
-        return bookingDao.updateBookingTotals(bookingId, newSubtotal, newTotalAmount);
+    public boolean isPendingHoldExpired(long bookingId) {
+        return bookingDao.isPendingHoldExpired(bookingId);
+    }
+
+    @Override
+    public boolean updateBookingTotals(long bookingId, String customerUsername,
+            BigDecimal newSubtotal, BigDecimal discountAmount, BigDecimal newTotalAmount) {
+        Booking b = bookingDao.findById(bookingId);
+        if (b == null) {
+            return false;
+        }
+        if (!b.getCustomerUsername().equals(customerUsername)) {
+            throw new SecurityException("You are not allowed to update this booking.");
+        }
+        if (!Booking.STATUS_PENDING.equals(b.getStatus())) {
+            return false;
+        }
+        if (isPendingHoldExpired(bookingId)) {
+            return false;
+        }
+        return bookingDao.updateBookingTotals(bookingId, newSubtotal, discountAmount, newTotalAmount);
+    }
+
+    @Override
+    public boolean recalculateTotalsWithFood(long bookingId, String username,
+            Map<Long, Integer> foodItems) {
+        Booking b = getBookingDetail(bookingId, username);
+        if (b == null || !Booking.STATUS_PENDING.equals(b.getStatus())) {
+            return false;
+        }
+        if (isPendingHoldExpired(bookingId)) {
+            return false;
+        }
+
+        Showtime st = showtimeDao.findById(b.getShowtimeId());
+        if (st == null) {
+            return false;
+        }
+
+        List<Long> seatIds = b.getSeatIds();
+        if (seatIds == null || seatIds.isEmpty()) {
+            return false;
+        }
+
+        List<Seat> allSeats = seatDao.findByRoom(st.getRoomId());
+        Map<Long, Seat> seatMap = new HashMap<>();
+        for (Seat s : allSeats) {
+            seatMap.put(s.getSeatId(), s);
+        }
+
+        BigDecimal ticketsSubtotal = calcSubtotal(seatIds, seatMap, st.getBasePrice());
+        BigDecimal foodSubtotal = foodService.computeValidatedFoodSubtotal(foodItems);
+
+        Promotion promo = null;
+        if (b.getPromoId() != null) {
+            promo = promoDao.findById(b.getPromoId());
+        }
+        BigDecimal discount = promo != null ? calcDiscount(promo, ticketsSubtotal) : BigDecimal.ZERO;
+
+        BigDecimal subtotal = ticketsSubtotal.add(foodSubtotal);
+        BigDecimal total = ticketsSubtotal.subtract(discount).max(BigDecimal.ZERO).add(foodSubtotal);
+
+        return updateBookingTotals(bookingId, username, subtotal, discount, total);
     }
 
     // ── getBookingHistory / getBookingDetail ──────────────────────────────
@@ -214,6 +320,18 @@ public class BookingServiceImpl implements BookingService {
         }
         return bookingDao.findTicket(bookingId);
     }
+
+    @Override
+    public BookingTicket getTicketForBranch(long bookingId, long branchId) {
+        BookingTicket ticket = bookingDao.findTicket(bookingId);
+        if (ticket == null) {
+            return null;
+        }
+        if (ticket.getBranchId() != branchId) {
+            throw new SecurityException("Booking not in your branch.");
+        }
+        return ticket;
+    }
     @Override
     public Booking createCounterBooking(Booking booking, List<Long> seatIds, String promoCode, BigDecimal concessionsSubtotal) {
         if (seatIds == null || seatIds.isEmpty()) {
@@ -222,47 +340,49 @@ public class BookingServiceImpl implements BookingService {
         if (seatIds.size() > 8) {
             throw new IllegalArgumentException("Tối đa 8 ghế mỗi lần đặt.");
         }
-        // 1. Luon set mac dinh guest01 cho khach vang lai mua tai quay
-        booking.setCustomerUsername("guest01");
 
-        // 2. Ap dung ma khuyen mai neu co
-        Long promoId = null;
-        BigDecimal discount = BigDecimal.ZERO;
-        
-        // Note: booking.getSubtotal() passed from servlet is the tickets-only subtotal!
-        BigDecimal ticketsSubtotal = booking.getSubtotal();
-        
-        if (promoCode != null && !promoCode.trim().isEmpty()) {
-            Promotion promo = promoDao.findByCode(promoCode.trim().toUpperCase());
-            if (promo != null && promo.isActive() && "Active".equals(promo.getStatus())) {
-                BigDecimal minAmt = promo.getMinOrderAmount();
-                // Kiem tra gia tri don hang toi thieu dua tren TICKETS subtotal
-                if (minAmt == null || ticketsSubtotal.compareTo(minAmt) >= 0) {
-                    promoId = promo.getPromoId();
-                    if (Promotion.TYPE_PERCENT.equals(promo.getDiscountType())) {
-                        discount = ticketsSubtotal
-                                .multiply(promo.getDiscountValue())
-                                .divide(BigDecimal.valueOf(100), 0, java.math.RoundingMode.HALF_UP);
-                    } else if (Promotion.TYPE_FIXED_AMOUNT.equals(promo.getDiscountType())) {
-                        discount = promo.getDiscountValue();
-                    }
+        Showtime st = showtimeDao.findById(booking.getShowtimeId());
+        validateShowtimeForBooking(st);
 
-                    // Khong duoc giam nhieu hon gia tri ve
-                    if (discount.compareTo(ticketsSubtotal) > 0) {
-                        discount = ticketsSubtotal;
-                    }
-                }
+        // Validate ghe: phai thuoc dung phong cua showtime va dang active
+        // (chong dat ghe sai phong / ghe inactive o luong quay tien mat).
+        List<Seat> roomSeats = seatDao.findByRoom(st.getRoomId());
+        Map<Long, Seat> counterSeatMap = new HashMap<>();
+        for (Seat s : roomSeats) {
+            counterSeatMap.put(s.getSeatId(), s);
+        }
+        for (Long seatId : seatIds) {
+            Seat seat = counterSeatMap.get(seatId);
+            if (seat == null || seat.getRoomId() != st.getRoomId()) {
+                throw new IllegalArgumentException("Ghế không hợp lệ cho suất chiếu này.");
+            }
+            if (!seat.isActive()) {
+                throw new IllegalArgumentException(
+                        "Ghế " + seat.getRowLabel() + seat.getColNumber() + " không khả dụng.");
             }
         }
-        
+
+        String customerUsername = booking.getCustomerUsername();
+        if (customerUsername == null || customerUsername.trim().isEmpty()) {
+            customerUsername = "guest01";
+        }
+        booking.setCustomerUsername(customerUsername.trim());
+
+        BigDecimal ticketsSubtotal = booking.getSubtotal();
+
+        Room room = new RoomDAOImpl().findById(st.getRoomId());
+        Long branchId = room != null ? room.getBranchId() : null;
+
+        Promotion promo = validatePromoCode(promoCode, ticketsSubtotal, concessionsSubtotal, branchId);
+        BigDecimal discount = promo != null ? calcDiscount(promo, ticketsSubtotal) : BigDecimal.ZERO;
+
         BigDecimal totalConcessions = concessionsSubtotal != null ? concessionsSubtotal : BigDecimal.ZERO;
-        
-        booking.setPromoId(promoId);
+
+        booking.setPromoId(promo != null ? promo.getPromoId() : null);
         booking.setDiscountAmount(discount);
         booking.setSubtotal(ticketsSubtotal.add(totalConcessions));
         booking.setTotalAmount(ticketsSubtotal.subtract(discount).max(BigDecimal.ZERO).add(totalConcessions));
 
-        // 3. Goi DAO ghi nhan Booking + Seats + CASH Payment trong 1 transaction
         return bookingDao.createCounterBooking(booking, seatIds);
     }
 
@@ -278,6 +398,18 @@ public class BookingServiceImpl implements BookingService {
     }
 
     // ── Private helpers ───────────────────────────────────────────────────
+    private void validateShowtimeForBooking(Showtime st) {
+        if (st == null) {
+            throw new IllegalArgumentException("Showtime not found.");
+        }
+        if (!"SCHEDULED".equals(st.getStatus())) {
+            throw new IllegalArgumentException("This showtime is no longer available.");
+        }
+        if (st.getStartTime().isBefore(LocalDateTime.now(ZoneOffset.UTC))) {
+            throw new IllegalArgumentException("Cannot book a showtime in the past.");
+        }
+    }
+
     private BigDecimal calcSubtotal(List<Long> selectedIds,
             Map<Long, Seat> seatMap,
             BigDecimal basePrice) {

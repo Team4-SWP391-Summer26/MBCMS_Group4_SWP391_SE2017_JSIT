@@ -40,8 +40,15 @@ public class ValidationUtil {
         return hasUpper && hasLower && hasDigit;
     }
 
+    /**
+     * Chap nhan cac dinh dang: 0981234567, +84981234567,
+     * 028 1234 5678, 028-1234-5678, 028.1234.5678
+     * Strip tat ca dau cach / gach ngang / dau cham truoc khi validate.
+     */
     public static boolean isValidPhone(String phone) {
-        return phone != null && PHONE_PATTERN.matcher(phone.trim()).matches();
+        if (phone == null) return false;
+        String normalized = phone.trim().replaceAll("[\\s\\-.]", "");
+        return PHONE_PATTERN.matcher(normalized).matches();
     }
 
     public static boolean isNullOrEmpty(String s) {

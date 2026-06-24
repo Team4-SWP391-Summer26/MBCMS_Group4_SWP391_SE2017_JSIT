@@ -1,4 +1,4 @@
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+﻿<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 <%--
@@ -169,6 +169,7 @@
             <div class="bk-card p-4">
                 <h6 class="fw-bold mb-3" style="color:var(--bk-navy);">Promotion code</h6>
                 <form method="post" action="${pageContext.request.contextPath}/booking/checkout">
+            <%@ include file="/WEB-INF/views/common/csrf-hidden.jspf" %>
                     <input type="hidden" name="showtimeId" value="${showtimeId}">
                     <input type="hidden" name="applyPromo" value="true">
                     <input type="hidden" name="bookingId"  value="${booking.bookingId}">
@@ -236,6 +237,7 @@
 
                 <%-- Confirm: tao chuyen sang buoc Payment --%>
                 <form method="post" action="${pageContext.request.contextPath}/booking/checkout" class="mt-3">
+            <%@ include file="/WEB-INF/views/common/csrf-hidden.jspf" %>
                     <input type="hidden" name="showtimeId" value="${showtimeId}">
                     <input type="hidden" name="promoCode"  value="${promoCode}">
                     <input type="hidden" name="bookingId"  value="${booking.bookingId}">
@@ -272,6 +274,7 @@
             <div class="d-flex gap-2">
                 <button class="btn btn-outline-secondary flex-fill" onclick="closeCancelModal()">Keep booking</button>
                 <form action="${pageContext.request.contextPath}/customer/booking/cancel" method="post" class="flex-fill m-0">
+            <%@ include file="/WEB-INF/views/common/csrf-hidden.jspf" %>
                     <input type="hidden" name="bookingId"  value="${booking.bookingId}"/>
                     <input type="hidden" name="showtimeId" value="${showtimeId}"/>
                     <button type="submit" class="btn btn-danger w-100">Yes, cancel</button>

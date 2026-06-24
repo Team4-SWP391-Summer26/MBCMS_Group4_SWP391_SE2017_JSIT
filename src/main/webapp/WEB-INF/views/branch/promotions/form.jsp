@@ -126,7 +126,7 @@
                 <%-- ===== Scope Notice ===== --%>
                 <div class="lc-scope mb-4">
                     <i class="bi bi-info-circle-fill" style="color:#cf9a00;"></i>
-                    <span>Promotions created here are global and can be used by all branches.</span>
+                    <span>Promotions created here are <strong>branch-specific</strong> and can only be used by this cinema branch.</span>
                 </div>
 
                 <c:if test="${not empty errorMsg}">
@@ -140,6 +140,7 @@
                     <%-- Left column: Form input fields --%>
                     <div class="col-lg-7">
                         <form id="promoForm" action="${pageContext.request.contextPath}/branch/promotions/${isEdit ? 'edit' : 'create'}" method="post">
+            <%@ include file="/WEB-INF/views/common/csrf-hidden.jspf" %>
                             <c:if test="${isEdit}">
                                 <input type="hidden" name="promoId" value="${promo.promoId}">
                             </c:if>

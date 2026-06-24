@@ -41,6 +41,12 @@ public class PromotionEditServlet extends HttpServlet {
                 return;
             }
 
+            Long sessionBranchId = (Long) req.getSession(false).getAttribute("currentBranchId");
+            if (sessionBranchId == null || !sessionBranchId.equals(p.getBranchId())) {
+                resp.sendRedirect(req.getContextPath() + "/branch/promotions?error=1");
+                return;
+            }
+
             req.setAttribute("isEdit", true);
             req.setAttribute("promo", p);
 
@@ -83,6 +89,12 @@ public class PromotionEditServlet extends HttpServlet {
             return;
         }
 
+        Long sessionBranchId = (Long) req.getSession(false).getAttribute("currentBranchId");
+        if (sessionBranchId == null || !sessionBranchId.equals(existing.getBranchId())) {
+            resp.sendRedirect(req.getContextPath() + "/branch/promotions?error=1");
+            return;
+        }
+
         String code = req.getParameter("code");
         String name = req.getParameter("name");
         String discountType = req.getParameter("discountType");
@@ -100,6 +112,7 @@ public class PromotionEditServlet extends HttpServlet {
         p.setDiscountType(discountType);
         p.setActive(active);
         p.setUsedCount(existing.getUsedCount()); // keep existing usage count
+        p.setBranchId(existing.getBranchId()); // preserve branchId on update!
 
         String errorMsg = null;
 

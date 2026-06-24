@@ -257,10 +257,10 @@ PENDING ──(payment success)──► CONFIRMED ──(QR scan)──► USED
 ### Prerequisites
 
 ```
-Java 17 LTS
+Java 17 LTS (set JAVA_HOME — default Java 8 on PATH is not sufficient)
 Apache Tomcat 10.1+
 Microsoft SQL Server 2019+
-Apache Maven 3.x
+Apache Maven 3.x (or use IntelliJ bundled Maven)
 IntelliJ IDEA Ultimate (recommended)
 ```
 
@@ -275,40 +275,31 @@ cd mbcms
 
 **2. Create the database**
 
+See [`database/README.md`](database/README.md) — run `CinemaDB_schema.sql` then `CinemaDB_seed.sql`.
+
+**3. Configure application properties**
+
 ```bash
-# Run SQL scripts in order
-sqlcmd -S localhost -i 01_Database/01_create_schema.sql
-sqlcmd -S localhost -i 01_Database/02_seed_data.sql
+cp src/main/resources/database.properties.example src/main/resources/database.properties
 ```
 
-**3. Configure database connection**
-
-Edit `src/main/resources/db.properties`:
+Edit `src/main/resources/database.properties`:
 
 ```properties
-db.url=jdbc:sqlserver://localhost:1433;databaseName=CinemaDB_final;encrypt=false
+db.url=jdbc:sqlserver://localhost:1433;databaseName=CinemaDB;encrypt=false;trustServerCertificate=true
 db.username=your_username
 db.password=your_password
-db.pool.maxTotal=20
-db.pool.maxIdle=10
+app.baseUrl=http://localhost:9999/MBCMS
+payment.vnpay.tmnCode=YOUR_SANDBOX_TMN
+payment.vnpay.hashSecret=YOUR_SANDBOX_SECRET
 ```
 
-**4. Configure payment gateways** _(optional — sandbox)_
-
-Edit `src/main/resources/payment.properties`:
-
-```properties
-vnpay.tmn_code=YOUR_TMN_CODE
-vnpay.hash_secret=YOUR_HASH_SECRET
-vnpay.url=https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
-```
-
-**5. Build & deploy**
+**4. Build & deploy**
 
 ```bash
 mvn clean package
-# Copy target/mbcms.war to Tomcat webapps/
-# Start Tomcat, visit http://localhost:8080/mbcms
+# Deploy target/MBCMS.war to Tomcat 10
+# Run tests: mvn test
 ```
 
 ### Default Accounts _(seed data)_

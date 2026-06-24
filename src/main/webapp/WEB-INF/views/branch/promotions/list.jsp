@@ -60,7 +60,7 @@
                 <%-- ===== Branch scope notice ===== --%>
                 <div class="lc-scope mb-4">
                     <i class="bi bi-info-circle-fill" style="color:#cf9a00;"></i>
-                    <span>Promotions are <strong>global</strong> &mdash; they can be applied across all branches.</span>
+                    <span>Promotions are <strong>branch-specific</strong> &mdash; they can only be applied at this cinema branch.</span>
                 </div>
 
                 <%-- ===== Feedback alerts ===== --%>
@@ -270,6 +270,7 @@
                                                 </a>
                                                 <form method="post" action="${pageContext.request.contextPath}/branch/promotions/toggle" class="d-inline"
                                                       onsubmit="return confirm('Toggle status for <c:out value="${p.code}"/>?');">
+                                                    <%@ include file="/WEB-INF/views/common/csrf-hidden.jspf" %>
                                                     <input type="hidden" name="id" value="${p.promoId}">
                                                     <button type="submit" class="btn btn-sm ${p.active ? 'btn-outline-warning' : 'btn-outline-success'}" title="${p.active ? 'Pause' : 'Activate'}">
                                                         <i class="bi ${p.active ? 'bi-pause-fill' : 'bi-play-fill'}"></i>
@@ -277,6 +278,7 @@
                                                 </form>
                                                 <form method="post" action="${pageContext.request.contextPath}/branch/promotions/delete" class="d-inline"
                                                       onsubmit="return confirm('Are you sure you want to delete <c:out value="${p.code}"/>? This action cannot be undone and will delete it from the database.');">
+                                                    <%@ include file="/WEB-INF/views/common/csrf-hidden.jspf" %>
                                                     <input type="hidden" name="id" value="${p.promoId}">
                                                     <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete">
                                                         <i class="bi bi-trash-fill"></i>

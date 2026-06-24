@@ -5,12 +5,11 @@ import com.mbcms.dao.SeatDAO;
 import com.mbcms.dao.impl.SeatDAOImpl;
 import com.mbcms.model.Booking;
 import com.mbcms.model.Customer;
-import com.mbcms.model.FoodItem;
 import com.mbcms.service.BookingService;
 import com.mbcms.service.FoodService;
 import com.mbcms.service.impl.BookingServiceImpl;
 import com.mbcms.service.impl.FoodServiceImpl;
-import com.mbcms.ws.SeatWebSocketServer;
+import com.mbcms.util.BookingCustomerGuard;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -18,8 +17,10 @@ import jakarta.servlet.http.*;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * BookingCheckoutServlet – /booking/checkout
@@ -53,12 +54,10 @@ public class BookingCheckoutServlet extends HttpServlet {
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
 
-        HttpSession session = req.getSession(false);
-        if (session == null || session.getAttribute("currentUser") == null) {
-            resp.sendRedirect(req.getContextPath() + "/auth/login");
+        Customer customer = BookingCustomerGuard.requireCustomer(req, resp);
+        if (customer == null) {
             return;
         }
-        Customer customer = (Customer) session.getAttribute("currentUser");
 
         String showtimeIdParam = req.getParameter("showtimeId");
         List<Long> seatIds = parseSeatIds(req);
@@ -76,17 +75,16 @@ public class BookingCheckoutServlet extends HttpServlet {
             return;
         }
 
-        // Tạo PENDING booking ngay khi người dùng vào trang checkout
+        HttpSession session = req.getSession();
+
+        // Tạo hoặc tái sử dụng PENDING booking (tránh conflict khi F5 refresh)
         try {
             BigDecimal foodSubtotal = getFoodSubtotal(session);
-            Booking booking = bookingService.createPendingBooking(
-                    customer.getUsername(), showtimeId, seatIds,
-                    req.getParameter("promoCode"), null, foodSubtotal);
+            Booking booking = resolveOrCreatePendingBooking(
+                    customer, session, showtimeId, seatIds,
+                    req.getParameter("promoCode"), foodSubtotal);
 
             processFoodOrder(booking, session, req);
-
-            // Lưu vào session để confirm page dùng
-            session.setAttribute("pendingBookingId", booking.getBookingId());
 
             req.setAttribute("booking",    booking);
             req.setAttribute("showtimeId", showtimeId);
@@ -118,12 +116,11 @@ public class BookingCheckoutServlet extends HttpServlet {
     protected void doPost(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
 
-        HttpSession session = req.getSession(false);
-        if (session == null || session.getAttribute("currentUser") == null) {
-            resp.sendRedirect(req.getContextPath() + "/auth/login");
+        Customer customer = BookingCustomerGuard.requireCustomer(req, resp);
+        if (customer == null) {
             return;
         }
-        Customer customer = (Customer) session.getAttribute("currentUser");
+        HttpSession session = req.getSession();
 
         String     showtimeIdParam = req.getParameter("showtimeId");
         List<Long> seatIds         = parseSeatIds(req);
@@ -158,6 +155,7 @@ public class BookingCheckoutServlet extends HttpServlet {
             Long oldBookingId = parseBookingId(bookingIdParam, session);
             if (oldBookingId != null) {
                 try {
+                    foodService.deleteOrderByBookingId(oldBookingId);
                     bookingService.cancelBooking(oldBookingId, customer.getUsername());
                 } catch (Exception e) {
                     System.err.println("WARN: Không huỷ được booking cũ trước khi áp promo: " + e.getMessage());
@@ -214,27 +212,64 @@ public class BookingCheckoutServlet extends HttpServlet {
             return;
         }
 
-        // Chuyển sang bước thanh toán (PaymentServlet) thay vì confirm thẳng.
-        // Booking->CONFIRMED chỉ xảy ra sau khi payment callback thành công.
+        // Chuyển sang bước thanh toán — verify ownership trước khi redirect
+        try {
+            bookingService.getBookingDetail(bookingId, customer.getUsername());
+        } catch (SecurityException e) {
+            req.setAttribute("checkoutError", "You are not allowed to pay for this booking.");
+            req.setAttribute("showtimeId", showtimeId);
+            req.setAttribute("seatIds",    seatIds);
+            req.setAttribute("seatLabels", seatDao.findLabelsBySeatIds(seatIds));
+            req.getRequestDispatcher("/WEB-INF/views/booking/checkout.jsp").forward(req, resp);
+            return;
+        }
+
         resp.sendRedirect(req.getContextPath()
                 + "/booking/payment?bookingId=" + bookingId);
     }
 
     // ── Helpers ──────────────────────────────────────────────────────────
 
-    private BigDecimal getFoodSubtotal(HttpSession session) {
-        if (session == null) return BigDecimal.ZERO;
-        Map<Long, Integer> selectedFood = (Map<Long, Integer>) session.getAttribute("selectedFoodItems");
-        BigDecimal foodSubtotal = BigDecimal.ZERO;
-        if (selectedFood != null && !selectedFood.isEmpty()) {
-            for (Map.Entry<Long, Integer> entry : selectedFood.entrySet()) {
-                FoodItem item = foodService.getFoodItemById(entry.getKey());
-                if (item != null) {
-                    foodSubtotal = foodSubtotal.add(item.getPrice().multiply(BigDecimal.valueOf(entry.getValue())));
+    private Booking resolveOrCreatePendingBooking(Customer customer, HttpSession session,
+            long showtimeId, List<Long> seatIds, String promoCode, BigDecimal foodSubtotal)
+            throws SeatUnavailableException {
+        Long existingId = parseBookingId(null, session);
+        if (existingId != null) {
+            try {
+                Booking existing = bookingService.getBookingDetail(existingId, customer.getUsername());
+                if (existing != null
+                        && Booking.STATUS_PENDING.equals(existing.getStatus())
+                        && !bookingService.isPendingHoldExpired(existingId)
+                        && existing.getShowtimeId() == showtimeId
+                        && seatIdsEqual(existing.getSeatIds(), seatIds)) {
+                    return existing;
                 }
+            } catch (Exception ignored) {
             }
         }
-        return foodSubtotal;
+
+        Booking booking = bookingService.createPendingBooking(
+                customer.getUsername(), showtimeId, seatIds, promoCode, null, foodSubtotal);
+        session.setAttribute("pendingBookingId", booking.getBookingId());
+        return booking;
+    }
+
+    private boolean seatIdsEqual(List<Long> a, List<Long> b) {
+        if (a == null || b == null) {
+            return false;
+        }
+        if (a.size() != b.size()) {
+            return false;
+        }
+        return new HashSet<>(a).equals(new HashSet<>(b));
+    }
+
+    private BigDecimal getFoodSubtotal(HttpSession session) {
+        if (session == null) {
+            return BigDecimal.ZERO;
+        }
+        Map<Long, Integer> selectedFood = (Map<Long, Integer>) session.getAttribute("selectedFoodItems");
+        return foodService.computeValidatedFoodSubtotal(selectedFood);
     }
 
     /**

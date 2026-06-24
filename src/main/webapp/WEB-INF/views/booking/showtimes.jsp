@@ -45,7 +45,7 @@
 
     <div class="d-flex flex-wrap align-items-start gap-3 mt-2 mb-4">
         <c:if test="${not empty movie.posterUrl}">
-            <img src="${movie.posterUrl}" alt="${movie.title}"
+            <img src="<c:url value='${movie.posterUrl}'/>" alt="${movie.title}"
                  style="width:84px; height:126px; object-fit:cover; border-radius:8px;">
         </c:if>
         <div>

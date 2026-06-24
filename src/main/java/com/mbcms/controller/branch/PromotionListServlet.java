@@ -21,7 +21,7 @@ public class PromotionListServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
-
+        long branchId = (Long) req.getSession(false).getAttribute("currentBranchId");
         ConsoleSupport.ensureBranchName(req);
 
         // Fetch query parameters for filtering
@@ -32,13 +32,13 @@ public class PromotionListServlet extends HttpServlet {
         PromotionDAO promotionDAO = new PromotionDAOImpl();
 
         // Retrieve statistics
-        int totalPromotions = promotionDAO.getTotalPromotionsCount();
-        int activePromotions = promotionDAO.getActivePromotionsCount();
-        int usedThisMonth = promotionDAO.getUsedThisMonthCount();
-        BigDecimal revenueImpact = promotionDAO.getRevenueImpactThisMonth();
+        int totalPromotions = promotionDAO.getTotalPromotionsCount(branchId);
+        int activePromotions = promotionDAO.getActivePromotionsCount(branchId);
+        int usedThisMonth = promotionDAO.getUsedThisMonthCount(branchId);
+        BigDecimal revenueImpact = promotionDAO.getRevenueImpactThisMonth(branchId);
 
         // Retrieve filtered list of promotions
-        List<Promotion> list = promotionDAO.findByFilters(search, type, status);
+        List<Promotion> list = promotionDAO.findByFilters(search, type, status, branchId);
 
         // Set attributes
         req.setAttribute("promotions", list);

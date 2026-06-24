@@ -165,6 +165,9 @@ public class PromotionCreateServlet extends HttpServlet {
             return;
         }
 
+        long branchId = (Long) req.getSession(false).getAttribute("currentBranchId");
+        p.setBranchId(branchId);
+
         // Save and redirect
         boolean success = promotionDAO.insert(p);
         if (success) {

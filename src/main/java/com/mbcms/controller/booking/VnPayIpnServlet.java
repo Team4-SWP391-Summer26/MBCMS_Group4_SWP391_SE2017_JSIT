@@ -48,6 +48,7 @@ public class VnPayIpnServlet extends HttpServlet {
             case BOOKING_NOT_FOUND, INVALID_TXN_REF -> "RspCode=01&Message=Order not found";
             case EXPIRED -> "RspCode=02&Message=Order expired";
             case PAYMENT_FAILED -> "RspCode=99&Message=Payment failed";
+            case AMOUNT_MISMATCH -> "RspCode=04&Message=Invalid amount";
         };
 
         resp.setCharacterEncoding(StandardCharsets.UTF_8.name());

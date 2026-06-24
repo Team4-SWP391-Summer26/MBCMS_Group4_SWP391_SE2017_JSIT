@@ -35,8 +35,8 @@ public class BranchServiceImpl implements BranchService {
     @Override
     public boolean addBranch(Branch branch) {
         validateBranch(branch);
-        
-        // Check duplicate name
+        validateHours(branch.getOpeningTime(), branch.getClosingTime());
+
         List<Branch> all = branchDAO.findAll(true);
         for (Branch b : all) {
             if (b.getName().equalsIgnoreCase(branch.getName().trim())) {
@@ -47,12 +47,20 @@ public class BranchServiceImpl implements BranchService {
         branch.setName(branch.getName().trim());
         branch.setAddress(branch.getAddress().trim());
         branch.setCity(branch.getCity().trim());
-        if (branch.getPhone() != null) branch.setPhone(branch.getPhone().trim());
-        if (branch.getEmail() != null) branch.setEmail(branch.getEmail().trim());
+        if (branch.getPhone() != null) {
+            branch.setPhone(branch.getPhone().trim());
+        }
+        if (branch.getEmail() != null) {
+            branch.setEmail(branch.getEmail().trim());
+        }
         branch.setActive(true);
         branch.setCreatedAt(LocalDateTime.now());
-        if (branch.getOpeningTime() == null) branch.setOpeningTime(LocalTime.of(8, 0));
-        if (branch.getClosingTime() == null) branch.setClosingTime(LocalTime.of(23, 0));
+        if (branch.getOpeningTime() == null) {
+            branch.setOpeningTime(LocalTime.of(8, 0));
+        }
+        if (branch.getClosingTime() == null) {
+            branch.setClosingTime(LocalTime.of(23, 0));
+        }
 
         return branchDAO.insert(branch);
     }
@@ -66,7 +74,6 @@ public class BranchServiceImpl implements BranchService {
             throw new IllegalArgumentException("Chi nhánh không tồn tại.");
         }
 
-        // Check duplicate name with other branches
         List<Branch> all = branchDAO.findAll(true);
         for (Branch b : all) {
             if (b.getBranchId() != branch.getBranchId() && b.getName().equalsIgnoreCase(branch.getName().trim())) {
@@ -79,24 +86,76 @@ public class BranchServiceImpl implements BranchService {
         existing.setCity(branch.getCity().trim());
         existing.setPhone(branch.getPhone() != null ? branch.getPhone().trim() : null);
         existing.setEmail(branch.getEmail() != null ? branch.getEmail().trim() : null);
+        existing.setActive(branch.isActive());
+        if (branch.getOpeningTime() != null) existing.setOpeningTime(branch.getOpeningTime());
+        if (branch.getClosingTime() != null) existing.setClosingTime(branch.getClosingTime());
 
         return branchDAO.update(existing);
     }
 
     @Override
+    public boolean saveBranchDetails(Branch branch, LocalTime openingTime, LocalTime closingTime, boolean active) {
+        validateBranch(branch);
+        validateHours(openingTime, closingTime);
+
+        Branch existing = branchDAO.findById(branch.getBranchId());
+        if (existing == null) {
+            throw new IllegalArgumentException("Chi nhánh không tồn tại.");
+        }
+
+        if (!active && existing.isActive()) {
+            ensureCanDeactivate(branch.getBranchId());
+        }
+
+        existing.setName(branch.getName().trim());
+        existing.setAddress(branch.getAddress().trim());
+        existing.setCity(branch.getCity().trim());
+        existing.setPhone(branch.getPhone() != null ? branch.getPhone().trim() : null);
+        existing.setEmail(branch.getEmail() != null ? branch.getEmail().trim() : null);
+        existing.setOpeningTime(openingTime);
+        existing.setClosingTime(closingTime);
+        existing.setActive(active);
+
+        return branchDAO.saveBranchDetails(existing, openingTime, closingTime, active);
+    }
+
+    @Override
     public boolean toggleBranchStatus(long branchId, boolean active) {
+        if (!active) {
+            ensureCanDeactivate(branchId);
+        }
         return branchDAO.updateStatus(branchId, active);
     }
 
     @Override
     public boolean updateOperatingHours(long branchId, LocalTime openingTime, LocalTime closingTime) {
+        validateHours(openingTime, closingTime);
+        return branchDAO.updateOperatingHours(branchId, openingTime, closingTime);
+    }
+
+    @Override
+    public List<Branch> getAllBranchesWithStats(boolean includeInactive) {
+        return branchDAO.findAllWithStats(includeInactive);
+    }
+
+    private void ensureCanDeactivate(long branchId) {
+        if (branchDAO.hasFutureShowtimes(branchId)) {
+            throw new IllegalArgumentException(
+                    "Không thể vô hiệu hóa chi nhánh vì còn suất chiếu trong tương lai.");
+        }
+        if (branchDAO.hasActiveFutureBookings(branchId)) {
+            throw new IllegalArgumentException(
+                    "Không thể vô hiệu hóa chi nhánh vì còn vé đặt hiệu lực cho suất chiếu tương lai.");
+        }
+    }
+
+    private void validateHours(LocalTime openingTime, LocalTime closingTime) {
         if (openingTime == null || closingTime == null) {
             throw new IllegalArgumentException("Giờ hoạt động không được để trống.");
         }
         if (!closingTime.isAfter(openingTime)) {
             throw new IllegalArgumentException("Giờ đóng cửa phải sau giờ mở cửa.");
         }
-        return branchDAO.updateOperatingHours(branchId, openingTime, closingTime);
     }
 
     private void validateBranch(Branch b) {
@@ -115,13 +174,7 @@ public class BranchServiceImpl implements BranchService {
         if (!ValidationUtil.isNullOrEmpty(b.getEmail()) && !ValidationUtil.isValidEmail(b.getEmail())) {
             throw new IllegalArgumentException("Email không đúng định dạng.");
         }
-        if (!ValidationUtil.isNullOrEmpty(b.getPhone()) && !ValidationUtil.isValidPhone(b.getPhone())) {
-            throw new IllegalArgumentException("Số điện thoại không đúng định dạng Việt Nam.");
-        }
-    }
-
-    @Override
-    public List<Branch> getAllBranchesWithStats(boolean includeInactive) {
-        return branchDAO.findAllWithStats(includeInactive);
+        // Phone validation relaxed: accept any non-empty string
+        // (format varies: spaces, dashes, dots)
     }
 }

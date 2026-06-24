@@ -10,7 +10,7 @@ public interface PromotionDAO {
 
     List<Promotion> findAll();
 
-    List<Promotion> findByFilters(String search, String type, String status);
+    List<Promotion> findByFilters(String search, String type, String status, Long branchId);
 
     Promotion findById(long promoId);
 
@@ -26,13 +26,13 @@ public interface PromotionDAO {
 
     boolean toggleActive(long promoId);
 
-    int getTotalPromotionsCount();
+    int getTotalPromotionsCount(Long branchId);
 
-    int getActivePromotionsCount();
+    int getActivePromotionsCount(Long branchId);
 
-    int getUsedThisMonthCount();
+    int getUsedThisMonthCount(Long branchId);
 
-    BigDecimal getRevenueImpactThisMonth();
+    BigDecimal getRevenueImpactThisMonth(Long branchId);
 
     boolean delete(long promoId);
     boolean incrementUsedCount(long promoId);

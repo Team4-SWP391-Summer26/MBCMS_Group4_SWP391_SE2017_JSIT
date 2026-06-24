@@ -1,14 +1,8 @@
 package com.mbcms.controller.admin;
 
 import com.mbcms.model.Branch;
-import com.mbcms.model.Room;
-import com.mbcms.model.Seat;
 import com.mbcms.service.BranchService;
-import com.mbcms.service.RoomService;
-import com.mbcms.service.SeatService;
 import com.mbcms.service.impl.BranchServiceImpl;
-import com.mbcms.service.impl.RoomServiceImpl;
-import com.mbcms.service.impl.SeatServiceImpl;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -23,12 +17,9 @@ import java.util.List;
 public class AdminDashboardServlet extends HttpServlet {
 
     private final BranchService branchService = new BranchServiceImpl();
-    private final RoomService roomService = new RoomServiceImpl();
-    private final SeatService seatService = new SeatServiceImpl();
 
     @Override
-    protected void doGet(HttpServletRequest req,
-                         HttpServletResponse resp)
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
 
         if (req.getServletPath().equals("/admin")) {
@@ -37,49 +28,34 @@ public class AdminDashboardServlet extends HttpServlet {
         }
 
         try {
+            // Load branches with stats (rooms, seats, manager, revenue)
+            // in a single query — avoids the old N+1 per-room seat loop
+            List<Branch> branches = branchService.getAllBranchesWithStats(true);
 
-            List<Branch> branches =
-                    branchService.getAllBranches(true);
+            int totalBranches  = branches.size();
+            int activeBranches = (int) branches.stream().filter(Branch::isActive).count();
 
-            List<Room> rooms =
-                    roomService.getAllRooms(true);
-
-            int totalBranches = branches.size();
-
-            int activeBranches = (int) branches.stream()
-                    .filter(Branch::isActive)
-                    .count();
-
-            int totalRooms = rooms.size();
-
+            // Aggregate totals from stats already loaded on each Branch
+            int totalRooms = 0;
             int totalSeats = 0;
-
-            for (Room room : rooms) {
-                List<Seat> seats =
-                        seatService.getSeatsByRoom(room.getRoomId());
-
-                totalSeats += seats.size();
+            for (Branch b : branches) {
+                totalRooms += b.getRoomsCount();
+                totalSeats += b.getSeatsCount();
             }
 
-            req.setAttribute("totalBranches", totalBranches);
+            req.setAttribute("branches",       branches);
+            req.setAttribute("totalBranches",  totalBranches);
             req.setAttribute("activeBranches", activeBranches);
-            req.setAttribute("totalRooms", totalRooms);
-            req.setAttribute("totalSeats", totalSeats);
+            req.setAttribute("totalRooms",     totalRooms);
+            req.setAttribute("totalSeats",     totalSeats);
 
-            req.setAttribute("branches", branches);
-
-            req.getRequestDispatcher(
-                    "/WEB-INF/views/admin/dashboard.jsp")
-                    .forward(req, resp);
+            req.getRequestDispatcher("/WEB-INF/views/admin/dashboard.jsp")
+               .forward(req, resp);
 
         } catch (Exception e) {
-
-            getServletContext().log(
-                    "Error loading admin dashboard", e);
-
-            resp.sendError(
-                    HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
-                    "Unable to load dashboard.");
+            getServletContext().log("Error loading admin dashboard", e);
+            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+                           "Unable to load dashboard.");
         }
     }
 }

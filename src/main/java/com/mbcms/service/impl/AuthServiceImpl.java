@@ -7,6 +7,7 @@ import com.mbcms.dao.impl.EmployeeDAOImpl;
 import com.mbcms.model.Customer;
 import com.mbcms.model.Employee;
 import com.mbcms.service.AuthService;
+import com.mbcms.util.AppConfig;
 import org.mindrot.jbcrypt.BCrypt;
 
 /**
@@ -127,9 +128,10 @@ public class AuthServiceImpl implements AuthService {
         String hashed = BCrypt.hashpw(rawPassword, BCrypt.gensalt(10));
         customer.setPasswordHash(hashed);
 
-        // Sinh token xac thuc ngau nhien
-        String token = java.util.UUID.randomUUID().toString();
-        customer.setResetToken(token);
+        // Sinh token xac thuc ngau nhien (luu hash trong DB, gui plaintext qua email)
+        String verifyToken = java.util.UUID.randomUUID().toString();
+        String tokenHash = BCrypt.hashpw(verifyToken, BCrypt.gensalt(10));
+        customer.setResetToken(tokenHash);
 
         // Cac thiet lap mac dinh
         customer.setActive(true);
@@ -141,9 +143,9 @@ public class AuthServiceImpl implements AuthService {
         if (success) {
             final String email = customer.getEmail();
             final String username = customer.getUsername();
-            final String verifyToken = token;
+            final String verifyTokenPlain = verifyToken;
             new Thread(() -> {
-                String verifyLink = "http://localhost:9999/MBCMS/auth/verify?username=" + username + "&token=" + verifyToken;
+                String verifyLink = AppConfig.getBaseUrl() + "/auth/verify?username=" + username + "&token=" + verifyTokenPlain;
                 com.mbcms.util.EmailUtil.sendVerificationEmail(email, username, verifyLink);
             }).start();
         }
@@ -170,7 +172,7 @@ public class AuthServiceImpl implements AuthService {
         }
 
         // Mat khau moi nen co do dai toi thieu de tranh password qua yeu.
-        if (newPassword.length() < 6) {
+        if (newPassword.length() < 8) {
             return "WEAK_PASSWORD";
         }
 
@@ -255,7 +257,9 @@ public class AuthServiceImpl implements AuthService {
         if (customer == null) {
             return false;
         }
-        if (token.equals(customer.getResetToken()) && !customer.isEmailVerified()) {
+        if (customer.getResetToken() != null
+                && BCrypt.checkpw(token, customer.getResetToken())
+                && !customer.isEmailVerified()) {
             return customerDAO.updateEmailVerified(username, true);
         }
         return false;

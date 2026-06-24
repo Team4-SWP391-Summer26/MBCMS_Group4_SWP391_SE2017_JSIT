@@ -28,7 +28,10 @@ public class BookingDetailServlet extends HttpServlet {
             throws ServletException, IOException {
 
         HttpSession session = req.getSession(false);
-        Customer customer = (Customer) session.getAttribute("currentUser");
+        if (session == null || !(session.getAttribute("currentUser") instanceof Customer customer)) {
+            resp.sendRedirect(req.getContextPath() + "/auth/login");
+            return;
+        }
 
         String bookingIdParam = req.getParameter("bookingId");
         if (bookingIdParam == null) {

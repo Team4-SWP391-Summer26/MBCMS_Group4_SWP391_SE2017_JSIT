@@ -31,7 +31,18 @@ public class PromotionToggleServlet extends HttpServlet {
         try {
             long id = Long.parseLong(idStr.trim());
             Promotion before = promotionDAO.findById(id);
-            boolean wasInactive = (before != null && !before.isActive());
+            if (before == null) {
+                resp.sendRedirect(req.getContextPath() + "/branch/promotions?error=1");
+                return;
+            }
+
+            Long sessionBranchId = (Long) req.getSession(false).getAttribute("currentBranchId");
+            if (sessionBranchId == null || !sessionBranchId.equals(before.getBranchId())) {
+                resp.sendRedirect(req.getContextPath() + "/branch/promotions?error=1");
+                return;
+            }
+
+            boolean wasInactive = !before.isActive();
 
             boolean success = promotionDAO.toggleActive(id);
             if (success) {

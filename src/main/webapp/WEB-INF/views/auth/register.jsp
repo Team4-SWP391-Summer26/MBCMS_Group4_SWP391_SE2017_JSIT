@@ -136,6 +136,7 @@
 
                             <form id="registerForm" method="post"
                                   action="${pageContext.request.contextPath}/auth/register">
+            <%@ include file="/WEB-INF/views/common/csrf-hidden.jspf" %>
                                 <div class="row g-3 mb-3">
                                     <!-- Username -->
                                     <div class="col-md-6">
@@ -322,20 +323,6 @@
                                 </button>
                             </form>
 
-                            <!-- Google signup and divisor -->
-                            <div class="d-flex align-items-center my-3 text-muted" style="font-size: 0.85rem;">
-                                <div class="flex-grow-1" style="border-top: 1px solid #e5e7eb;"></div>
-                                <span class="px-3" style="font-size: 0.8rem; color: #9ca3af;">or sign up with</span>
-                                <div class="flex-grow-1" style="border-top: 1px solid #e5e7eb;"></div>
-                            </div>
-
-                            <a href="#"
-                               class="btn btn-outline-light w-100 d-flex align-items-center justify-content-center border gap-2 text-dark fw-semibold mb-3"
-                               style="border-color: #e5e7eb !important; border-radius: 8px; height: 44px; background: #ffffff; font-size: 0.95rem; text-decoration: none;">
-                                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
-                                     alt="Google" width="18" height="18">
-                                Sign up with Google
-                            </a>
                         </div>
 
                         <div class="text-center mt-2" style="font-size: 0.9rem;">

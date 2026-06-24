@@ -17,7 +17,7 @@ public class PromotionDAOImpl extends BaseDAO implements PromotionDAO {
 
     private static final String BASE_SELECT
             = "SELECT promo_id, code, name, discount_type, discount_value, min_order_amount, "
-            + "valid_from, valid_to, max_uses, used_count, active, is_deleted FROM promotions ";
+            + "valid_from, valid_to, max_uses, used_count, active, is_deleted, branch_id FROM promotions ";
 
     @Override
     public List<Promotion> findAll() {
@@ -42,7 +42,7 @@ public class PromotionDAOImpl extends BaseDAO implements PromotionDAO {
     }
 
     @Override
-    public List<Promotion> findByFilters(String search, String type, String status) {
+    public List<Promotion> findByFilters(String search, String type, String status, Long branchId) {
         StringBuilder sql = new StringBuilder(BASE_SELECT + "WHERE is_deleted = 0 ");
 
         if (search != null && !search.trim().isEmpty()) {
@@ -64,6 +64,13 @@ public class PromotionDAOImpl extends BaseDAO implements PromotionDAO {
                     break;
             }
         }
+        if (branchId != null) {
+            if (branchId == -1L) {
+                sql.append("AND branch_id IS NULL ");
+            } else {
+                sql.append("AND branch_id = ? ");
+            }
+        }
 
         sql.append("ORDER BY promo_id DESC");
 
@@ -82,6 +89,9 @@ public class PromotionDAOImpl extends BaseDAO implements PromotionDAO {
             }
             if (type != null && !type.trim().isEmpty()) {
                 ps.setString(idx++, type.trim());
+            }
+            if (branchId != null && branchId != -1L) {
+                ps.setLong(idx++, branchId);
             }
             rs = ps.executeQuery();
             while (rs.next()) {
@@ -190,7 +200,7 @@ public class PromotionDAOImpl extends BaseDAO implements PromotionDAO {
     @Override
     public boolean insert(Promotion p) {
         String sql = "INSERT INTO promotions (code, name, discount_type, discount_value, min_order_amount, "
-                + "valid_from, valid_to, max_uses, used_count, active) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                + "valid_from, valid_to, max_uses, used_count, active, branch_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         Connection conn = null;
         PreparedStatement ps = null;
         try {
@@ -210,6 +220,11 @@ public class PromotionDAOImpl extends BaseDAO implements PromotionDAO {
             }
             ps.setInt(9, p.getUsedCount());
             ps.setBoolean(10, p.isActive());
+            if (p.getBranchId() != null) {
+                ps.setLong(11, p.getBranchId());
+            } else {
+                ps.setNull(11, java.sql.Types.BIGINT);
+            }
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
             throw new RuntimeException("Loi in PromotionDAOImpl.insert: " + e.getMessage(), e);
@@ -221,7 +236,7 @@ public class PromotionDAOImpl extends BaseDAO implements PromotionDAO {
     @Override
     public boolean update(Promotion p) {
         String sql = "UPDATE promotions SET code = ?, name = ?, discount_type = ?, discount_value = ?, "
-                + "min_order_amount = ?, valid_from = ?, valid_to = ?, max_uses = ?, active = ? "
+                + "min_order_amount = ?, valid_from = ?, valid_to = ?, max_uses = ?, active = ?, branch_id = ? "
                 + "WHERE promo_id = ?";
         Connection conn = null;
         PreparedStatement ps = null;
@@ -241,7 +256,12 @@ public class PromotionDAOImpl extends BaseDAO implements PromotionDAO {
                 ps.setNull(8, java.sql.Types.INTEGER);
             }
             ps.setBoolean(9, p.isActive());
-            ps.setLong(10, p.getPromoId());
+            if (p.getBranchId() != null) {
+                ps.setLong(10, p.getBranchId());
+            } else {
+                ps.setNull(10, java.sql.Types.BIGINT);
+            }
+            ps.setLong(11, p.getPromoId());
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
             throw new RuntimeException("Loi in PromotionDAOImpl.update: " + e.getMessage(), e);
@@ -268,14 +288,20 @@ public class PromotionDAOImpl extends BaseDAO implements PromotionDAO {
     }
 
     @Override
-    public int getTotalPromotionsCount() {
+    public int getTotalPromotionsCount(Long branchId) {
         String sql = "SELECT COUNT(*) FROM promotions WHERE is_deleted = 0";
+        if (branchId != null) {
+            sql += " AND branch_id = ?";
+        }
         Connection conn = null;
         PreparedStatement ps = null;
         ResultSet rs = null;
         try {
             conn = getConnection();
             ps = conn.prepareStatement(sql);
+            if (branchId != null) {
+                ps.setLong(1, branchId);
+            }
             rs = ps.executeQuery();
             if (rs.next()) {
                 return rs.getInt(1);
@@ -289,14 +315,20 @@ public class PromotionDAOImpl extends BaseDAO implements PromotionDAO {
     }
 
     @Override
-    public int getActivePromotionsCount() {
+    public int getActivePromotionsCount(Long branchId) {
         String sql = "SELECT COUNT(*) FROM promotions WHERE active = 1 AND is_deleted = 0 AND valid_from <= GETDATE() AND valid_to >= GETDATE()";
+        if (branchId != null) {
+            sql += " AND branch_id = ?";
+        }
         Connection conn = null;
         PreparedStatement ps = null;
         ResultSet rs = null;
         try {
             conn = getConnection();
             ps = conn.prepareStatement(sql);
+            if (branchId != null) {
+                ps.setLong(1, branchId);
+            }
             rs = ps.executeQuery();
             if (rs.next()) {
                 return rs.getInt(1);
@@ -310,17 +342,27 @@ public class PromotionDAOImpl extends BaseDAO implements PromotionDAO {
     }
 
     @Override
-    public int getUsedThisMonthCount() {
-        String sql = "SELECT COUNT(*) FROM bookings "
-                + "WHERE promo_id IS NOT NULL "
-                + "AND status IN ('CONFIRMED','USED','PENDING') "
-                + "AND created_at >= DATEADD(month, DATEDIFF(month, 0, GETDATE()), 0)";
+    public int getUsedThisMonthCount(Long branchId) {
+        String sql = "SELECT COUNT(*) FROM bookings b ";
+        if (branchId != null) {
+            sql += "JOIN showtimes st ON b.showtime_id = st.showtime_id "
+                + "JOIN rooms r ON st.room_id = r.room_id ";
+        }
+        sql += "WHERE b.promo_id IS NOT NULL "
+                + "AND b.status IN ('CONFIRMED','USED') "
+                + "AND b.created_at >= DATEADD(month, DATEDIFF(month, 0, GETDATE()), 0)";
+        if (branchId != null) {
+            sql += " AND r.branch_id = ?";
+        }
         Connection conn = null;
         PreparedStatement ps = null;
         ResultSet rs = null;
         try {
             conn = getConnection();
             ps = conn.prepareStatement(sql);
+            if (branchId != null) {
+                ps.setLong(1, branchId);
+            }
             rs = ps.executeQuery();
             if (rs.next()) {
                 return rs.getInt(1);
@@ -334,17 +376,27 @@ public class PromotionDAOImpl extends BaseDAO implements PromotionDAO {
     }
 
     @Override
-    public BigDecimal getRevenueImpactThisMonth() {
-        String sql = "SELECT SUM(discount_amount) FROM bookings "
-                + "WHERE promo_id IS NOT NULL "
-                + "AND status IN ('CONFIRMED','USED') "
-                + "AND created_at >= DATEADD(month, DATEDIFF(month, 0, GETDATE()), 0)";
+    public BigDecimal getRevenueImpactThisMonth(Long branchId) {
+        String sql = "SELECT SUM(b.discount_amount) FROM bookings b ";
+        if (branchId != null) {
+            sql += "JOIN showtimes st ON b.showtime_id = st.showtime_id "
+                + "JOIN rooms r ON st.room_id = r.room_id ";
+        }
+        sql += "WHERE b.promo_id IS NOT NULL "
+                + "AND b.status IN ('CONFIRMED','USED') "
+                + "AND b.created_at >= DATEADD(month, DATEDIFF(month, 0, GETDATE()), 0)";
+        if (branchId != null) {
+            sql += " AND r.branch_id = ?";
+        }
         Connection conn = null;
         PreparedStatement ps = null;
         ResultSet rs = null;
         try {
             conn = getConnection();
             ps = conn.prepareStatement(sql);
+            if (branchId != null) {
+                ps.setLong(1, branchId);
+            }
             rs = ps.executeQuery();
             if (rs.next()) {
                 BigDecimal val = rs.getBigDecimal(1);
@@ -360,7 +412,8 @@ public class PromotionDAOImpl extends BaseDAO implements PromotionDAO {
     
         @Override
     public boolean incrementUsedCount(long promoId) {
-        String sql = "UPDATE dbo.promotions SET used_count = used_count + 1 WHERE promo_id = ?";
+        String sql = "UPDATE dbo.promotions SET used_count = used_count + 1 "
+                + "WHERE promo_id = ? AND (max_uses IS NULL OR used_count < max_uses)";
         
         Connection conn = null; 
         PreparedStatement ps = null;
@@ -381,7 +434,8 @@ public class PromotionDAOImpl extends BaseDAO implements PromotionDAO {
     public int incrementUsedCount(Connection conn, long promoId) throws SQLException {
         // Dung conn truyen vao tu PaymentService de atomic voi confirm + payment.
         // KHONG commit/close conn.
-        String sql = "UPDATE dbo.promotions SET used_count = used_count + 1 WHERE promo_id = ?";
+        String sql = "UPDATE dbo.promotions SET used_count = used_count + 1 "
+                + "WHERE promo_id = ? AND (max_uses IS NULL OR used_count < max_uses)";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setLong(1, promoId);
             return ps.executeUpdate();
@@ -426,6 +480,13 @@ public class PromotionDAOImpl extends BaseDAO implements PromotionDAO {
         p.setUsedCount(rs.getInt("used_count"));
         p.setActive(rs.getBoolean("active"));
         p.setDeleted(rs.getBoolean("is_deleted"));
+        
+        long branchIdVal = rs.getLong("branch_id");
+        if (rs.wasNull()) {
+            p.setBranchId(null);
+        } else {
+            p.setBranchId(branchIdVal);
+        }
         return p;
     }
 }

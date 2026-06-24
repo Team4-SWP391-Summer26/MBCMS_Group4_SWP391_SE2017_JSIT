@@ -56,15 +56,7 @@ public class FoodDAOImpl extends BaseDAO implements FoodDAO {
             ps.setLong(1, foodId);
             rs = ps.executeQuery();
             if (rs.next()) {
-                FoodItem item = new FoodItem();
-                item.setFoodId(rs.getLong("food_id"));
-                item.setName(rs.getString("name"));
-                item.setDescription(rs.getString("description"));
-                item.setPrice(rs.getBigDecimal("price"));
-                item.setCategory(rs.getString("category"));
-                item.setImageUrl(rs.getString("image_url"));
-                item.setActive(rs.getBoolean("active"));
-                return item;
+                return mapRow(rs);
             }
             return null;
         } catch (SQLException e) {
@@ -131,13 +123,36 @@ public class FoodDAOImpl extends BaseDAO implements FoodDAO {
             psDeleteItems.setLong(1, foodOrderId);
             psDeleteItems.executeUpdate();
 
+            // Chi nhanh cua booking (booking -> showtime -> room -> branch).
+            // Moi mon them vao phai thuoc dung chi nhanh nay (chong chen mon cua chi nhanh khac).
+            Long bookingBranchId = findBranchIdByBookingId(conn, bookingId);
+
             // 3. Batch chèn các items mới
             String insertItemSql = "INSERT INTO dbo.booking_food_items (food_order_id, food_id, quantity) VALUES (?, ?, ?)";
             psInsertItem = conn.prepareStatement(insertItemSql);
             for (Map.Entry<Long, Integer> entry : items.entrySet()) {
+                FoodItem food = findById(entry.getKey());
+                if (food == null) {
+                    throw new IllegalArgumentException("Food item not found: " + entry.getKey());
+                }
+                if (!food.isActive()) {
+                    throw new IllegalArgumentException("Food item is not available: " + food.getName());
+                }
+                if (bookingBranchId == null
+                        || food.getBranchId() == null
+                        || !bookingBranchId.equals(food.getBranchId())) {
+                    throw new IllegalArgumentException(
+                            "Món \"" + food.getName() + "\" không thuộc chi nhánh của suất chiếu này.");
+                }
+                int qty = entry.getValue() == null ? 0 : entry.getValue();
+                qty = Math.max(1, Math.min(10, qty));
+                if (qty > food.getStock()) {
+                    throw new IllegalArgumentException(
+                            "Món \"" + food.getName() + "\" không đủ tồn kho (còn " + food.getStock() + ").");
+                }
                 psInsertItem.setLong(1, foodOrderId);
                 psInsertItem.setLong(2, entry.getKey());
-                psInsertItem.setInt(3, entry.getValue());
+                psInsertItem.setInt(3, qty);
                 psInsertItem.addBatch();
             }
             psInsertItem.executeBatch();
@@ -160,18 +175,30 @@ public class FoodDAOImpl extends BaseDAO implements FoodDAO {
     }
 
     private void deleteOrderIfExists(long bookingId) {
-        String sql = "DELETE FROM dbo.food_orders WHERE booking_id = ?";
+        deleteOrderByBookingId(bookingId);
+    }
+
+    @Override
+    public void deleteOrderByBookingId(long bookingId) {
+        String deleteItems = "DELETE FROM dbo.booking_food_items WHERE food_order_id IN "
+                + "(SELECT food_order_id FROM dbo.food_orders WHERE booking_id = ?)";
+        String deleteOrder = "DELETE FROM dbo.food_orders WHERE booking_id = ?";
         Connection conn = null;
-        PreparedStatement ps = null;
+        PreparedStatement psItems = null;
+        PreparedStatement psOrder = null;
         try {
             conn = getConnection();
-            ps = conn.prepareStatement(sql);
-            ps.setLong(1, bookingId);
-            ps.executeUpdate();
+            psItems = conn.prepareStatement(deleteItems);
+            psItems.setLong(1, bookingId);
+            psItems.executeUpdate();
+            psOrder = conn.prepareStatement(deleteOrder);
+            psOrder.setLong(1, bookingId);
+            psOrder.executeUpdate();
         } catch (SQLException e) {
-            throw new RuntimeException("Lỗi deleteOrderIfExists: " + e.getMessage(), e);
+            throw new RuntimeException("Lỗi deleteOrderByBookingId: " + e.getMessage(), e);
         } finally {
-            closeAll(ps, conn);
+            closeAll(psItems, null);
+            closeAll(psOrder, conn);
         }
     }
 
@@ -310,207 +337,126 @@ public class FoodDAOImpl extends BaseDAO implements FoodDAO {
     }
 
     @Override
+    public Long findBranchIdByFoodOrderId(long foodOrderId) {
+        String sql =
+                "SELECT r.branch_id FROM dbo.food_orders fo "
+                + "JOIN dbo.bookings b ON b.booking_id = fo.booking_id "
+                + "JOIN dbo.showtimes st ON st.showtime_id = b.showtime_id "
+                + "JOIN dbo.rooms r ON r.room_id = st.room_id "
+                + "WHERE fo.food_order_id = ?";
+        Connection conn = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+        try {
+            conn = getConnection();
+            ps = conn.prepareStatement(sql);
+            ps.setLong(1, foodOrderId);
+            rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getLong("branch_id");
+            }
+            return null;
+        } catch (SQLException e) {
+            throw new RuntimeException("Lỗi findBranchIdByFoodOrderId: " + e.getMessage(), e);
+        } finally {
+            closeAll(rs, ps, conn);
+        }
+    }
+
+    /** Chi nhanh cua booking (booking -> showtime -> room -> branch); null neu khong tim thay. */
+    private Long findBranchIdByBookingId(Connection conn, long bookingId) throws SQLException {
+        String sql =
+                "SELECT r.branch_id FROM dbo.bookings b "
+                + "JOIN dbo.showtimes st ON st.showtime_id = b.showtime_id "
+                + "JOIN dbo.rooms r ON r.room_id = st.room_id "
+                + "WHERE b.booking_id = ?";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setLong(1, bookingId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getLong("branch_id");
+                }
+                return null;
+            }
+        }
+    }
+
+    @Override
+    public Long findBranchIdByShowtimeId(long showtimeId) {
+        String sql =
+                "SELECT r.branch_id FROM dbo.showtimes st "
+                + "JOIN dbo.rooms r ON r.room_id = st.room_id "
+                + "WHERE st.showtime_id = ?";
+        Connection conn = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+        try {
+            conn = getConnection();
+            ps = conn.prepareStatement(sql);
+            ps.setLong(1, showtimeId);
+            rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getLong("branch_id");
+            }
+            return null;
+        } catch (SQLException e) {
+            throw new RuntimeException("Lỗi findBranchIdByShowtimeId: " + e.getMessage(), e);
+        } finally {
+            closeAll(rs, ps, conn);
+        }
+    }
+
+    @Override
     public boolean updateOrderStatus(long foodOrderId, String status) {
-        if ("PREPARING".equalsIgnoreCase(status)) {
+        String normalized = (status == null) ? "" : status.trim().toUpperCase();
+
+        // Phuc vu mon (PREPARING/READY/DELIVERED) chi hop le khi ve da thanh toan
+        // (CONFIRMED/USED). Chan bypass tu booking PENDING (chua tra tien) / CANCELLED.
+        if ("PREPARING".equals(normalized)
+                || "READY".equals(normalized)
+                || "DELIVERED".equals(normalized)) {
+            String bookingStatus = null;
+            String getBookingSql =
+                    "SELECT b.status FROM dbo.food_orders fo "
+                    + "JOIN dbo.bookings b ON b.booking_id = fo.booking_id "
+                    + "WHERE fo.food_order_id = ?";
             Connection conn = null;
             PreparedStatement ps = null;
             ResultSet rs = null;
             try {
                 conn = getConnection();
-                conn.setAutoCommit(false);
-
-                // 1. Get food order info
-                long bookingId = 0;
-                String currentFoodStatus = null;
-                String getOrderSql = "SELECT booking_id, status FROM dbo.food_orders WHERE food_order_id = ?";
-                ps = conn.prepareStatement(getOrderSql);
-                ps.setLong(1, foodOrderId);
-                rs = ps.executeQuery();
-                if (rs.next()) {
-                    bookingId = rs.getLong("booking_id");
-                    currentFoodStatus = rs.getString("status");
-                }
-                rs.close();
-                ps.close();
-
-                if (bookingId == 0) {
-                    conn.rollback();
-                    return false;
-                }
-
-                // 2. Get booking info
-                String bookingStatus = null;
-                String customerUsername = null;
-                BigDecimal totalAmount = BigDecimal.ZERO;
-                Long promoId = null;
-                long showtimeId = 0;
-                Timestamp createdAt = null;
-
-                String getBookingSql = "SELECT status, customer_username, total_amount, promo_id, showtime_id, created_at FROM dbo.bookings WHERE booking_id = ?";
                 ps = conn.prepareStatement(getBookingSql);
-                ps.setLong(1, bookingId);
+                ps.setLong(1, foodOrderId);
                 rs = ps.executeQuery();
                 if (rs.next()) {
                     bookingStatus = rs.getString("status");
-                    customerUsername = rs.getString("customer_username");
-                    totalAmount = rs.getBigDecimal("total_amount");
-                    long pId = rs.getLong("promo_id");
-                    if (!rs.wasNull()) {
-                        promoId = pId;
-                    }
-                    showtimeId = rs.getLong("showtime_id");
-                    createdAt = rs.getTimestamp("created_at");
                 }
-                rs.close();
-                ps.close();
-
-                if (bookingStatus == null) {
-                    conn.rollback();
-                    return false;
-                }
-
-                if ("PENDING".equals(bookingStatus)) {
-                    // Check expiry (10 minutes)
-                    if (createdAt != null) {
-                        long elapsedMillis = System.currentTimeMillis() - (createdAt.getTime());
-                        if (elapsedMillis >= 600 * 1000) {
-                            conn.rollback();
-                            throw new IllegalStateException(
-                                    "Hóa đơn đã hết hạn giữ vé (10 phút). Không thể thanh toán.");
-                        }
-                    }
-
-                    // Confirm Booking
-                    String confirmBookingSql = "UPDATE dbo.bookings SET status = 'CONFIRMED' WHERE booking_id = ? AND status = 'PENDING'";
-                    ps = conn.prepareStatement(confirmBookingSql);
-                    ps.setLong(1, bookingId);
-                    int bkUpdated = ps.executeUpdate();
-                    ps.close();
-                    if (bkUpdated == 0) {
-                        conn.rollback();
-                        return false;
-                    }
-
-                    // Record CASH payment
-                    boolean paymentExists = false;
-                    String checkPaySql = "SELECT 1 FROM dbo.payments WHERE booking_id = ?";
-                    ps = conn.prepareStatement(checkPaySql);
-                    ps.setLong(1, bookingId);
-                    rs = ps.executeQuery();
-                    if (rs.next()) {
-                        paymentExists = true;
-                    }
-                    rs.close();
-                    ps.close();
-
-                    if (paymentExists) {
-                        String updatePaymentSql = "UPDATE dbo.payments SET method = 'CASH', amount = ?, status = 'SUCCESS', paid_at = SYSUTCDATETIME() WHERE booking_id = ?";
-                        ps = conn.prepareStatement(updatePaymentSql);
-                        ps.setBigDecimal(1, totalAmount);
-                        ps.setLong(2, bookingId);
-                        ps.executeUpdate();
-                        ps.close();
-                    } else {
-                        String insertPaymentSql = "INSERT INTO dbo.payments (booking_id, method, amount, status, transaction_ref, paid_at) VALUES (?, 'CASH', ?, 'SUCCESS', NULL, SYSUTCDATETIME())";
-                        ps = conn.prepareStatement(insertPaymentSql);
-                        ps.setLong(1, bookingId);
-                        ps.setBigDecimal(2, totalAmount);
-                        ps.executeUpdate();
-                        ps.close();
-                    }
-
-                    // Increment promo used_count if any
-                    if (promoId != null) {
-                        String promoSql = "UPDATE dbo.promotions SET used_count = used_count + 1 WHERE promo_id = ?";
-                        ps = conn.prepareStatement(promoSql);
-                        ps.setLong(1, promoId);
-                        ps.executeUpdate();
-                        ps.close();
-                    }
-
-                    // Load seat IDs for WebSocket notification
-                    List<Long> seatIds = new ArrayList<>();
-                    String getSeatsSql = "SELECT seat_id FROM dbo.booking_seats WHERE booking_id = ?";
-                    ps = conn.prepareStatement(getSeatsSql);
-                    ps.setLong(1, bookingId);
-                    rs = ps.executeQuery();
-                    while (rs.next()) {
-                        seatIds.add(rs.getLong("seat_id"));
-                    }
-                    rs.close();
-                    ps.close();
-
-                    // Send WebSocket hard lock notification
-                    if (!seatIds.isEmpty()) {
-                        try {
-                            com.mbcms.ws.SeatWebSocketServer.notifyHardLock(showtimeId, seatIds, "staff");
-                        } catch (Exception ignore) {
-                        }
-                    }
-
-                    // Send notification
-                    try {
-                        String insertNotificationSql = "INSERT INTO dbo.notifications (customer_username, title, content, type, reference_id, is_read, created_at) VALUES (?, ?, ?, ?, ?, 0, SYSUTCDATETIME())";
-                        ps = conn.prepareStatement(insertNotificationSql);
-                        ps.setString(1, customerUsername);
-                        ps.setString(2, "Payment successful");
-                        ps.setString(3, "Your counter cash payment for booking has been confirmed.");
-                        ps.setString(4, "PAYMENT");
-                        ps.setLong(5, bookingId);
-                        ps.executeUpdate();
-                        ps.close();
-                    } catch (Exception ignore) {
-                    }
-
-                } else if ("CANCELLED".equals(bookingStatus)) {
-                    conn.rollback();
-                    throw new IllegalStateException("Đơn đặt vé này đã bị hủy. Không thể chế biến đồ ăn.");
-                }
-
-                // Finally update the food order status to PREPARING
-                String updateOrderSql = "UPDATE dbo.food_orders SET status = 'PREPARING' WHERE food_order_id = ?";
-                ps = conn.prepareStatement(updateOrderSql);
-                ps.setLong(1, foodOrderId);
-                int rows = ps.executeUpdate();
-                ps.close();
-
-                conn.commit();
-                return rows > 0;
-
             } catch (SQLException e) {
-                if (conn != null) {
-                    try {
-                        conn.rollback();
-                    } catch (SQLException ignored) {
-                    }
-                }
-                throw new RuntimeException("Lỗi updateOrderStatus (PREPARING): " + e.getMessage(), e);
+                throw new RuntimeException("Lỗi updateOrderStatus (kiem tra booking): " + e.getMessage(), e);
             } finally {
-                if (rs != null)
-                    try {
-                        rs.close();
-                    } catch (SQLException ignored) {
-                    }
-                if (ps != null)
-                    try {
-                        ps.close();
-                    } catch (SQLException ignored) {
-                    }
-                if (conn != null) {
-                    try {
-                        conn.setAutoCommit(true);
-                    } catch (SQLException ignored) {
-                    }
-                    closeAll(null, null, conn);
-                }
+                closeAll(rs, ps, conn);
+            }
+
+            if (bookingStatus == null) {
+                return false;
+            }
+            if ("CANCELLED".equals(bookingStatus)) {
+                throw new IllegalStateException("Đơn đặt vé này đã bị hủy. Không thể phục vụ đồ ăn.");
+            }
+            if ("PENDING".equals(bookingStatus)) {
+                throw new IllegalStateException(
+                        "Vé chưa thanh toán. Không thể phục vụ đồ ăn cho booking PENDING.");
+            }
+            if (!"CONFIRMED".equals(bookingStatus) && !"USED".equals(bookingStatus)) {
+                throw new IllegalStateException(
+                        "Trạng thái booking không hợp lệ để phục vụ đồ ăn: " + bookingStatus);
             }
         }
 
-        // Default behavior for other statuses
         String sql;
-        if ("READY".equals(status)) {
+        if ("READY".equals(normalized)) {
             sql = "UPDATE dbo.food_orders SET status = ?, ready_at = SYSUTCDATETIME() WHERE food_order_id = ?";
-        } else if ("DELIVERED".equals(status)) {
+        } else if ("DELIVERED".equals(normalized)) {
             sql = "UPDATE dbo.food_orders SET status = ?, delivered_at = SYSUTCDATETIME() WHERE food_order_id = ?";
         } else {
             sql = "UPDATE dbo.food_orders SET status = ? WHERE food_order_id = ?";
@@ -520,7 +466,7 @@ public class FoodDAOImpl extends BaseDAO implements FoodDAO {
         try {
             conn = getConnection();
             ps = conn.prepareStatement(sql);
-            ps.setString(1, status);
+            ps.setString(1, normalized);
             ps.setLong(2, foodOrderId);
             int rows = ps.executeUpdate();
             return rows > 0;
@@ -570,5 +516,177 @@ public class FoodDAOImpl extends BaseDAO implements FoodDAO {
                 }
             }
         }
+    }
+
+    // ── Branch menu management ───────────────────────────────────────
+
+    private FoodItem mapRow(ResultSet rs) throws java.sql.SQLException {
+        FoodItem item = new FoodItem();
+        item.setFoodId(rs.getLong("food_id"));
+        item.setName(rs.getString("name"));
+        item.setDescription(rs.getString("description"));
+        item.setPrice(rs.getBigDecimal("price"));
+        item.setCategory(rs.getString("category"));
+        item.setImageUrl(rs.getString("image_url"));
+        item.setActive(rs.getBoolean("active"));
+        long branchId = rs.getLong("branch_id");
+        item.setBranchId(rs.wasNull() ? null : branchId);
+        item.setStock(rs.getInt("stock"));
+        return item;
+    }
+
+    @Override
+    public List<FoodItem> findActiveByBranch(long branchId) {
+        String sql = "SELECT * FROM dbo.food_items WHERE active = 1 AND branch_id = ? ORDER BY category DESC, name ASC";
+        Connection conn = null; PreparedStatement ps = null; ResultSet rs = null;
+        List<FoodItem> list = new ArrayList<>();
+        try {
+            conn = getConnection();
+            ps = conn.prepareStatement(sql);
+            ps.setLong(1, branchId);
+            rs = ps.executeQuery();
+            while (rs.next()) list.add(mapRow(rs));
+            return list;
+        } catch (SQLException e) {
+            throw new RuntimeException("Loi findActiveByBranch: " + e.getMessage(), e);
+        } finally { closeAll(rs, ps, conn); }
+    }
+
+    @Override
+    public List<FoodItem> findAllByBranch(long branchId) {
+        String sql = "SELECT * FROM dbo.food_items WHERE branch_id = ? ORDER BY category, name";
+        Connection conn = null; PreparedStatement ps = null; ResultSet rs = null;
+        List<FoodItem> list = new ArrayList<>();
+        try {
+            conn = getConnection();
+            ps = conn.prepareStatement(sql);
+            ps.setLong(1, branchId);
+            rs = ps.executeQuery();
+            while (rs.next()) list.add(mapRow(rs));
+            return list;
+        } catch (SQLException e) {
+            throw new RuntimeException("Loi findAllByBranch: " + e.getMessage(), e);
+        } finally { closeAll(rs, ps, conn); }
+    }
+
+    @Override
+    public boolean insert(FoodItem item) {
+        String sql = "INSERT INTO dbo.food_items (name, description, price, category, image_url, active, branch_id, stock) "
+                   + "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        Connection conn = null; PreparedStatement ps = null;
+        try {
+            conn = getConnection();
+            ps = conn.prepareStatement(sql);
+            ps.setString(1, item.getName());
+            ps.setString(2, item.getDescription());
+            ps.setBigDecimal(3, item.getPrice());
+            ps.setString(4, item.getCategory());
+            ps.setString(5, item.getImageUrl());
+            ps.setBoolean(6, item.isActive());
+            if (item.getBranchId() != null) ps.setLong(7, item.getBranchId());
+            else ps.setNull(7, java.sql.Types.BIGINT);
+            ps.setInt(8, item.getStock());
+            return ps.executeUpdate() == 1;
+        } catch (SQLException e) {
+            throw new RuntimeException("Loi insert food_item: " + e.getMessage(), e);
+        } finally { closeAll(ps, conn); }
+    }
+
+    @Override
+    public boolean update(FoodItem item) {
+        String sql = "UPDATE dbo.food_items SET name=?, description=?, price=?, category=?, image_url=?, active=?, stock=? "
+                   + "WHERE food_id=? AND branch_id=?";
+        Connection conn = null; PreparedStatement ps = null;
+        try {
+            conn = getConnection();
+            ps = conn.prepareStatement(sql);
+            ps.setString(1, item.getName());
+            ps.setString(2, item.getDescription());
+            ps.setBigDecimal(3, item.getPrice());
+            ps.setString(4, item.getCategory());
+            ps.setString(5, item.getImageUrl());
+            ps.setBoolean(6, item.isActive());
+            ps.setInt(7, item.getStock());
+            ps.setLong(8, item.getFoodId());
+            ps.setLong(9, item.getBranchId());
+            return ps.executeUpdate() == 1;
+        } catch (SQLException e) {
+            throw new RuntimeException("Loi update food_item: " + e.getMessage(), e);
+        } finally { closeAll(ps, conn); }
+    }
+
+    // Tru ton kho cho tat ca mon trong food order cua booking. Goi DUY NHAT khi
+    // don duoc commit (thanh toan thanh cong / counter cash) -> khong tru luc PENDING.
+    private static final String DECREMENT_STOCK_SQL =
+            "UPDATE fi SET stock = CASE WHEN fi.stock >= bfi.quantity "
+            + "THEN fi.stock - bfi.quantity ELSE 0 END "
+            + "FROM dbo.food_items fi "
+            + "JOIN dbo.booking_food_items bfi ON bfi.food_id = fi.food_id "
+            + "JOIN dbo.food_orders fo ON fo.food_order_id = bfi.food_order_id "
+            + "WHERE fo.booking_id = ?";
+
+    @Override
+    public void decrementStockForBooking(Connection conn, long bookingId) throws SQLException {
+        try (PreparedStatement ps = conn.prepareStatement(DECREMENT_STOCK_SQL)) {
+            ps.setLong(1, bookingId);
+            ps.executeUpdate();
+        }
+    }
+
+    @Override
+    public void decrementStockForBooking(long bookingId) {
+        Connection conn = null;
+        try {
+            conn = getConnection();
+            decrementStockForBooking(conn, bookingId);
+        } catch (SQLException e) {
+            throw new RuntimeException("Lỗi decrementStockForBooking: " + e.getMessage(), e);
+        } finally {
+            closeAll(null, conn);
+        }
+    }
+
+    @Override
+    public boolean updateStock(long foodId, int stock) {
+        String sql = "UPDATE dbo.food_items SET stock=? WHERE food_id=?";
+        Connection conn = null; PreparedStatement ps = null;
+        try {
+            conn = getConnection();
+            ps = conn.prepareStatement(sql);
+            ps.setInt(1, stock);
+            ps.setLong(2, foodId);
+            return ps.executeUpdate() == 1;
+        } catch (SQLException e) {
+            throw new RuntimeException("Loi updateStock: " + e.getMessage(), e);
+        } finally { closeAll(ps, conn); }
+    }
+
+    @Override
+    public boolean updateStatus(long foodId, boolean active) {
+        String sql = "UPDATE dbo.food_items SET active=? WHERE food_id=?";
+        Connection conn = null; PreparedStatement ps = null;
+        try {
+            conn = getConnection();
+            ps = conn.prepareStatement(sql);
+            ps.setBoolean(1, active);
+            ps.setLong(2, foodId);
+            return ps.executeUpdate() == 1;
+        } catch (SQLException e) {
+            throw new RuntimeException("Loi updateStatus food_item: " + e.getMessage(), e);
+        } finally { closeAll(ps, conn); }
+    }
+
+    @Override
+    public boolean delete(long foodId) {
+        String sql = "DELETE FROM dbo.food_items WHERE food_id=?";
+        Connection conn = null; PreparedStatement ps = null;
+        try {
+            conn = getConnection();
+            ps = conn.prepareStatement(sql);
+            ps.setLong(1, foodId);
+            return ps.executeUpdate() == 1;
+        } catch (SQLException e) {
+            throw new RuntimeException("Loi delete food_item: " + e.getMessage(), e);
+        } finally { closeAll(ps, conn); }
     }
 }

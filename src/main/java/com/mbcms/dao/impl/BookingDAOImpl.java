@@ -17,14 +17,7 @@ import java.util.stream.Collectors;
 
 /**
  * BookingDAOImpl - thuc hien BookingDAO.
- *
- * Seat-locking logic: - booking_seats co cot: booking_id, seat_id, lock_status
- * (LOCKED|CONFIRMED|RELEASED), unit_price, locked_at. - PENDING booking +
- * LOCKED seats = seat dang bi giu. - Khi CONFIRMED: cap nhat
- * booking_seats.lock_status = 'CONFIRMED'. - Khi CANCELLED / het gio: cap nhat
- * lock_status = 'RELEASED'. - releaseExpiredLocks(): tim PENDING booking tao >
- * 10 phut va giai phong.
- *
+ * Seat hold: PENDING bookings lock seats via booking_seats; expire after 10 minutes (SYSUTCDATETIME).
  * SQL dialect: SQL Server (mssql-jdbc).
  */
 public class BookingDAOImpl extends BaseDAO implements BookingDAO {
@@ -380,16 +373,19 @@ public class BookingDAOImpl extends BaseDAO implements BookingDAO {
     }
 
     @Override
-    public boolean updateBookingTotals(long bookingId, BigDecimal newSubtotal, BigDecimal newTotalAmount) {
-        String sql = "UPDATE dbo.bookings SET subtotal = ?, total_amount = ? WHERE booking_id = ?";
+    public boolean updateBookingTotals(long bookingId, BigDecimal newSubtotal,
+            BigDecimal discountAmount, BigDecimal newTotalAmount) {
+        String sql = "UPDATE dbo.bookings SET subtotal = ?, discount_amount = ?, total_amount = ? "
+                + "WHERE booking_id = ? AND [status] = 'PENDING'";
         Connection conn = null;
         PreparedStatement ps = null;
         try {
             conn = getConnection();
             ps = conn.prepareStatement(sql);
             ps.setBigDecimal(1, newSubtotal);
-            ps.setBigDecimal(2, newTotalAmount);
-            ps.setLong(3, bookingId);
+            ps.setBigDecimal(2, discountAmount != null ? discountAmount : BigDecimal.ZERO);
+            ps.setBigDecimal(3, newTotalAmount);
+            ps.setLong(4, bookingId);
             int rows = ps.executeUpdate();
             return rows > 0;
         } catch (SQLException e) {
@@ -481,10 +477,23 @@ public class BookingDAOImpl extends BaseDAO implements BookingDAO {
                 + "FROM dbo.payments p "
                 + "JOIN dbo.bookings b ON b.booking_id = p.booking_id "
                 + "WHERE p.[status] = 'PENDING' AND b.[status] = 'CANCELLED'";
+        String deleteFoodItems
+                = "DELETE bfi FROM dbo.booking_food_items bfi "
+                + "INNER JOIN dbo.food_orders fo ON fo.food_order_id = bfi.food_order_id "
+                + "INNER JOIN dbo.bookings b ON b.booking_id = fo.booking_id "
+                + "WHERE b.[status] = 'CANCELLED' "
+                + "  AND DATEDIFF(MINUTE, b.created_at, SYSUTCDATETIME()) >= 10";
+        String deleteFoodOrders
+                = "DELETE fo FROM dbo.food_orders fo "
+                + "INNER JOIN dbo.bookings b ON b.booking_id = fo.booking_id "
+                + "WHERE b.[status] = 'CANCELLED' "
+                + "  AND DATEDIFF(MINUTE, b.created_at, SYSUTCDATETIME()) >= 10";
 
         Connection conn = null;
         PreparedStatement psBk = null;
         PreparedStatement psPay = null;
+        PreparedStatement psFoodItems = null;
+        PreparedStatement psFoodOrders = null;
         try {
             conn = getConnection();
             conn.setAutoCommit(false);
@@ -495,6 +504,12 @@ public class BookingDAOImpl extends BaseDAO implements BookingDAO {
             psPay = conn.prepareStatement(failPayments);
             psPay.executeUpdate();
 
+            psFoodItems = conn.prepareStatement(deleteFoodItems);
+            psFoodItems.executeUpdate();
+
+            psFoodOrders = conn.prepareStatement(deleteFoodOrders);
+            psFoodOrders.executeUpdate();
+
             conn.commit();
             return released; // so booking da huy (giu nguyen y nghia cu cho scheduler)
         } catch (SQLException e) {
@@ -503,7 +518,30 @@ public class BookingDAOImpl extends BaseDAO implements BookingDAO {
         } finally {
             if (psBk != null) try { psBk.close(); } catch (SQLException ignored) {}
             if (psPay != null) try { psPay.close(); } catch (SQLException ignored) {}
+            if (psFoodItems != null) try { psFoodItems.close(); } catch (SQLException ignored) {}
+            if (psFoodOrders != null) try { psFoodOrders.close(); } catch (SQLException ignored) {}
             restoreAndClose(conn);
+        }
+    }
+
+    @Override
+    public boolean isPendingHoldExpired(long bookingId) {
+        String sql = "SELECT 1 FROM dbo.bookings "
+                + "WHERE booking_id = ? AND [status] = 'PENDING' "
+                + "AND DATEADD(MINUTE, 10, created_at) <= SYSUTCDATETIME()";
+        Connection conn = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+        try {
+            conn = getConnection();
+            ps = conn.prepareStatement(sql);
+            ps.setLong(1, bookingId);
+            rs = ps.executeQuery();
+            return rs.next();
+        } catch (SQLException e) {
+            throw new RuntimeException("isPendingHoldExpired lỗi: " + e.getMessage(), e);
+        } finally {
+            closeAll(rs, ps, conn);
         }
     }
     
@@ -569,9 +607,19 @@ public class BookingDAOImpl extends BaseDAO implements BookingDAO {
         b.setTotalAmount(rs.getBigDecimal("total_amount"));
         b.setStatus(rs.getString("status"));
         b.setNotes(rs.getString("notes"));
-        Timestamp ts = rs.getTimestamp("created_at");
-        b.setCreatedAt(ts != null ? ts.toLocalDateTime() : null);
+        b.setCreatedAt(readUtcLocalDateTime(rs, "created_at"));
         return b;
+    }
+
+    /** Read datetime2 as UTC wall-clock for expiry alignment with SYSUTCDATETIME(). */
+    private static java.time.LocalDateTime readUtcLocalDateTime(ResultSet rs, String column)
+            throws SQLException {
+        java.util.Calendar utc = java.util.Calendar.getInstance(java.util.TimeZone.getTimeZone("UTC"));
+        Timestamp ts = rs.getTimestamp(column, utc);
+        if (ts == null) {
+            return null;
+        }
+        return ts.toInstant().atZone(java.time.ZoneOffset.UTC).toLocalDateTime();
     }
 
     // ── Private helpers ───────────────────────────────────────────────────
@@ -619,7 +667,8 @@ public class BookingDAOImpl extends BaseDAO implements BookingDAO {
                 + "VALUES (?, 'CASH', ?, 'SUCCESS', NULL, SYSUTCDATETIME())";  // UTC dong nhat voi online
 
         String updatePromo
-                = "UPDATE promotions SET used_count = used_count + 1 WHERE promo_id = ?";
+                = "UPDATE promotions SET used_count = used_count + 1 "
+                + "WHERE promo_id = ? AND (max_uses IS NULL OR used_count < max_uses)";
 
         Connection conn = null;
         PreparedStatement psBooking = null;
@@ -682,7 +731,9 @@ public class BookingDAOImpl extends BaseDAO implements BookingDAO {
             if (booking.getPromoId() != null) {
                 psPromo = conn.prepareStatement(updatePromo);
                 psPromo.setLong(1, booking.getPromoId());
-                psPromo.executeUpdate();
+                if (psPromo.executeUpdate() == 0) {
+                    throw new SQLException("Ma khuyen mai da het luot su dung.");
+                }
             }
 
             conn.commit();
