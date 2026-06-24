@@ -8,6 +8,10 @@ import java.util.Map;
 
 public interface FoodService {
     List<FoodItem> getActiveFoodItems();
+    /** Active menu of one branch (counter booking / staff). */
+    List<FoodItem> getActiveFoodItemsByBranch(long branchId);
+    /** Active menu for the branch that owns this showtime (customer booking). */
+    List<FoodItem> getActiveFoodItemsForShowtime(long showtimeId);
     FoodItem getFoodItemById(long foodId);
     void saveFoodOrder(long bookingId, Map<Long, Integer> items, String status);
     Map<FoodItem, Integer> getFoodItemsByBookingId(long bookingId);

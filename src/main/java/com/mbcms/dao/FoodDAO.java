@@ -16,6 +16,10 @@ public interface FoodDAO {
     boolean updateOrderStatus(long foodOrderId, String status);
     /** Branch of the showtime linked to this food order; null if order not found. */
     Long findBranchIdByFoodOrderId(long foodOrderId);
+    /** Branch of a showtime (showtime -> room -> branch); null if not found. */
+    Long findBranchIdByShowtimeId(long showtimeId);
+    /** Active items of one branch only (customer-facing menu). */
+    List<FoodItem> findActiveByBranch(long branchId);
     boolean updateOrderStatusByBooking(long bookingId, String status);
     boolean updateOrderStatusByBooking(Connection conn, long bookingId, String status);
     // ── Branch menu management ───────────────────────────────────────

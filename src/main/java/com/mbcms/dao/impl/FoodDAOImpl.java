@@ -56,15 +56,7 @@ public class FoodDAOImpl extends BaseDAO implements FoodDAO {
             ps.setLong(1, foodId);
             rs = ps.executeQuery();
             if (rs.next()) {
-                FoodItem item = new FoodItem();
-                item.setFoodId(rs.getLong("food_id"));
-                item.setName(rs.getString("name"));
-                item.setDescription(rs.getString("description"));
-                item.setPrice(rs.getBigDecimal("price"));
-                item.setCategory(rs.getString("category"));
-                item.setImageUrl(rs.getString("image_url"));
-                item.setActive(rs.getBoolean("active"));
-                return item;
+                return mapRow(rs);
             }
             return null;
         } catch (SQLException e) {
@@ -131,6 +123,10 @@ public class FoodDAOImpl extends BaseDAO implements FoodDAO {
             psDeleteItems.setLong(1, foodOrderId);
             psDeleteItems.executeUpdate();
 
+            // Chi nhanh cua booking (booking -> showtime -> room -> branch).
+            // Moi mon them vao phai thuoc dung chi nhanh nay (chong chen mon cua chi nhanh khac).
+            Long bookingBranchId = findBranchIdByBookingId(conn, bookingId);
+
             // 3. Batch chèn các items mới
             String insertItemSql = "INSERT INTO dbo.booking_food_items (food_order_id, food_id, quantity) VALUES (?, ?, ?)";
             psInsertItem = conn.prepareStatement(insertItemSql);
@@ -141,6 +137,12 @@ public class FoodDAOImpl extends BaseDAO implements FoodDAO {
                 }
                 if (!food.isActive()) {
                     throw new IllegalArgumentException("Food item is not available: " + food.getName());
+                }
+                if (bookingBranchId == null
+                        || food.getBranchId() == null
+                        || !bookingBranchId.equals(food.getBranchId())) {
+                    throw new IllegalArgumentException(
+                            "Món \"" + food.getName() + "\" không thuộc chi nhánh của suất chiếu này.");
                 }
                 int qty = entry.getValue() == null ? 0 : entry.getValue();
                 qty = Math.max(1, Math.min(10, qty));
@@ -357,6 +359,49 @@ public class FoodDAOImpl extends BaseDAO implements FoodDAO {
         }
     }
 
+    /** Chi nhanh cua booking (booking -> showtime -> room -> branch); null neu khong tim thay. */
+    private Long findBranchIdByBookingId(Connection conn, long bookingId) throws SQLException {
+        String sql =
+                "SELECT r.branch_id FROM dbo.bookings b "
+                + "JOIN dbo.showtimes st ON st.showtime_id = b.showtime_id "
+                + "JOIN dbo.rooms r ON r.room_id = st.room_id "
+                + "WHERE b.booking_id = ?";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setLong(1, bookingId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getLong("branch_id");
+                }
+                return null;
+            }
+        }
+    }
+
+    @Override
+    public Long findBranchIdByShowtimeId(long showtimeId) {
+        String sql =
+                "SELECT r.branch_id FROM dbo.showtimes st "
+                + "JOIN dbo.rooms r ON r.room_id = st.room_id "
+                + "WHERE st.showtime_id = ?";
+        Connection conn = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+        try {
+            conn = getConnection();
+            ps = conn.prepareStatement(sql);
+            ps.setLong(1, showtimeId);
+            rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getLong("branch_id");
+            }
+            return null;
+        } catch (SQLException e) {
+            throw new RuntimeException("Lỗi findBranchIdByShowtimeId: " + e.getMessage(), e);
+        } finally {
+            closeAll(rs, ps, conn);
+        }
+    }
+
     @Override
     public boolean updateOrderStatus(long foodOrderId, String status) {
         String normalized = (status == null) ? "" : status.trim().toUpperCase();
@@ -484,6 +529,23 @@ public class FoodDAOImpl extends BaseDAO implements FoodDAO {
         item.setBranchId(rs.wasNull() ? null : branchId);
         item.setStock(rs.getInt("stock"));
         return item;
+    }
+
+    @Override
+    public List<FoodItem> findActiveByBranch(long branchId) {
+        String sql = "SELECT * FROM dbo.food_items WHERE active = 1 AND branch_id = ? ORDER BY category DESC, name ASC";
+        Connection conn = null; PreparedStatement ps = null; ResultSet rs = null;
+        List<FoodItem> list = new ArrayList<>();
+        try {
+            conn = getConnection();
+            ps = conn.prepareStatement(sql);
+            ps.setLong(1, branchId);
+            rs = ps.executeQuery();
+            while (rs.next()) list.add(mapRow(rs));
+            return list;
+        } catch (SQLException e) {
+            throw new RuntimeException("Loi findActiveByBranch: " + e.getMessage(), e);
+        } finally { closeAll(rs, ps, conn); }
     }
 
     @Override

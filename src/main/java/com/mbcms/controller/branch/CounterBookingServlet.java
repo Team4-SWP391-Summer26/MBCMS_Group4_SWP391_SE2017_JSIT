@@ -235,7 +235,7 @@ public class CounterBookingServlet extends HttpServlet {
             }
             mapper.writeValue(resp.getWriter(), ticket);
         } else if ("getFoodItems".equals(action)) {
-            List<FoodItem> foodItems = foodService.getActiveFoodItems();
+            List<FoodItem> foodItems = foodService.getActiveFoodItemsByBranch(branchId);
             mapper.writeValue(resp.getWriter(), foodItems);
         } else if ("getBookingFoodItems".equals(action)) {
             String bookingIdParam = req.getParameter("bookingId");
