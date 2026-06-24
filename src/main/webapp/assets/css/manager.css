@@ -489,6 +489,7 @@ body.lc-console h3 { font-weight: 700; }
 .pay-st.s-success { background:#E8F5EE; color:#146C43; } .pay-st.s-success .dot { background:#16a34a; }
 .pay-st.s-pending { background:#FFF4D6; color:#9a6700; } .pay-st.s-pending .dot { background:#d97706; }
 .pay-st.s-failed  { background:#FBE4E6; color:#b02a37; } .pay-st.s-failed  .dot { background:#dc2626; }
+.pay-st.s-off     { background:#EEF1F4; color:#475569; } .pay-st.s-off     .dot { background:#94a3b8; }
 
 .pay-empty { text-align:center; padding:3.5rem 1.5rem; color:var(--lc-muted); }
 .pay-empty i { font-size:2.6rem; color:#cbd5e1; display:block; margin-bottom:.6rem; }
