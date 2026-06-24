@@ -128,55 +128,50 @@
         </div>
 
         <!-- FILTER & SEARCH PANEL -->
-        <div class="card border-0 shadow-sm mb-4">
+        <div class="card lc-elev mb-4">
             <div class="card-body py-3">
-                <form id="filterForm" method="get" action="${pageContext.request.contextPath}/admin/users" class="row g-3 align-items-center">
+                <form id="filterForm" method="get" action="${pageContext.request.contextPath}/admin/users"
+                      class="d-flex flex-wrap align-items-center gap-2">
                     <!-- Search input -->
-                    <div class="col-lg-4 col-md-6 position-relative">
+                    <div class="position-relative flex-grow-1" style="min-width:220px; max-width:340px;">
                         <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
-                        <input type="text" name="search" value="<c:out value='${searchQuery}'/>" 
+                        <input type="text" name="search" value="<c:out value='${searchQuery}'/>"
                                class="form-control filter-search-input w-100" placeholder="Search by name, email, or username...">
                     </div>
-                    
+
                     <!-- Role select -->
-                    <div class="col-lg-2 col-md-3">
-                        <select name="role" class="form-select filter-select" onchange="this.form.submit()">
-                            <option value="">All Roles</option>
-                            <option value="CUSTOMER" ${selectedRole == 'CUSTOMER' ? 'selected' : ''}>Customer</option>
-                            <option value="BRANCH_MANAGER" ${selectedRole == 'BRANCH_MANAGER' ? 'selected' : ''}>Branch Manager</option>
-                            <option value="BRANCH_STAFF" ${selectedRole == 'BRANCH_STAFF' ? 'selected' : ''}>Branch Staff</option>
-                            <option value="ADMIN" ${selectedRole == 'ADMIN' ? 'selected' : ''}>Admin</option>
-                        </select>
-                    </div>
+                    <select name="role" class="form-select filter-select" style="width:auto;" onchange="this.form.submit()">
+                        <option value="">All Roles</option>
+                        <option value="CUSTOMER" ${selectedRole == 'CUSTOMER' ? 'selected' : ''}>Customer</option>
+                        <option value="BRANCH_MANAGER" ${selectedRole == 'BRANCH_MANAGER' ? 'selected' : ''}>Branch Manager</option>
+                        <option value="BRANCH_STAFF" ${selectedRole == 'BRANCH_STAFF' ? 'selected' : ''}>Branch Staff</option>
+                        <option value="ADMIN" ${selectedRole == 'ADMIN' ? 'selected' : ''}>Admin</option>
+                    </select>
 
                     <!-- Cinema select -->
-                    <div class="col-lg-2 col-md-3">
-                        <select name="branchId" class="form-select filter-select" onchange="this.form.submit()">
-                            <option value="">All Cinemas</option>
-                            <c:forEach items="${branches}" var="b">
-                                <option value="${b.branchId}" ${selectedBranchId == b.branchId ? 'selected' : ''}>${b.name}</option>
-                            </c:forEach>
-                        </select>
-                    </div>
+                    <select name="branchId" class="form-select filter-select" style="width:auto;" onchange="this.form.submit()">
+                        <option value="">All Cinemas</option>
+                        <c:forEach items="${branches}" var="b">
+                            <option value="${b.branchId}" ${selectedBranchId == b.branchId ? 'selected' : ''}>${b.name}</option>
+                        </c:forEach>
+                    </select>
 
                     <!-- Hidden status input -->
                     <input type="hidden" id="statusInput" name="status" value="<c:out value='${selectedStatus}'/>">
 
                     <!-- Status toggle button group -->
-                    <div class="col-lg-2 col-md-6">
-                        <div class="btn-group w-100" role="group">
-                            <button type="button" class="btn filter-toggle-btn ${empty selectedStatus ? 'active btn-primary' : 'btn-outline-secondary'}" 
-                                    onclick="setStatus('')">All</button>
-                            <button type="button" class="btn filter-toggle-btn ${selectedStatus == 'Active' ? 'active btn-primary' : 'btn-outline-secondary'}" 
-                                    onclick="setStatus('Active')">Active</button>
-                            <button type="button" class="btn filter-toggle-btn ${selectedStatus == 'Inactive' ? 'active btn-primary' : 'btn-outline-secondary'}" 
-                                    onclick="setStatus('Inactive')">Inactive</button>
-                        </div>
+                    <div class="btn-group" role="group">
+                        <button type="button" class="btn filter-toggle-btn ${empty selectedStatus ? 'active btn-primary' : 'btn-outline-secondary'}"
+                                onclick="setStatus('')">All</button>
+                        <button type="button" class="btn filter-toggle-btn ${selectedStatus == 'Active' ? 'active btn-primary' : 'btn-outline-secondary'}"
+                                onclick="setStatus('Active')">Active</button>
+                        <button type="button" class="btn filter-toggle-btn ${selectedStatus == 'Inactive' ? 'active btn-primary' : 'btn-outline-secondary'}"
+                                onclick="setStatus('Inactive')">Inactive</button>
                     </div>
 
-                    <!-- Export & Add buttons -->
-                    <div class="col-lg-2 col-md-6 d-flex gap-2 justify-content-end">
-                        <button type="button" onclick="exportCSV()" class="btn btn-outline-secondary d-flex align-items-center gap-1" style="height:38px;">
+                    <!-- Export & Add buttons (pushed right, wrap-safe) -->
+                    <div class="d-flex gap-2 ms-auto">
+                        <button type="button" onclick="exportCSV()" class="btn btn-outline-secondary d-flex align-items-center gap-1" style="height:38px; white-space:nowrap;">
                             <i class="bi bi-file-earmark-arrow-down"></i> Export
                         </button>
                         <a href="${pageContext.request.contextPath}/admin/users?action=add" class="btn btn-primary d-flex align-items-center gap-1" style="height:38px; white-space:nowrap;">
