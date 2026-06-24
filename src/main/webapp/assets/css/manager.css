@@ -4,7 +4,7 @@
    de cac man /branch/* dong nhat voi thiet ke da duyet trong SRS.
    KHONG dung den main.css (style chung cua team).
    ============================================================ */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@500;600;700;800&display=swap');
 
 :root {
     /* Bien rieng cua console, map theo prototype --lc-* */
@@ -22,7 +22,25 @@
 body.lc-console {
     background: var(--lc-bg);
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-feature-settings: "cv11", "ss01";
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
+/* Headings use Sora display font (matches prototype) */
+body.lc-console h1,
+body.lc-console h2,
+body.lc-console h3,
+body.lc-console h4,
+body.lc-console h5,
+body.lc-console h6,
+body.lc-console .lc-sb-brand,
+body.lc-console .lc-display {
+    font-family: 'Sora', 'Inter', system-ui, sans-serif;
+    letter-spacing: -0.02em;
+}
+body.lc-console h1 { font-weight: 800; }
+body.lc-console h2,
+body.lc-console h3 { font-weight: 700; }
 
 /* ---------- Sidebar ---------- */
 .lc-sidebar {
