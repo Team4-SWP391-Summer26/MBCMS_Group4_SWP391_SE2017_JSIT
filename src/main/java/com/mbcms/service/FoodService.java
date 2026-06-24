@@ -8,6 +8,10 @@ import java.util.Map;
 
 public interface FoodService {
     List<FoodItem> getActiveFoodItems();
+    /** Active menu of one branch (counter booking / staff). */
+    List<FoodItem> getActiveFoodItemsByBranch(long branchId);
+    /** Active menu for the branch that owns this showtime (customer booking). */
+    List<FoodItem> getActiveFoodItemsForShowtime(long showtimeId);
     FoodItem getFoodItemById(long foodId);
     void saveFoodOrder(long bookingId, Map<Long, Integer> items, String status);
     Map<FoodItem, Integer> getFoodItemsByBookingId(long bookingId);
@@ -24,6 +28,8 @@ public interface FoodService {
     boolean toggleStatus(long foodId, boolean active, long branchId);
     void deleteOrderByBookingId(long bookingId);
     boolean belongsToBranch(long foodOrderId, long branchId);
+    /** Tru ton kho cho food order cua booking (goi khi don da commit). */
+    void decrementStockForBooking(long bookingId);
 
     /** Active items only; qty capped 1–10 per line. */
     BigDecimal computeValidatedFoodSubtotal(Map<Long, Integer> items);

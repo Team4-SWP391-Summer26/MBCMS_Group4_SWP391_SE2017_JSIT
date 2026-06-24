@@ -235,7 +235,7 @@ public class CounterBookingServlet extends HttpServlet {
             }
             mapper.writeValue(resp.getWriter(), ticket);
         } else if ("getFoodItems".equals(action)) {
-            List<FoodItem> foodItems = foodService.getActiveFoodItems();
+            List<FoodItem> foodItems = foodService.getActiveFoodItemsByBranch(branchId);
             mapper.writeValue(resp.getWriter(), foodItems);
         } else if ("getBookingFoodItems".equals(action)) {
             String bookingIdParam = req.getParameter("bookingId");
@@ -397,6 +397,7 @@ public class CounterBookingServlet extends HttpServlet {
 
                 if (!selectedFood.isEmpty()) {
                     foodService.saveFoodOrder(createdBooking.getBookingId(), selectedFood, "PREPARING");
+                    foodService.decrementStockForBooking(createdBooking.getBookingId());
                 }
 
                 // Notify WebSocket server of the hard lock

@@ -77,7 +77,16 @@ public class BookingFoodDrinksServlet extends HttpServlet {
             return;
         }
 
-        List<FoodItem> foodItems = foodService.getActiveFoodItems();
+        long showtimeId;
+        try {
+            showtimeId = Long.parseLong(showtimeIdParam.trim());
+        } catch (NumberFormatException e) {
+            resp.sendRedirect(req.getContextPath() + "/");
+            return;
+        }
+
+        // Chi hien thi mon cua chi nhanh so huu suat chieu nay (khong lo mon chi nhanh khac).
+        List<FoodItem> foodItems = foodService.getActiveFoodItemsForShowtime(showtimeId);
 
         req.setAttribute("foodItems", foodItems);
         req.setAttribute("showtimeId", showtimeIdParam);
@@ -99,20 +108,26 @@ public class BookingFoodDrinksServlet extends HttpServlet {
         String showtimeIdParam = req.getParameter("showtimeId");
         String seatIdsParam = req.getParameter("seatIds");
 
-        List<FoodItem> foodItems = foodService.getActiveFoodItems();
+        // Quet truc tiep cac param food_qty_<id> do form gui len.
+        // Tinh hop le ve chi nhanh duoc enforce trong saveFoodOrder (chong tamper).
         Map<Long, Integer> selectedFood = new HashMap<>();
-
-        for (FoodItem item : foodItems) {
-            String qtyStr = req.getParameter("food_qty_" + item.getFoodId());
-            if (qtyStr != null && !qtyStr.trim().isEmpty()) {
-                try {
-                    int qty = Integer.parseInt(qtyStr.trim());
-                    if (qty > 0) {
-                        qty = Math.min(qty, 10);
-                        selectedFood.put(item.getFoodId(), qty);
-                    }
-                } catch (NumberFormatException ignored) {
+        java.util.Enumeration<String> paramNames = req.getParameterNames();
+        while (paramNames.hasMoreElements()) {
+            String name = paramNames.nextElement();
+            if (!name.startsWith("food_qty_")) {
+                continue;
+            }
+            String qtyStr = req.getParameter(name);
+            if (qtyStr == null || qtyStr.trim().isEmpty()) {
+                continue;
+            }
+            try {
+                long foodId = Long.parseLong(name.substring("food_qty_".length()));
+                int qty = Integer.parseInt(qtyStr.trim());
+                if (qty > 0) {
+                    selectedFood.put(foodId, Math.min(qty, 10));
                 }
+            } catch (NumberFormatException ignored) {
             }
         }
 

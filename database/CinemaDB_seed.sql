@@ -184,13 +184,19 @@ INSERT INTO dbo.promotions (code, name, discount_type, discount_value, min_order
 -- ---------------------------------------------------------------------
 -- 11. Food items
 -- ---------------------------------------------------------------------
-INSERT INTO dbo.food_items (name, description, price, category) VALUES
- (N'Popcorn (Large)', N'Salted popcorn, large size',   65000,  'SNACK'),
- (N'Popcorn (Medium)',N'Caramel popcorn, medium size', 55000,  'SNACK'),
- (N'Coca-Cola',       N'Soft drink 500ml',             30000,  'DRINK'),
- (N'Mineral Water',   N'Bottled water 500ml',          20000,  'DRINK'),
- (N'Combo for 2',     N'2 drinks + 1 large popcorn',   120000, 'COMBO'),
- (N'Combo Solo',      N'1 drink + 1 medium popcorn',   75000,  'COMBO');
+-- Moi chi nhanh co menu F&B rieng (food_items.branch_id NOT NULL).
+-- CROSS JOIN bo mon mau voi tung chi nhanh -> moi branch co day du 6 mon.
+INSERT INTO dbo.food_items (name, description, price, category, branch_id, stock)
+SELECT f.name, f.description, f.price, f.category, b.branch_id, f.stock
+FROM (VALUES
+    (N'Popcorn (Large)', N'Salted popcorn, large size',   CAST(65000  AS DECIMAL(10,2)), 'SNACK', 100),
+    (N'Popcorn (Medium)',N'Caramel popcorn, medium size', CAST(55000  AS DECIMAL(10,2)), 'SNACK', 100),
+    (N'Coca-Cola',       N'Soft drink 500ml',             CAST(30000  AS DECIMAL(10,2)), 'DRINK', 200),
+    (N'Mineral Water',   N'Bottled water 500ml',          CAST(20000  AS DECIMAL(10,2)), 'DRINK', 200),
+    (N'Combo for 2',     N'2 drinks + 1 large popcorn',   CAST(120000 AS DECIMAL(10,2)), 'COMBO', 50),
+    (N'Combo Solo',      N'1 drink + 1 medium popcorn',   CAST(75000  AS DECIMAL(10,2)), 'COMBO', 50)
+) AS f(name, description, price, category, stock)
+CROSS JOIN dbo.branches b;
 
 PRINT 'Base data seeded (genres, movies, branches, rooms, seats, showtimes, customers, employees, promotions, food).';
 GO
@@ -232,8 +238,12 @@ UPDATE dbo.promotions SET used_count = used_count + 1 WHERE promo_id = @promo_id
 INSERT INTO dbo.food_orders (booking_id, [status]) VALUES (@booking_id, 'PREPARING');
 DECLARE @food_order_id BIGINT = SCOPE_IDENTITY();
 
+-- Chon mon thuoc dung chi nhanh cua suat chieu (@room_id -> branch)
+DECLARE @demo_branch_id BIGINT = (SELECT branch_id FROM dbo.rooms WHERE room_id = @room_id);
 INSERT INTO dbo.booking_food_items (food_order_id, food_id, quantity)
-SELECT @food_order_id, food_id, 1 FROM dbo.food_items WHERE name = N'Combo for 2';
+SELECT @food_order_id, food_id, 1
+FROM dbo.food_items
+WHERE name = N'Combo for 2' AND branch_id = @demo_branch_id;
 
 -- ---------------------------------------------------------------------
 -- 13. Notification + feedback samples
@@ -343,9 +353,11 @@ FROM dbo.bookings WHERE booking_code = 'BK-000003';
 INSERT INTO dbo.booking_food_items (food_order_id, food_id, quantity)
 SELECT fo.food_order_id, fi.food_id, q.qty
 FROM dbo.food_orders fo
-JOIN dbo.bookings b ON b.booking_id = fo.booking_id AND b.booking_code = 'BK-000003'
+JOIN dbo.bookings b   ON b.booking_id = fo.booking_id AND b.booking_code = 'BK-000003'
+JOIN dbo.showtimes st ON st.showtime_id = b.showtime_id
+JOIN dbo.rooms r      ON r.room_id = st.room_id
 JOIN (VALUES (N'Popcorn (Large)', 1), (N'Coca-Cola', 3)) AS q(food_name, qty) ON 1 = 1
-JOIN dbo.food_items fi ON fi.name = q.food_name;
+JOIN dbo.food_items fi ON fi.name = q.food_name AND fi.branch_id = r.branch_id;
 
 -- 14e. recompute promotion usage from actual bookings (keeps used_count correct)
 UPDATE pr

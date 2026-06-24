@@ -20,6 +20,20 @@ public class FoodServiceImpl implements FoodService {
     }
 
     @Override
+    public List<FoodItem> getActiveFoodItemsByBranch(long branchId) {
+        return foodDao.findActiveByBranch(branchId);
+    }
+
+    @Override
+    public List<FoodItem> getActiveFoodItemsForShowtime(long showtimeId) {
+        Long branchId = foodDao.findBranchIdByShowtimeId(showtimeId);
+        if (branchId == null) {
+            return java.util.Collections.emptyList();
+        }
+        return foodDao.findActiveByBranch(branchId);
+    }
+
+    @Override
     public FoodItem getFoodItemById(long foodId) {
         return foodDao.findById(foodId);
     }
@@ -115,6 +129,11 @@ public class FoodServiceImpl implements FoodService {
     @Override
     public void deleteOrderByBookingId(long bookingId) {
         foodDao.deleteOrderByBookingId(bookingId);
+    }
+
+    @Override
+    public void decrementStockForBooking(long bookingId) {
+        foodDao.decrementStockForBooking(bookingId);
     }
 
     @Override
