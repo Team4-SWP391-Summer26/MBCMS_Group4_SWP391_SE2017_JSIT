@@ -19,6 +19,7 @@ public class Customer {
     private boolean active = true;
     private boolean emailVerified = false;
     private String resetToken;
+    private String googleId;
     private LocalDateTime createdAt;
 
     public Customer() {
@@ -111,4 +112,13 @@ public class Customer {
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
     }
+
+    public String getGoogleId() {
+        return googleId;
+    }
+
+    public void setGoogleId(String googleId) {
+        this.googleId = googleId;
+    }
+       
 }

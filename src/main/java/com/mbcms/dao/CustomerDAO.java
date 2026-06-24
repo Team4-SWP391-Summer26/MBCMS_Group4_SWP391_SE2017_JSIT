@@ -33,4 +33,10 @@ public interface CustomerDAO {
     Customer findByPhone(String phone);
     
     public List<String> findAllActiveUsernames();
+    
+    Customer findByGoogleId(String googleId);
+
+    boolean linkGoogleId(String username, String googleId);
+
+    boolean insertGoogleCustomer(Customer customer);
 }

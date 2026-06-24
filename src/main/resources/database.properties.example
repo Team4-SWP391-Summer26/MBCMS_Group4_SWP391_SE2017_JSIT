@@ -27,3 +27,12 @@ payment.vnpay.payUrl=https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
 # payment.vnpay.ipnUrl=http://localhost:9999/MBCMS/booking/payment/vnpay-ipn
 payment.vnpay.locale=en
 
+```properties
+google.oauth.clientId=YOUR_CLIENT_ID
+google.oauth.clientSecret=YOUR_SECRET
+google.oauth.redirectUri=http://localhost:xxxx/MBCMS/auth/google/callback
+google.oauth.scope=openid email profile
+google.oauth.authUrl=https://accounts.google.com/o/oauth2/v2/auth
+google.oauth.tokenUrl=https://oauth2.googleapis.com/token
+google.oauth.userInfoUrl=https://www.googleapis.com/oauth2/v3/userinfo
+```
