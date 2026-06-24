@@ -93,9 +93,8 @@
                                 <span class="ic"><i class="bi bi-grid-3x3-gap"></i></span>
                                 <span class="n">${room.capacity}</span><span class="u">seats</span>
                             </div>
-                            <div class="room-typebar ${tbcls}">
-                                <span>${room.roomType}</span><span>${room.capacity}</span>
-                            </div>
+                            <div class="text-muted" style="font-size:.78rem;">
+                                <i class="bi bi-info-circle me-1"></i>Auto-calculated from the seat layout</div>
                         </div>
                         <div class="room-actrow">
                             <span class="fw-semibold small text-navy">Active</span>

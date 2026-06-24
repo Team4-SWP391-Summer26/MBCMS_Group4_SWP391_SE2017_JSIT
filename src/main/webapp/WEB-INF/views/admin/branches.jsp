@@ -90,18 +90,30 @@
         }
         .lc-cinema-card:hover { box-shadow: 0 8px 24px rgba(15,23,42,.1); }
         .lc-cinema-banner {
-            height: 90px; position: relative;
+            height: 96px; position: relative; overflow: hidden;
             display: flex; align-items: center; justify-content: center;
+        }
+        /* graph-paper grid overlay (like mockup) */
+        .lc-cinema-banner::before {
+            content: ""; position: absolute; inset: 0;
+            background-image:
+                linear-gradient(rgba(15,23,42,.07) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(15,23,42,.07) 1px, transparent 1px);
+            background-size: 22px 22px;
+            -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,.9), rgba(0,0,0,.25));
+            mask-image: linear-gradient(to bottom, rgba(0,0,0,.9), rgba(0,0,0,.25));
+            pointer-events: none;
         }
         .lc-cinema-banner-pin {
-            width: 38px; height: 38px; border-radius: 999px;
-            background: rgba(255,255,255,.92);
+            position: relative; z-index: 1;
+            width: 40px; height: 40px; border-radius: 999px;
+            background: rgba(255,255,255,.95);
             display: flex; align-items: center; justify-content: center;
-            color: var(--lc-primary); font-size: 1.15rem;
-            box-shadow: 0 2px 8px rgba(0,0,0,.13);
+            color: var(--lc-primary); font-size: 1.2rem;
+            box-shadow: 0 3px 10px rgba(0,0,0,.15);
         }
         .lc-cinema-status {
-            position: absolute; top: 10px; right: 10px;
+            position: absolute; top: 10px; right: 10px; z-index: 1;
             font-size: .68rem; font-weight: 700;
             padding: .24rem .7rem; border-radius: 999px;
             display: flex; align-items: center; gap: .3rem;
