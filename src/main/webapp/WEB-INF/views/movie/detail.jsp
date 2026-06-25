@@ -14,6 +14,9 @@
     <!-- Google Fonts: Inter -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     
+    <!-- Main Custom CSS -->
+    <link href="${pageContext.request.contextPath}/assets/css/main.css?v=${applicationScope.assetVersion}" rel="stylesheet">
+    
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -88,7 +91,7 @@
         }
         .age-P { background-color: #2563eb; }
         .age-K { background-color: #16a34a; }
-        .age-T13, .age-C13 { background-color: #eab308; color: #1e293b; }
+        .age-T13, .age-C13 { background-color: #eab308; color: #ffffff; }
         .age-T16, .age-C16 { background-color: #f97316; }
         .age-T18, .age-C18 { background-color: #ef4444; }
 
@@ -155,21 +158,17 @@
             font-size: 0.9rem;
         }
 
-        /* Info Grid */
-        .info-grid {
-            display: grid;
-            grid-template-columns: auto 1fr;
-            gap: 0.75rem 1.5rem;
-            margin-bottom: 2rem;
+        /* Movie Details Info */
+        .movie-details-info {
             font-size: 0.95rem;
             line-height: 1.5;
+            margin-bottom: 2rem;
         }
-        .info-label {
+        .info-item-label {
             font-weight: 700;
-            color: #334155;
-            min-width: 80px;
+            color: #1e293b;
         }
-        .info-value {
+        .info-item-value {
             color: #475569;
         }
 
@@ -412,39 +411,47 @@
             width: 78px;
             height: 48px;
             border-radius: 8px;
-            border: 1px solid #cbd5e1;
+            border: 1px solid #2563eb;
             background-color: #ffffff;
-            color: #0f172a;
+            color: #2563eb;
             text-decoration: none;
             transition: all 0.15s ease;
         }
         .showtime-slot-btn .slot-time {
             font-size: 0.95rem;
             font-weight: 700;
+            color: #2563eb;
         }
         .showtime-slot-btn .slot-price-label {
             font-size: 0.68rem;
-            color: #64748b;
+            color: #2563eb;
             font-weight: 500;
             margin-top: -0.1rem;
         }
         .showtime-slot-btn:hover:not(.disabled) {
-            border-color: #2563eb;
-            color: #2563eb;
+            border-color: #1d4ed8;
+            color: #1d4ed8;
             background-color: #eff6ff;
+        }
+        .showtime-slot-btn:hover:not(.disabled) .slot-time,
+        .showtime-slot-btn:hover:not(.disabled) .slot-price-label {
+            color: #1d4ed8;
         }
         .showtime-slot-btn.disabled {
             background-color: #f1f5f9;
-            border-color: #e2e8f0;
+            border-color: #cbd5e1;
             color: #94a3b8;
             cursor: not-allowed;
             pointer-events: none;
+        }
+        .showtime-slot-btn.disabled .slot-time {
+            color: #94a3b8;
         }
         .showtime-slot-btn.disabled .slot-price-label {
             color: #94a3b8;
         }
 
-        /* Legend styling */
+        /* Legend styling with custom checkbox design */
         .showtimes-legend {
             display: flex;
             align-items: center;
@@ -461,20 +468,32 @@
             align-items: center;
             gap: 0.5rem;
         }
-        .legend-dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
+        .legend-checkbox {
+            width: 16px;
+            height: 16px;
+            border-radius: 4px;
+            border: 1px solid #cbd5e1;
+            background-color: #ffffff;
+            display: inline-block;
+            vertical-align: middle;
         }
-        .legend-dot.standard { background-color: #eab308; }
-        .legend-dot.vip { background-color: #2563eb; }
-        .legend-dot.imax { background-color: #a855f7; }
+        .legend-checkbox.standard {
+            border-color: #cbd5e1;
+        }
+        .legend-checkbox.vip {
+            border-color: #f59e0b;
+        }
+        .legend-checkbox.imax {
+            border-color: #c084fc;
+        }
     </style>
 </head>
 
 <body>
 
-    <jsp:include page="../common/header.jsp" />
+    <jsp:include page="../common/header.jsp">
+        <jsp:param name="activeMenu" value="movies" />
+    </jsp:include>
 
     <main class="container py-4">
 
@@ -513,9 +532,7 @@
                     <div class="metadata-row">
                         <span class="age-badge age-${movie.rated}"><c:out value="${movie.rated}"/></span>
                         <span class="meta-text">${fn:substring(movie.releaseDate, 0, 4)}</span>
-                        <span class="meta-text">&bull;</span>
                         <span class="meta-text">${movie.durationMin} min</span>
-                        <span class="meta-text">&bull;</span>
                         <c:forEach var="g" items="${movie.genres}">
                             <span class="genre-badge">${g}</span>
                         </c:forEach>
@@ -548,19 +565,25 @@
                             </c:forEach>
                         </div>
                         <span class="rating-score">${ratingStr}/10</span>
-                        <span class="vote-count">(${votesStr} votes)</span>
+                        <span class="vote-count">(${votesStr})</span>
                     </div>
 
-                    <!-- Details Grid -->
-                    <div class="info-grid">
-                        <div class="info-label">Director:</div>
-                        <div class="info-value"><c:out value="${not empty movie.director ? movie.director : 'N/A'}"/></div>
-                        
-                        <div class="info-label">Language:</div>
-                        <div class="info-value"><c:out value="${not empty movie.language ? movie.language : 'English'}"/></div>
-                        
-                        <div class="info-label">Cast:</div>
-                        <div class="info-value"><c:out value="${not empty movie.castList ? movie.castList : 'N/A'}"/></div>
+                    <!-- Details Layout (2-column Director/Language, full Cast below) -->
+                    <div class="movie-details-info">
+                        <div class="row g-3">
+                            <div class="col-md-6 col-12">
+                                <span class="info-item-label">Director:</span>
+                                <span class="info-item-value"><c:out value="${not empty movie.director ? movie.director : 'N/A'}"/></span>
+                            </div>
+                            <div class="col-md-6 col-12">
+                                <span class="info-item-label">Language:</span>
+                                <span class="info-item-value"><c:out value="${not empty movie.language ? movie.language : 'English'}"/></span>
+                            </div>
+                            <div class="col-12 mt-2">
+                                <span class="info-item-label">Cast:</span>
+                                <span class="info-item-value"><c:out value="${not empty movie.castList ? movie.castList : 'N/A'}"/></span>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Action buttons -->
@@ -569,7 +592,7 @@
                             <i class="bi bi-ticket-perforated-fill"></i> Book Tickets
                         </a>
                         <button class="btn-save-outline">
-                            <i class="bi bi-heart"></i> Save
+                            <i class="bi bi-bookmark"></i> Save
                         </button>
                     </div>
                 </div>
@@ -642,7 +665,7 @@
                                                 ${rg.roomName} &bull; ${rg.roomType} &bull; ${rg.format} ${rg.subtitleType}
                                             </span>
                                             <span class="room-price-from">
-                                                From <fmt:formatNumber value="${rg.minPrice}" type="currency" currencySymbol="" maxFractionDigits="0"/>đ
+                                                From <fmt:formatNumber value="${rg.minPrice}" pattern="#,##0"/>đ
                                             </span>
                                         </div>
                                         <div class="showtime-slots-grid">
@@ -658,7 +681,7 @@
                                                         <a href="${pageContext.request.contextPath}/booking/seats?showtimeId=${slot.showtimeId}" class="showtime-slot-btn">
                                                             <span class="slot-time">${slot.time}</span>
                                                             <span class="slot-price-label">
-                                                                <fmt:formatNumber value="${slot.price}" maxFractionDigits="0"/>đ
+                                                                <fmt:formatNumber value="${slot.price}" pattern="#,##0"/>đ
                                                             </span>
                                                         </a>
                                                     </c:otherwise>
@@ -676,15 +699,15 @@
             <!-- Showtime pricing category legend -->
             <div class="showtimes-legend">
                 <div class="legend-item">
-                    <span class="legend-dot standard"></span>
+                    <span class="legend-checkbox standard"></span>
                     <span>Standard 80,000đ</span>
                 </div>
                 <div class="legend-item">
-                    <span class="legend-dot vip"></span>
-                    <span>VIP 120,000đ</span>
+                    <span class="legend-checkbox vip"></span>
+                    <span>VIP 140,000đ</span>
                 </div>
                 <div class="legend-item">
-                    <span class="legend-dot imax"></span>
+                    <span class="legend-checkbox imax"></span>
                     <span>IMAX 100,000đ</span>
                 </div>
             </div>
