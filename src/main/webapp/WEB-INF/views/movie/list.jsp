@@ -14,6 +14,9 @@
     <!-- Google Fonts: Inter -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     
+    <!-- Main Custom CSS -->
+    <link href="${pageContext.request.contextPath}/assets/css/main.css?v=${applicationScope.assetVersion}" rel="stylesheet">
+    
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -294,7 +297,7 @@
         }
         .age-P { background-color: #2563eb; }
         .age-K { background-color: #16a34a; }
-        .age-T13, .age-C13 { background-color: #eab308; color: #1e293b; }
+        .age-T13, .age-C13 { background-color: #eab308; color: #ffffff; }
         .age-T16, .age-C16 { background-color: #f97316; }
         .age-T18, .age-C18 { background-color: #ef4444; }
 
@@ -306,10 +309,11 @@
         }
         .genre-chip {
             font-size: 0.7rem;
-            font-weight: 500;
+            font-weight: 600;
             padding: 0.15rem 0.5rem;
-            background-color: #f1f5f9;
-            color: #475569;
+            background-color: #eff6ff;
+            color: #1d4ed8;
+            border: 1px solid #dbeafe;
             border-radius: 9999px;
         }
 
@@ -430,17 +434,22 @@
 
 <body>
 
-    <jsp:include page="../common/header.jsp" />
+    <jsp:include page="../common/header.jsp">
+        <jsp:param name="activeMenu" value="movies" />
+    </jsp:include>
+
+    <!-- Hero Banner (Navy blue background, content centered) -->
+    <div class="movies-hero-banner">
+        <div class="container">
+            <div class="breadcrumb-hero">
+                <a href="${pageContext.request.contextPath}/home">Home</a> / Movies
+            </div>
+            <h1 class="hero-title">All Movies</h1>
+            <p class="hero-subtitle">Showing <strong>${fn:length(movies)}</strong> movies across all LuminaCine locations.</p>
+        </div>
+    </div>
 
     <main class="container py-4">
-
-        <!-- Breadcrumbs -->
-        <div class="breadcrumb-custom">
-            <a href="${pageContext.request.contextPath}/home">Home</a> / Movies
-        </div>
-
-        <h1 class="page-title">All Movies</h1>
-        <p class="page-subtitle">Showing <strong>${fn:length(movies)}</strong> movies across all LuminaCine locations.</p>
 
         <!-- Filters Form -->
         <form method="GET" action="${pageContext.request.contextPath}/movies" id="filterForm">
@@ -468,7 +477,8 @@
                     <!-- Status Dropdown -->
                     <div class="col-lg-2 col-md-6 col-12">
                         <select class="form-select filter-select" name="status" onchange="submitFilterForm()">
-                            <option value="NOW_SHOWING" <c:if test="${selectedStatus == 'NOW_SHOWING'}">selected</c:if>>Now Showing</option>
+                            <option value="ALL" <c:if test="${selectedStatus == 'ALL'}">selected</c:if>>All Status</option>
+                            <option value="NOW_SHOWING" <c:if test="${selectedStatus == 'NOW_SHOWING' || empty selectedStatus}">selected</c:if>>Now Showing</option>
                             <option value="UPCOMING" <c:if test="${selectedStatus == 'UPCOMING'}">selected</c:if>>Upcoming</option>
                         </select>
                     </div>
@@ -476,10 +486,10 @@
                     <!-- Sort Dropdown -->
                     <div class="col-lg-2 col-md-6 col-12">
                         <select class="form-select filter-select" name="sort" onchange="submitFilterForm()">
-                            <option value="release_desc" <c:if test="${selectedSort == 'release_desc'}">selected</c:if>>Newest</option>
-                            <option value="release_asc" <c:if test="${selectedSort == 'release_asc'}">selected</c:if>>Oldest</option>
-                            <option value="title_asc" <c:if test="${selectedSort == 'title_asc'}">selected</c:if>>Title (A-Z)</option>
-                            <option value="title_desc" <c:if test="${selectedSort == 'title_desc'}">selected</c:if>>Title (Z-A)</option>
+                            <option value="release_desc" <c:if test="${selectedSort == 'release_desc'}">selected</c:if>>Release Date &darr;</option>
+                            <option value="release_asc" <c:if test="${selectedSort == 'release_asc'}">selected</c:if>>Release Date &uarr;</option>
+                            <option value="title_asc" <c:if test="${selectedSort == 'title_asc'}">selected</c:if>>Title (A-Z) &uarr;</option>
+                            <option value="title_desc" <c:if test="${selectedSort == 'title_desc'}">selected</c:if>>Title (Z-A) &darr;</option>
                             <option value="duration_asc" <c:if test="${selectedSort == 'duration_asc'}">selected</c:if>>Duration (Shortest)</option>
                             <option value="duration_desc" <c:if test="${selectedSort == 'duration_desc'}">selected</c:if>>Duration (Longest)</option>
                         </select>
@@ -503,9 +513,10 @@
         <div class="filter-chips">
             <span class="filter-chips-label">Active filters:</span>
             
-            <c:if test="${not empty selectedStatus}">
+            <c:if test="${not empty selectedStatus && selectedStatus != 'ALL'}">
                 <div class="chip-custom">
-                    Status: <c:out value="${selectedStatus == 'NOW_SHOWING' ? 'Now Showing' : 'Upcoming'}"/>
+                    <c:out value="${selectedStatus == 'NOW_SHOWING' ? 'Now Showing' : 'Upcoming'}"/>
+                    <a href="#" onclick="clearFilter('status')"><i class="bi bi-x"></i></a>
                 </div>
             </c:if>
 
@@ -518,14 +529,15 @@
 
             <c:if test="${not empty selectedGenre}">
                 <div class="chip-custom">
-                    Genre: <c:out value="${selectedGenre}"/>
+                    <c:out value="${selectedGenre}"/>
                     <a href="#" onclick="clearFilter('genre')"><i class="bi bi-x"></i></a>
                 </div>
             </c:if>
 
             <c:if test="${not empty selectedSort}">
                 <div class="chip-custom">
-                    Sort: <c:out value="${selectedSort == 'release_desc' ? 'Newest' : (selectedSort == 'release_asc' ? 'Oldest' : (selectedSort == 'title_asc' ? 'Title (A-Z)' : (selectedSort == 'title_desc' ? 'Title (Z-A)' : (selectedSort == 'duration_asc' ? 'Duration (Shortest)' : 'Duration (Longest)'))))}"/>
+                    Sort: <c:out value="${selectedSort == 'release_desc' ? 'Release Date ↓' : (selectedSort == 'release_asc' ? 'Release Date ↑' : (selectedSort == 'title_asc' ? 'Title (A-Z) ↑' : (selectedSort == 'title_desc' ? 'Title (Z-A) ↓' : (selectedSort == 'duration_asc' ? 'Duration (Shortest) ↑' : 'Duration (Longest) ↓'))))}"/>
+                    <a href="#" onclick="clearFilter('sort')"><i class="bi bi-x"></i></a>
                 </div>
             </c:if>
 
@@ -582,12 +594,12 @@
 
                                 <div class="meta-info-row">
                                     <div class="meta-item">
-                                        <i class="bi bi-clock"></i>
+                                        <i class="bi bi-clock me-1"></i>
                                         <span>${movie.durationMin} min</span>
                                     </div>
-                                    <div class="meta-item rating-item">
-                                        <i class="bi bi-star-fill"></i>
-                                        <span>${ratingStr}</span>
+                                    <div class="meta-item">
+                                        <i class="bi bi-star-fill text-warning me-1"></i>
+                                        <span class="fw-semibold text-dark">${ratingStr}</span>
                                     </div>
                                 </div>
 
@@ -628,7 +640,11 @@
             const form = document.getElementById('filterForm');
             const element = form.querySelector('[name="' + paramName + '"]');
             if (element) {
-                element.value = '';
+                if (paramName === 'status') {
+                    element.value = 'ALL';
+                } else {
+                    element.value = '';
+                }
             }
             form.submit();
         }

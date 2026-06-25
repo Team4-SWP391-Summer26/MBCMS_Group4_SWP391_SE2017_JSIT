@@ -17,8 +17,7 @@
                 <rect x="25" y="26" width="3" height="3" rx="1" fill="#FFFFFF" opacity="0.3" />
                 <path d="M13 11V21L21 16L13 11Z" fill="#FFC107" />
             </svg>
-            <span class="ms-2 fw-bold"
-                  style="color: #0F1E36; font-size: 1.35rem; letter-spacing: -0.5px;">LuminaCine</span>
+            <span class="ms-2 fw-bold" style="color: #0F1E36; font-size: 1.35rem; letter-spacing: -0.5px;">Lumina<span style="color: #eab308;">Cine</span></span>
         </a>
 
         <!-- Mobile toggle -->
@@ -29,14 +28,19 @@
         </button>
 
         <!-- Nav items -->
+        <c:set var="activeMenu" value="${param.activeMenu}" />
         <div class="collapse navbar-collapse" id="navMenu">
             <ul class="navbar-nav ms-lg-5 me-auto mb-2 mb-lg-0 mt-2 mt-lg-0 gap-4">
                 <li class="nav-item">
-                    <a class="nav-link"
+                    <a class="nav-link <c:if test="${activeMenu == 'movies'}">active</c:if>"
                        href="${pageContext.request.contextPath}/movies?status=NOW_SHOWING">Movies</a>
                 </li>
-                <li class="nav-item"><a class="nav-link" href="#">Cinemas</a></li>
-                <li class="nav-item"><a class="nav-link" href="#">Promotions</a></li>
+                <li class="nav-item">
+                    <a class="nav-link <c:if test="${activeMenu == 'cinemas'}">active</c:if>" href="#">Cinemas</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link <c:if test="${activeMenu == 'promotions'}">active</c:if>" href="#">Promotions</a>
+                </li>
             </ul>
 
             <!-- Right Side Actions -->
@@ -61,43 +65,52 @@
 
                 <div class="d-flex align-items-center gap-3">
 
-                    <%-- ── Notification Bell (CUSTOMER only) ── --%>
-                    <c:if test="${not empty sessionScope.currentUser
-                                  and sessionScope.userRole == 'CUSTOMER'}">
-                          <div class="notif-wrap" style="position:relative;">
+                    <%-- ── Notification Bell (Visible for everyone, dropdown contents differ) ── --%>
+                    <div class="notif-wrap" style="position:relative;">
+                        <%-- Bell trigger button --%>
+                        <button class="notification-btn" id="notifBell"
+                                type="button" title="Thông báo" aria-label="Thông báo">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                                 stroke="currentColor" stroke-width="2"
+                                 stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                                <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                            </svg>
+                            <%-- Dot hidden by default; JS shows it when unreadCount > 0 --%>
+                            <span class="notification-dot" id="notifDot"
+                                  style="display:none;"></span>
+                        </button>
 
-                              <%-- Bell trigger button – icon-only to match existing CSS --%>
-                              <button class="notification-btn" id="notifBell"
-                                      type="button" title="Thông báo" aria-label="Thông báo">
-                                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
-                                       stroke="currentColor" stroke-width="2"
-                                       stroke-linecap="round" stroke-linejoin="round">
-                                      <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-                                      <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
-                                  </svg>
-                                  <%-- Dot hidden by default; JS shows it when unreadCount > 0 --%>
-                                  <span class="notification-dot" id="notifDot"
-                                        style="display:none;"></span>
-                              </button>
-
-                              <%-- Dropdown panel --%>
-                              <div class="notif-panel" id="notifPanel">
-
-                                  <div class="notif-panel-header">
-                                      <span>Notification</span>
-                                      <a href="#" id="notifMarkAll" class="notif-markall"
-                                         style="display:none;">Mark all as read</a>
-                                  </div>
-
-                                  <div class="notif-list" id="notifList">
-                                      <p class="notif-empty">Loading...</p>
-                                  </div>
-
-                                  <a href="${pageContext.request.contextPath}/customer/notifications"
-                                     class="notif-viewall">View all</a>
-                              </div>
-                          </div>
-                    </c:if>
+                        <c:choose>
+                            <c:when test="${not empty sessionScope.currentUser
+                                          and sessionScope.userRole == 'CUSTOMER'}">
+                                <%-- Dropdown panel for Customer --%>
+                                <div class="notif-panel" id="notifPanel">
+                                    <div class="notif-panel-header">
+                                        <span>Notification</span>
+                                        <a href="#" id="notifMarkAll" class="notif-markall"
+                                           style="display:none;">Mark all as read</a>
+                                    </div>
+                                    <div class="notif-list" id="notifList">
+                                        <p class="notif-empty">Loading...</p>
+                                    </div>
+                                    <a href="${pageContext.request.contextPath}/customer/notifications"
+                                       class="notif-viewall">View all</a>
+                                </div>
+                            </c:when>
+                            <c:otherwise>
+                                <%-- Dropdown panel for Guest --%>
+                                <div class="notif-panel" id="notifPanel">
+                                    <div class="notif-panel-header">
+                                        <span>Notification</span>
+                                    </div>
+                                    <div class="notif-list">
+                                        <p class="notif-empty">Please <a href="${pageContext.request.contextPath}/auth/login" class="text-primary fw-semibold text-decoration-none">Sign In</a> to view notifications.</p>
+                                    </div>
+                                </div>
+                            </c:otherwise>
+                        </c:choose>
+                    </div>
 
                     <%-- ── Auth state ── --%>
                     <c:choose>
@@ -217,9 +230,7 @@
     </div>
 </nav>
 
-<%-- ── Notification dropdown CSS + JS (only injected for CUSTOMER) ── --%>
-<c:if test="${not empty sessionScope.currentUser
-              and sessionScope.userRole == 'CUSTOMER'}">
+<%-- ── Notification dropdown CSS (Always loaded to prevent layout breaks) ── --%>
       <style>
           .notif-panel {
               display: none;
@@ -382,6 +393,8 @@
           }
       </style>
 
+<c:if test="${not empty sessionScope.currentUser
+              and sessionScope.userRole == 'CUSTOMER'}">
       <script>
           document.addEventListener('DOMContentLoaded', function () {
               var ctx = '${pageContext.request.contextPath}';
@@ -529,4 +542,25 @@
               setInterval(loadNotifications, 30000);
           });
       </script>
+</c:if>
+
+<%-- Guest bell notifications panel toggle script --%>
+<c:if test="${empty sessionScope.currentUser or sessionScope.userRole != 'CUSTOMER'}">
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var bell = document.getElementById('notifBell');
+            var panel = document.getElementById('notifPanel');
+            if (bell && panel) {
+                bell.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    panel.classList.toggle('show');
+                });
+                document.addEventListener('click', function (e) {
+                    if (!panel.contains(e.target) && !bell.contains(e.target)) {
+                        panel.classList.remove('show');
+                    }
+                });
+            }
+        });
+    </script>
 </c:if>
