@@ -36,6 +36,7 @@
        href="${pageContext.request.contextPath}/admin/promotions">
         <i class="bi bi-ticket-perforated"></i>
         Promotions
+    </a>
 
     <div class="lc-sb-section">Catalog</div>
 
@@ -55,7 +56,6 @@
        href="${pageContext.request.contextPath}/admin/movie-branches">
         <i class="bi bi-diagram-3"></i>
         Movie Assignment
- b5e3f41 (Update movie module + admin management feature)
     </a>
 
     <div class="lc-sb-section">Finance</div>
