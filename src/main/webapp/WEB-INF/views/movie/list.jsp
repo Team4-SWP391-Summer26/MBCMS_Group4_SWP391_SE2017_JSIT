@@ -7,7 +7,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>All Movies - LuminaCine</title>
+    <title>All Movies - MBCMS</title>
     <!-- Include Bootstrap 5 and Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
@@ -603,7 +603,7 @@
                                     </div>
                                 </div>
 
-                                <a href="${pageContext.request.contextPath}/booking/branches?movieId=${movie.movieId}" class="btn-book-custom">
+                                <a href="${pageContext.request.contextPath}/booking/showtimes?movieId=${movie.movieId}" class="btn-book-custom">
                                     <i class="bi bi-ticket-perforated-fill"></i> Book Tickets
                                 </a>
                             </div>

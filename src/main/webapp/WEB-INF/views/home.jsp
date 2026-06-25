@@ -204,7 +204,7 @@
                             <p class="hero-synopsis"><c:out value="${featuredMovie.description}" /></p>
 
                             <div class="d-flex gap-3 flex-wrap">
-                                <a href="${pageContext.request.contextPath}/booking/branches?movieId=${featuredMovie.movieId}" class="btn-hero-primary">
+                                <a href="${pageContext.request.contextPath}/booking/showtimes?movieId=${featuredMovie.movieId}" class="btn-hero-primary">
                                     <i class="bi bi-ticket-perforated-fill"></i> Book Now
                                 </a>
                                 <c:if test="${not empty featuredMovie.trailerUrl}">
@@ -288,7 +288,7 @@
                                                 <span><i class="bi bi-clock"></i>${m.durationMin} min</span>
                                                 <span><i class="bi bi-chat-square-text"></i><fmt:formatNumber value="${mReviews}" pattern="#,##0" /></span>
                                             </div>
-                                            <a href="${pageContext.request.contextPath}/booking/branches?movieId=${m.movieId}" class="btn btn-primary btn-sm w-100 fw-semibold">
+                                            <a href="${pageContext.request.contextPath}/booking/showtimes?movieId=${m.movieId}" class="btn btn-primary btn-sm w-100 fw-semibold">
                                                 Book Tickets
                                             </a>
                                         </div>
