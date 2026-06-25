@@ -1,7 +1,10 @@
-package com.mbcms.controller.branch;
+package com.mbcms.controller.admin;
 
+import com.mbcms.dao.BranchDAO;
 import com.mbcms.dao.PromotionDAO;
+import com.mbcms.dao.impl.BranchDAOImpl;
 import com.mbcms.dao.impl.PromotionDAOImpl;
+import com.mbcms.model.Branch;
 import com.mbcms.model.Promotion;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -13,35 +16,44 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.List;
 
-@WebServlet("/branch/promotions")
-public class PromotionListServlet extends HttpServlet {
+@WebServlet("/admin/promotions")
+public class AdminPromotionListServlet extends HttpServlet {
 
-    private static final String VIEW = "/WEB-INF/views/branch/promotions/list.jsp";
+    private static final String VIEW = "/WEB-INF/views/admin/promotions/list.jsp";
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
-        long branchId = (Long) req.getSession(false).getAttribute("currentBranchId");
-        ConsoleSupport.ensureBranchName(req);
 
         // Fetch query parameters for filtering
         String search = req.getParameter("search");
         String type = req.getParameter("type");
         String status = req.getParameter("status");
+        String branchIdStr = req.getParameter("branchId");
+
+        Long branchId = null;
+        if (branchIdStr != null && !branchIdStr.trim().isEmpty()) {
+            try {
+                branchId = Long.parseLong(branchIdStr.trim());
+            } catch (NumberFormatException ignored) {}
+        }
 
         PromotionDAO promotionDAO = new PromotionDAOImpl();
+        BranchDAO branchDAO = new BranchDAOImpl();
 
-        // Retrieve statistics
-        int totalPromotions = promotionDAO.getTotalPromotionsCount(branchId);
-        int activePromotions = promotionDAO.getActivePromotionsCount(branchId);
-        int usedThisMonth = promotionDAO.getUsedThisMonthCount(branchId);
-        BigDecimal revenueImpact = promotionDAO.getRevenueImpactThisMonth(branchId);
+        // Retrieve statistics (all branches)
+        int totalPromotions = promotionDAO.getTotalPromotionsCount(null);
+        int activePromotions = promotionDAO.getActivePromotionsCount(null);
+        int usedThisMonth = promotionDAO.getUsedThisMonthCount(null);
+        BigDecimal revenueImpact = promotionDAO.getRevenueImpactThisMonth(null);
 
         // Retrieve filtered list of promotions
         List<Promotion> list = promotionDAO.findByFilters(search, type, status, branchId);
+        List<Branch> branches = branchDAO.findAll(true);
 
         // Set attributes
         req.setAttribute("promotions", list);
+        req.setAttribute("branches", branches);
         req.setAttribute("statTotal", totalPromotions);
         req.setAttribute("statActive", activePromotions);
         req.setAttribute("statUsed", usedThisMonth);
@@ -50,6 +62,7 @@ public class PromotionListServlet extends HttpServlet {
         req.setAttribute("filterSearch", search);
         req.setAttribute("filterType", type);
         req.setAttribute("filterStatus", status);
+        req.setAttribute("filterBranchId", branchIdStr);
 
         // Handle success/error feedback messages (PRG)
         if ("1".equals(req.getParameter("created"))) {

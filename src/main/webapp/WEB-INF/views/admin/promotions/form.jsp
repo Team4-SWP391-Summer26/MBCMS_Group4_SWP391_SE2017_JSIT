@@ -1,4 +1,4 @@
-﻿<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
@@ -8,7 +8,7 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>${isEdit ? 'Edit Promotion' : 'Add New Promotion'} - MBCMS Manager</title>
+        <title>${isEdit ? 'Edit Promotion' : 'Add New Promotion'} - Admin Console</title>
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
         <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
         <link href="${pageContext.request.contextPath}/assets/css/manager.css?v=${applicationScope.assetVersion}" rel="stylesheet">
@@ -99,7 +99,7 @@
     </head>
     <body class="lc-console">
 
-        <jsp:include page="/WEB-INF/views/branch/_sidebar.jsp">
+        <jsp:include page="/WEB-INF/views/admin/_sidebar.jsp">
             <jsp:param name="active" value="promotions" />
         </jsp:include>
 
@@ -110,23 +110,17 @@
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <div>
                         <div class="text-muted small mb-1">
-                            <a href="${pageContext.request.contextPath}/branch/promotions" class="text-decoration-none text-muted">Promotions</a> 
+                            <a href="${pageContext.request.contextPath}/admin/promotions" class="text-decoration-none text-muted">Promotions</a> 
                             / ${isEdit ? 'Edit' : 'Add new'}
                         </div>
                         <h4 class="text-navy fw-bold mb-0">${isEdit ? 'Edit Promotion' : 'Add New Promotion'}</h4>
                     </div>
                     <div>
-                        <a class="btn btn-outline-secondary btn-sm me-2" href="${pageContext.request.contextPath}/branch/promotions">Cancel</a>
+                        <a class="btn btn-outline-secondary btn-sm me-2" href="${pageContext.request.contextPath}/admin/promotions">Cancel</a>
                         <button type="submit" form="promoForm" class="btn btn-primary btn-sm">
                             <i class="bi bi-check-lg me-1"></i>${isEdit ? 'Save Changes' : 'Create Promotion'}
                         </button>
                     </div>
-                </div>
-
-                <%-- ===== Scope Notice ===== --%>
-                <div class="lc-scope mb-4">
-                    <i class="bi bi-info-circle-fill" style="color:#cf9a00;"></i>
-                    <span>Promotions created here are <strong>branch-specific</strong> and can only be used by this cinema branch.</span>
                 </div>
 
                 <c:if test="${not empty errorMsg}">
@@ -139,11 +133,32 @@
                 <div class="row g-4">
                     <%-- Left column: Form input fields --%>
                     <div class="col-lg-7">
-                        <form id="promoForm" action="${pageContext.request.contextPath}/branch/promotions/${isEdit ? 'edit' : 'create'}" method="post">
-            <%@ include file="/WEB-INF/views/common/csrf-hidden.jspf" %>
+                        <form id="promoForm" action="${pageContext.request.contextPath}/admin/promotions/${isEdit ? 'edit' : 'create'}" method="post">
+                            <%@ include file="/WEB-INF/views/common/csrf-hidden.jspf" %>
                             <c:if test="${isEdit}">
                                 <input type="hidden" name="promoId" value="${promo.promoId}">
                             </c:if>
+
+                            <%-- Section: Scope & Distribution --%>
+                            <div class="card lc-elev p-4 mb-4">
+                                <h5 class="text-navy fw-bold mb-3">Scope & Distribution</h5>
+                                <div class="row g-3">
+                                    <div class="col-12">
+                                        <label class="form-label fw-semibold text-navy small">Cinema Branch *</label>
+                                        <select class="form-select form-select-sm" name="branchId" required>
+                                            <option value="">Global (Apply to all branches)</option>
+                                            <c:forEach var="b" items="${branches}">
+                                                <option value="${b.branchId}" ${promo.branchId == b.branchId ? 'selected' : ''}>
+                                                    <c:out value="${b.name}" />
+                                                </option>
+                                            </c:forEach>
+                                        </select>
+                                        <div class="text-muted small mt-1" style="font-size: 0.75rem;">
+                                            Select a branch to restrict this promo code to that specific cinema branch. Or choose Global for system-wide.
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
 
                             <%-- Section: Basic Information --%>
                             <div class="card lc-elev p-4 mb-4">
@@ -165,11 +180,6 @@
                                         <input type="text" class="form-control form-control-sm" name="name" id="inputName"
                                                maxlength="150" placeholder="e.g. Summer 2026 Sale" required
                                                value="${fn:escapeXml(promo.name)}">
-                                    </div>
-                                    <div class="col-12">
-                                        <label class="form-label fw-semibold text-navy small">Description (Internal Notes)</label>
-                                        <textarea class="form-control form-control-sm" name="description" id="inputDesc" rows="2"
-                                                  placeholder="Internal notes: who this is for, marketing channel, etc."></textarea>
                                     </div>
                                 </div>
                             </div>
@@ -230,11 +240,11 @@
                                         <input type="date" class="form-control form-control-sm" name="startDate" id="inputStart" required
                                                value="${rawStartDate}"
                                                <c:if test="${!isEdit}">min="${todayStr}"</c:if>>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <label class="form-label fw-semibold text-navy small">End date *</label>
-                                            <input type="date" class="form-control form-control-sm" name="endDate" id="inputEnd" required
-                                                   value="${rawEndDate}">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold text-navy small">End date *</label>
+                                        <input type="date" class="form-control form-control-sm" name="endDate" id="inputEnd" required
+                                               value="${rawEndDate}">
                                     </div>
                                 </div>
                             </div>
@@ -339,124 +349,122 @@
 
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
         <script>
-                                                   // Elements
-                                                   const inputCode = document.getElementById('inputCode');
-                                                   const inputName = document.getElementById('inputName');
-                                                   const typePercentage = document.getElementById('typePercentage');
-                                                   const typeFixed = document.getElementById('typeFixed');
-                                                   const inputValue = document.getElementById('inputValue');
-                                                   const inputMinOrder = document.getElementById('inputMinOrder');
-                                                   const inputStart = document.getElementById('inputStart');
-                                                   const inputEnd = document.getElementById('inputEnd');
-                                                   const toggleLimit = document.getElementById('toggleLimit');
-                                                   const inputMaxUses = document.getElementById('inputMaxUses');
+            // Elements
+            const inputCode = document.getElementById('inputCode');
+            const inputName = document.getElementById('inputName');
+            const typePercentage = document.getElementById('typePercentage');
+            const typeFixed = document.getElementById('typeFixed');
+            const inputValue = document.getElementById('inputValue');
+            const inputMinOrder = document.getElementById('inputMinOrder');
+            const inputStart = document.getElementById('inputStart');
+            const inputEnd = document.getElementById('inputEnd');
+            const toggleLimit = document.getElementById('toggleLimit');
+            const inputMaxUses = document.getElementById('inputMaxUses');
 
-                                                   // Preview Elements
-                                                   const previewCode = document.getElementById('previewCode');
-                                                   const previewName = document.getElementById('previewName');
-                                                   const previewValue = document.getElementById('previewValue');
-                                                   const previewMinOrder = document.getElementById('previewMinOrder');
-                                                   const previewDates = document.getElementById('previewDates');
-                                                   const examplePromoLabel = document.getElementById('examplePromoLabel');
-                                                   const exampleDiscount = document.getElementById('exampleDiscount');
-                                                   const exampleFinal = document.getElementById('exampleFinal');
+            // Preview Elements
+            const previewCode = document.getElementById('previewCode');
+            const previewName = document.getElementById('previewName');
+            const previewValue = document.getElementById('previewValue');
+            const previewMinOrder = document.getElementById('previewMinOrder');
+            const previewDates = document.getElementById('previewDates');
+            const examplePromoLabel = document.getElementById('examplePromoLabel');
+            const exampleDiscount = document.getElementById('exampleDiscount');
+            const exampleFinal = document.getElementById('exampleFinal');
 
+            function formatCurrency(num) {
+                return new Intl.NumberFormat('vi-VN').format(num) + '₫';
+            }
 
+            function formatDateString(dateStr) {
+                if (!dateStr)
+                    return '';
+                const parts = dateStr.split('-');
+                if (parts.length === 3) {
+                    return parts[2] + '/' + parts[1];
+                }
+                return dateStr;
+            }
 
-                                                   function formatCurrency(num) {
-                                                       return new Intl.NumberFormat('vi-VN').format(num) + '₫';
-                                                   }
+            function updatePreview() {
+                const isPercent = typePercentage.checked;
+                const val = parseFloat(inputValue.value) || 0;
+                const code = inputCode.value || 'PROMO_CODE';
+                const name = inputName.value || 'Promotion name';
+                const minOrder = parseFloat(inputMinOrder.value) || 0;
 
-                                                   function formatDateString(dateStr) {
-                                                       if (!dateStr)
-                                                           return '';
-                                                       const parts = dateStr.split('-');
-                                                       if (parts.length === 3) {
-                                                           return parts[2] + '/' + parts[1];
-                                                       }
-                                                       return dateStr;
-                                                   }
+                // Update text
+                previewCode.textContent = code;
+                previewName.textContent = name;
+                examplePromoLabel.textContent = 'Discount (' + code + ')';
 
-                                                   function updatePreview() {
-                                                       const isPercent = typePercentage.checked;
-                                                       const val = parseFloat(inputValue.value) || 0;
-                                                       const code = inputCode.value || 'PROMO_CODE';
-                                                       const name = inputName.value || 'Promotion name';
-                                                       const minOrder = parseFloat(inputMinOrder.value) || 0;
+                // Update Value
+                if (isPercent) {
+                    previewValue.textContent = val + '%';
+                    exampleDiscount.textContent = '-' + formatCurrency(265000 * (val / 100));
+                    exampleFinal.textContent = formatCurrency(265000 - (265000 * (val / 100)));
+                } else {
+                    previewValue.textContent = formatCurrency(val);
+                    exampleDiscount.textContent = '-' + formatCurrency(val);
+                    exampleFinal.textContent = formatCurrency(Math.max(0, 265000 - val));
+                }
 
-                                                       // Update text
-                                                       previewCode.textContent = code;
-                                                       previewName.textContent = name;
-                                                       examplePromoLabel.textContent = 'Discount (' + code + ')';
+                // Update Min Order
+                previewMinOrder.textContent = minOrder > 0 ? 'Min. ' + formatCurrency(minOrder) : 'No minimum order';
 
-                                                       // Update Value
-                                                       if (isPercent) {
-                                                           previewValue.textContent = val + '%';
-                                                           exampleDiscount.textContent = '-' + formatCurrency(265000 * (val / 100));
-                                                           exampleFinal.textContent = formatCurrency(265000 - (265000 * (val / 100)));
-                                                       } else {
-                                                           previewValue.textContent = formatCurrency(val);
-                                                           exampleDiscount.textContent = '-' + formatCurrency(val);
-                                                           exampleFinal.textContent = formatCurrency(Math.max(0, 265000 - val));
-                                                       }
+                // Update Dates
+                const start = formatDateString(inputStart.value);
+                const end = formatDateString(inputEnd.value);
+                previewDates.textContent = 'Valid: ' + start + ' → ' + end;
+            }
 
-                                                       // Update Min Order
-                                                       previewMinOrder.textContent = minOrder > 0 ? 'Min. ' + formatCurrency(minOrder) : 'No minimum order';
+            function updateEndDateMin() {
+                if (inputStart.value) {
+                    inputEnd.min = inputStart.value;
+                }
+            }
 
-                                                       // Update Dates
-                                                       const start = formatDateString(inputStart.value);
-                                                       const end = formatDateString(inputEnd.value);
-                                                       previewDates.textContent = 'Valid: ' + start + ' → ' + end;
-                                                   }
+            function onDiscountTypeChange() {
+                const suffix = document.getElementById('valueSuffix');
+                if (typePercentage.checked) {
+                    suffix.textContent = '%';
+                    inputValue.max = 100;
+                } else {
+                    suffix.textContent = '₫';
+                    inputValue.removeAttribute('max');
+                }
+                updatePreview();
+            }
 
-                                                   function updateEndDateMin() {
-                                                       if (inputStart.value) {
-                                                           inputEnd.min = inputStart.value;
-                                                       }
-                                                   }
+            function onLimitToggleChange() {
+                const group = document.getElementById('maxUsesGroup');
+                if (toggleLimit.checked) {
+                    group.classList.remove('d-none');
+                    inputMaxUses.setAttribute('required', 'required');
+                } else {
+                    group.classList.add('d-none');
+                    inputMaxUses.removeAttribute('required');
+                    inputMaxUses.value = '';
+                }
+            }
 
-                                                   function onDiscountTypeChange() {
-                                                       const suffix = document.getElementById('valueSuffix');
-                                                       if (typePercentage.checked) {
-                                                           suffix.textContent = '%';
-                                                           inputValue.max = 100;
-                                                       } else {
-                                                           suffix.textContent = '₫';
-                                                           inputValue.removeAttribute('max');
-                                                       }
-                                                       updatePreview();
-                                                   }
+            // Bind listeners
+            inputCode.addEventListener('input', updatePreview);
+            inputName.addEventListener('input', updatePreview);
+            inputValue.addEventListener('input', updatePreview);
+            inputMinOrder.addEventListener('input', updatePreview);
+            inputStart.addEventListener('change', () => {
+                updateEndDateMin();
+                updatePreview();
+            });
+            inputEnd.addEventListener('change', updatePreview);
 
-                                                   function onLimitToggleChange() {
-                                                       const group = document.getElementById('maxUsesGroup');
-                                                       if (toggleLimit.checked) {
-                                                           group.classList.remove('d-none');
-                                                           inputMaxUses.setAttribute('required', 'required');
-                                                       } else {
-                                                           group.classList.add('d-none');
-                                                           inputMaxUses.removeAttribute('required');
-                                                           inputMaxUses.value = '';
-                                                       }
-                                                   }
-
-                                                   // Bind listeners
-                                                   inputCode.addEventListener('input', updatePreview);
-                                                   inputName.addEventListener('input', updatePreview);
-                                                   inputValue.addEventListener('input', updatePreview);
-                                                   inputMinOrder.addEventListener('input', updatePreview);
-                                                   inputStart.addEventListener('change', () => {
-                                                       updateEndDateMin();
-                                                       updatePreview();
-                                                   });
-                                                   inputEnd.addEventListener('change', updatePreview);
-
-                                                   // Initialization
-                                                   window.addEventListener('DOMContentLoaded', () => {
-                                                       onDiscountTypeChange();
-                                                       onLimitToggleChange();
-                                                       updateEndDateMin();
-                                                       updatePreview();
-                                                   });
+            // Initialization
+            window.addEventListener('DOMContentLoaded', () => {
+                onDiscountTypeChange();
+                onLimitToggleChange();
+                updateEndDateMin();
+                updatePreview();
+            });
         </script>
     </body>
 </html>

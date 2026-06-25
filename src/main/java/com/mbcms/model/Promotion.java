@@ -24,8 +24,17 @@ public class Promotion {
     private int usedCount;
     private boolean active = true;
     private boolean isDeleted = false;
+    private Long branchId;
 
     public Promotion() {
+    }
+
+    public Long getBranchId() {
+        return branchId;
+    }
+
+    public void setBranchId(Long branchId) {
+        this.branchId = branchId;
     }
 
     public long getPromoId() {

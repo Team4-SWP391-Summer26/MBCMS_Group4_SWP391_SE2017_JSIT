@@ -1,4 +1,4 @@
-﻿<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
@@ -8,7 +8,7 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>Promotion Management - MBCMS Manager</title>
+        <title>Promotion Console - Admin</title>
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
         <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
         <link href="${pageContext.request.contextPath}/assets/css/manager.css?v=${applicationScope.assetVersion}" rel="stylesheet">
@@ -40,11 +40,21 @@
                 background: var(--lc-primary);
                 color: #fff;
             }
+            .pill-global {
+                background-color: #f0fdf4;
+                color: #16a34a;
+                border: 1px solid #bbf7d0;
+            }
+            .pill-branch {
+                background-color: #eff6ff;
+                color: #2563eb;
+                border: 1px solid #bfdbfe;
+            }
         </style>
     </head>
     <body class="lc-console">
 
-        <jsp:include page="/WEB-INF/views/branch/_sidebar.jsp">
+        <jsp:include page="/WEB-INF/views/admin/_sidebar.jsp">
             <jsp:param name="active" value="promotions" />
         </jsp:include>
 
@@ -52,15 +62,14 @@
             <div class="container-fluid px-4 py-4" style="max-width: 1240px;">
 
                 <%-- ===== Page header ===== --%>
-                <div class="mb-3">
-                    <div class="text-muted small mb-1">Dashboard / Promotions</div>
-                    <h4 class="text-navy fw-bold mb-0">Promotion Management</h4>
-                </div>
-
-                <%-- ===== Branch scope notice ===== --%>
-                <div class="lc-scope mb-4">
-                    <i class="bi bi-info-circle-fill" style="color:#cf9a00;"></i>
-                    <span>Promotions are <strong>branch-specific</strong> &mdash; they can only be applied at this cinema branch.</span>
+                <div class="mb-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
+                    <div>
+                        <div class="text-muted small mb-1">Admin Console / Promotions</div>
+                        <h4 class="text-navy fw-bold mb-0">System Promotion Management</h4>
+                    </div>
+                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-3 py-2 fw-semibold">
+                        <i class="bi bi-shield-lock-fill me-1"></i>System Admin Scope
+                    </span>
                 </div>
 
                 <%-- ===== Feedback alerts ===== --%>
@@ -133,10 +142,10 @@
 
                 <%-- ===== Filters & Toolbar ===== --%>
                 <div class="card lc-elev p-3 mb-4">
-                    <form method="get" action="${pageContext.request.contextPath}/branch/promotions" id="filterForm">
+                    <form method="get" action="${pageContext.request.contextPath}/admin/promotions" id="filterForm">
                         <div class="row g-3 align-items-center">
                             <%-- Search --%>
-                            <div class="col-md-4">
+                            <div class="col-lg-3 col-md-6 col-sm-12">
                                 <div class="input-group input-group-sm">
                                     <span class="input-group-text bg-white border-end-0 text-muted"><i class="bi bi-search"></i></span>
                                     <input type="text" class="form-control border-start-0" name="search"
@@ -144,8 +153,21 @@
                                 </div>
                             </div>
 
+                            <%-- Branch dropdown --%>
+                            <div class="col-lg-2 col-md-6 col-sm-12">
+                                <select class="form-select form-select-sm" name="branchId" onchange="this.form.submit()">
+                                    <option value="">All Branches / Global</option>
+                                    <option value="-1" ${filterBranchId == '-1' ? 'selected' : ''}>Global (All Branches)</option>
+                                    <c:forEach var="b" items="${branches}">
+                                        <option value="${b.branchId}" ${filterBranchId == b.branchId ? 'selected' : ''}>
+                                            <c:out value="${b.name}" />
+                                        </option>
+                                    </c:forEach>
+                                </select>
+                            </div>
+
                             <%-- Discount Type dropdown --%>
-                            <div class="col-md-3">
+                            <div class="col-lg-2 col-md-6 col-sm-12">
                                 <select class="form-select form-select-sm" name="type" onchange="this.form.submit()">
                                     <option value="">All Types</option>
                                     <option value="PERCENT" ${filterType == 'PERCENT' ? 'selected' : ''}>Percentage</option>
@@ -154,16 +176,21 @@
                             </div>
 
                             <%-- Status tabs --%>
-                            <div class="col-md-5 d-flex align-items-center justify-content-md-between flex-wrap gap-2">
-                                <div class="d-flex gap-1 bg-light p-1 rounded">
+                            <div class="col-lg-3 col-md-6 col-sm-12">
+                                <div class="d-flex gap-1 bg-light p-1 rounded" style="width: fit-content;">
                                     <input type="hidden" name="status" id="statusField" value="${fn:escapeXml(filterStatus)}">
                                     <a class="filter-tab ${empty filterStatus ? 'active' : ''}" onclick="setStatusFilter('')">All</a>
                                     <a class="filter-tab ${filterStatus == 'Active' ? 'active' : ''}" onclick="setStatusFilter('Active')">Active</a>
                                     <a class="filter-tab ${filterStatus == 'Inactive' ? 'active' : ''}" onclick="setStatusFilter('Inactive')">Inactive</a>
                                     <a class="filter-tab ${filterStatus == 'Expired' ? 'active' : ''}" onclick="setStatusFilter('Expired')">Expired</a>
                                 </div>
-                                <a class="btn btn-primary btn-sm ms-auto" href="${pageContext.request.contextPath}/branch/promotions/create">
-                                    <i class="bi bi-plus-lg me-1"></i>Add Promotion</a>
+                            </div>
+
+                            <%-- Add button --%>
+                            <div class="col-lg-2 col-md-12 col-sm-12 text-lg-end text-start">
+                                <a class="btn btn-primary btn-sm" href="${pageContext.request.contextPath}/admin/promotions/create">
+                                    <i class="bi bi-plus-lg me-1"></i>Add Promotion
+                                </a>
                             </div>
                         </div>
                     </form>
@@ -177,6 +204,7 @@
                                 <tr>
                                     <th class="ps-3">Code</th>
                                     <th>Name</th>
+                                    <th>Branch Scope</th>
                                     <th>Type</th>
                                     <th>Value</th>
                                     <th>Min order</th>
@@ -189,19 +217,37 @@
                             <tbody>
                                 <c:if test="${empty promotions}">
                                     <tr>
-                                        <td colspan="9" class="text-center text-muted py-4">
+                                        <td colspan="10" class="text-center text-muted py-4">
                                             No promotions found matching the search criteria.
                                         </td>
                                     </tr>
                                 </c:if>
                                 <c:forEach var="p" items="${promotions}">
                                     <c:set var="pct" value="${p.maxUses != null && p.maxUses > 0 ? (p.usedCount * 100 / p.maxUses) : 0}" />
+                                    
+                                    <%-- Map branchName --%>
+                                    <c:set var="branchName" value="Global (System-wide)" />
+                                    <c:set var="isGlobal" value="true" />
+                                    <c:if test="${not empty p.branchId}">
+                                        <c:forEach var="br" items="${branches}">
+                                            <c:if test="${br.branchId == p.branchId}">
+                                                <c:set var="branchName" value="${br.name}" />
+                                                <c:set var="isGlobal" value="false" />
+                                            </c:if>
+                                        </c:forEach>
+                                    </c:if>
+
                                     <tr>
                                         <td class="ps-3">
                                             <span class="badge-code"><c:out value="${p.code}" /></span>
                                         </td>
                                         <td>
                                             <div class="text-navy fw-semibold"><c:out value="${p.name}" /></div>
+                                        </td>
+                                        <td>
+                                            <span class="badge ${isGlobal ? 'pill-global' : 'pill-branch'} fw-bold px-2 py-1" style="font-size: 0.75rem;">
+                                                <i class="bi ${isGlobal ? 'bi-globe' : 'bi-building'} me-1"></i><c:out value="${branchName}" />
+                                            </span>
                                         </td>
                                         <td>
                                             <c:choose>
@@ -265,10 +311,10 @@
                                         <td class="text-end pe-3">
                                             <div class="d-flex gap-1 justify-content-end">
                                                 <a class="btn btn-sm btn-outline-primary" title="Edit"
-                                                   href="${pageContext.request.contextPath}/branch/promotions/edit?id=${p.promoId}">
+                                                   href="${pageContext.request.contextPath}/admin/promotions/edit?id=${p.promoId}">
                                                     <i class="bi bi-pencil"></i>
                                                 </a>
-                                                <form method="post" action="${pageContext.request.contextPath}/branch/promotions/toggle" class="d-inline"
+                                                <form method="post" action="${pageContext.request.contextPath}/admin/promotions/toggle" class="d-inline"
                                                       onsubmit="return confirm('Toggle status for <c:out value="${p.code}"/>?');">
                                                     <%@ include file="/WEB-INF/views/common/csrf-hidden.jspf" %>
                                                     <input type="hidden" name="id" value="${p.promoId}">
@@ -276,8 +322,8 @@
                                                         <i class="bi ${p.active ? 'bi-pause-fill' : 'bi-play-fill'}"></i>
                                                     </button>
                                                 </form>
-                                                <form method="post" action="${pageContext.request.contextPath}/branch/promotions/delete" class="d-inline"
-                                                      onsubmit="return confirm('Are you sure you want to delete <c:out value="${p.code}"/>? This action cannot be undone and will delete it from the database.');">
+                                                <form method="post" action="${pageContext.request.contextPath}/admin/promotions/delete" class="d-inline"
+                                                      onsubmit="return confirm('Are you sure you want to delete <c:out value="${p.code}"/>? This action cannot be undone.');">
                                                     <%@ include file="/WEB-INF/views/common/csrf-hidden.jspf" %>
                                                     <input type="hidden" name="id" value="${p.promoId}">
                                                     <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete">
@@ -298,10 +344,10 @@
 
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
         <script>
-                                                          function setStatusFilter(status) {
-                                                              document.getElementById('statusField').value = status;
-                                                              document.getElementById('filterForm').submit();
-                                                          }
+            function setStatusFilter(status) {
+                document.getElementById('statusField').value = status;
+                document.getElementById('filterForm').submit();
+            }
         </script>
     </body>
 </html>

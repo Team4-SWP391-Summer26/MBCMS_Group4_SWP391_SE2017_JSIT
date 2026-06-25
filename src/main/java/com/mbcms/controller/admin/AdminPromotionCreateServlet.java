@@ -1,8 +1,13 @@
-package com.mbcms.controller.branch;
+package com.mbcms.controller.admin;
 
+import com.mbcms.dao.BranchDAO;
 import com.mbcms.dao.PromotionDAO;
+import com.mbcms.dao.impl.BranchDAOImpl;
 import com.mbcms.dao.impl.PromotionDAOImpl;
+import com.mbcms.model.Branch;
 import com.mbcms.model.Promotion;
+import com.mbcms.service.NotificationService;
+import com.mbcms.service.impl.NotificationServiceImpl;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -15,85 +20,37 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeParseException;
+import java.util.List;
 
-@WebServlet("/branch/promotions/edit")
-public class PromotionEditServlet extends HttpServlet {
+@WebServlet("/admin/promotions/create")
+public class AdminPromotionCreateServlet extends HttpServlet {
 
-    private static final String VIEW = "/WEB-INF/views/branch/promotions/form.jsp";
+    private static final String VIEW = "/WEB-INF/views/admin/promotions/form.jsp";
+    private final NotificationService notificationService = new NotificationServiceImpl();
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
-        ConsoleSupport.ensureBranchName(req);
 
-        String idStr = req.getParameter("id");
-        if (idStr == null || idStr.trim().isEmpty()) {
-            resp.sendRedirect(req.getContextPath() + "/branch/promotions?error=1");
-            return;
-        }
+        BranchDAO branchDAO = new BranchDAOImpl();
+        List<Branch> branches = branchDAO.findAll(true);
 
-        try {
-            long id = Long.parseLong(idStr.trim());
-            PromotionDAO promotionDAO = new PromotionDAOImpl();
-            Promotion p = promotionDAO.findById(id);
-            if (p == null) {
-                resp.sendRedirect(req.getContextPath() + "/branch/promotions?error=1");
-                return;
-            }
+        req.setAttribute("isEdit", false);
+        req.setAttribute("promo", new Promotion()); // blank object
+        req.setAttribute("branches", branches);
+        req.setAttribute("rawDiscountValue", "");
+        req.setAttribute("rawMinOrderAmount", "0");
+        req.setAttribute("rawMaxUses", "");
+        req.setAttribute("rawStartDate", "");
+        req.setAttribute("rawEndDate", "");
+        req.setAttribute("todayStr", java.time.LocalDate.now().toString());
 
-            Long sessionBranchId = (Long) req.getSession(false).getAttribute("currentBranchId");
-            if (sessionBranchId == null || !sessionBranchId.equals(p.getBranchId())) {
-                resp.sendRedirect(req.getContextPath() + "/branch/promotions?error=1");
-                return;
-            }
-
-            req.setAttribute("isEdit", true);
-            req.setAttribute("promo", p);
-
-            // Format dates back for HTML inputs
-            req.setAttribute("rawStartDate", p.getValidFrom().toLocalDate().toString());
-            req.setAttribute("rawEndDate", p.getValidTo().toLocalDate().toString());
-            req.setAttribute("rawDiscountValue", p.getDiscountValue().stripTrailingZeros().toPlainString());
-            req.setAttribute("rawMinOrderAmount", p.getMinOrderAmount().stripTrailingZeros().toPlainString());
-            req.setAttribute("rawMaxUses", p.getMaxUses() != null ? p.getMaxUses().toString() : "");
-
-            req.getRequestDispatcher(VIEW).forward(req, resp);
-        } catch (NumberFormatException e) {
-            resp.sendRedirect(req.getContextPath() + "/branch/promotions?error=1");
-        }
+        req.getRequestDispatcher(VIEW).forward(req, resp);
     }
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
-        ConsoleSupport.ensureBranchName(req);
-
-        String idStr = req.getParameter("promoId");
-        if (idStr == null || idStr.trim().isEmpty()) {
-            resp.sendRedirect(req.getContextPath() + "/branch/promotions?error=1");
-            return;
-        }
-
-        long id;
-        try {
-            id = Long.parseLong(idStr.trim());
-        } catch (NumberFormatException e) {
-            resp.sendRedirect(req.getContextPath() + "/branch/promotions?error=1");
-            return;
-        }
-
-        PromotionDAO promotionDAO = new PromotionDAOImpl();
-        Promotion existing = promotionDAO.findById(id);
-        if (existing == null) {
-            resp.sendRedirect(req.getContextPath() + "/branch/promotions?error=1");
-            return;
-        }
-
-        Long sessionBranchId = (Long) req.getSession(false).getAttribute("currentBranchId");
-        if (sessionBranchId == null || !sessionBranchId.equals(existing.getBranchId())) {
-            resp.sendRedirect(req.getContextPath() + "/branch/promotions?error=1");
-            return;
-        }
 
         String code = req.getParameter("code");
         String name = req.getParameter("name");
@@ -103,16 +60,26 @@ public class PromotionEditServlet extends HttpServlet {
         String maxUsesStr = req.getParameter("maxUses");
         String startDateStr = req.getParameter("startDate");
         String endDateStr = req.getParameter("endDate");
+        String branchIdStr = req.getParameter("branchId");
         boolean active = req.getParameter("active") != null;
 
+        PromotionDAO promotionDAO = new PromotionDAOImpl();
+        BranchDAO branchDAO = new BranchDAOImpl();
+        List<Branch> branches = branchDAO.findAll(true);
+
         Promotion p = new Promotion();
-        p.setPromoId(id);
         p.setCode(code != null ? code.trim().toUpperCase() : "");
         p.setName(name != null ? name.trim() : "");
         p.setDiscountType(discountType);
         p.setActive(active);
-        p.setUsedCount(existing.getUsedCount()); // keep existing usage count
-        p.setBranchId(existing.getBranchId()); // preserve branchId on update!
+
+        Long branchId = null;
+        if (branchIdStr != null && !branchIdStr.trim().isEmpty()) {
+            try {
+                branchId = Long.parseLong(branchIdStr.trim());
+            } catch (NumberFormatException ignored) {}
+        }
+        p.setBranchId(branchId);
 
         String errorMsg = null;
 
@@ -184,6 +151,8 @@ public class PromotionEditServlet extends HttpServlet {
                     LocalDate end = LocalDate.parse(endDateStr.trim());
                     if (end.isBefore(start)) {
                         errorMsg = "End date must be on or after start date.";
+                    } else if (start.isBefore(LocalDate.now())) {
+                        errorMsg = "Start date cannot be in the past.";
                     } else {
                         p.setValidFrom(start.atStartOfDay());
                         p.setValidTo(end.atTime(LocalTime.MAX));
@@ -194,31 +163,41 @@ public class PromotionEditServlet extends HttpServlet {
             }
         }
 
-        // Check code uniqueness excluding this ID
-        if (errorMsg == null && promotionDAO.existsByCodeExcludeId(p.getCode(), p.getPromoId())) {
+        // Check code uniqueness
+        if (errorMsg == null && promotionDAO.existsByCode(p.getCode())) {
             errorMsg = "Promotion code already exists.";
         }
 
         if (errorMsg != null) {
             req.setAttribute("errorMsg", errorMsg);
-            req.setAttribute("isEdit", true);
+            req.setAttribute("isEdit", false);
             req.setAttribute("promo", p);
+            req.setAttribute("branches", branches);
             // Put raw string values back to restore input states
             req.setAttribute("rawDiscountValue", discountValueStr);
             req.setAttribute("rawMinOrderAmount", minOrderAmountStr);
             req.setAttribute("rawMaxUses", maxUsesStr);
             req.setAttribute("rawStartDate", startDateStr);
             req.setAttribute("rawEndDate", endDateStr);
+            req.setAttribute("todayStr", LocalDate.now().toString());
             req.getRequestDispatcher(VIEW).forward(req, resp);
             return;
         }
 
-        // Update and redirect
-        boolean success = promotionDAO.update(p);
+        // Save and redirect
+        boolean success = promotionDAO.insert(p);
         if (success) {
-            resp.sendRedirect(req.getContextPath() + "/branch/promotions?updated=1");
+            if (p.isActive()) {
+                new Thread(() -> {
+                    Promotion saved = promotionDAO.findByCode(code);
+                    if (saved != null) {
+                        notificationService.broadcastPromotion(saved);
+                    }
+                }, "admin-promo-broadcast-" + code).start();
+            }
+            resp.sendRedirect(req.getContextPath() + "/admin/promotions?created=1");
         } else {
-            resp.sendRedirect(req.getContextPath() + "/branch/promotions?error=1");
+            resp.sendRedirect(req.getContextPath() + "/admin/promotions?error=1");
         }
     }
 }

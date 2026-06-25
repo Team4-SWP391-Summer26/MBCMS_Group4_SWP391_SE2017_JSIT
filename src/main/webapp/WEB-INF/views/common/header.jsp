@@ -18,7 +18,7 @@
                 <path d="M13 11V21L21 16L13 11Z" fill="#FFC107" />
             </svg>
             <span class="ms-2 fw-bold"
-                  style="color: #0F1E36; font-size: 1.35rem; letter-spacing: -0.5px;">MBCMS</span>
+                  style="color: #0F1E36; font-size: 1.35rem; letter-spacing: -0.5px;">LuminaCine</span>
         </a>
 
         <!-- Mobile toggle -->

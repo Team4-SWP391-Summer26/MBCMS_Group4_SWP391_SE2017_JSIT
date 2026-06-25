@@ -21,7 +21,7 @@
                         <!-- play triangle -->
                         <path d="M13 11V21L21 16L13 11Z" fill="#FFC107" />
                     </svg>
-                    <span class="ms-2 fw-bold text-white" style="font-size: 1.35rem; letter-spacing: -0.5px;">MBCMS</span>
+                    <span class="ms-2 fw-bold text-white" style="font-size: 1.35rem; letter-spacing: -0.5px;">LuminaCine</span>
                 </div>
                 <p class="mb-4 text-secondary" style="line-height: 1.6; max-width: 320px;">
                     Vietnam's multi-branch cinema booking platform. Pick your seat, grab some popcorn, and earn points on every visit.
@@ -104,7 +104,7 @@
         <!-- Bottom Bar -->
         <div class="bottom-bar flex-column flex-md-row gap-3">
             <div class="mb-3 mb-md-0 text-secondary" style="font-size: 0.85rem;">
-                <span>&copy; 2026 MBCMS. All rights reserved.</span>
+                <span>&copy; 2026 LuminaCine. All rights reserved.</span>
                 <span class="mx-2">&middot;</span>
                 <a href="#" class="text-secondary hover-white text-decoration-none">Terms</a>
                 <span class="mx-1">&middot;</span>

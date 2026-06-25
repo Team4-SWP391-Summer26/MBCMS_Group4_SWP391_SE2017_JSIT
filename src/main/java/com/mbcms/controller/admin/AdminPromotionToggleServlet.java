@@ -1,4 +1,4 @@
-package com.mbcms.controller.branch;
+package com.mbcms.controller.admin;
 
 import com.mbcms.dao.PromotionDAO;
 import com.mbcms.dao.impl.PromotionDAOImpl;
@@ -13,18 +13,18 @@ import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 
-@WebServlet("/branch/promotions/toggle")
-public class PromotionToggleServlet extends HttpServlet {
+@WebServlet("/admin/promotions/toggle")
+public class AdminPromotionToggleServlet extends HttpServlet {
 
-    NotificationService notificationService = new NotificationServiceImpl();
-    PromotionDAO promotionDAO = new PromotionDAOImpl();
+    private final NotificationService notificationService = new NotificationServiceImpl();
+    private final PromotionDAO promotionDAO = new PromotionDAOImpl();
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
         String idStr = req.getParameter("id");
         if (idStr == null || idStr.trim().isEmpty()) {
-            resp.sendRedirect(req.getContextPath() + "/branch/promotions?error=1");
+            resp.sendRedirect(req.getContextPath() + "/admin/promotions?error=1");
             return;
         }
 
@@ -32,13 +32,7 @@ public class PromotionToggleServlet extends HttpServlet {
             long id = Long.parseLong(idStr.trim());
             Promotion before = promotionDAO.findById(id);
             if (before == null) {
-                resp.sendRedirect(req.getContextPath() + "/branch/promotions?error=1");
-                return;
-            }
-
-            Long sessionBranchId = (Long) req.getSession(false).getAttribute("currentBranchId");
-            if (sessionBranchId == null || !sessionBranchId.equals(before.getBranchId())) {
-                resp.sendRedirect(req.getContextPath() + "/branch/promotions?error=1");
+                resp.sendRedirect(req.getContextPath() + "/admin/promotions?error=1");
                 return;
             }
 
@@ -46,22 +40,22 @@ public class PromotionToggleServlet extends HttpServlet {
 
             boolean success = promotionDAO.toggleActive(id);
             if (success) {
-                // Neu vua duoc bat active (inactive → active), phat thu chuong khuyen mai
+                // If toggled to active, broadcast
                 if (wasInactive) {
                     Promotion afterToggle = promotionDAO.findById(id);
                     if (afterToggle != null && afterToggle.isActive()) {
                         new Thread(
                                 () -> notificationService.broadcastPromotion(afterToggle),
-                                "promo-broadcast-" + id
+                                "admin-promo-broadcast-" + id
                         ).start();
                     }
                 }
-                resp.sendRedirect(req.getContextPath() + "/branch/promotions?toggled=1");
+                resp.sendRedirect(req.getContextPath() + "/admin/promotions?toggled=1");
             } else {
-                resp.sendRedirect(req.getContextPath() + "/branch/promotions?error=1");
+                resp.sendRedirect(req.getContextPath() + "/admin/promotions?error=1");
             }
         } catch (NumberFormatException e) {
-            resp.sendRedirect(req.getContextPath() + "/branch/promotions?error=1");
+            resp.sendRedirect(req.getContextPath() + "/admin/promotions?error=1");
         }
     }
 }

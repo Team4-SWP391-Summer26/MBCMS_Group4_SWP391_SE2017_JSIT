@@ -31,6 +31,33 @@
         Cinemas
     </a>
 
+
+    <a class="lc-sb-item ${param.active == 'promotions' ? 'active' : ''}"
+       href="${pageContext.request.contextPath}/admin/promotions">
+        <i class="bi bi-ticket-perforated"></i>
+        Promotions
+
+    <div class="lc-sb-section">Catalog</div>
+
+    <a class="lc-sb-item ${param.active == 'movies' ? 'active' : ''}"
+       href="${pageContext.request.contextPath}/admin/movies">
+        <i class="bi bi-film"></i>
+        Movies
+    </a>
+
+    <a class="lc-sb-item ${param.active == 'genres' ? 'active' : ''}"
+       href="${pageContext.request.contextPath}/admin/genres">
+        <i class="bi bi-tags"></i>
+        Genres
+    </a>
+
+    <a class="lc-sb-item ${param.active == 'movie-branches' ? 'active' : ''}"
+       href="${pageContext.request.contextPath}/admin/movie-branches">
+        <i class="bi bi-diagram-3"></i>
+        Movie Assignment
+ b5e3f41 (Update movie module + admin management feature)
+    </a>
+
     <div class="lc-sb-section">Finance</div>
     <a class="lc-sb-item ${param.active == 'payments' ? 'active' : ''}"
        href="${pageContext.request.contextPath}/admin/payments">
