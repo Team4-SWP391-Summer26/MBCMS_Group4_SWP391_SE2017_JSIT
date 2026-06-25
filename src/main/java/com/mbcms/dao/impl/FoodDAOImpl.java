@@ -56,12 +56,7 @@ public class FoodDAOImpl extends BaseDAO implements FoodDAO {
             ps.setLong(1, foodId);
             rs = ps.executeQuery();
             if (rs.next()) {
-<<<<<<< HEAD
-            return mapRow(rs);
-
-=======
                 return mapRow(rs);
->>>>>>> main
             }
             return null;
         } catch (SQLException e) {
