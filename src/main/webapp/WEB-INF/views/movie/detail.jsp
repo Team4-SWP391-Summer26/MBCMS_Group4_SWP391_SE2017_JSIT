@@ -614,7 +614,7 @@
                 <select class="form-select cinema-filter-select" onchange="selectBranch(this.value)">
                     <option value="all">All Cinemas</option>
                     <c:forEach var="b" items="${branches}">
-                        <option value="${b.branchId}" <c:if test="${selectedBranchId == b.branchId}">selected</c:if>>${b.name}</option>
+                        <option value="${b.branchId}" <c:if test="${selectedBranchId != 'all' and selectedBranchId == b.branchId}">selected</c:if>>${b.name}</option>
                     </c:forEach>
                 </select>
             </div>
