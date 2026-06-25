@@ -21,7 +21,7 @@
                         <!-- play triangle -->
                         <path d="M13 11V21L21 16L13 11Z" fill="#FFC107" />
                     </svg>
-                    <span class="ms-2 fw-bold text-white" style="font-size: 1.35rem; letter-spacing: -0.5px;">LuminaCine</span>
+                    <span class="ms-2 fw-bold text-white" style="font-size: 1.35rem; letter-spacing: -0.5px;">MBCMS</span>
                 </div>
                 <p class="mb-4 text-secondary" style="line-height: 1.6; max-width: 320px;">
                     Vietnam's multi-branch cinema booking platform. Pick your seat, grab some popcorn, and earn points on every visit.

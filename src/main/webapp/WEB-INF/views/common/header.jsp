@@ -17,7 +17,7 @@
                 <rect x="25" y="26" width="3" height="3" rx="1" fill="#FFFFFF" opacity="0.3" />
                 <path d="M13 11V21L21 16L13 11Z" fill="#FFC107" />
             </svg>
-            <span class="ms-2 fw-bold" style="color: #0F1E36; font-size: 1.35rem; letter-spacing: -0.5px;">Lumina<span style="color: #eab308;">Cine</span></span>
+            <span class="ms-2 fw-bold" style="color: #0F1E36; font-size: 1.35rem; letter-spacing: -0.5px;">MBCMS</span>
         </a>
 
         <!-- Mobile toggle -->
