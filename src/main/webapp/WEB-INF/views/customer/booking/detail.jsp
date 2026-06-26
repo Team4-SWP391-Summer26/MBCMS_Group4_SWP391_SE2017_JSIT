@@ -40,7 +40,7 @@
                 overflow: hidden;
             }
             .ticket-header {
-                background: linear-gradient(135deg, #0f1e36 0%, #182c54 100%);
+                background: linear-gradient(135deg, var(--navy) 0%, #182c54 100%);
                 color: #fff;
                 padding: 24px 28px;
                 display: flex;
@@ -72,13 +72,25 @@
             }
             .chip-CONFIRMED { background: #dcfce7; color: #15803d; }
             .chip-PENDING   { background: #fef3c7; color: #b45309; }
-            .chip-CANCELLED { background: #e5e7eb; color: #4b5563; }
+            .chip-CANCELLED { background: var(--border); color: #4b5563; }
             .chip-USED      { background: #e0e7ff; color: #4338ca; }
+
+            /* ── Pickup status tracker ── */
+            .pickup-track { position: relative; display: flex; justify-content: space-between; padding-top: 2px; }
+            .pickup-line, .pickup-line-fill { position: absolute; top: 12px; height: 3px; border-radius: 999px; }
+            .pickup-line { left: 12.5%; right: 12.5%; background: var(--border-strong); }
+            .pickup-line-fill { left: 12.5%; width: calc(75% * var(--pk-frac, 0)); background: var(--success); transition: width .35s ease; }
+            .pk-step { position: relative; z-index: 2; flex: 1; display: flex; flex-direction: column; align-items: center; }
+            .pk-dot { width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: .7rem; font-weight: 700; background: var(--border-strong); color: #fff; }
+            .pk-step.done .pk-dot { background: var(--success); }
+            .pk-step.active .pk-dot { background: var(--primary); box-shadow: 0 0 0 4px rgba(37, 99, 235, .18); }
+            .pk-label { font-size: .68rem; margin-top: .35rem; color: var(--text-muted); }
+            .pk-step.done .pk-label, .pk-step.active .pk-label { color: var(--text); font-weight: 600; }
 
             .ticket-divider {
                 position: relative;
                 height: 0;
-                border-top: 2px dashed #e5e7eb;
+                border-top: 2px dashed var(--border);
                 margin: 0 28px;
             }
             .ticket-divider::before, .ticket-divider::after {
@@ -116,9 +128,9 @@
 
             .seat-pill {
                 display: inline-block;
-                background: #eff6ff;
+                background: var(--primary-50);
                 color: var(--primary);
-                border: 1px solid #bfdbfe;
+                border: 1px solid var(--primary-200);
                 border-radius: 8px;
                 padding: 4px 12px;
                 font-weight: 700;
@@ -133,11 +145,11 @@
                 font-size: .92rem;
                 color: var(--text-dark);
             }
-            .price-line.discount { color: #16a34a; }
+            .price-line.discount { color: var(--success); }
             .price-line.total {
                 font-weight: 800;
                 font-size: 1.15rem;
-                border-top: 2px solid #e5e7eb;
+                border-top: 2px solid var(--border);
                 margin-top: 6px;
                 padding-top: 14px;
                 color: var(--primary);
@@ -170,12 +182,12 @@
             }
             .btn-cancel-lc {
                 background: #fff;
-                color: #dc2626;
+                color: var(--danger);
                 border: 1.5px solid #fca5a5;
             }
             .btn-cancel-lc:hover {
                 background: #fef2f2;
-                border-color: #dc2626;
+                border-color: var(--danger);
             }
 
             .modal-overlay {
@@ -275,8 +287,8 @@
                         <div class="text-center my-3">
                             <img src="${pageContext.request.contextPath}/booking/qr?bookingId=${booking.bookingId}"
                                  alt="QR ${booking.bookingCode}" width="150" height="150"
-                                 style="border:1px solid #e5e7eb; border-radius:10px; padding:6px; background:#fff;">
-                            <div style="font-size:.74rem; color:#94a3b8; margin-top:4px;">
+                                 style="border:1px solid var(--border); border-radius:10px; padding:6px; background:#fff;">
+                            <div style="font-size:.74rem; color:var(--text-subtle); margin-top:4px;">
                                 Present this QR code at the entrance to check in
                             </div>
                         </div>
@@ -304,41 +316,32 @@
                                     </div>
                                     
                                     <%-- Visual status tracker --%>
-                                    <div class="d-flex justify-content-between align-items-center mt-3 position-relative px-2">
-                                        <div class="position-absolute start-0 end-0 top-50 translate-middle-y bg-secondary" style="height:3px; z-index:1; opacity:0.2;"></div>
-                                        <c:set var="statusVal" value="1"/>
-                                        <c:if test="${foodOrder.status == 'PREPARING'}"><c:set var="statusVal" value="2"/></c:if>
-                                        <c:if test="${foodOrder.status == 'READY'}"><c:set var="statusVal" value="3"/></c:if>
-                                        <c:if test="${foodOrder.status == 'DELIVERED'}"><c:set var="statusVal" value="4"/></c:if>
-                                        
-                                        <%-- Step 1: PENDING --%>
-                                        <div class="text-center" style="z-index:2;">
-                                            <div class="rounded-circle d-flex align-items-center justify-content-center ${statusVal >= 1 ? 'bg-success text-white' : 'bg-secondary text-white'}" style="width:24px; height:24px; font-size:0.7rem; font-weight:700;">
-                                                <c:choose><c:when test="${statusVal > 1}"><i class="bi bi-check-lg"></i></c:when><c:otherwise>1</c:otherwise></c:choose>
+                                    <c:set var="statusVal" value="1"/>
+                                    <c:if test="${foodOrder.status == 'PREPARING'}"><c:set var="statusVal" value="2"/></c:if>
+                                    <c:if test="${foodOrder.status == 'READY'}"><c:set var="statusVal" value="3"/></c:if>
+                                    <c:if test="${foodOrder.status == 'DELIVERED'}"><c:set var="statusVal" value="4"/></c:if>
+
+                                    <div class="pickup-track mt-3" style="--pk-frac: ${(statusVal - 1) / 3};">
+                                        <div class="pickup-line"></div>
+                                        <div class="pickup-line-fill"></div>
+                                        <c:forEach var="s" begin="1" end="4">
+                                            <div class="pk-step ${s < statusVal ? 'done' : (s == statusVal ? 'active' : '')}">
+                                                <span class="pk-dot">
+                                                    <c:choose>
+                                                        <c:when test="${s < statusVal}"><i class="bi bi-check-lg"></i></c:when>
+                                                        <c:otherwise>${s}</c:otherwise>
+                                                    </c:choose>
+                                                </span>
+                                                <span class="pk-label">
+                                                    <c:choose>
+                                                        <c:when test="${s == 1}">Pending</c:when>
+                                                        <c:when test="${s == 2}">Preparing</c:when>
+                                                        <c:when test="${s == 3}">Ready</c:when>
+                                                        <c:otherwise>Delivered</c:otherwise>
+                                                    </c:choose>
+                                                </span>
                                             </div>
-                                            <div class="small mt-1 text-muted" style="font-size:0.68rem;">Pending</div>
-                                        </div>
-                                        <%-- Step 2: PREPARING --%>
-                                        <div class="text-center" style="z-index:2;">
-                                            <div class="rounded-circle d-flex align-items-center justify-content-center ${statusVal >= 2 ? 'bg-success text-white' : 'bg-secondary text-white'}" style="width:24px; height:24px; font-size:0.7rem; font-weight:700;">
-                                                <c:choose><c:when test="${statusVal > 2}"><i class="bi bi-check-lg"></i></c:when><c:otherwise>2</c:otherwise></c:choose>
-                                            </div>
-                                            <div class="small mt-1 text-muted" style="font-size:0.68rem;">Preparing</div>
-                                        </div>
-                                        <%-- Step 3: READY --%>
-                                        <div class="text-center" style="z-index:2;">
-                                            <div class="rounded-circle d-flex align-items-center justify-content-center ${statusVal >= 3 ? 'bg-success text-white' : 'bg-secondary text-white'}" style="width:24px; height:24px; font-size:0.7rem; font-weight:700;">
-                                                <c:choose><c:when test="${statusVal > 3}"><i class="bi bi-check-lg"></i></c:when><c:otherwise>3</c:otherwise></c:choose>
-                                            </div>
-                                            <div class="small mt-1 text-muted" style="font-size:0.68rem;">Ready</div>
-                                        </div>
-                                        <%-- Step 4: DELIVERED --%>
-                                        <div class="text-center" style="z-index:2;">
-                                            <div class="rounded-circle d-flex align-items-center justify-content-center ${statusVal >= 4 ? 'bg-success text-white' : 'bg-secondary text-white'}" style="width:24px; height:24px; font-size:0.7rem; font-weight:700;">
-                                                4
-                                            </div>
-                                            <div class="small mt-1 text-muted" style="font-size:0.68rem;">Delivered</div>
-                                        </div>
+                                        </c:forEach>
                                     </div>
                                     
                                     <c:if test="${foodOrder.status == 'PENDING' && booking.status == 'CONFIRMED'}">

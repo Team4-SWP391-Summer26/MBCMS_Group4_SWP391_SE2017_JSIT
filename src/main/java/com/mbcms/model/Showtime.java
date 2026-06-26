@@ -26,6 +26,7 @@ public class Showtime {
 
     // Display fields - do tu JOIN (movies/rooms/booking_seats), KHONG map cot cua bang showtimes
     private String movieTitle;
+    private String posterUrl;
     private String roomName;
     private String roomType;
     private int bookedSeats;
@@ -112,6 +113,14 @@ public class Showtime {
 
     public void setMovieTitle(String movieTitle) {
         this.movieTitle = movieTitle;
+    }
+
+    public String getPosterUrl() {
+        return posterUrl;
+    }
+
+    public void setPosterUrl(String posterUrl) {
+        this.posterUrl = posterUrl;
     }
 
     public String getRoomName() {

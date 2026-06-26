@@ -7,611 +7,248 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>${movie.title} - LuminaCine</title>
-    <!-- Include Bootstrap 5 and Icons -->
+    <title>${movie.title} - MBCMS</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
-    <!-- Google Fonts: Inter -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    
-    <!-- Main Custom CSS -->
     <link href="${pageContext.request.contextPath}/assets/css/main.css?v=${applicationScope.assetVersion}" rel="stylesheet">
-    
     <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f8fafc;
-            color: #0f172a;
-        }
+        html { scroll-behavior: smooth; }
+        body { background: var(--bg); }
+        .det-wrap { max-width: 1100px; }
 
-        .breadcrumb-custom {
-            font-size: 0.85rem;
-            color: #64748b;
-            margin-bottom: 2rem;
+        /* ===================== HERO (mảng nền bao quanh phía trên) ===================== */
+        .det-hero { position: relative; overflow: hidden; background: var(--navy); color: #fff; }
+        .det-hero__bg {
+            position: absolute; inset: 0; background-size: cover; background-position: center;
+            filter: blur(26px); transform: scale(1.2); opacity: .4;
         }
-        .breadcrumb-custom a {
-            color: #2563eb;
-            text-decoration: none;
+        .det-hero__veil {
+            position: absolute; inset: 0;
+            background:
+                linear-gradient(180deg, rgba(15,30,54,.66) 0%, rgba(15,30,54,.92) 75%, var(--navy) 100%),
+                radial-gradient(820px 420px at 12% -10%, rgba(37,99,235,.32), transparent 60%);
         }
-        .breadcrumb-custom a:hover {
-            text-decoration: underline;
-        }
+        .det-hero__inner { position: relative; z-index: 2; padding: 1.5rem 0 2.75rem; }
 
-        /* Split Layout */
-        .movie-poster-card {
-            border-radius: 16px;
-            overflow: hidden;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-            margin-bottom: 1.5rem;
-        }
+        .det-bc { font-size: .85rem; color: rgba(255,255,255,.6); margin-bottom: 1.6rem; }
+        .det-bc a { color: rgba(255,255,255,.82); text-decoration: none; }
+        .det-bc a:hover { color: #fff; text-decoration: underline; }
 
-        .btn-trailer-custom {
-            height: 46px;
-            border-radius: 8px;
-            font-weight: 600;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-            width: 100%;
+        .det-top { display: flex; gap: 2rem; flex-wrap: wrap; align-items: flex-start; }
+        .det-poster-col { width: 240px; flex-shrink: 0; }
+        .det-poster { border-radius: 14px; overflow: hidden; box-shadow: 0 24px 60px rgba(0,0,0,.55); border: 1px solid rgba(255,255,255,.12); }
+        /* Khoá kích thước poster: rộng 240, cao theo tỉ lệ 2/3 -> hết bị kéo dài */
+        .det-poster .poster-art { position: relative; aspect-ratio: 2 / 3; width: 100%; border-radius: 14px; overflow: hidden; }
+        .det-poster .poster-art img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .det-trailer {
+            margin-top: .85rem; width: 100%; display: inline-flex; align-items: center; justify-content: center; gap: .5rem;
+            border: 1px solid rgba(255,255,255,.3); color: #fff; background: rgba(255,255,255,.08); border-radius: 10px;
+            padding: .55rem; font-weight: 600; font-size: .9rem; text-decoration: none; transition: .15s;
         }
+        .det-trailer:hover { background: rgba(255,255,255,.18); }
 
-        /* Movie Details Block */
-        .detail-info-block {
-            background-color: #ffffff;
-            border: 1px solid #e2e8f0;
-            border-radius: 16px;
-            padding: 2rem;
-            margin-bottom: 2rem;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-        }
+        .det-info { flex: 1; min-width: 300px; }
+        .det-title { font-size: clamp(1.9rem, 3.6vw, 2.8rem); font-weight: 800; color: #fff; letter-spacing: -.02em; margin: 0 0 1rem; text-shadow: 0 2px 16px rgba(0,0,0,.4); }
 
-        .movie-detail-title {
-            font-size: 2.5rem;
-            font-weight: 800;
-            color: #0f172a;
-            margin-bottom: 1rem;
-            line-height: 1.15;
-        }
+        .det-badges { display: flex; flex-wrap: wrap; align-items: center; gap: .45rem; margin-bottom: 1rem; }
+        .det-age { font-size: .72rem; font-weight: 800; padding: .24rem .55rem; border-radius: 6px; color: #fff; }
+        .age-P { background: var(--primary); }
+        .age-K { background: var(--success); }
+        .age-T13, .age-C13 { background: #eab308; color: #1e293b; }
+        .age-T16, .age-C16 { background: #f97316; }
+        .age-T18, .age-C18 { background: var(--danger); }
+        .b-soft { font-size: .74rem; font-weight: 600; color: rgba(255,255,255,.85); background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.16); padding: .22rem .6rem; border-radius: 6px; }
+        .b-genre { font-size: .74rem; font-weight: 600; color: #fff; background: rgba(37,99,235,.4); border: 1px solid rgba(255,255,255,.18); padding: .22rem .6rem; border-radius: 6px; }
+        .b-status { font-size: .78rem; font-weight: 600; color: #4ade80; display: inline-flex; align-items: center; gap: .35rem; margin-left: .15rem; }
+        .b-status .dot { width: 7px; height: 7px; border-radius: 50%; background: #4ade80; }
+        .b-status.upcoming { color: #60a5fa; }
+        .b-status.upcoming .dot { background: #60a5fa; }
 
-        .metadata-row {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            flex-wrap: wrap;
-            margin-bottom: 1.25rem;
-        }
+        .det-rating { display: flex; align-items: center; gap: .5rem; margin-bottom: 1.15rem; }
+        .det-rating .stars { color: var(--gold); font-size: 1rem; display: inline-flex; gap: 1px; }
+        .det-rating .score { font-weight: 800; color: #fff; }
+        .det-rating .votes { color: rgba(255,255,255,.6); font-size: .85rem; }
 
-        .age-badge {
-            font-size: 0.75rem;
-            font-weight: 700;
-            padding: 0.2rem 0.6rem;
-            border-radius: 6px;
-            color: #ffffff;
-        }
-        .age-P { background-color: #2563eb; }
-        .age-K { background-color: #16a34a; }
-        .age-T13, .age-C13 { background-color: #eab308; color: #ffffff; }
-        .age-T16, .age-C16 { background-color: #f97316; }
-        .age-T18, .age-C18 { background-color: #ef4444; }
+        .det-credits { font-size: .9rem; color: rgba(255,255,255,.82); margin-bottom: 1.5rem; line-height: 1.8; }
+        .det-credits .lbl { font-weight: 700; color: #fff; }
 
-        .meta-text {
-            font-size: 0.9rem;
-            color: #64748b;
-            font-weight: 500;
+        .det-actions { display: flex; flex-wrap: wrap; gap: .6rem; }
+        .det-book { border-radius: 10px; padding: .65rem 1.6rem; font-weight: 600; display: inline-flex; align-items: center; gap: .5rem; }
+        .det-save {
+            border-radius: 10px; padding: .65rem 1.3rem; font-weight: 600; background: rgba(255,255,255,.1); color: #fff;
+            border: 1px solid rgba(255,255,255,.3); display: inline-flex; align-items: center; gap: .5rem; cursor: pointer; transition: .15s;
         }
+        .det-save:hover { background: rgba(255,255,255,.2); }
 
-        .genre-badge {
-            font-size: 0.75rem;
-            font-weight: 600;
-            padding: 0.2rem 0.75rem;
-            background-color: #eff6ff;
-            color: #1d4ed8;
-            border-radius: 9999px;
-            border: 1px solid #dbeafe;
-        }
+        /* ===================== Light sections ===================== */
+        .det-h2 { font-size: 1.3rem; font-weight: 800; color: var(--text); margin: 0 0 .9rem; }
+        .det-syn p { color: var(--text-muted); line-height: 1.8; max-width: 780px; margin: 0; }
 
-        .status-badge-inline {
-            font-size: 0.75rem;
-            font-weight: 600;
-            padding: 0.2rem 0.75rem;
-            background-color: #f0fdf4;
-            color: #16a34a;
-            border-radius: 9999px;
-            border: 1px solid #dcfce7;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.35rem;
-        }
-        .status-badge-inline.upcoming {
-            background-color: #eff6ff;
-            color: #2563eb;
-            border-color: #dbeafe;
-        }
-        .status-dot {
-            width: 6px;
-            height: 6px;
-            background-color: currentColor;
-            border-radius: 50%;
-        }
+        #showtimes { scroll-margin-top: 1rem; }
+        .det-showtimes { margin-top: 2.75rem; }
+        .st-head { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.25rem; }
+        .st-select { width: 210px; max-width: 100%; height: 40px; border-radius: 8px; border: 1px solid var(--border-strong); font-size: .88rem; color: var(--text); }
 
-        /* Rating Row */
-        .rating-row {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            margin-bottom: 2rem;
-            font-size: 1.1rem;
+        .st-dates { display: flex; gap: .5rem; overflow-x: auto; padding-bottom: .4rem; margin-bottom: 1.5rem; }
+        .st-date {
+            flex: 0 0 auto; min-width: 62px; padding: .45rem .65rem; border-radius: 10px;
+            border: 1px solid var(--border); background: #fff; text-align: center; cursor: pointer; line-height: 1.25; transition: .15s;
         }
-        .stars-wrapper {
-            color: #eab308;
-            display: flex;
-            gap: 0.15rem;
-        }
-        .rating-score {
-            font-weight: 700;
-            color: #0f172a;
-            margin-left: 0.25rem;
-        }
-        .vote-count {
-            color: #64748b;
-            font-size: 0.9rem;
-        }
+        .st-date .d { display: block; font-size: .64rem; font-weight: 700; text-transform: uppercase; color: var(--text-subtle); }
+        .st-date .n { display: block; font-size: .84rem; font-weight: 800; color: var(--text); }
+        .st-date:hover:not(.active) { border-color: var(--primary); }
+        .st-date.active { background: var(--navy); border-color: var(--navy); }
+        .st-date.active .d, .st-date.active .n { color: #fff; }
 
-        /* Movie Details Info */
-        .movie-details-info {
-            font-size: 0.95rem;
-            line-height: 1.5;
-            margin-bottom: 2rem;
-        }
-        .info-item-label {
-            font-weight: 700;
-            color: #1e293b;
-        }
-        .info-item-value {
-            color: #475569;
-        }
+        .st-branch { background: #fff; border: 1px solid var(--border); border-radius: 14px; box-shadow: var(--shadow-sm); padding: 1.25rem 1.4rem; margin-bottom: 1rem; }
+        .st-branch:last-of-type { margin-bottom: 0; }
+        .st-branch__top { display: flex; justify-content: space-between; align-items: flex-start; gap: .5rem; margin-bottom: 1rem; }
+        .st-branch__name { font-size: 1rem; font-weight: 700; color: var(--text); margin: 0; display: flex; align-items: center; gap: .45rem; }
+        .st-branch__name i { color: var(--primary); }
+        .st-branch__addr { font-size: .8rem; color: var(--text-muted); margin: .15rem 0 0 1.45rem; }
+        .st-map { font-size: .8rem; color: var(--primary); font-weight: 600; text-decoration: none; white-space: nowrap; display: inline-flex; align-items: center; gap: .25rem; }
+        .st-map:hover { text-decoration: underline; }
 
-        /* Action Buttons */
-        .action-buttons-row {
-            display: flex;
-            gap: 1rem;
+        .st-room { display: flex; align-items: center; gap: 1.25rem; padding: .85rem 0; border-top: 1px solid var(--surface-2); flex-wrap: wrap; }
+        .st-room:first-of-type { border-top: none; padding-top: .15rem; }
+        .st-room__info { width: 215px; flex-shrink: 0; }
+        .st-room__name { font-size: .88rem; font-weight: 700; color: var(--text); }
+        .st-room__price { font-size: .76rem; color: var(--text-muted); margin-top: .1rem; }
+        .st-slots { display: flex; flex-wrap: wrap; gap: .55rem; }
+        .st-slot {
+            display: inline-flex; flex-direction: column; align-items: center; justify-content: center;
+            min-width: 78px; padding: .4rem .65rem; border-radius: 9px; border: 1px solid var(--primary);
+            background: #fff; color: var(--primary); text-decoration: none; transition: .15s;
         }
-        .btn-book-primary {
-            height: 48px;
-            background-color: #2563eb;
-            color: #ffffff;
-            border: none;
-            border-radius: 8px;
-            font-weight: 600;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-            padding: 0 2rem;
-            text-decoration: none;
-            transition: background-color 0.15s ease;
-        }
-        .btn-book-primary:hover {
-            background-color: #1d4ed8;
-            color: #ffffff;
-        }
+        .st-slot .t { font-size: .92rem; font-weight: 800; line-height: 1; }
+        .st-slot .p { font-size: .64rem; font-weight: 500; margin-top: .2rem; color: var(--text-muted); }
+        .st-slot:hover:not(.is-full) { background: var(--primary); color: #fff; transform: translateY(-1px); }
+        .st-slot:hover:not(.is-full) .p { color: rgba(255, 255, 255, .85); }
+        .st-slot.is-full { border-color: var(--border-strong); color: var(--text-subtle); background: var(--surface-2); cursor: not-allowed; pointer-events: none; }
+        .st-slot.is-full .p { color: var(--text-subtle); }
 
-        .btn-save-outline {
-            height: 48px;
-            background-color: #ffffff;
-            color: #475569;
-            border: 1px solid #cbd5e1;
-            border-radius: 8px;
-            font-weight: 600;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-            padding: 0 1.5rem;
-            text-decoration: none;
-            transition: all 0.15s ease;
-        }
-        .btn-save-outline:hover {
-            background-color: #f8fafc;
-            border-color: #94a3b8;
-            color: #0f172a;
-        }
+        .st-empty { text-align: center; padding: 3rem 1rem; color: var(--text-muted); background: #fff; border: 1px solid var(--border); border-radius: 14px; }
+        .st-empty i { font-size: 2.5rem; color: var(--border-strong); display: block; margin-bottom: .6rem; }
 
-        /* Synopsis Section */
-        .section-header {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: #0f172a;
-            margin-bottom: 1rem;
-            margin-top: 2rem;
-        }
-        .synopsis-text {
-            color: #475569;
-            line-height: 1.7;
-            font-size: 0.95rem;
-        }
+        .st-legend { display: flex; flex-wrap: wrap; gap: 1.25rem; margin-top: 1.35rem; font-size: .8rem; color: var(--text-muted); }
+        .st-legend .item { display: flex; align-items: center; gap: .4rem; }
+        .st-legend .sw { width: 14px; height: 14px; border-radius: 4px; border: 1.5px solid var(--border-strong); background: #fff; }
+        .st-legend .sw.vip { border-color: #f59e0b; }
+        .st-legend .sw.imax { border-color: #c084fc; }
 
-        /* Available Showtimes Card */
-        .showtimes-card {
-            background-color: #ffffff;
-            border: 1px solid #e2e8f0;
-            border-radius: 16px;
-            padding: 2rem;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-            margin-bottom: 3rem;
-        }
-
-        .showtimes-header-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1.5rem;
-            flex-wrap: wrap;
-            gap: 1rem;
-        }
-        .showtimes-title {
-            font-size: 1.35rem;
-            font-weight: 700;
-            color: #0f172a;
-            margin: 0;
-        }
-        .cinema-filter-select {
-            width: 220px;
-            height: 40px;
-            border-radius: 8px;
-            border: 1px solid #cbd5e1;
-            font-size: 0.9rem;
-            font-weight: 500;
-            color: #334155;
-        }
-
-        /* Date Tabs Row */
-        .date-tabs-row {
-            display: flex;
-            gap: 0.5rem;
-            overflow-x: auto;
-            padding-bottom: 0.75rem;
-            margin-bottom: 2rem;
-            border-bottom: 1px solid #f1f5f9;
-        }
-        .date-tab-btn {
-            flex: 0 0 auto;
-            width: 72px;
-            height: 64px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            border-radius: 10px;
-            border: 1px solid #cbd5e1;
-            background-color: #ffffff;
-            color: #475569;
-            transition: all 0.15s ease;
-            cursor: pointer;
-        }
-        .date-tab-btn .day-name {
-            font-size: 0.72rem;
-            font-weight: 700;
-            letter-spacing: 0.05em;
-            text-transform: uppercase;
-            margin-bottom: 0.25rem;
-            color: #94a3b8;
-        }
-        .date-tab-btn .date-val {
-            font-size: 0.95rem;
-            font-weight: 700;
-        }
-        .date-tab-btn:hover:not(.active) {
-            background-color: #f8fafc;
-            border-color: #94a3b8;
-            color: #0f172a;
-        }
-        .date-tab-btn.active {
-            background-color: #2563eb;
-            border-color: #2563eb;
-            color: #ffffff;
-        }
-        .date-tab-btn.active .day-name {
-            color: rgba(255, 255, 255, 0.75);
-        }
-
-        /* Cinema Branches list */
-        .cinema-branch-block {
-            border-bottom: 1px solid #f1f5f9;
-            padding-bottom: 1.5rem;
-            margin-bottom: 1.5rem;
-        }
-        .cinema-branch-block:last-child {
-            border-bottom: none;
-            padding-bottom: 0;
-            margin-bottom: 0;
-        }
-
-        .cinema-title-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 1.25rem;
-            flex-wrap: wrap;
-            gap: 0.5rem;
-        }
-        .cinema-name {
-            font-size: 1.15rem;
-            font-weight: 700;
-            color: #0f172a;
-            margin: 0;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        .cinema-name i {
-            color: #2563eb;
-        }
-        .cinema-address {
-            font-size: 0.85rem;
-            color: #64748b;
-            font-weight: 400;
-            margin-left: 1.65rem;
-            margin-top: -0.25rem;
-        }
-        .map-link {
-            font-size: 0.85rem;
-            color: #2563eb;
-            text-decoration: none;
-            font-weight: 600;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.25rem;
-        }
-        .map-link:hover {
-            text-decoration: underline;
-        }
-
-        /* Room group layouts */
-        .room-row {
-            display: grid;
-            grid-template-columns: 240px 1fr;
-            gap: 1.5rem;
-            padding: 1rem 0;
-            align-items: center;
-            border-top: 1px solid #f8fafc;
-        }
-        .room-row:first-of-type {
-            border-top: none;
-        }
-
-        .room-details {
-            display: flex;
-            flex-direction: column;
-        }
-        .room-name-type {
-            font-size: 0.95rem;
-            font-weight: 600;
-            color: #1e293b;
-            margin-bottom: 0.25rem;
-        }
-        .room-price-from {
-            font-size: 0.8rem;
-            color: #64748b;
-        }
-
-        .showtime-slots-grid {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.75rem;
-        }
-
-        /* Showtime button styling */
-        .showtime-slot-btn {
-            display: inline-flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            width: 78px;
-            height: 48px;
-            border-radius: 8px;
-            border: 1px solid #2563eb;
-            background-color: #ffffff;
-            color: #2563eb;
-            text-decoration: none;
-            transition: all 0.15s ease;
-        }
-        .showtime-slot-btn .slot-time {
-            font-size: 0.95rem;
-            font-weight: 700;
-            color: #2563eb;
-        }
-        .showtime-slot-btn .slot-price-label {
-            font-size: 0.68rem;
-            color: #2563eb;
-            font-weight: 500;
-            margin-top: -0.1rem;
-        }
-        .showtime-slot-btn:hover:not(.disabled) {
-            border-color: #1d4ed8;
-            color: #1d4ed8;
-            background-color: #eff6ff;
-        }
-        .showtime-slot-btn:hover:not(.disabled) .slot-time,
-        .showtime-slot-btn:hover:not(.disabled) .slot-price-label {
-            color: #1d4ed8;
-        }
-        .showtime-slot-btn.disabled {
-            background-color: #f1f5f9;
-            border-color: #cbd5e1;
-            color: #94a3b8;
-            cursor: not-allowed;
-            pointer-events: none;
-        }
-        .showtime-slot-btn.disabled .slot-time {
-            color: #94a3b8;
-        }
-        .showtime-slot-btn.disabled .slot-price-label {
-            color: #94a3b8;
-        }
-
-        /* Legend styling with custom checkbox design */
-        .showtimes-legend {
-            display: flex;
-            align-items: center;
-            gap: 1.5rem;
-            margin-top: 2rem;
-            padding-top: 1.5rem;
-            border-top: 1px solid #f1f5f9;
-            flex-wrap: wrap;
-            font-size: 0.85rem;
-            color: #475569;
-        }
-        .legend-item {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        .legend-checkbox {
-            width: 16px;
-            height: 16px;
-            border-radius: 4px;
-            border: 1px solid #cbd5e1;
-            background-color: #ffffff;
-            display: inline-block;
-            vertical-align: middle;
-        }
-        .legend-checkbox.standard {
-            border-color: #cbd5e1;
-        }
-        .legend-checkbox.vip {
-            border-color: #f59e0b;
-        }
-        .legend-checkbox.imax {
-            border-color: #c084fc;
+        @media (max-width: 575px) {
+            .det-poster-col { width: 100%; max-width: 240px; margin: 0 auto; }
+            .st-room__info { width: 100%; }
         }
     </style>
 </head>
-
 <body>
 
     <jsp:include page="../common/header.jsp">
         <jsp:param name="activeMenu" value="movies" />
     </jsp:include>
 
-    <main class="container py-4">
+    <%-- Deterministic demo rating/votes --%>
+    <c:set var="ratingVal" value="${7.8 + (movie.movieId % 17) / 10.0}" />
+    <c:set var="votesVal" value="${350 + (movie.movieId * 149) % 1500}" />
+    <c:set var="ratingStr"><fmt:formatNumber value="${ratingVal}" pattern="0.0" /></c:set>
+    <c:set var="votesStr"><fmt:formatNumber value="${votesVal}" pattern="#,##0" /></c:set>
 
-        <!-- Breadcrumbs -->
-        <div class="breadcrumb-custom">
-            <a href="${pageContext.request.contextPath}/home">Home</a> / 
-            <a href="${pageContext.request.contextPath}/movies?status=NOW_SHOWING">Movies</a> / 
-            <c:out value="${movie.title}"/>
-        </div>
+    <%-- ===================== HERO ===================== --%>
+    <section class="det-hero">
+        <c:if test="${not empty movie.posterUrl}">
+            <div class="det-hero__bg" style="background-image:url('<c:url value="${movie.posterUrl}"/>');"></div>
+        </c:if>
+        <div class="det-hero__veil"></div>
 
-        <div class="row g-4">
-            
-            <!-- LEFT COLUMN: Poster & Trailer -->
-            <div class="col-lg-4 col-md-5 col-12">
-                <div class="movie-poster-card">
-                    <jsp:include page="../common/_poster.jsp">
-                        <jsp:param name="movieId" value="${movie.movieId}" />
-                        <jsp:param name="title" value="${movie.title}" />
-                        <jsp:param name="posterUrl" value="${movie.posterUrl}" />
-                    </jsp:include>
+        <div class="det-hero__inner">
+            <div class="container det-wrap">
+                <div class="det-bc">
+                    <a href="${pageContext.request.contextPath}/home">Home</a> /
+                    <a href="${pageContext.request.contextPath}/movies?status=NOW_SHOWING">Movies</a> /
+                    <span><c:out value="${movie.title}"/></span>
                 </div>
-                
-                <c:if test="${not empty movie.trailerUrl}">
-                    <a href="${movie.trailerUrl}" target="_blank" class="btn btn-outline-primary btn-trailer-custom">
-                        <i class="bi bi-play-fill"></i> Watch Trailer
-                    </a>
-                </c:if>
-            </div>
 
-            <!-- RIGHT COLUMN: Detail Info -->
-            <div class="col-lg-8 col-md-7 col-12">
-                <div class="detail-info-block">
-                    <h1 class="movie-detail-title"><c:out value="${movie.title}"/></h1>
-                    
-                    <!-- Metadata row -->
-                    <div class="metadata-row">
-                        <span class="age-badge age-${movie.rated}"><c:out value="${movie.rated}"/></span>
-                        <span class="meta-text">${fn:substring(movie.releaseDate, 0, 4)}</span>
-                        <span class="meta-text">${movie.durationMin} min</span>
-                        <c:forEach var="g" items="${movie.genres}">
-                            <span class="genre-badge">${g}</span>
-                        </c:forEach>
-                        <span class="status-badge-inline ${movie.status == 'NOW_SHOWING' ? '' : 'upcoming'}">
-                            <span class="status-dot"></span>
-                            <span><c:out value="${movie.status == 'NOW_SHOWING' ? 'Now Showing' : 'Upcoming'}"/></span>
-                        </span>
+                <div class="det-top">
+                    <div class="det-poster-col">
+                        <div class="det-poster">
+                            <jsp:include page="../common/_poster.jsp">
+                                <jsp:param name="movieId" value="${movie.movieId}" />
+                                <jsp:param name="title" value="${movie.title}" />
+                                <jsp:param name="posterUrl" value="${movie.posterUrl}" />
+                            </jsp:include>
+                        </div>
+                        <c:if test="${not empty movie.trailerUrl}">
+                            <a href="${movie.trailerUrl}" target="_blank" class="det-trailer">
+                                <i class="bi bi-play-fill"></i> Watch Trailer
+                            </a>
+                        </c:if>
                     </div>
 
-                    <!-- Rating row -->
-                    <c:set var="ratingVal" value="${7.8 + (movie.movieId % 17) / 10.0}" />
-                    <c:set var="votesVal" value="${350 + (movie.movieId * 149) % 1500}" />
-                    <c:set var="ratingStr"><fmt:formatNumber value="${ratingVal}" pattern="0.0" /></c:set>
-                    <c:set var="votesStr"><fmt:formatNumber value="${votesVal}" pattern="#,##0" /></c:set>
+                    <div class="det-info">
+                        <h1 class="det-title"><c:out value="${movie.title}"/></h1>
 
-                    <div class="rating-row">
-                        <div class="stars-wrapper">
-                            <c:forEach var="i" begin="1" end="5">
-                                <c:choose>
-                                    <c:when test="${ratingVal >= (i * 2)}">
-                                        <i class="bi bi-star-fill"></i>
-                                    </c:when>
-                                    <c:when test="${ratingVal >= (i * 2 - 1)}">
-                                        <i class="bi bi-star-half"></i>
-                                    </c:when>
-                                    <c:otherwise>
-                                        <i class="bi bi-star"></i>
-                                    </c:otherwise>
-                                </c:choose>
+                        <div class="det-badges">
+                            <span class="det-age age-${movie.rated}"><c:out value="${movie.rated}"/></span>
+                            <span class="b-soft">${fn:substring(movie.releaseDate, 0, 4)}</span>
+                            <span class="b-soft">${movie.durationMin} min</span>
+                            <c:forEach var="g" items="${movie.genres}">
+                                <span class="b-genre">${g}</span>
                             </c:forEach>
+                            <span class="b-status ${movie.status == 'NOW_SHOWING' ? '' : 'upcoming'}">
+                                <span class="dot"></span>
+                                <c:out value="${movie.status == 'NOW_SHOWING' ? 'Now Showing' : 'Upcoming'}"/>
+                            </span>
                         </div>
-                        <span class="rating-score">${ratingStr}/10</span>
-                        <span class="vote-count">(${votesStr})</span>
-                    </div>
 
-                    <!-- Details Layout (2-column Director/Language, full Cast below) -->
-                    <div class="movie-details-info">
-                        <div class="row g-3">
-                            <div class="col-md-6 col-12">
-                                <span class="info-item-label">Director:</span>
-                                <span class="info-item-value"><c:out value="${not empty movie.director ? movie.director : 'N/A'}"/></span>
-                            </div>
-                            <div class="col-md-6 col-12">
-                                <span class="info-item-label">Language:</span>
-                                <span class="info-item-value"><c:out value="${not empty movie.language ? movie.language : 'English'}"/></span>
-                            </div>
-                            <div class="col-12 mt-2">
-                                <span class="info-item-label">Cast:</span>
-                                <span class="info-item-value"><c:out value="${not empty movie.castList ? movie.castList : 'N/A'}"/></span>
+                        <div class="det-rating">
+                            <span class="stars">
+                                <c:forEach var="i" begin="1" end="5">
+                                    <c:choose>
+                                        <c:when test="${ratingVal >= (i * 2)}"><i class="bi bi-star-fill"></i></c:when>
+                                        <c:when test="${ratingVal >= (i * 2 - 1)}"><i class="bi bi-star-half"></i></c:when>
+                                        <c:otherwise><i class="bi bi-star"></i></c:otherwise>
+                                    </c:choose>
+                                </c:forEach>
+                            </span>
+                            <span class="score">${ratingStr}/10</span>
+                            <span class="votes">(${votesStr})</span>
+                        </div>
+
+                        <div class="det-credits">
+                            <div class="row g-1">
+                                <div class="col-md-7"><span class="lbl">Director:</span> <c:out value="${not empty movie.director ? movie.director : 'N/A'}"/></div>
+                                <div class="col-md-5"><span class="lbl">Language:</span> <c:out value="${not empty movie.language ? movie.language : 'English'}"/></div>
+                                <div class="col-12"><span class="lbl">Cast:</span> <c:out value="${not empty movie.castList ? movie.castList : 'N/A'}"/></div>
                             </div>
                         </div>
-                    </div>
 
-                    <!-- Action buttons -->
-                    <div class="action-buttons-row">
-                        <a href="#showtimes-section" class="btn-book-primary">
-                            <i class="bi bi-ticket-perforated-fill"></i> Book Tickets
-                        </a>
-                        <button class="btn-save-outline">
-                            <i class="bi bi-bookmark"></i> Save
-                        </button>
+                        <div class="det-actions">
+                            <a href="#showtimes" class="btn btn-primary det-book">
+                                <i class="bi bi-ticket-perforated-fill"></i> Book Tickets
+                            </a>
+                            <button type="button" class="det-save">
+                                <i class="bi bi-bookmark"></i> Save
+                            </button>
+                        </div>
                     </div>
                 </div>
-
-                <!-- Synopsis Section -->
-                <h3 class="section-header">Synopsis</h3>
-                <p class="synopsis-text"><c:out value="${movie.description}"/></p>
             </div>
+        </div>
+    </section>
 
-        </div> <!-- /row -->
+    <%-- ===================== Light content ===================== --%>
+    <main class="container det-wrap py-4 py-lg-5">
 
-        <!-- SHOWTIMES SECTION -->
-        <div class="showtimes-card" id="showtimes-section">
-            
-            <div class="showtimes-header-row">
-                <h3 class="showtimes-title">Available Showtimes</h3>
-                
-                <!-- Cinema branch filter dropdown -->
-                <select class="form-select cinema-filter-select" onchange="selectBranch(this.value)">
+        <section class="det-syn">
+            <h2 class="det-h2">Synopsis</h2>
+            <p><c:out value="${movie.description}"/></p>
+        </section>
+
+        <section class="det-showtimes" id="showtimes">
+            <div class="st-head">
+                <h2 class="det-h2 mb-0">Available Showtimes</h2>
+                <select class="form-select st-select" onchange="selectBranch(this.value)">
                     <option value="all">All Cinemas</option>
                     <c:forEach var="b" items="${branches}">
                         <option value="${b.branchId}" <c:if test="${selectedBranchId != 'all' and selectedBranchId == b.branchId}">selected</c:if>>${b.name}</option>
@@ -619,100 +256,73 @@
                 </select>
             </div>
 
-            <!-- Date Selectors Tabs -->
-            <div class="date-tabs-row">
+            <div class="st-dates">
                 <c:forEach var="tab" items="${dateTabs}">
-                    <div class="date-tab-btn ${tab.active ? 'active' : ''}" onclick="selectDate('${tab.date}')">
-                        <span class="day-name">${tab.day}</span>
-                        <span class="date-val">${tab.label}</span>
+                    <div class="st-date ${tab.active ? 'active' : ''}" onclick="selectDate('${tab.date}')">
+                        <span class="d">${tab.day}</span>
+                        <span class="n">${tab.label}</span>
                     </div>
                 </c:forEach>
             </div>
 
-            <!-- Showtimes List Grouped by Cinema -->
             <c:choose>
                 <c:when test="${empty branchShowtimesList}">
-                    <div class="text-center py-5 text-muted">
-                        <i class="bi bi-calendar-x" style="font-size: 2.5rem;"></i>
-                        <h5 class="mt-3">No showtimes found for the selected date and branch</h5>
-                        <p class="small">Please choose another date or cinema.</p>
+                    <div class="st-empty">
+                        <i class="bi bi-calendar-x"></i>
+                        <h5 class="fw-bold">No showtimes for this date</h5>
+                        <p class="small mb-0">Please pick another date or cinema.</p>
                     </div>
                 </c:when>
                 <c:otherwise>
                     <c:forEach var="bs" items="${branchShowtimesList}">
-                        <div class="cinema-branch-block">
-                            <div class="cinema-title-row">
+                        <div class="st-branch">
+                            <div class="st-branch__top">
                                 <div>
-                                    <h4 class="cinema-name">
-                                        <i class="bi bi-geo-alt-fill"></i>
-                                        <c:out value="${bs.branch.name}"/>
-                                    </h4>
-                                    <div class="cinema-address">
-                                        <c:out value="${bs.branch.address}"/>, <c:out value="${bs.branch.city}"/>
-                                    </div>
+                                    <h3 class="st-branch__name"><i class="bi bi-geo-alt-fill"></i> <c:out value="${bs.branch.name}"/></h3>
+                                    <div class="st-branch__addr"><c:out value="${bs.branch.address}"/>, <c:out value="${bs.branch.city}"/></div>
                                 </div>
-                                <a href="https://maps.google.com/?q=${bs.branch.name} ${bs.branch.address}" target="_blank" class="map-link">
+                                <a href="https://maps.google.com/?q=${bs.branch.name} ${bs.branch.address}" target="_blank" class="st-map">
                                     View on map <i class="bi bi-arrow-up-right"></i>
                                 </a>
                             </div>
 
-                            <!-- Room lists within this cinema -->
-                            <div class="ms-lg-4 ms-2">
-                                <c:forEach var="rg" items="${bs.roomGroups}">
-                                    <div class="room-row">
-                                        <div class="room-details">
-                                            <span class="room-name-type">
-                                                ${rg.roomName} &bull; ${rg.roomType} &bull; ${rg.format} ${rg.subtitleType}
-                                            </span>
-                                            <span class="room-price-from">
-                                                From <fmt:formatNumber value="${rg.minPrice}" pattern="#,##0"/>đ
-                                            </span>
-                                        </div>
-                                        <div class="showtime-slots-grid">
-                                            <c:forEach var="slot" items="${rg.slots}">
-                                                <c:choose>
-                                                    <c:when test="${slot.full}">
-                                                        <a href="#" class="showtime-slot-btn disabled" title="Full Seats">
-                                                            <span class="slot-time">${slot.time}</span>
-                                                            <span class="slot-price-label">Full</span>
-                                                        </a>
-                                                    </c:when>
-                                                    <c:otherwise>
-                                                        <a href="${pageContext.request.contextPath}/booking/seats?showtimeId=${slot.showtimeId}" class="showtime-slot-btn">
-                                                            <span class="slot-time">${slot.time}</span>
-                                                            <span class="slot-price-label">
-                                                                <fmt:formatNumber value="${slot.price}" pattern="#,##0"/>đ
-                                                            </span>
-                                                        </a>
-                                                    </c:otherwise>
-                                                </c:choose>
-                                            </c:forEach>
-                                        </div>
+                            <c:forEach var="rg" items="${bs.roomGroups}">
+                                <div class="st-room">
+                                    <div class="st-room__info">
+                                        <div class="st-room__name">${rg.roomName} &bull; ${rg.roomType} &bull; ${rg.format} ${rg.subtitleType}</div>
+                                        <div class="st-room__price">From <fmt:formatNumber value="${rg.minPrice}" pattern="#,##0"/>đ</div>
                                     </div>
-                                </c:forEach>
-                            </div>
+                                    <div class="st-slots">
+                                        <c:forEach var="slot" items="${rg.slots}">
+                                            <c:choose>
+                                                <c:when test="${slot.full}">
+                                                    <span class="st-slot is-full" title="Sold out">
+                                                        <span class="t">${slot.time}</span>
+                                                        <span class="p">Full</span>
+                                                    </span>
+                                                </c:when>
+                                                <c:otherwise>
+                                                    <a href="${pageContext.request.contextPath}/booking/seats?showtimeId=${slot.showtimeId}" class="st-slot" data-start="${selectedDate}T${slot.time}">
+                                                        <span class="t">${slot.time}</span>
+                                                        <span class="p"><fmt:formatNumber value="${slot.price}" pattern="#,##0"/>đ</span>
+                                                    </a>
+                                                </c:otherwise>
+                                            </c:choose>
+                                        </c:forEach>
+                                    </div>
+                                </div>
+                            </c:forEach>
                         </div>
                     </c:forEach>
                 </c:otherwise>
             </c:choose>
 
-            <!-- Showtime pricing category legend -->
-            <div class="showtimes-legend">
-                <div class="legend-item">
-                    <span class="legend-checkbox standard"></span>
-                    <span>Standard 80,000đ</span>
-                </div>
-                <div class="legend-item">
-                    <span class="legend-checkbox vip"></span>
-                    <span>VIP 140,000đ</span>
-                </div>
-                <div class="legend-item">
-                    <span class="legend-checkbox imax"></span>
-                    <span>IMAX 100,000đ</span>
-                </div>
+            <div class="st-legend">
+                <div class="item"><span class="sw"></span> Standard 80,000đ</div>
+                <div class="item"><span class="sw vip"></span> VIP 140,000đ</div>
+                <div class="item"><span class="sw imax"></span> IMAX 100,000đ</div>
             </div>
-
-        </div>
+        </section>
 
     </main>
 
@@ -720,16 +330,26 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        function selectDate(dateStr) {
-            const movieId = '${movie.movieId}';
-            const branchId = '${selectedBranchId}';
-            window.location.href = '${pageContext.request.contextPath}/movies/detail?id=' + movieId + '&date=' + dateStr + '&branchId=' + branchId;
-        }
+        // Tô xám + khoá các suất đã qua giờ chiếu (so với giờ hiện tại của máy)
+        document.querySelectorAll('.st-slot[data-start]').forEach(function (el) {
+            var d = new Date(el.getAttribute('data-start'));
+            if (!isNaN(d.getTime()) && d.getTime() < Date.now()) {
+                el.classList.add('is-full');
+                el.removeAttribute('href');
+                var p = el.querySelector('.p');
+                if (p) p.textContent = 'Ended';
+            }
+        });
 
+        function selectDate(dateStr) {
+            var movieId = '${movie.movieId}';
+            var branchId = '${selectedBranchId}';
+            window.location.href = '${pageContext.request.contextPath}/movies/detail?id=' + movieId + '&date=' + dateStr + '&branchId=' + branchId + '#showtimes';
+        }
         function selectBranch(branchIdVal) {
-            const movieId = '${movie.movieId}';
-            const dateStr = '${selectedDate}';
-            window.location.href = '${pageContext.request.contextPath}/movies/detail?id=' + movieId + '&date=' + dateStr + '&branchId=' + branchIdVal;
+            var movieId = '${movie.movieId}';
+            var dateStr = '${selectedDate}';
+            window.location.href = '${pageContext.request.contextPath}/movies/detail?id=' + movieId + '&date=' + dateStr + '&branchId=' + branchIdVal + '#showtimes';
         }
     </script>
 </body>

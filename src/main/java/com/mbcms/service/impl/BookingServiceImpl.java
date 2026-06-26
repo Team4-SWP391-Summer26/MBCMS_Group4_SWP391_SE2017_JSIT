@@ -165,7 +165,14 @@ public class BookingServiceImpl implements BookingService {
         booking.setTotalAmount(total);
         booking.setNotes(notes);
         // createBooking() xử lý UPDLOCK + INSERT atomic bên trong
-        return bookingDao.createBooking(booking, seatIds);
+        Booking result = bookingDao.createBooking(booking, seatIds);
+        // Bo sung thong tin hien thi cho context bar checkout (ten phim + gio chieu + poster)
+        if (result != null) {
+            result.setMovieTitle(st.getMovieTitle());
+            result.setShowtimeStartTime(st.getStartTime());
+            result.setPosterUrl(st.getPosterUrl());
+        }
+        return result;
     }
 
     // ── confirmBooking ────────────────────────────────────────────────────

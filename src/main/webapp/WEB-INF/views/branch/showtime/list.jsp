@@ -135,7 +135,7 @@
                     <div class="col-md-3 col-6">
                         <div class="card lc-elev p-3 h-100" style="opacity:.6;">
                             <div class="d-flex align-items-center gap-3">
-                                <div class="lc-stat-icon" style="background:#EEF1F4; color:#94a3b8;">
+                                <div class="lc-stat-icon" style="background:#EEF1F4; color:var(--text-subtle);">
                                     <i class="bi bi-cash-stack"></i></div>
                                 <div>
                                     <div class="text-muted small fw-semibold">Revenue</div>

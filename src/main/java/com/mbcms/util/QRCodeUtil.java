@@ -27,6 +27,7 @@ public final class QRCodeUtil {
     public static void writePng(String text, int size, OutputStream out)
             throws WriterException, IOException {
         Map<EncodeHintType, Object> hints = new EnumMap<>(EncodeHintType.class);
+        // Error correction muc M: QR van doc duoc khi bi che/hong ~15% (mau in moi truong rap).
         hints.put(EncodeHintType.ERROR_CORRECTION, ErrorCorrectionLevel.M);
         hints.put(EncodeHintType.CHARACTER_SET, "UTF-8");
         hints.put(EncodeHintType.MARGIN, 1);

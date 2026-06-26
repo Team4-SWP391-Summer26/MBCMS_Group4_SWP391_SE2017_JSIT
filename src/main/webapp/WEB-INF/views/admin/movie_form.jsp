@@ -18,16 +18,16 @@
             color:var(--lc-muted); margin-bottom:1rem; }
         .lc-form-label { font-size:.8rem; font-weight:600; color:#374151; margin-bottom:.3rem; display:block; }
         .lc-form-control { border:1px solid var(--lc-border); border-radius:8px; padding:.5rem .75rem;
-            font-size:.88rem; width:100%; background:#fff; color:#0f1e36; }
+            font-size:.88rem; width:100%; background:#fff; color:var(--navy); }
         .lc-form-control:focus { outline:none; border-color:var(--lc-primary); box-shadow:0 0 0 3px rgba(37,99,235,.1); }
         textarea.lc-form-control { resize:vertical; min-height:96px; }
-        .req { color:#dc2626; }
+        .req { color:var(--danger); }
 
         .lc-alert { border-radius:10px; font-size:.88rem; padding:.7rem 1rem; display:flex;
             align-items:center; gap:.6rem; border:none; margin-bottom:1.25rem; background:#FEE2E2; color:#991B1B; }
 
         /* Poster preview */
-        .poster-preview { aspect-ratio:2/3; border-radius:12px; overflow:hidden; background:#0f172a;
+        .poster-preview { aspect-ratio:2/3; border-radius:12px; overflow:hidden; background:var(--lc-navy);
             border:1px solid var(--lc-border); display:flex; align-items:center; justify-content:center;
             color:rgba(255,255,255,.5); position:relative; }
         .poster-preview img { width:100%; height:100%; object-fit:cover; }
@@ -118,7 +118,7 @@
                         <input type="hidden" name="active" id="activeHidden" value="${isEdit ? movie.active : 'true'}">
                         <div class="form-switch-wrap">
                             <div>
-                                <div style="font-size:.85rem;font-weight:600;color:#0f1e36;">Visible to customers</div>
+                                <div style="font-size:.85rem;font-weight:600;color:var(--navy);">Visible to customers</div>
                                 <div style="font-size:.74rem;color:var(--lc-muted);">Hidden movies are not shown publicly</div>
                             </div>
                             <div class="form-check form-switch mb-0">

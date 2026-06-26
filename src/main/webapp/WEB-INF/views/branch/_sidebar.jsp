@@ -31,9 +31,6 @@
     <a class="lc-sb-item ${param.active == 'rooms' ? 'active' : ''}"
        href="${pageContext.request.contextPath}/branch/halls">
         <i class="bi bi-grid-3x3"></i> Rooms &amp; Seats</a>
-    <a class="lc-sb-item ${param.active == 'hours' ? 'active' : ''}"
-       href="${pageContext.request.contextPath}/branch/hours">
-        <i class="bi bi-clock"></i> Operating Hours</a>
     <a class="lc-sb-item ${param.active == 'promotions' ? 'active' : ''}"
        href="${pageContext.request.contextPath}/branch/promotions">
         <i class="bi bi-ticket-perforated"></i> Promotions</a>

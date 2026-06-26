@@ -94,7 +94,7 @@
             <div class="col-6 col-xl-3">
                 <div class="pay-kpi k-blue">
                     <div class="row1">
-                        <div class="ic" style="background:#EFF4FF; color:#2563EB;"><i class="bi bi-graph-up-arrow"></i></div>
+                        <div class="ic" style="background:var(--lc-light); color:var(--lc-primary);"><i class="bi bi-graph-up-arrow"></i></div>
                         <div class="lbl">Success rate</div>
                     </div>
                     <div class="val">${summary.successRate}%</div>
@@ -141,7 +141,7 @@
                         </div>
                         <c:if test="${not empty oldestPendingMin and oldestPendingMin >= 10}">
                             <div class="small text-muted mt-3 d-flex gap-2">
-                                <i class="bi bi-info-circle-fill" style="color:#d97706;"></i>
+                                <i class="bi bi-info-circle-fill" style="color:var(--warning);"></i>
                                 <span>A pending payment older than 10 minutes means the booking auto-expired;
                                     the seat hold was released and the payment was never completed.</span>
                             </div>

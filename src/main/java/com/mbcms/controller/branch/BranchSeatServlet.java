@@ -96,6 +96,8 @@ public class BranchSeatServlet extends HttpServlet {
 
         long roomId = Long.parseLong(req.getParameter("roomId"));
         Room room = roomService.getRoomById(roomId);
+        // [BAO MAT] room.branchId == session.currentBranchId? Phong phai thuoc dung
+        // chi nhanh cua manager dang dang nhap -> chong sua roomId sang phong rap khac.
         if (room == null || room.getBranchId() != branchId) {
             if ("updateSeat".equals(action)) {
                 sendErrorJSON(resp, "Không có quyền quản lý phòng chiếu này.");
@@ -142,12 +144,14 @@ public class BranchSeatServlet extends HttpServlet {
         }
     }
 
+    // Xu ly AJAX action=updateSeat: doc tham so JS gui len, goi Service, tra ve JSON.
     private void handleUpdateSeatAJAX(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         long seatId = Long.parseLong(req.getParameter("seatId"));
         long roomId = Long.parseLong(req.getParameter("roomId"));
         String type = req.getParameter("seatType");
         String activeStr = req.getParameter("active");
 
+        // Tra ve JSON (khong redirect) vi day la goi AJAX tu seat-layout.js.
         resp.setContentType("application/json");
         resp.setCharacterEncoding("UTF-8");
         PrintWriter out = resp.getWriter();
@@ -157,9 +161,11 @@ public class BranchSeatServlet extends HttpServlet {
             boolean active = Boolean.parseBoolean(activeStr);
             success = seatService.updateSeatStatus(seatId, roomId, active);
         } else if (type != null) {
+            // -> vao SeatServiceImpl.updateSeatType: 3 buoc kiem tra roi moi UPDATE.
             success = seatService.updateSeatType(seatId, roomId, type);
         }
 
+        // JS doc dung chuoi nay: success=true -> ve lai mau ghe; false -> bao loi.
         if (success) {
             out.print("{\"success\":true}");
         } else {

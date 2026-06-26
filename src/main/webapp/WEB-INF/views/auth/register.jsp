@@ -10,79 +10,7 @@
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
         <link href="${pageContext.request.contextPath}/assets/css/main.css?v=${applicationScope.assetVersion}"
               rel="stylesheet">
-        <style>
-            .avatar-circle {
-                width: 32px;
-                height: 32px;
-                border-radius: 50%;
-                border: 2px solid #081121;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                color: #fff;
-                font-size: 0.7rem;
-                font-weight: 700;
-            }
-
-            .branding-card {
-                background: linear-gradient(135deg, #081121 0%, #0d2242 100%);
-                border-radius: 16px;
-                color: #ffffff;
-                position: relative;
-                overflow: hidden;
-                display: flex;
-                flex-direction: column;
-                justify-content: space-between;
-                padding: 3rem;
-            }
-
-            .galaxy-glow {
-                position: absolute;
-                width: 300px;
-                height: 300px;
-                border-radius: 50%;
-                background: radial-gradient(circle, rgba(255, 193, 7, 0.15) 0%, rgba(0, 0, 0, 0) 70%);
-                top: 50%;
-                right: -50px;
-                transform: translateY(-50%);
-                z-index: 0;
-                pointer-events: none;
-            }
-
-            .galaxy-circle {
-                position: absolute;
-                width: 250px;
-                height: 250px;
-                border-radius: 50%;
-                border: 1px dashed rgba(255, 255, 255, 0.08);
-                top: 50%;
-                right: -25px;
-                transform: translateY(-50%);
-                z-index: 0;
-                pointer-events: none;
-                animation: spin-galaxy 60s linear infinite;
-            }
-
-            .galaxy-core {
-                position: absolute;
-                width: 120px;
-                height: 120px;
-                border-radius: 50%;
-                background: #050a14;
-                box-shadow: 0 0 30px rgba(255, 193, 7, 0.35), inset 0 0 15px rgba(255, 255, 255, 0.1);
-                top: 50%;
-                right: 40px;
-                transform: translateY(-50%);
-                z-index: 0;
-                pointer-events: none;
-            }
-
-            @keyframes spin-galaxy {
-                100% {
-                    transform: translateY(-50%) rotate(360deg);
-                }
-            }
-        </style>
+        <%-- Auth shell styles (.branding-card / .avatar-circle / galaxy decor) live in main.css --%>
     </head>
 
     <body class="bg-light">
@@ -102,7 +30,7 @@
                                 <div class="d-inline-flex align-items-center">
                                     <svg width="28" height="28" viewBox="0 0 32 32" fill="none"
                                          xmlns="http://www.w3.org/2000/svg" style="border-radius: 6px;">
-                                    <rect width="32" height="32" rx="8" fill="#182c54" />
+                                    <rect width="32" height="32" rx="8" fill="#0F1E36" />
                                     <rect x="4" y="3" width="3" height="3" rx="1" fill="#FFFFFF"
                                           opacity="0.3" />
                                     <rect x="11" y="3" width="3" height="3" rx="1" fill="#FFFFFF"
@@ -309,8 +237,8 @@
                                     <label for="terms" class="form-check-label text-secondary"
                                            style="font-size: 0.85rem;">
                                         I agree to the <a href="#" class="text-decoration-none fw-semibold"
-                                                          style="color: #2563eb;">Terms of Use</a> and <a href="#"
-                                                          class="text-decoration-none fw-semibold" style="color: #2563eb;">Privacy
+                                                          style="color: var(--primary);">Terms of Use</a> and <a href="#"
+                                                          class="text-decoration-none fw-semibold" style="color: var(--primary);">Privacy
                                             Policy</a>
                                     </label>
                                 </div>
@@ -318,7 +246,7 @@
                                 <!-- Register Button -->
                                 <button type="submit"
                                         class="btn w-100 text-white fw-semibold mb-3 d-flex align-items-center justify-content-center border-0"
-                                        style="background: #2563eb; height: 44px; border-radius: 8px; font-size: 1rem;">
+                                        style="background: var(--primary); height: 44px; border-radius: 8px; font-size: 1rem;">
                                     Create Account
                                 </button>
                             </form>
@@ -328,7 +256,7 @@
                         <div class="text-center mt-2" style="font-size: 0.9rem;">
                             <span class="text-secondary">Already have an account?</span>
                             <a href="${pageContext.request.contextPath}/auth/login"
-                               class="fw-semibold text-decoration-none" style="color: #2563eb;">Sign In</a>
+                               class="fw-semibold text-decoration-none" style="color: var(--primary);">Sign In</a>
                         </div>
                     </div>
                 </div>
@@ -336,40 +264,22 @@
                 <!-- Right Column: Branding Welcome Card -->
                 <div class="col-lg-5 d-none d-lg-flex">
                     <div class="branding-card w-100 d-flex flex-column justify-content-between">
-                        <!-- Watermark Background elements -->
-                        <!-- Ticket SVG watermark -->
-                        <svg width="240" height="150" viewBox="0 0 200 120" fill="none"
-                             xmlns="http://www.w3.org/2000/svg"
-                             style="position: absolute; bottom: -30px; left: -30px; opacity: 0.04; transform: rotate(15deg); pointer-events: none; z-index: 0;">
-                        <rect width="200" height="120" rx="12" fill="none" stroke="white" stroke-width="4"
-                              stroke-dasharray="10 10" />
-                        <circle cx="0" cy="60" r="16" fill="#081223" />
-                        <circle cx="200" cy="60" r="16" fill="#081223" />
-                        <circle cx="30" cy="30" r="4" fill="white" />
-                        <circle cx="50" cy="30" r="4" fill="white" />
-                        <circle cx="70" cy="30" r="4" fill="white" />
-                        <rect x="30" y="50" width="80" height="4" fill="white" rx="2" />
-                        <rect x="30" y="65" width="50" height="4" fill="white" rx="2" />
-                        </svg>
-
-                        <!-- Sparkles/Stars SVG watermark -->
-                        <svg width="150" height="150" viewBox="0 0 120 120" fill="none"
-                             xmlns="http://www.w3.org/2000/svg"
-                             style="position: absolute; top: 30px; right: 20px; opacity: 0.15; pointer-events: none; z-index: 0;">
-                        <!-- Star 1 -->
-                        <path d="M40 10L44 24L58 28L44 32L40 46L36 32L22 28L36 24L40 10Z" fill="white" />
-                        <!-- Star 2 -->
-                        <path d="M85 45L88 54L98 57L88 60L85 69L82 60L72 57L82 54L85 45Z" fill="white" />
-                        <!-- Star 3 -->
-                        <path d="M60 80L61.5 84L66 85.5L61.5 87L60 91L58.5 87L54 85.5L58.5 84L60 80Z"
-                              fill="white" />
-                        </svg>
+                        <!-- Celestial branding backdrop (đồng bộ với trang Sign In) -->
+                        <div class="star" style="top: 12%; left: 15%;"></div>
+                        <div class="star" style="top: 8%; left: 65%; opacity: 0.6; width: 3px; height: 3px;"></div>
+                        <div class="star" style="top: 25%; left: 40%; opacity: 0.3;"></div>
+                        <div class="star" style="top: 55%; left: 12%; opacity: 0.4; width: 3px; height: 3px;"></div>
+                        <div class="star" style="top: 72%; left: 55%; opacity: 0.6;"></div>
+                        <div class="galaxy-glow"></div>
+                        <div class="galaxy-circle"></div>
+                        <div class="galaxy-core"></div>
+                        <div class="galaxy-core-dark"></div>
 
                         <div style="position: relative; z-index: 1;">
                             <!-- Badge -->
                             <div class="d-inline-flex align-items-center px-3 py-1 mb-4"
                                  style="background: rgba(255,255,255,0.06); border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); font-size: 0.75rem; color: #ffffff; font-weight: 600; letter-spacing: 1px;">
-                                <span class="me-2">✨</span> JOIN THE CLUB &mdash;
+                                <i class="bi bi-gift me-2"></i> JOIN THE CLUB &mdash;
                             </div>
 
                             <!-- Title & Subtitle -->

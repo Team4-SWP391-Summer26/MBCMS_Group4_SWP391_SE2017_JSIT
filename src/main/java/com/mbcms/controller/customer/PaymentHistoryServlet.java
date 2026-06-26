@@ -38,8 +38,11 @@ public class PaymentHistoryServlet extends HttpServlet {
             return;
         }
 
+        // Filter (status/keyword) + phan trang doc tu request.
         PaymentSearchCriteria c = PaymentQuery.fromRequest(req);
-        c.setCustomerUsername(customer.getUsername()); // scope: chinh chu
+        // SCOPE BAT BUOC: username lay tu SESSION, KHONG tu request -> khach khong the
+        // doi tham so de xem giao dich cua nguoi khac.
+        c.setCustomerUsername(customer.getUsername());
 
         List<PaymentRecord> payments = paymentService.searchPayments(c);
         int total = paymentService.countPayments(c);

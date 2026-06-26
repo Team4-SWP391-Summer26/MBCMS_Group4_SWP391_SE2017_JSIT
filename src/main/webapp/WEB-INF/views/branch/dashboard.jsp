@@ -79,7 +79,7 @@
                     <div class="col-sm-6 col-xl-3">
                         <div class="card lc-elev p-4 h-100" style="opacity:.65;">
                             <div class="d-flex align-items-center gap-3 mb-3">
-                                <div class="lc-stat-icon" style="background:#EEF1F4; color:#94a3b8;">
+                                <div class="lc-stat-icon" style="background:#EEF1F4; color:var(--text-subtle);">
                                     <i class="bi bi-cash-stack"></i></div>
                                 <div class="text-muted small fw-semibold">TODAY'S REVENUE</div>
                             </div>

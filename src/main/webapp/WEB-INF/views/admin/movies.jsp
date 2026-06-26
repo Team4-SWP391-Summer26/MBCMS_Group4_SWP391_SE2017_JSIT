@@ -17,7 +17,7 @@
         .lc-kpi-icon { width:42px; height:42px; border-radius:10px; display:flex; align-items:center;
             justify-content:center; font-size:1.25rem; flex-shrink:0; }
         .lc-kpi-label { font-size:.75rem; color:var(--lc-muted); font-weight:600; text-transform:uppercase; letter-spacing:.05em; }
-        .lc-kpi-value { font-size:1.9rem; font-weight:800; color:#0f1e36; line-height:1.1; }
+        .lc-kpi-value { font-size:1.9rem; font-weight:800; color:var(--navy); line-height:1.1; }
 
         .lc-toolbar { display:flex; align-items:center; gap:.75rem; flex-wrap:wrap; margin-bottom:1.25rem; }
         .lc-search-wrap { position:relative; flex:1; min-width:200px; max-width:340px; }
@@ -27,7 +27,7 @@
             background:#fff; height:38px; font-size:.88rem; width:100%; }
         .lc-search-input:focus { outline:none; border-color:var(--lc-primary); box-shadow:0 0 0 3px rgba(37,99,235,.1); }
         .lc-filter-select { height:38px; border:1px solid var(--lc-border); border-radius:9px;
-            background:#fff; padding:0 .8rem; font-size:.88rem; color:#0f1e36; }
+            background:#fff; padding:0 .8rem; font-size:.88rem; color:var(--navy); }
         .lc-filter-select:focus { outline:none; border-color:var(--lc-primary); }
 
         .lc-alert { border-radius:10px; font-size:.88rem; padding:.7rem 1rem; display:flex;
@@ -41,7 +41,7 @@
         .mv-card:hover { box-shadow:0 10px 26px rgba(15,23,42,.10); transform:translateY(-2px); }
         .mv-card.is-inactive { opacity:.62; }
 
-        .poster-art { position:relative; aspect-ratio:2/3; overflow:hidden; background:#0f172a; }
+        .poster-art { position:relative; aspect-ratio:2/3; overflow:hidden; background:var(--lc-navy); }
         .poster-art img { width:100%; height:100%; object-fit:cover; }
         .poster-bg { position:absolute; inset:0; }
         .poster-rings { position:absolute; inset:0; width:100%; height:100%; }
@@ -60,9 +60,9 @@
 
         .mv-body { padding:.9rem 1rem 1rem; display:flex; flex-direction:column; gap:.55rem; flex:1; }
         .mv-title-row { display:flex; justify-content:space-between; align-items:flex-start; gap:.4rem; }
-        .mv-title { font-size:1rem; font-weight:700; color:#0f1e36; margin:0; line-height:1.3; }
+        .mv-title { font-size:1rem; font-weight:700; color:var(--navy); margin:0; line-height:1.3; }
         .age-badge { font-size:.66rem; font-weight:700; padding:.12rem .4rem; border-radius:4px; color:#fff; flex-shrink:0; }
-        .age-P { background:#2563eb; } .age-C13 { background:#eab308; color:#1e293b; }
+        .age-P { background:var(--lc-primary); } .age-C13 { background:#eab308; color:#1e293b; }
         .age-C16 { background:#f97316; } .age-C18 { background:#ef4444; }
         .mv-meta { font-size:.76rem; color:var(--lc-muted); display:flex; flex-wrap:wrap; gap:.1rem .8rem; }
         .mv-genres { display:flex; flex-wrap:wrap; gap:.25rem; }
@@ -71,12 +71,12 @@
 
         .mv-status-form { margin-top:auto; }
         .mv-status-select { width:100%; height:34px; border:1px solid var(--lc-border); border-radius:8px;
-            font-size:.8rem; padding:0 .5rem; color:#0f1e36; background:#fff; }
+            font-size:.8rem; padding:0 .5rem; color:var(--navy); background:#fff; }
         .mv-status-select:focus { outline:none; border-color:var(--lc-primary); }
 
         .mv-actions { display:flex; gap:.45rem; }
         .mv-btn { flex:1; padding:.45rem; border-radius:8px; font-size:.8rem; font-weight:600; text-align:center;
-            cursor:pointer; border:1px solid var(--lc-border); background:#fff; color:#0f1e36; text-decoration:none;
+            cursor:pointer; border:1px solid var(--lc-border); background:#fff; color:var(--navy); text-decoration:none;
             display:inline-flex; align-items:center; justify-content:center; gap:.3rem; transition:.12s; }
         .mv-btn:hover { background:var(--lc-light); border-color:var(--lc-primary); color:var(--lc-primary); }
         .mv-btn-danger:hover { background:#FEE2E2; border-color:#FECACA; color:#991B1B; }
@@ -84,10 +84,10 @@
             color:var(--lc-muted); padding-top:.15rem; }
 
         .modal-content { border:none; border-radius:16px; box-shadow:0 20px 60px rgba(0,0,0,.15); }
-        .modal-title { font-weight:700; font-size:1rem; color:#0f1e36; }
+        .modal-title { font-weight:700; font-size:1rem; color:var(--navy); }
         .lc-modal-btn { padding:.5rem 1.2rem; border-radius:8px; font-size:.88rem; font-weight:600; cursor:pointer; border:none; }
         .lc-modal-btn-cancel { background:var(--lc-light); color:#374151; border:1px solid var(--lc-border); }
-        .lc-modal-btn-danger { background:#DC2626; color:#fff; }
+        .lc-modal-btn-danger { background:var(--danger); color:#fff; }
         .lc-modal-btn-danger:hover { background:#B91C1C; }
     </style>
 </head>
@@ -130,19 +130,19 @@
 
         <div class="row g-3 mb-4">
             <div class="col-6 col-md-3">
-                <div class="lc-kpi-card"><div class="lc-kpi-icon" style="background:#EFF6FF;color:#2563EB;"><i class="bi bi-film"></i></div>
+                <div class="lc-kpi-card"><div class="lc-kpi-icon" style="background:var(--lc-light);color:var(--lc-primary);"><i class="bi bi-film"></i></div>
                     <div><div class="lc-kpi-label">Total Movies</div><div class="lc-kpi-value">${movies.size()}</div></div></div>
             </div>
             <div class="col-6 col-md-3">
-                <div class="lc-kpi-card"><div class="lc-kpi-icon" style="background:#F0FDF4;color:#16A34A;"><i class="bi bi-play-circle-fill"></i></div>
+                <div class="lc-kpi-card"><div class="lc-kpi-icon" style="background:#F0FDF4;color:var(--success);"><i class="bi bi-play-circle-fill"></i></div>
                     <div><div class="lc-kpi-label">Now Showing</div><div class="lc-kpi-value">${nowShowing}</div></div></div>
             </div>
             <div class="col-6 col-md-3">
-                <div class="lc-kpi-card"><div class="lc-kpi-icon" style="background:#EFF6FF;color:#2563EB;"><i class="bi bi-clock-fill"></i></div>
+                <div class="lc-kpi-card"><div class="lc-kpi-icon" style="background:var(--lc-light);color:var(--lc-primary);"><i class="bi bi-clock-fill"></i></div>
                     <div><div class="lc-kpi-label">Upcoming</div><div class="lc-kpi-value">${upcoming}</div></div></div>
             </div>
             <div class="col-6 col-md-3">
-                <div class="lc-kpi-card"><div class="lc-kpi-icon" style="background:#F8FAFC;color:#64748B;"><i class="bi bi-eye-slash-fill"></i></div>
+                <div class="lc-kpi-card"><div class="lc-kpi-icon" style="background:var(--lc-bg);color:var(--lc-muted);"><i class="bi bi-eye-slash-fill"></i></div>
                     <div><div class="lc-kpi-label">Hidden</div><div class="lc-kpi-value">${hidden}</div></div></div>
             </div>
         </div>
@@ -172,7 +172,7 @@
         <%-- ── Movie grid ───────────────────────────────────── --%>
         <div class="row g-3">
             <c:forEach items="${movies}" var="m">
-                <div class="col-6 col-md-4 col-xl-3">
+                <div class="col-6 col-sm-4 col-md-3 col-xxl-2">
                     <div class="mv-card ${m.active ? '' : 'is-inactive'}">
 
                         <div class="poster-art">

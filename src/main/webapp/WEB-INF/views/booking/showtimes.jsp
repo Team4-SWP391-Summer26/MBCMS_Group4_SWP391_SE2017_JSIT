@@ -13,50 +13,24 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="${pageContext.request.contextPath}/assets/css/main.css?v=${applicationScope.assetVersion}" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; background: #f8fafc; color: #0f172a; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); }
 
-        /* ── Booking stepper ── */
-        .booking-stepper {
-            background: #fff;
-            border-bottom: 1px solid #e2e8f0;
-            padding: 0;
-        }
-        .stepper-inner {
-            display: flex;
-            align-items: center;
-            gap: 0;
-            max-width: 980px;
-            margin: 0 auto;
-            padding: 0 1rem;
-            overflow-x: auto;
-            scrollbar-width: none;
-        }
-        .stepper-inner::-webkit-scrollbar { display: none; }
-        .step-item {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 1rem 1.25rem;
-            font-size: 0.82rem;
-            font-weight: 600;
-            white-space: nowrap;
-            color: #94a3b8;
-            border-bottom: 2px solid transparent;
-        }
-        .step-item.active { color: #2563eb; border-bottom-color: #2563eb; }
-        .step-item.done   { color: #64748b; }
-        .step-num {
-            width: 22px; height: 22px; border-radius: 50%;
-            display: inline-flex; align-items: center; justify-content: center;
-            font-size: 0.72rem; font-weight: 700; flex-shrink: 0;
-            background: #e2e8f0; color: #64748b;
-        }
-        .step-item.active .step-num { background: #2563eb; color: #fff; }
-        .step-sep { color: #e2e8f0; padding: 0 0.25rem; }
+        /* ── Booking stepper (đồng bộ với các bước sau) ── */
+        .bk-steps { display:flex; align-items:center; overflow-x:auto; scrollbar-width:none;
+            background:#fff; border:1px solid var(--bk-border); border-radius:14px; padding:.9rem 1.2rem; box-shadow:var(--shadow-sm); }
+        .bk-steps::-webkit-scrollbar { display:none; }
+        .bk-step { display:flex; align-items:center; gap:.55rem; font-size:.88rem; font-weight:600; color:var(--text-subtle); white-space:nowrap; }
+        .bk-step .bk-dot { width:30px; height:30px; border-radius:999px; display:flex; align-items:center;
+            justify-content:center; font-size:.82rem; font-weight:700; background:var(--border); color:var(--text-muted); flex-shrink:0; transition:all .2s ease; }
+        .bk-step.done { color:var(--text); } .bk-step.done .bk-dot { background:var(--success); color:#fff; }
+        .bk-step.active { color:var(--primary); } .bk-step.active .bk-dot { background:var(--primary); color:#fff; box-shadow:0 0 0 4px rgba(37,99,235,.18); }
+        .bk-line { flex:1; height:3px; border-radius:999px; background:var(--border); margin:0 .5rem; min-width:14px; }
+        .bk-line.done { background:var(--success); }
+        @media (max-width:640px) { .bk-step span:not(.bk-dot) { display:none; } }
 
         /* ── Movie header bar ── */
         .movie-header {
-            background: #0f172a;
+            background: var(--navy);
             color: #fff;
             padding: 1rem 0;
         }
@@ -79,7 +53,7 @@
         .movie-hdr-meta  { font-size: 0.82rem; color: rgba(255,255,255,.6); display: flex; gap: 0.75rem; flex-wrap: wrap; }
         .rated-chip {
             font-size: 0.7rem; font-weight: 700; padding: 0.15rem 0.45rem;
-            border-radius: 4px; background: #334155; color: #cbd5e1; letter-spacing: .03em;
+            border-radius: 4px; background: #334155; color: var(--border-strong); letter-spacing: .03em;
         }
         .btn-movie-detail {
             font-size: 0.82rem; font-weight: 600;
@@ -92,45 +66,45 @@
         /* ── Main card ── */
         .showtime-card {
             background: #fff;
-            border: 1px solid #e2e8f0;
+            border: 1px solid var(--border);
             border-radius: 16px;
             padding: 2rem;
-            box-shadow: 0 1px 3px rgba(0,0,0,.05);
+            box-shadow: var(--shadow-sm);
         }
 
         .card-header-row {
             display: flex; justify-content: space-between; align-items: flex-start;
             flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem;
         }
-        .card-main-title  { font-size: 1.3rem; font-weight: 700; color: #0f172a; margin: 0; }
-        .card-sub-title   { font-size: 0.85rem; color: #64748b; margin: 0.25rem 0 0; }
+        .card-main-title  { font-size: 1.3rem; font-weight: 700; color: var(--text); margin: 0; }
+        .card-sub-title   { font-size: 0.85rem; color: var(--text-muted); margin: 0.25rem 0 0; }
 
         .branch-filter-select {
-            height: 40px; border-radius: 8px; border: 1px solid #cbd5e1;
+            height: 40px; border-radius: 8px; border: 1px solid var(--border-strong);
             font-size: 0.88rem; font-weight: 500; color: #334155; min-width: 200px;
         }
 
         /* Date tabs */
         .date-tabs-row {
             display: flex; gap: 0.5rem; overflow-x: auto; padding-bottom: 0.75rem;
-            margin-bottom: 1.75rem; border-bottom: 2px solid #f1f5f9;
+            margin-bottom: 1.75rem; border-bottom: 1px solid var(--surface-2);
             scrollbar-width: none;
         }
         .date-tabs-row::-webkit-scrollbar { display: none; }
         .date-tab-btn {
-            flex: 0 0 auto; width: 74px; height: 64px;
+            flex: 0 0 auto; min-width: 64px; padding: 0.5rem 0.75rem;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            border-radius: 10px; border: 1px solid #e2e8f0; background: #fff;
-            cursor: pointer; user-select: none; transition: all .15s;
+            border-radius: 10px; border: 1px solid var(--border); background: #fff;
+            cursor: pointer; user-select: none; transition: all .15s; line-height: 1.25;
         }
         .date-tab-btn .day-name {
-            font-size: 0.68rem; font-weight: 700; letter-spacing: .07em;
-            text-transform: uppercase; color: #94a3b8; margin-bottom: 0.2rem;
+            font-size: 0.64rem; font-weight: 700; letter-spacing: .06em;
+            text-transform: uppercase; color: var(--text-subtle); margin-bottom: 0.15rem;
         }
-        .date-tab-btn .date-val { font-size: 0.93rem; font-weight: 700; color: #334155; }
-        .date-tab-btn:hover:not(.active) { background: #f8fafc; border-color: #94a3b8; }
-        .date-tab-btn.active { background: #2563eb; border-color: #2563eb; }
-        .date-tab-btn.active .day-name { color: rgba(255,255,255,.7); }
+        .date-tab-btn .date-val { font-size: 0.86rem; font-weight: 800; color: var(--text); }
+        .date-tab-btn:hover:not(.active) { border-color: var(--primary); }
+        .date-tab-btn.active { background: var(--navy); border-color: var(--navy); }
+        .date-tab-btn.active .day-name { color: rgba(255,255,255,.75); }
         .date-tab-btn.active .date-val { color: #fff; }
 
         /* Branch block */
@@ -145,13 +119,13 @@
             flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1.25rem;
         }
         .cinema-name {
-            font-size: 1.05rem; font-weight: 700; color: #0f172a;
+            font-size: 1.05rem; font-weight: 700; color: var(--text);
             margin: 0; display: flex; align-items: center; gap: 0.4rem;
         }
-        .cinema-name i { color: #2563eb; font-size: 0.95rem; }
-        .cinema-address { font-size: 0.8rem; color: #64748b; margin: 0.2rem 0 0 1.55rem; }
+        .cinema-name i { color: var(--primary); font-size: 0.95rem; }
+        .cinema-address { font-size: 0.8rem; color: var(--text-muted); margin: 0.2rem 0 0 1.55rem; }
         .map-link {
-            font-size: 0.8rem; color: #2563eb; font-weight: 600; text-decoration: none;
+            font-size: 0.8rem; color: var(--primary); font-weight: 600; text-decoration: none;
             display: inline-flex; align-items: center; gap: 0.2rem; white-space: nowrap;
         }
         .map-link:hover { text-decoration: underline; }
@@ -160,7 +134,7 @@
         .room-row {
             display: grid; grid-template-columns: 220px 1fr;
             gap: 1.25rem; padding: 0.9rem 0; align-items: flex-start;
-            border-top: 1px solid #f8fafc;
+            border-top: 1px solid var(--bg);
         }
         .room-row:first-of-type { border-top: none; }
 
@@ -172,12 +146,12 @@
             font-size: 0.63rem; font-weight: 700; padding: 0.12rem 0.48rem;
             border-radius: 999px; text-transform: uppercase; letter-spacing: .04em;
         }
-        .badge-standard { background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; }
+        .badge-standard { background: #f1f5f9; color: #475569; border: 1px solid var(--border); }
         .badge-vip      { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
         .badge-imax     { background: #f3e8ff; color: #7c3aed; border: 1px solid #e9d5ff; }
 
-        .room-fmt-sub   { font-size: 0.77rem; color: #94a3b8; font-weight: 500; }
-        .room-price-from{ font-size: 0.78rem; color: #64748b; font-weight: 500; }
+        .room-fmt-sub   { font-size: 0.77rem; color: var(--text-subtle); font-weight: 500; }
+        .room-price-from{ font-size: 0.78rem; color: var(--text-muted); font-weight: 500; }
 
         /* Slot grid + pagination */
         .slots-outer    { display: flex; flex-direction: column; gap: 0.6rem; }
@@ -187,33 +161,33 @@
         .slot-btn {
             display: inline-flex; flex-direction: column; align-items: center; justify-content: center;
             width: 78px; height: 50px; border-radius: 8px;
-            border: 1.5px solid #2563eb; background: #fff;
+            border: 1.5px solid var(--primary); background: #fff;
             text-decoration: none; transition: all .15s; cursor: pointer;
         }
-        .slot-btn .slot-time  { font-size: 0.95rem; font-weight: 700; color: #2563eb; line-height: 1.2; }
+        .slot-btn .slot-time  { font-size: 0.95rem; font-weight: 700; color: var(--primary); line-height: 1.2; }
         .slot-btn .slot-price { font-size: 0.65rem; color: #3b82f6; font-weight: 500; margin-top: 1px; }
-        .slot-btn:hover:not(.slot-full) { background: #2563eb; }
+        .slot-btn:hover:not(.slot-full) { background: var(--primary); }
         .slot-btn:hover:not(.slot-full) .slot-time,
         .slot-btn:hover:not(.slot-full) .slot-price { color: #fff; }
         .slot-btn.slot-full {
-            border-color: #e2e8f0; background: #f8fafc;
+            border-color: var(--border); background: var(--bg);
             pointer-events: none; cursor: not-allowed;
         }
         .slot-btn.slot-full .slot-time,
-        .slot-btn.slot-full .slot-price { color: #cbd5e1; }
+        .slot-btn.slot-full .slot-price { color: var(--border-strong); }
 
         /* Pager controls */
         .slots-pager {
             display: flex; align-items: center; gap: 0.4rem; margin-top: 0.25rem;
         }
         .pager-btn {
-            width: 30px; height: 30px; border-radius: 6px; border: 1px solid #e2e8f0;
+            width: 30px; height: 30px; border-radius: 6px; border: 1px solid var(--border);
             background: #fff; color: #334155; font-size: 0.78rem; font-weight: 700;
             display: inline-flex; align-items: center; justify-content: center;
             cursor: pointer; transition: all .15s;
         }
-        .pager-btn:hover   { border-color: #2563eb; color: #2563eb; }
-        .pager-btn.active  { background: #2563eb; border-color: #2563eb; color: #fff; }
+        .pager-btn:hover   { border-color: var(--primary); color: var(--primary); }
+        .pager-btn.active  { background: var(--primary); border-color: var(--primary); color: #fff; }
         .pager-btn.nav-btn { width: auto; padding: 0 0.6rem; font-size: 0.72rem; }
 
         /* Legend */
@@ -224,7 +198,7 @@
         }
         .legend-item  { display: flex; align-items: center; gap: 0.4rem; }
         .legend-swatch { width: 15px; height: 15px; border-radius: 4px; display: inline-block; }
-        .sw-standard  { background:#fff; border: 1.5px solid #cbd5e1; }
+        .sw-standard  { background:#fff; border: 1.5px solid var(--border-strong); }
         .sw-vip       { background:#fef3c7; border: 1.5px solid #fde68a; }
         .sw-imax      { background:#f3e8ff; border: 1.5px solid #e9d5ff; }
 
@@ -240,42 +214,14 @@
     <jsp:param name="activeMenu" value="movies"/>
 </jsp:include>
 
-<!-- Booking stepper -->
-<div class="booking-stepper">
-    <div class="stepper-inner">
-        <div class="step-item active">
-            <span class="step-num">1</span> Showtime
-        </div>
-        <span class="step-sep">›</span>
-        <div class="step-item">
-            <span class="step-num">2</span> Seats
-        </div>
-        <span class="step-sep">›</span>
-        <div class="step-item">
-            <span class="step-num">3</span> Food &amp; Drinks
-        </div>
-        <span class="step-sep">›</span>
-        <div class="step-item">
-            <span class="step-num">4</span> Review
-        </div>
-        <span class="step-sep">›</span>
-        <div class="step-item">
-            <span class="step-num">5</span> Payment
-        </div>
-        <span class="step-sep">›</span>
-        <div class="step-item">
-            <span class="step-num">6</span> Confirm
-        </div>
-    </div>
-</div>
-
 <!-- Movie header bar -->
 <div class="movie-header">
     <div class="movie-header-inner">
         <div class="movie-header-left">
             <c:choose>
                 <c:when test="${not empty movie.posterUrl}">
-                    <img src="${movie.posterUrl}" alt="${movie.title}" class="movie-thumb">
+                    <img src="<c:url value='${movie.posterUrl}'/>" alt="<c:out value='${movie.title}'/>" class="movie-thumb"
+                         onerror="this.onerror=null; this.classList.add('d-none'); this.insertAdjacentHTML('afterend', '<div class=\'movie-thumb-placeholder\'><i class=\'bi bi-film\'></i></div>');">
                 </c:when>
                 <c:otherwise>
                     <div class="movie-thumb-placeholder"><i class="bi bi-film"></i></div>
@@ -299,6 +245,23 @@
         <a href="${pageContext.request.contextPath}/movies/detail?id=${movie.movieId}" class="btn-movie-detail">
             <i class="bi bi-info-circle"></i> Movie details
         </a>
+    </div>
+</div>
+
+<!-- Booking stepper -->
+<div class="container pt-4" style="max-width: 980px;">
+    <div class="bk-steps">
+        <div class="bk-step active"><span class="bk-dot">1</span><span>Showtime</span></div>
+        <div class="bk-line"></div>
+        <div class="bk-step"><span class="bk-dot">2</span><span>Seats</span></div>
+        <div class="bk-line"></div>
+        <div class="bk-step"><span class="bk-dot">3</span><span>Food &amp; Drinks</span></div>
+        <div class="bk-line"></div>
+        <div class="bk-step"><span class="bk-dot">4</span><span>Review</span></div>
+        <div class="bk-line"></div>
+        <div class="bk-step"><span class="bk-dot">5</span><span>Payment</span></div>
+        <div class="bk-line"></div>
+        <div class="bk-step"><span class="bk-dot">6</span><span>Confirm</span></div>
     </div>
 </div>
 
@@ -345,7 +308,7 @@
         <c:choose>
             <c:when test="${empty branchShowtimesList}">
                 <div class="text-center py-5">
-                    <i class="bi bi-calendar-x" style="font-size:2.5rem; color:#cbd5e1;"></i>
+                    <i class="bi bi-calendar-x" style="font-size:2.5rem; color:var(--border-strong);"></i>
                     <h5 class="mt-3 fw-semibold text-secondary">No showtimes available</h5>
                     <p class="text-muted small mb-0">Try selecting another date or cinema branch.</p>
                 </div>

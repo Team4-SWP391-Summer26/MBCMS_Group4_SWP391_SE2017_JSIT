@@ -19,18 +19,18 @@
     
     <style>
         body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f8fafc;
-            color: #0f172a;
+            font-family: var(--font-sans);
+            background-color: var(--bg);
+            color: var(--text);
         }
 
         .breadcrumb-custom {
             font-size: 0.85rem;
-            color: #64748b;
+            color: var(--text-muted);
             margin-bottom: 1.5rem;
         }
         .breadcrumb-custom a {
-            color: #2563eb;
+            color: var(--primary);
             text-decoration: none;
         }
         .breadcrumb-custom a:hover {
@@ -40,11 +40,11 @@
         .page-title {
             font-size: 2.25rem;
             font-weight: 800;
-            color: #0f172a;
+            color: var(--text);
             margin-bottom: 0.25rem;
         }
         .page-subtitle {
-            color: #64748b;
+            color: var(--text-muted);
             font-size: 0.95rem;
             margin-bottom: 2rem;
         }
@@ -52,11 +52,11 @@
         /* Filter Bar */
         .filter-bar-custom {
             background-color: #ffffff;
-            border: 1px solid #e2e8f0;
-            border-radius: 12px;
+            border: 1px solid var(--border);
+            border-radius: 14px;
             padding: 1rem;
             margin-bottom: 1.5rem;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            box-shadow: var(--shadow-sm);
         }
 
         .search-wrapper {
@@ -67,54 +67,55 @@
             left: 1rem;
             top: 50%;
             transform: translateY(-50%);
-            color: #94a3b8;
+            color: var(--text-subtle);
         }
         .search-wrapper input {
-            padding-left: 2.5rem;
-            border-radius: 8px;
-            border: 1px solid #cbd5e1;
-            height: 42px;
+            padding-left: 2.6rem;
+            border-radius: 10px;
+            border: 1px solid var(--border-strong);
+            height: 44px;
             font-size: 0.9rem;
+            color: var(--text);
         }
         .search-wrapper input:focus {
-            border-color: #2563eb;
-            box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
         }
 
         .filter-select {
-            height: 42px;
-            border-radius: 8px;
-            border: 1px solid #cbd5e1;
+            height: 44px;
+            border-radius: 10px;
+            border: 1px solid var(--border-strong);
             font-size: 0.9rem;
-            color: #334155;
+            color: var(--text);
             background-color: #ffffff;
-            padding-left: 0.75rem;
+            padding-left: 0.85rem;
         }
         .filter-select:focus {
-            border-color: #2563eb;
-            box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
         }
 
         /* View Switcher */
         .view-btn {
-            height: 42px;
-            width: 42px;
+            height: 44px;
+            width: 44px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            border: 1px solid #cbd5e1;
+            border: 1px solid var(--border-strong);
             background-color: #ffffff;
-            color: #64748b;
-            border-radius: 8px;
+            color: var(--text-muted);
+            border-radius: 10px;
             transition: all 0.15s ease;
         }
         .view-btn.active {
-            background-color: #2563eb;
+            background-color: var(--primary);
             color: #ffffff;
-            border-color: #2563eb;
+            border-color: var(--primary);
         }
         .view-btn:hover:not(.active) {
-            background-color: #f1f5f9;
+            background-color: var(--surface-2);
         }
 
         /* Active Filter Chips */
@@ -127,7 +128,7 @@
         }
         .filter-chips-label {
             font-size: 0.85rem;
-            color: #64748b;
+            color: var(--text-muted);
             font-weight: 500;
         }
         .chip-custom {
@@ -135,9 +136,9 @@
             align-items: center;
             gap: 0.35rem;
             padding: 0.35rem 0.75rem;
-            background-color: #eff6ff;
+            background-color: var(--primary-50);
             color: #1e40af;
-            border: 1px solid #bfdbfe;
+            border: 1px solid var(--primary-200);
             border-radius: 9999px;
             font-size: 0.8rem;
             font-weight: 500;
@@ -149,11 +150,11 @@
             align-items: center;
         }
         .chip-custom a:hover {
-            color: #1d4ed8;
+            color: var(--primary-700);
         }
         .clear-all-link {
             font-size: 0.85rem;
-            color: #2563eb;
+            color: var(--primary);
             text-decoration: none;
             font-weight: 600;
         }
@@ -161,11 +162,11 @@
             text-decoration: underline;
         }
 
-        /* Movie Grid */
+        /* Movie Grid — đồng bộ kích thước thẻ với trang chủ */
         .movie-grid-custom {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 1.5rem;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1.25rem;
             margin-bottom: 3rem;
             transition: all 0.25s ease;
         }
@@ -189,27 +190,30 @@
         /* Movie Card */
         .movie-card-custom {
             background-color: #ffffff;
-            border: 1px solid #e2e8f0;
-            border-radius: 12px;
+            border: 1px solid var(--border);
+            border-radius: 14px;
             overflow: hidden;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            box-shadow: var(--shadow-sm);
+            transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
             height: 100%;
             display: flex;
             flex-direction: column;
+            padding: 8px;
         }
         .movie-card-custom:hover {
             transform: translateY(-4px);
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
-            border-color: #cbd5e1;
+            box-shadow: var(--shadow-lg);
+            border-color: var(--primary-200);
         }
 
         .poster-wrapper {
             position: relative;
             aspect-ratio: 2 / 3;
             overflow: hidden;
-            background-color: #0f172a;
+            background-color: var(--navy);
+            border-radius: 12px;
         }
+        .poster-wrapper .poster-art { position: absolute; inset: 0; width: 100%; height: 100%; }
         .poster-wrapper img {
             width: 100%;
             height: 100%;
@@ -222,42 +226,38 @@
 
         .status-badge {
             position: absolute;
-            top: 0.75rem;
-            right: 0.75rem;
-            z-index: 10;
-            padding: 0.25rem 0.6rem;
-            border-radius: 9999px;
-            font-size: 0.7rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
+            top: 0.6rem;
+            left: 0.6rem;
+            z-index: 3;
             display: inline-flex;
             align-items: center;
-            gap: 0.25rem;
+            gap: 0.35rem;
+            padding: 0.26rem 0.6rem;
+            border-radius: 999px;
+            font-size: 0.68rem;
+            font-weight: 600;
+            letter-spacing: 0.01em;
+            color: #fff;
+            background: rgba(15, 23, 42, 0.58);
+            -webkit-backdrop-filter: blur(6px);
+            backdrop-filter: blur(6px);
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.22);
         }
-        .status-now-showing {
-            background-color: rgba(22, 163, 74, 0.9);
-            color: #ffffff;
-        }
-        .status-upcoming {
-            background-color: rgba(37, 99, 235, 0.9);
-            color: #ffffff;
-        }
-        .status-ended {
-            background-color: rgba(100, 116, 139, 0.9);
-            color: #ffffff;
-        }
-
         .badge-dot {
             width: 6px;
             height: 6px;
-            background-color: #ffffff;
             border-radius: 50%;
             display: inline-block;
+            background: #34d399;
+            flex-shrink: 0;
         }
+        .status-now-showing .badge-dot { background: #34d399; }
+        .status-upcoming .badge-dot { background: #60a5fa; }
+        .status-ended .badge-dot { background: #cbd5e1; }
 
         .card-body-custom {
-            padding: 1.25rem;
+            padding: 0.8rem 0.5rem 0.45rem;
             flex-grow: 1;
             display: flex;
             flex-direction: column;
@@ -272,9 +272,9 @@
         }
 
         .movie-title-custom {
-            font-size: 1.15rem;
+            font-size: 1rem;
             font-weight: 700;
-            color: #0f172a;
+            color: var(--text);
             margin: 0;
             line-height: 1.3;
             text-decoration: none;
@@ -284,7 +284,7 @@
             flex-grow: 1;
         }
         .movie-title-custom:hover {
-            color: #2563eb;
+            color: var(--primary);
         }
 
         .age-badge {
@@ -295,11 +295,11 @@
             color: #ffffff;
             flex-shrink: 0;
         }
-        .age-P { background-color: #2563eb; }
-        .age-K { background-color: #16a34a; }
+        .age-P { background-color: var(--primary); }
+        .age-K { background-color: var(--success); }
         .age-T13, .age-C13 { background-color: #eab308; color: #ffffff; }
         .age-T16, .age-C16 { background-color: #f97316; }
-        .age-T18, .age-C18 { background-color: #ef4444; }
+        .age-T18, .age-C18 { background-color: var(--danger); }
 
         .genre-chips-row {
             display: flex;
@@ -311,9 +311,9 @@
             font-size: 0.7rem;
             font-weight: 600;
             padding: 0.15rem 0.5rem;
-            background-color: #eff6ff;
-            color: #1d4ed8;
-            border: 1px solid #dbeafe;
+            background-color: var(--primary-50);
+            color: var(--primary-700);
+            border: 1px solid var(--primary-100);
             border-radius: 9999px;
         }
 
@@ -322,8 +322,8 @@
             align-items: center;
             justify-content: space-between;
             font-size: 0.8rem;
-            color: #64748b;
-            margin-bottom: 1.25rem;
+            color: var(--text-muted);
+            margin-bottom: 0.9rem;
             margin-top: auto;
         }
         .meta-item {
@@ -332,17 +332,17 @@
             gap: 0.25rem;
         }
         .rating-item {
-            color: #eab308;
+            color: var(--gold);
             font-weight: 600;
         }
 
         .btn-book-custom {
             width: 100%;
-            height: 40px;
-            background-color: #2563eb;
+            height: 42px;
+            background-color: var(--primary);
             color: #ffffff;
             border: none;
-            border-radius: 8px;
+            border-radius: 10px;
             font-size: 0.875rem;
             font-weight: 600;
             display: inline-flex;
@@ -353,11 +353,11 @@
             text-decoration: none;
         }
         .btn-book-custom:hover {
-            background-color: #1d4ed8;
+            background-color: var(--primary-700);
             color: #ffffff;
         }
 
-        /* List View Mode overrides */
+        /* List View Mode — horizontal card gọn, đồng bộ với grid */
         .movie-grid-custom.list-view {
             grid-template-columns: 1fr !important;
             gap: 1rem;
@@ -365,26 +365,39 @@
         .movie-grid-custom.list-view .movie-card-custom {
             flex-direction: row;
             height: auto;
-            max-height: 200px;
         }
         .movie-grid-custom.list-view .poster-wrapper {
-            width: 133px;
-            aspect-ratio: auto;
+            width: 116px;
+            aspect-ratio: 2 / 3;
             flex-shrink: 0;
         }
+        .movie-grid-custom.list-view .status-badge {
+            display: none;
+        }
         .movie-grid-custom.list-view .card-body-custom {
-            padding: 1.5rem;
+            padding: 1.1rem 1.4rem;
+            justify-content: center;
+        }
+        .movie-grid-custom.list-view .movie-title-row {
+            justify-content: flex-start;
+            gap: .5rem;
+            margin-bottom: .45rem;
+        }
+        .movie-grid-custom.list-view .movie-title-custom {
+            flex-grow: 0;
+        }
+        .movie-grid-custom.list-view .genre-chips-row {
+            margin-bottom: .55rem;
         }
         .movie-grid-custom.list-view .meta-info-row {
-            margin-top: 1rem;
+            margin: 0 0 .9rem;
             justify-content: flex-start;
-            gap: 2rem;
+            gap: 1.75rem;
         }
         .movie-grid-custom.list-view .btn-book-custom {
             width: auto;
-            padding: 0 2rem;
             align-self: flex-start;
-            margin-top: auto;
+            padding: 0 1.75rem;
         }
 
         /* Pagination */
@@ -401,7 +414,7 @@
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            border: 1px solid #e2e8f0;
+            border: 1px solid var(--border);
             background-color: #ffffff;
             color: #334155;
             border-radius: 8px;
@@ -411,23 +424,23 @@
             transition: all 0.15s ease;
         }
         .page-link-custom:hover {
-            background-color: #f1f5f9;
-            border-color: #cbd5e1;
-            color: #0f172a;
+            background-color: var(--surface-2);
+            border-color: var(--border-strong);
+            color: var(--text);
         }
         .page-link-custom.active {
-            background-color: #2563eb;
+            background-color: var(--primary);
             color: #ffffff;
-            border-color: #2563eb;
+            border-color: var(--primary);
         }
         .page-link-custom.disabled {
-            color: #94a3b8;
+            color: var(--text-subtle);
             pointer-events: none;
-            background-color: #f8fafc;
+            background-color: var(--surface-2);
         }
         .page-ellipsis {
             padding: 0 0.5rem;
-            color: #94a3b8;
+            color: var(--text-subtle);
         }
     </style>
 </head>
@@ -438,18 +451,13 @@
         <jsp:param name="activeMenu" value="movies" />
     </jsp:include>
 
-    <!-- Hero Banner (Navy blue background, content centered) -->
-    <div class="movies-hero-banner">
-        <div class="container">
-            <div class="breadcrumb-hero">
-                <a href="${pageContext.request.contextPath}/home">Home</a> / Movies
-            </div>
-            <h1 class="hero-title">All Movies</h1>
-            <p class="hero-subtitle">Showing <strong>${fn:length(movies)}</strong> movies across all LuminaCine locations.</p>
-        </div>
-    </div>
+    <main class="container py-4" style="max-width:1200px;">
 
-    <main class="container py-4">
+        <div class="breadcrumb-custom">
+            <a href="${pageContext.request.contextPath}/home">Home</a> / <span>Movies</span>
+        </div>
+        <h1 class="page-title">All Movies</h1>
+        <p class="page-subtitle">Showing <strong>${fn:length(movies)}</strong> movies across all LuminaCine locations.</p>
 
         <!-- Filters Form -->
         <form method="GET" action="${pageContext.request.contextPath}/movies" id="filterForm">
@@ -613,17 +621,10 @@
             </c:otherwise>
         </c:choose>
 
-        <!-- Pagination (High Fidelity Mockup Visual) -->
         <c:if test="${not empty movies}">
-            <div class="pagination-custom">
-                <a href="#" class="page-link-custom disabled"><i class="bi bi-chevron-left"></i></a>
-                <a href="#" class="page-link-custom active">1</a>
-                <a href="#" class="page-link-custom">2</a>
-                <a href="#" class="page-link-custom">3</a>
-                <span class="page-ellipsis">...</span>
-                <a href="#" class="page-link-custom">5</a>
-                <a href="#" class="page-link-custom"><i class="bi bi-chevron-right"></i></a>
-            </div>
+            <p class="text-center text-muted small mb-0 mt-2">
+                Showing all <strong>${fn:length(movies)}</strong> result<c:if test="${fn:length(movies) != 1}">s</c:if>.
+            </p>
         </c:if>
 
     </main>
