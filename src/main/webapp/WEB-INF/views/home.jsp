@@ -532,19 +532,31 @@
                 function syncInfo(swiper) {
                     var slide = swiper.slides[swiper.activeIndex];
                     if (!slide || !slide.dataset || !slide.dataset.title) return;
-                    var d = slide.dataset;
                     var fadeIds = ['cfTitle', 'cfMeta', 'cfDesc'];
                     fade(fadeIds);
-                    setTimeout(function () {
-                        setText('cfTitle', d.title);
-                        setText('cfRating', d.rating);
-                        setText('cfDuration', d.duration);
-                        setText('cfGenres', d.genres);
-                        setText('cfDesc', d.desc);
-                        var book = document.getElementById('cfBook');
-                        if (book && d.href) book.setAttribute('href', d.href);
+                    if (syncInfo._t) clearTimeout(syncInfo._t);
+                    syncInfo._t = setTimeout(function () {
+                        // Doc lai slide DANG o giua tai thoi diem gan text -> khong bao gio
+                        // hien nham text cua slide cu khi autoplay/keo nhanh doi slide giua chung.
+                        applyCurrent(swiper);
                         unfade(fadeIds);
+                        syncInfo._t = null;
                     }, 180);
+                }
+
+                // Gan thong tin theo slide active hien tai (khong fade) - dung lam "chot"
+                // dong bo sau moi transition, dam bao panel luon khop poster trung tam.
+                function applyCurrent(swiper) {
+                    var slide = swiper.slides[swiper.activeIndex];
+                    if (!slide || !slide.dataset || !slide.dataset.title) return;
+                    var d = slide.dataset;
+                    setText('cfTitle', d.title);
+                    setText('cfRating', d.rating);
+                    setText('cfDuration', d.duration);
+                    setText('cfGenres', d.genres);
+                    setText('cfDesc', d.desc);
+                    var book = document.getElementById('cfBook');
+                    if (book && d.href) book.setAttribute('href', d.href);
                 }
 
                 var swiper = new Swiper(el, {
@@ -566,7 +578,8 @@
                     },
                     on: {
                         init: function () { syncInfo(this); },
-                        slideChangeTransitionStart: function () { syncInfo(this); }
+                        slideChange: function () { syncInfo(this); },
+                        transitionEnd: function () { applyCurrent(this); unfade(['cfTitle', 'cfMeta', 'cfDesc']); }
                     }
                 });
 

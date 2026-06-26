@@ -217,9 +217,9 @@
 
                         <div class="det-credits">
                             <div class="row g-1">
-                                <div class="col-md-7"><span class="lbl">Director:</span> <c:out value="${not empty movie.director ? movie.director : 'N/A'}"/></div>
-                                <div class="col-md-5"><span class="lbl">Language:</span> <c:out value="${not empty movie.language ? movie.language : 'English'}"/></div>
+                                <div class="col-12"><span class="lbl">Director:</span> <c:out value="${not empty movie.director ? movie.director : 'N/A'}"/></div>
                                 <div class="col-12"><span class="lbl">Cast:</span> <c:out value="${not empty movie.castList ? movie.castList : 'N/A'}"/></div>
+                                <div class="col-12"><span class="lbl">Language:</span> <c:out value="${not empty movie.language ? movie.language : 'English'}"/></div>
                             </div>
                         </div>
 
