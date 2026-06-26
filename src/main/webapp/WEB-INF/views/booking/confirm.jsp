@@ -17,68 +17,68 @@
     <link href="${pageContext.request.contextPath}/assets/css/main.css?v=${applicationScope.assetVersion}" rel="stylesheet">
     <style>
         /* ===== Booking shared stepper (inline, khong phu thuoc cache main.css) ===== */
-        :root { --bk-primary:#2563EB; --bk-navy:#0F1E36; --bk-bg:#F5F7FA; }
+        /* --bk-* tokens come from tokens.css */
         body.bk-page { background: var(--bk-bg); }
         .bk-wrap { max-width: 1080px; }
         .bk-steps { display:flex; align-items:center; }
-        .bk-step { display:flex; align-items:center; gap:.5rem; font-size:.9rem; font-weight:600; color:#94a3b8; white-space:nowrap; }
+        .bk-step { display:flex; align-items:center; gap:.5rem; font-size:.9rem; font-weight:600; color:var(--text-subtle); white-space:nowrap; }
         .bk-step .bk-dot { width:26px; height:26px; border-radius:999px; display:flex; align-items:center;
-            justify-content:center; font-size:.78rem; background:#E2E8F0; color:#64748b; flex-shrink:0; }
-        .bk-step.done { color:#16a34a; } .bk-step.done .bk-dot { background:#16a34a; color:#fff; }
+            justify-content:center; font-size:.78rem; background:var(--border); color:var(--text-muted); flex-shrink:0; }
+        .bk-step.done { color:var(--success); } .bk-step.done .bk-dot { background:var(--success); color:#fff; }
         .bk-step.active { color:var(--bk-primary); } .bk-step.active .bk-dot { background:var(--bk-primary); color:#fff; }
-        .bk-line { flex:1; height:2px; background:#E2E8F0; margin:0 .5rem; min-width:12px; }
-        .bk-line.done { background:#16a34a; }
+        .bk-line { flex:1; height:2px; background:var(--border); margin:0 .5rem; min-width:12px; }
+        .bk-line.done { background:var(--success); }
         @media (max-width:640px){ .bk-step span:not(.bk-dot){ display:none; } }
 
         /* ===== Success header ===== */
         .cf-hero { text-align:center; padding: 1.5rem 0 .5rem; }
-        .cf-check { width:64px; height:64px; border-radius:50%; background:#dcfce7; color:#16a34a;
+        .cf-check { width:64px; height:64px; border-radius:50%; background:#dcfce7; color:var(--success);
             display:inline-flex; align-items:center; justify-content:center; font-size:2rem; margin-bottom:.6rem;
             animation:popIn .4s cubic-bezier(.34,1.56,.64,1) both; }
         @keyframes popIn { from{opacity:0; transform:scale(.5);} to{opacity:1; transform:scale(1);} }
         .cf-hero h2 { font-weight:800; color:#15803d; font-size:1.7rem; margin:0; }
-        .cf-hero p  { color:#64748b; margin:.25rem 0 0; }
+        .cf-hero p  { color:var(--text-muted); margin:.25rem 0 0; }
 
         /* ===== E-ticket ===== */
         .ticket { max-width:620px; margin:1rem auto 0; background:#fff; border-radius:18px;
             box-shadow:0 10px 40px rgba(15,30,54,.12); overflow:hidden; }
-        .ticket-top { background:linear-gradient(135deg,#1e3a8a 0%,#2563eb 100%); color:#fff; padding:22px 26px;
+        .ticket-top { background:linear-gradient(135deg,#1e3a8a 0%,var(--primary) 100%); color:#fff; padding:22px 26px;
             display:flex; gap:16px; align-items:flex-start; }
         .ticket-poster { width:54px; height:74px; border-radius:8px; object-fit:cover; flex-shrink:0;
-            background:linear-gradient(135deg,#0f172a,#1e293b); display:flex; align-items:center; justify-content:center;
-            color:#FFC107; font-size:1.5rem; }
-        .ticket-kicker { font-size:.7rem; letter-spacing:.16em; color:#bfdbfe; text-transform:uppercase; font-weight:700; }
+            background:linear-gradient(135deg,var(--navy),#1e293b); display:flex; align-items:center; justify-content:center;
+            color:var(--gold); font-size:1.5rem; }
+        .ticket-kicker { font-size:.7rem; letter-spacing:.16em; color:var(--primary-200); text-transform:uppercase; font-weight:700; }
         .ticket-title { font-weight:800; font-size:1.35rem; line-height:1.2; margin:.15rem 0 .4rem; }
         .ticket-badge { display:inline-block; font-size:.7rem; font-weight:700; padding:2px 8px; border-radius:6px;
             background:rgba(255,255,255,.18); color:#fff; margin:0 4px 4px 0; }
-        .ticket-badge.rated { background:#FFC107; color:#0f1e36; }
+        .ticket-badge.rated { background:var(--gold); color:var(--text); }
         .ticket-status { margin-left:auto; background:#dcfce7; color:#15803d; font-size:.72rem; font-weight:700;
             padding:5px 12px; border-radius:999px; white-space:nowrap; display:inline-flex; align-items:center; gap:5px; }
 
-        .ticket-perf { position:relative; height:0; border-top:2px dashed #e5e7eb; margin:0 26px; }
+        .ticket-perf { position:relative; height:0; border-top:2px dashed var(--border); margin:0 26px; }
         .ticket-perf::before, .ticket-perf::after { content:''; position:absolute; top:-12px; width:24px; height:24px;
             background:var(--bk-bg); border-radius:50%; }
         .ticket-perf::before { left:-38px; } .ticket-perf::after { right:-38px; }
 
         .ticket-body { padding:22px 26px; display:flex; gap:20px; flex-wrap:wrap; }
         .ticket-grid { flex:1; min-width:240px; display:grid; grid-template-columns:1fr 1fr; gap:14px 18px; }
-        .tk-item .tk-label { font-size:.7rem; color:#94a3b8; text-transform:uppercase; letter-spacing:.05em; margin-bottom:2px; }
+        .tk-item .tk-label { font-size:.7rem; color:var(--text-subtle); text-transform:uppercase; letter-spacing:.05em; margin-bottom:2px; }
         .tk-item .tk-value { font-weight:700; color:var(--bk-navy); font-size:.96rem; }
-        .tk-seat { display:inline-block; background:#eff6ff; color:var(--bk-primary); border:1px solid #bfdbfe;
+        .tk-seat { display:inline-block; background:var(--primary-50); color:var(--bk-primary); border:1px solid var(--primary-200);
             border-radius:7px; padding:2px 9px; font-weight:700; font-size:.84rem; margin:2px 4px 0 0; font-family:ui-monospace,Menlo,Consolas,monospace; }
         .ticket-qr { text-align:center; flex-shrink:0; }
-        .ticket-qr .qr-box { display:inline-block; padding:8px; background:#fff; border:1px solid #e5e7eb; border-radius:10px; }
+        .ticket-qr .qr-box { display:inline-block; padding:8px; background:#fff; border:1px solid var(--border); border-radius:10px; }
         .ticket-qr .qr-box img { display:block; width:150px; height:150px; }
-        .ticket-qr .qr-hint { font-size:.72rem; color:#94a3b8; margin-top:6px; max-width:150px; }
+        .ticket-qr .qr-hint { font-size:.72rem; color:var(--text-subtle); margin-top:6px; max-width:150px; }
 
         .ticket-foot { border-top:1px solid #f1f5f9; padding:16px 26px; display:flex; flex-wrap:wrap; gap:14px;
             justify-content:space-between; align-items:flex-end; }
-        .ft-label { font-size:.7rem; color:#94a3b8; text-transform:uppercase; letter-spacing:.05em; }
+        .ft-label { font-size:.7rem; color:var(--text-subtle); text-transform:uppercase; letter-spacing:.05em; }
         .ft-code { font-family:ui-monospace,Menlo,Consolas,monospace; font-weight:800; color:var(--bk-navy); font-size:1rem; letter-spacing:.04em; }
         .ft-total { font-weight:800; color:var(--bk-primary); font-size:1.25rem; }
 
         .cf-actions { display:flex; gap:12px; justify-content:center; flex-wrap:wrap; margin:1.5rem 0 .5rem; }
-        .cf-note { max-width:620px; margin:1rem auto 0; background:#eff6ff; border:1px solid #cfe0fb; color:#1e40af;
+        .cf-note { max-width:620px; margin:1rem auto 0; background:var(--primary-50); border:1px solid #cfe0fb; color:#1e40af;
             border-radius:10px; padding:.7rem 1rem; font-size:.84rem; display:flex; gap:.5rem; align-items:flex-start; }
 
         /* Error card */
@@ -98,11 +98,13 @@
         <div class="bk-line done"></div>
         <div class="bk-step done"><span class="bk-dot"><i class="bi bi-check-lg"></i></span>Seats</div>
         <div class="bk-line done"></div>
+        <div class="bk-step done"><span class="bk-dot"><i class="bi bi-check-lg"></i></span>Food &amp; Drinks</div>
+        <div class="bk-line done"></div>
         <div class="bk-step done"><span class="bk-dot"><i class="bi bi-check-lg"></i></span>Review</div>
         <div class="bk-line done"></div>
         <div class="bk-step done"><span class="bk-dot"><i class="bi bi-check-lg"></i></span>Payment</div>
         <div class="bk-line done"></div>
-        <div class="bk-step active"><span class="bk-dot">5</span>Confirm</div>
+        <div class="bk-step active"><span class="bk-dot">6</span>Confirm</div>
     </div>
 </div>
 

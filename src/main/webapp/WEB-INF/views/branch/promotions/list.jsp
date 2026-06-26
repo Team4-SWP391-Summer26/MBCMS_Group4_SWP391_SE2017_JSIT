@@ -14,8 +14,8 @@
         <link href="${pageContext.request.contextPath}/assets/css/manager.css?v=${applicationScope.assetVersion}" rel="stylesheet">
         <style>
             .badge-code {
-                background-color: #1e293b;
-                color: #f8fafc;
+                background-color: var(--navy);
+                color: var(--lc-bg);
                 font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
                 font-weight: 700;
                 padding: 0.35em 0.65em;
@@ -34,7 +34,7 @@
             }
             .filter-tab:hover {
                 background: #f1f5f9;
-                color: #0f172a;
+                color: var(--navy);
             }
             .filter-tab.active {
                 background: var(--lc-primary);

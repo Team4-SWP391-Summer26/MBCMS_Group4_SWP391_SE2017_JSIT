@@ -20,7 +20,7 @@
             color: var(--lc-muted); border-radius: 6px;
             text-decoration: none; transition: all .15s;
         }
-        .filter-tab:hover { background: #f1f5f9; color: #0f172a; }
+        .filter-tab:hover { background: #f1f5f9; color: var(--navy); }
         .filter-tab.active { background: var(--lc-primary); color: #fff; }
 
         /* ── Category pills ─────────────────────────────── */
@@ -204,7 +204,7 @@
                                         <div style="width:40px;height:40px;border-radius:8px;
                                                     background:#F1F5F9;border:1px solid var(--lc-border);
                                                     display:flex;align-items:center;justify-content:center;
-                                                    color:#94A3B8;font-size:1.1rem;">
+                                                    color:var(--text-subtle);font-size:1.1rem;">
                                             <i class="bi bi-image"></i>
                                         </div>
                                     </c:otherwise>

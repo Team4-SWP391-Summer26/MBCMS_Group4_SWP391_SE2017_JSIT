@@ -9,52 +9,7 @@
         <title>Forgot Password - MBCMS</title>
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
         <link href="${pageContext.request.contextPath}/assets/css/main.css?v=${applicationScope.assetVersion}" rel="stylesheet">
-        <style>
-            .branding-card {
-                background: linear-gradient(135deg, #0c1a30 0%, #050b15 100%);
-                border-radius: 16px;
-                color: #ffffff;
-                position: relative;
-                overflow: hidden;
-                display: flex;
-                flex-direction: column;
-                justify-content: space-between;
-                padding: 3rem;
-                border: 1px solid rgba(255, 255, 255, 0.05);
-                min-height: 480px;
-            }
-
-            /* Custom input styling */
-            .form-control:focus {
-                border-color: #2563eb;
-                box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
-            }
-
-            .step-circle {
-                width: 28px;
-                height: 28px;
-                font-size: 0.85rem;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                border-radius: 50%;
-                font-weight: bold;
-                flex-shrink: 0;
-            }
-
-            .avatar-circle {
-                width: 32px;
-                height: 32px;
-                border-radius: 50%;
-                border: 2px solid #0c1a30;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                color: #fff;
-                font-size: 0.75rem;
-                font-weight: 700;
-            }
-        </style>
+        <%-- Auth shell styles (.branding-card / .step-circle / .avatar-circle, focus ring) live in main.css / tokens.css --%>
     </head>
 
     <body class="bg-light">
@@ -76,7 +31,7 @@
                                 <div class="d-inline-flex align-items-center">
                                     <svg width="28" height="28" viewBox="0 0 32 32" fill="none"
                                          xmlns="http://www.w3.org/2000/svg" style="border-radius: 6px;">
-                                    <rect width="32" height="32" rx="8" fill="#182c54" />
+                                    <rect width="32" height="32" rx="8" fill="#0F1E36" />
                                     <rect x="4" y="3" width="3" height="3" rx="1" fill="#FFFFFF"
                                           opacity="0.3" />
                                     <rect x="11" y="3" width="3" height="3" rx="1" fill="#FFFFFF"
@@ -117,7 +72,7 @@
                                         </c:when>
                                         <c:otherwise>
                                             <div class="step-circle text-white animate-pulse"
-                                                 style="background-color: #2563eb;">1</div>
+                                                 style="background-color: var(--primary);">1</div>
                                         </c:otherwise>
                                     </c:choose>
                                     <div class="text-nowrap">
@@ -146,7 +101,7 @@
                                             </div>
                                         </c:when>
                                         <c:when test="${currentStep == 'verify'}">
-                                            <div class="step-circle text-white" style="background-color: #2563eb;">2
+                                            <div class="step-circle text-white" style="background-color: var(--primary);">2
                                             </div>
                                         </c:when>
                                         <c:otherwise>
@@ -225,7 +180,7 @@
 
                                     <button type="submit"
                                             class="btn w-100 text-white fw-semibold mb-4 d-flex align-items-center justify-content-center gap-2 border-0"
-                                            style="background: #2563eb; height: 46px; border-radius: 8px; font-size: 1rem;">
+                                            style="background: var(--primary); height: 46px; border-radius: 8px; font-size: 1rem;">
                                         Send Verification Code
                                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
                                              stroke="currentColor" stroke-width="2" stroke-linecap="round"
@@ -273,7 +228,7 @@
 
                                     <button type="submit"
                                             class="btn w-100 text-white fw-semibold mb-4 d-flex align-items-center justify-content-center gap-2 border-0"
-                                            style="background: #2563eb; height: 46px; border-radius: 8px; font-size: 1rem;">
+                                            style="background: var(--primary); height: 46px; border-radius: 8px; font-size: 1rem;">
                                         Verify Code
                                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
                                              stroke="currentColor" stroke-width="2" stroke-linecap="round"
@@ -370,7 +325,7 @@
 
                                     <button type="submit"
                                             class="btn w-100 text-white fw-semibold mb-4 d-flex align-items-center justify-content-center gap-2 border-0"
-                                            style="background: #2563eb; height: 46px; border-radius: 8px; font-size: 1rem;">
+                                            style="background: var(--primary); height: 46px; border-radius: 8px; font-size: 1rem;">
                                         Reset Password
                                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
                                              stroke="currentColor" stroke-width="2" stroke-linecap="round"
@@ -387,7 +342,7 @@
                         <div class="text-center">
                             <a href="${pageContext.request.contextPath}/auth/login"
                                class="text-decoration-none fw-semibold d-inline-flex align-items-center gap-1"
-                               style="color: #2563eb; font-size: 0.9rem;">
+                               style="color: var(--primary); font-size: 0.9rem;">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                      stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <line x1="19" y1="12" x2="5" y2="12"></line>

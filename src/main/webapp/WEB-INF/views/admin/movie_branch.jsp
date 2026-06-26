@@ -24,7 +24,7 @@
             .mv-row:hover { border-color: var(--lc-primary); background: var(--lc-light); }
             .mv-row.checked { border-color: var(--lc-primary); background: #f5f9ff; }
             .mv-check { width: 18px; height: 18px; flex-shrink: 0; cursor: pointer; }
-            .mv-title { font-weight: 600; color: #0f1e36; }
+            .mv-title { font-weight: 600; color: var(--navy); }
             .mv-meta { font-size: .76rem; color: var(--lc-muted); }
             .info-box {
                 background: var(--lc-light); border: 1px solid #cfe0fb; color: #1e40af;

@@ -26,7 +26,7 @@
                 width:84px;
                 height:84px;
                 border-radius:999px;
-                background:linear-gradient(135deg,#2563eb,#1e3a5f);
+                background:linear-gradient(135deg,var(--primary),#1e3a5f);
                 color:#fff;
                 display:flex;
                 align-items:center;
@@ -80,7 +80,7 @@
             .profile-form .form-control:disabled {
                 background:#f3f4f6;
                 color:#374151;
-                border-color:#e5e7eb;
+                border-color:var(--border);
                 opacity:1;
             }
         </style>
@@ -145,7 +145,7 @@
                             <hr style="margin:10px 0; border-color:#eef1f5;">
                             <form method="post" action="${pageContext.request.contextPath}/auth/logout" class="m-0">
                                 <%@ include file="/WEB-INF/views/common/csrf-hidden.jspf" %>
-                                <button type="submit" class="lc-navitem" style="color:#dc3545;border:0;background:none;width:100%;text-align:left;cursor:pointer;">
+                                <button type="submit" class="lc-navitem" style="color:var(--danger);border:0;background:none;width:100%;text-align:left;cursor:pointer;">
                                     <i class="bi bi-box-arrow-right"></i> Sign out</button>
                             </form>
                         </nav>

@@ -23,7 +23,7 @@
                 </div>
 
                 <h1 class="fw-bold mb-2" style="font-size: 3rem; color: #1e293b;">404</h1>
-                <h4 class="fw-bold mb-3" style="color: #0f1e36;">Page not found</h4>
+                <h4 class="fw-bold mb-3" style="color: var(--navy);">Page not found</h4>
                 <p class="text-secondary mb-4" style="font-size: 0.95rem; line-height: 1.6;">
                     The page you requested does not exist, may have been moved, or is temporarily unavailable. Please return to the home page.
                 </p>

@@ -8,119 +8,7 @@
         <title>Sign In - MBCMS</title>
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
         <link href="${pageContext.request.contextPath}/assets/css/main.css?v=${applicationScope.assetVersion}" rel="stylesheet">
-        <style>
-            .avatar-circle {
-                width: 36px;
-                height: 36px;
-                border-radius: 50%;
-                border: 2px solid #09152b;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                color: #fff;
-                font-size: 0.75rem;
-                font-weight: 700;
-                letter-spacing: -0.5px;
-            }
-            .branding-card {
-                background: linear-gradient(135deg, #09152b 0%, #050b18 100%);
-                border-radius: 16px;
-                color: #ffffff;
-                position: relative;
-                overflow: hidden;
-                display: flex;
-                flex-direction: column;
-                justify-content: space-between;
-                padding: 3.5rem;
-            }
-            .galaxy-glow {
-                position: absolute;
-                width: 450px;
-                height: 450px;
-                border-radius: 50%;
-                background: radial-gradient(circle, rgba(245, 158, 11, 0.15) 0%, rgba(239, 68, 68, 0.06) 45%, rgba(0,0,0,0) 70%);
-                top: 50%;
-                right: -130px;
-                transform: translateY(-50%);
-                z-index: 0;
-                pointer-events: none;
-                filter: blur(10px);
-            }
-            .galaxy-circle {
-                position: absolute;
-                width: 480px;
-                height: 480px;
-                border-radius: 50%;
-                border: 1px solid rgba(255, 255, 255, 0.08);
-                top: 50%;
-                right: -145px;
-                transform: translateY(-50%);
-                z-index: 0;
-                pointer-events: none;
-                animation: spin-galaxy 80s linear infinite;
-            }
-            /* Small orbit beads */
-            .galaxy-circle::before {
-                content: '';
-                position: absolute;
-                width: 5px;
-                height: 5px;
-                background: rgba(255, 255, 255, 0.35);
-                border-radius: 50%;
-                top: 15%;
-                left: 15%;
-            }
-            .galaxy-circle::after {
-                content: '';
-                position: absolute;
-                width: 5px;
-                height: 5px;
-                background: rgba(255, 255, 255, 0.25);
-                border-radius: 50%;
-                bottom: 25%;
-                right: 8%;
-            }
-            .galaxy-core {
-                position: absolute;
-                width: 260px;
-                height: 260px;
-                border-radius: 50%;
-                background: radial-gradient(circle, rgba(254, 240, 138, 0.8) 0%, rgba(245, 158, 11, 0.6) 30%, rgba(234, 88, 12, 0.2) 55%, transparent 70%);
-                top: 50%;
-                right: -35px;
-                transform: translateY(-50%);
-                z-index: 0;
-                pointer-events: none;
-                filter: blur(4px);
-            }
-            .galaxy-core-dark {
-                position: absolute;
-                width: 170px;
-                height: 170px;
-                border-radius: 50%;
-                background: #060d1b;
-                top: 50%;
-                right: 10px;
-                transform: translateY(-50%);
-                z-index: 0;
-                pointer-events: none;
-                box-shadow: inset 0 0 25px rgba(0, 0, 0, 0.95), 0 0 10px rgba(245, 158, 11, 0.1);
-            }
-            .star {
-                position: absolute;
-                width: 2px;
-                height: 2px;
-                background: rgba(255, 255, 255, 0.4);
-                border-radius: 50%;
-                z-index: 0;
-                pointer-events: none;
-            }
-            @keyframes spin-galaxy {
-                100% {
-                    transform: translateY(-50%) rotate(360deg);
-                }
-            }
-        </style>
+        <%-- Auth shell styles (.branding-card / .avatar-circle / galaxy decor) live in main.css --%>
     </head>
     <body class="bg-light">
 
@@ -136,7 +24,7 @@
                                 <!-- Logo SVG -->
                                 <div class="d-inline-flex align-items-center">
                                     <svg width="28" height="28" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" style="border-radius: 6px;">
-                                    <rect width="32" height="32" rx="8" fill="#182c54" />
+                                    <rect width="32" height="32" rx="8" fill="#0F1E36" />
                                     <rect x="4" y="3" width="3" height="3" rx="1" fill="#FFFFFF" opacity="0.3"/>
                                     <rect x="11" y="3" width="3" height="3" rx="1" fill="#FFFFFF" opacity="0.3"/>
                                     <rect x="18" y="3" width="3" height="3" rx="1" fill="#FFFFFF" opacity="0.3"/>
@@ -220,12 +108,12 @@
                                             Remember me (7-day session)
                                         </label>
                                     </div>
-                                    <a href="${pageContext.request.contextPath}/auth/forgot-password" class="text-decoration-none fw-semibold" style="color: #2563eb;">Forgot Password?</a>
+                                    <a href="${pageContext.request.contextPath}/auth/forgot-password" class="text-decoration-none fw-semibold" style="color: var(--primary);">Forgot Password?</a>
                                 </div>
 
                                 <!-- Sign In Button -->
                                 <button type="submit" class="btn w-100 text-white fw-semibold mb-3 d-flex align-items-center justify-content-center border-0" 
-                                        style="background: #2563eb; height: 44px; border-radius: 8px;">
+                                        style="background: var(--primary); height: 44px; border-radius: 8px;">
                                     Sign In
                                 </button>
                             </form>
@@ -253,7 +141,7 @@
 
                         <div class="text-center mt-2" style="font-size: 0.9rem;">
                             <span class="text-secondary">Don't have an account?</span>
-                            <a href="${pageContext.request.contextPath}/auth/register" class="fw-semibold text-decoration-none" style="color: #2563eb;">Register now</a>
+                            <a href="${pageContext.request.contextPath}/auth/register" class="fw-semibold text-decoration-none" style="color: var(--primary);">Register now</a>
                         </div>
                     </div>
                 </div>
@@ -281,7 +169,7 @@
                             <!-- Badge -->
                             <div class="d-inline-flex align-items-center mb-4" 
                                  style="background: rgba(255,255,255,0.06); border-radius: 24px; border: 1px solid rgba(255,255,255,0.12); padding: 6px 16px; font-size: 0.75rem; color: rgba(255,255,255,0.85); font-weight: 600; letter-spacing: 1px;">
-                                <span style="color: #fbbf24; margin-right: 8px;">✨</span> WELCOME <span style="margin-left: 8px; opacity: 0.5;">──</span>
+                                <i class="bi bi-film" style="color: var(--gold); margin-right: 8px;"></i> WELCOME <span style="margin-left: 8px; opacity: 0.5;">──</span>
                             </div>
 
                             <!-- Title & Subtitle -->

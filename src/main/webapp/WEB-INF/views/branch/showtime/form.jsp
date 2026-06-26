@@ -34,18 +34,18 @@
             .st-form .form-label {
                 font-size: .82rem;
                 font-weight: 600;
-                color: #0f1e36;
+                color: var(--navy);
             }
             .st-form .form-control[readonly] {
                 background: #f3f4f6;
                 color: #374151;
-                border-color: #e5e7eb;
+                border-color: var(--lc-border);
                 opacity: 1;
             }
             .st-section-title {
                 font-size: 1rem;
                 font-weight: 700;
-                color: #0f1e36;
+                color: var(--navy);
                 margin-bottom: 1rem;
             }
             .pv-poster {
@@ -71,7 +71,7 @@
             .lc-auto {
                 font-size: .6rem;
                 background: #EEF1F4;
-                color: #64748b;
+                color: var(--lc-muted);
                 padding: .12rem .45rem;
                 border-radius: 999px;
                 vertical-align: middle;
@@ -90,7 +90,7 @@
                 font-size: .66rem;
                 font-weight: 700;
                 letter-spacing: .02em;
-                color: #64748b;
+                color: var(--lc-muted);
                 padding: .2rem .62rem;
                 border-radius: 999px;
                 cursor: pointer;
@@ -98,7 +98,7 @@
                 transition: background .15s ease, color .15s ease, box-shadow .15s ease;
             }
             .end-toggle-opt:hover {
-                color: #0f1e36;
+                color: var(--navy);
             }
             .end-toggle-opt.active {
                 background: #fff;

@@ -17,10 +17,7 @@
     <link href="${pageContext.request.contextPath}/assets/css/main.css?v=${applicationScope.assetVersion}" rel="stylesheet">
     <style>
         /* ===== Booking shared design (inline de khong phu thuoc cache main.css) ===== */
-        :root {
-            --bk-primary:#2563EB; --bk-navy:#0F1E36; --bk-border:#E6EAF2;
-            --bk-muted:#64748B; --bk-light:#EFF4FF; --bk-bg:#F5F7FA;
-        }
+        /* --bk-* tokens come from tokens.css */
         body.bk-page { background: var(--bk-bg); }
         .bk-wrap { max-width: 1080px; }
         .bk-card { background:#fff; border:1px solid var(--bk-border); border-radius:14px;
@@ -29,30 +26,30 @@
         .bk-mono { font-family:ui-monospace,Menlo,Consolas,monospace; }
 
         .bk-ctx { background:#fff; border-bottom:1px solid var(--bk-border); }
-        .bk-poster { width:46px; height:60px; border-radius:8px; flex-shrink:0;
-            background:linear-gradient(135deg,#1e293b,#0f172a); display:flex;
-            align-items:center; justify-content:center; color:#FFC107; font-weight:800; font-size:1.2rem; }
+        .bk-poster { width:46px; height:60px; border-radius:8px; flex-shrink:0; object-fit:cover;
+            background:linear-gradient(135deg,#1e293b,var(--navy)); display:flex;
+            align-items:center; justify-content:center; color:var(--gold); font-weight:800; font-size:1.2rem; }
         .bk-reserve { background:#FFF8E1; border:1px solid #FFE082; color:#7a5a00; border-radius:999px;
             padding:.3rem .8rem; font-size:.82rem; font-weight:600; display:inline-flex; align-items:center; gap:.4rem; white-space:nowrap; }
         .bk-reserve.danger { background:#fee2e2; border-color:#fca5a5; color:#b91c1c; }
 
         .bk-steps { display:flex; align-items:center; }
-        .bk-step { display:flex; align-items:center; gap:.5rem; font-size:.9rem; font-weight:600; color:#94a3b8; white-space:nowrap; }
-        .bk-step .bk-dot { width:26px; height:26px; border-radius:999px; display:flex; align-items:center;
-            justify-content:center; font-size:.78rem; background:#E2E8F0; color:#64748b; flex-shrink:0; }
-        .bk-step.done { color:#16a34a; } .bk-step.done .bk-dot { background:#16a34a; color:#fff; }
-        .bk-step.active { color:var(--bk-primary); } .bk-step.active .bk-dot { background:var(--bk-primary); color:#fff; }
-        .bk-line { flex:1; height:2px; background:#E2E8F0; margin:0 .5rem; min-width:12px; }
-        .bk-line.done { background:#16a34a; }
+        .bk-step { display:flex; align-items:center; gap:.55rem; font-size:.88rem; font-weight:600; color:var(--text-subtle); white-space:nowrap; }
+        .bk-step .bk-dot { width:30px; height:30px; border-radius:999px; display:flex; align-items:center;
+            justify-content:center; font-size:.82rem; font-weight:700; background:var(--border); color:var(--text-muted); flex-shrink:0; transition:all .2s ease; }
+        .bk-step.done { color:var(--text); } .bk-step.done .bk-dot { background:var(--success); color:#fff; }
+        .bk-step.active { color:var(--bk-primary); } .bk-step.active .bk-dot { background:var(--bk-primary); color:#fff; box-shadow:0 0 0 4px rgba(37,99,235,.18); }
+        .bk-line { flex:1; height:3px; border-radius:999px; background:var(--border); margin:0 .5rem; min-width:14px; }
+        .bk-line.done { background:var(--success); }
         @media (max-width:640px) { .bk-step span:not(.bk-dot) { display:none; } }
 
         .bk-sum-line { display:flex; justify-content:space-between; align-items:center; padding:.35rem 0; font-size:.92rem; }
         .bk-sum-total { padding-top:.6rem; margin-top:.2rem; border-top:1px solid var(--bk-border); }
         .bk-seat-tag { display:inline-block; background:var(--bk-light); color:var(--bk-primary);
-            border:1px solid #bfdbfe; border-radius:7px; padding:3px 10px; font-size:.82rem; font-weight:700;
+            border:1px solid var(--primary-200); border-radius:7px; padding:3px 10px; font-size:.82rem; font-weight:700;
             margin:2px 4px 2px 0; font-family:ui-monospace,Menlo,Consolas,monospace; }
         .bk-page .btn-primary { background:var(--bk-primary); border-color:var(--bk-primary); }
-        .bk-page .btn-primary:hover { background:#1d4ed8; border-color:#1d4ed8; }
+        .bk-page .btn-primary:hover { background:var(--primary-700); border-color:var(--primary-700); }
 
         /* Cancel modal (page-specific) */
         .modal-overlay {
@@ -71,18 +68,46 @@
 <jsp:include page="../common/header.jsp" />
 
 <%-- ===== Context bar ===== --%>
+<%-- Convert showtimeStartTime (LocalDateTime) -> Date de format bang JSTL --%>
+<c:if test="${not empty booking.showtimeStartTime}">
+    <%
+        com.mbcms.model.Booking _bk = (com.mbcms.model.Booking) request.getAttribute("booking");
+        if (_bk != null && _bk.getShowtimeStartTime() != null) {
+            pageContext.setAttribute("stStart",
+                java.util.Date.from(_bk.getShowtimeStartTime()
+                    .atZone(java.time.ZoneId.systemDefault()).toInstant()));
+        }
+    %>
+</c:if>
 <div class="bk-ctx mt-3">
     <div class="container bk-wrap py-2">
         <div class="d-flex align-items-center gap-3 flex-wrap">
-            <div class="bk-poster"><i class="bi bi-film"></i></div>
+            <c:choose>
+                <c:when test="${not empty booking.posterUrl}">
+                    <img class="bk-poster" src="<c:url value='${booking.posterUrl}'/>" alt="${booking.movieTitle}">
+                </c:when>
+                <c:otherwise><div class="bk-poster"><i class="bi bi-film"></i></div></c:otherwise>
+            </c:choose>
             <div class="flex-grow-1">
                 <div class="fw-bold" style="color:var(--bk-navy);">
                     <c:choose>
+                        <c:when test="${not empty booking.movieTitle}">${booking.movieTitle}</c:when>
                         <c:when test="${not empty booking}">Booking ${booking.bookingCode}</c:when>
                         <c:otherwise>Review your order</c:otherwise>
                     </c:choose>
                 </div>
-                <div class="text-muted small">Showtime #${showtimeId}</div>
+                <div class="text-muted small">
+                    <c:choose>
+                        <c:when test="${not empty stStart}">
+                            <i class="bi bi-calendar-event"></i>
+                            <fmt:formatDate value="${stStart}" pattern="EEE, dd MMM · HH:mm"/>
+                            <c:if test="${not empty booking.bookingCode}">
+                                <span class="mx-1">·</span><span class="bk-mono">${booking.bookingCode}</span>
+                            </c:if>
+                        </c:when>
+                        <c:otherwise>Showtime #${showtimeId}</c:otherwise>
+                    </c:choose>
+                </div>
             </div>
             <div class="text-end">
                 <div class="text-muted small">Seats</div>
@@ -144,8 +169,18 @@
         <div class="col-lg-7">
             <div class="bk-card p-4 mb-4">
                 <h6 class="fw-bold mb-3" style="color:var(--bk-navy);">Booking details</h6>
-                <div class="bk-sum-line"><span class="text-muted">Showtime</span>
-                    <span class="fw-semibold">#${showtimeId}</span></div>
+                <c:if test="${not empty booking.movieTitle}">
+                    <div class="bk-sum-line"><span class="text-muted">Movie</span>
+                        <span class="fw-semibold text-end">${booking.movieTitle}</span></div>
+                </c:if>
+                <c:if test="${not empty stStart}">
+                    <div class="bk-sum-line"><span class="text-muted">Showtime</span>
+                        <span class="fw-semibold"><fmt:formatDate value="${stStart}" pattern="EEE, dd MMM yyyy · HH:mm"/></span></div>
+                </c:if>
+                <c:if test="${empty stStart}">
+                    <div class="bk-sum-line"><span class="text-muted">Showtime</span>
+                        <span class="fw-semibold">#${showtimeId}</span></div>
+                </c:if>
                 <c:if test="${not empty booking}">
                     <div class="bk-sum-line"><span class="text-muted">Booking code</span>
                         <span class="fw-semibold bk-mono">${booking.bookingCode}</span></div>
@@ -266,7 +301,7 @@
     <%-- ===== Cancel modal ===== --%>
     <div id="cancel-modal" class="modal-overlay" style="display:none;" onclick="closeCancelModal(event)">
         <div class="modal-box" onclick="event.stopPropagation()">
-            <div class="text-center mb-2" style="font-size:2.2rem;color:#dc2626;"><i class="bi bi-exclamation-triangle-fill"></i></div>
+            <div class="text-center mb-2" style="font-size:2.2rem;color:var(--danger);"><i class="bi bi-exclamation-triangle-fill"></i></div>
             <h5 class="text-center fw-bold mb-1">Cancel this booking?</h5>
             <p class="text-center text-muted mb-4" style="font-size:.9rem;">
                 Booking <strong>${booking.bookingCode}</strong> will be cancelled and your seats released. This cannot be undone.
