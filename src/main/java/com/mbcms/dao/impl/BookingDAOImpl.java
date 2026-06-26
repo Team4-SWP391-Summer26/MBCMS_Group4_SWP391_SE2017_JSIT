@@ -169,8 +169,39 @@ public class BookingDAOImpl extends BaseDAO implements BookingDAO {
         if (b != null) {
             b.setSeatIds(loadSeatIds(bookingId));
             b.setSeatLabels(loadSeatLabels(bookingId));
+            loadMovieDisplay(b); // movieTitle + showtimeStartTime cho context bar (checkout/payment)
         }
         return b;
+    }
+
+    /**
+     * Nap thong tin hien thi (ten phim + gio chieu) tu showtimes/movies cho booking.
+     * Chi dung cho man hinh checkout/payment - khong dung cho seat-hold logic.
+     */
+    private void loadMovieDisplay(Booking b) {
+        String sql =
+            "SELECT m.title AS movie_title, m.poster_url, st.start_time " +
+            "FROM dbo.showtimes st " +
+            "JOIN dbo.movies m ON m.movie_id = st.movie_id " +
+            "WHERE st.showtime_id = ?";
+        Connection conn = null; PreparedStatement ps = null; ResultSet rs = null;
+        try {
+            conn = getConnection();
+            ps = conn.prepareStatement(sql);
+            ps.setLong(1, b.getShowtimeId());
+            rs = ps.executeQuery();
+            if (rs.next()) {
+                b.setMovieTitle(rs.getString("movie_title"));
+                b.setPosterUrl(rs.getString("poster_url"));
+                Timestamp start = rs.getTimestamp("start_time");
+                b.setShowtimeStartTime(start != null ? start.toLocalDateTime() : null);
+            }
+        } catch (SQLException e) {
+            // Khong chan luong booking neu khong nap duoc ten phim (chi la hien thi).
+            System.err.println("WARN: loadMovieDisplay lỗi: " + e.getMessage());
+        } finally {
+            closeAll(rs, ps, conn);
+        }
     }
 
     // ── findTicket (view-model day du cho e-ticket) ───────────────────────

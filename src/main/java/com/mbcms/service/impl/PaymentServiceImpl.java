@@ -44,22 +44,27 @@ public class PaymentServiceImpl implements PaymentService {
         if (b == null) {
             throw new IllegalArgumentException("Booking not found.");
         }
+        // OWNER-CHECK: chi chu booking moi duoc tra tien -> chong tra ho / xem trom.
         if (!b.getCustomerUsername().equals(customerUsername)) {
             throw new SecurityException("You are not allowed to pay for this booking.");
         }
+        // Da CONFIRMED -> idempotent: bao "da thanh toan" (servlet chuyen sang xem chi tiet).
         if (Booking.STATUS_CONFIRMED.equals(b.getStatus())) {
             throw new IllegalStateException("Booking has already been paid.");
         }
+        // Chi PENDING moi duoc tra (CANCELLED/USED thi khong).
         if (!Booking.STATUS_PENDING.equals(b.getStatus())) {
             throw new IllegalStateException(
                     "Booking cannot be paid in its current status (" + b.getStatus() + ").");
         }
+        // Qua 10 phut giu ghe -> het han, phai dat lai.
         if (bookingDao.isPendingHoldExpired(bookingId)) {
             throw new IllegalStateException("Your seat hold has expired. Please book again.");
         }
         return b;
     }
 
+    // [PHAN DI] Goi truoc khi redirect sang VNPay: kiem tra + tao payment PENDING.
     @Override
     public Booking initiatePayment(long bookingId, String method, String customerUsername) {
         String m = normalizeMethod(method);
@@ -68,6 +73,13 @@ public class PaymentServiceImpl implements PaymentService {
         return b;
     }
 
+    // ====================================================================
+    // PHAN 2 - VE (ghi tien): goi sau khi callback qua 3 kiem tra.
+    // 2 tinh chat phai nho khi thuyet trinh:
+    //   - IDEMPOTENT: da CONFIRMED -> tra ALREADY_PAID, khong ghi lai (F5/callback lap vo hai).
+    //   - 1 TRANSACTION: 5 buoc ghi (bookings, payments, promo, food, notification)
+    //     hoac thanh cong het, hoac rollback het. Email gui SAU commit (ngoai transaction).
+    // ====================================================================
     @Override
     public Result markPaymentSuccess(long bookingId, String method,
             String customerUsername, String transactionRef) {
@@ -80,7 +92,8 @@ public class PaymentServiceImpl implements PaymentService {
         if (!b.getCustomerUsername().equals(customerUsername)) {
             throw new SecurityException("You are not allowed to pay for this booking.");
         }
-        // Callback lap lai sau khi da CONFIRMED -> idempotent, khong lam gi them.
+        // [IDEMPOTENT] Callback goi lai / user F5 sau khi da CONFIRMED -> tra ALREADY_PAID,
+        // KHONG ghi lai (tranh tru tien/tang used_count 2 lan).
         if (Booking.STATUS_CONFIRMED.equals(b.getStatus())) {
             return Result.ALREADY_PAID;
         }
@@ -97,7 +110,7 @@ public class PaymentServiceImpl implements PaymentService {
         Connection conn = null;
         try {
             conn = DBUtil.getConnection();
-            conn.setAutoCommit(false);
+            conn.setAutoCommit(false); // [TRANSACTION] mo: 5 buoc duoi all-or-nothing
 
             // 1) bookings: PENDING -> CONFIRMED (van check het han ben trong SQL)
             int bk = bookingDao.confirmBooking(conn, bookingId, customerUsername);
@@ -126,35 +139,40 @@ public class PaymentServiceImpl implements PaymentService {
             // 4) notification PAYMENT cho customer
             notificationDao.insert(conn, buildPaymentNotification(b));
 
-            conn.commit();
+            conn.commit(); // GHI THAT ca 5 buoc cung luc; loi truoc day -> rollback sach
 
+            // Gui EMAIL xac nhan NGOAI transaction: email cham/loi cung khong rollback tien da commit.
             sendBookingConfirmationQuietly(bookingId, customerUsername);
 
             return Result.SUCCESS;
 
         } catch (SQLException e) {
-            rollbackQuietly(conn);
+            rollbackQuietly(conn); // loi giua chung -> huy ca 5 buoc (atomic)
             throw new RuntimeException("markPaymentSuccess lỗi: " + e.getMessage(), e);
         } finally {
             restoreAndClose(conn);
         }
     }
 
+    // [7c/7d] Tim giao dich theo bo loc (status/keyword/branch/phan trang).
     @Override
     public List<PaymentRecord> searchPayments(PaymentSearchCriteria criteria) {
         return paymentDao.search(criteria);
     }
 
+    // [7c/7d] Dem tong so giao dich khop bo loc (de tinh so trang).
     @Override
     public int countPayments(PaymentSearchCriteria criteria) {
         return paymentDao.count(criteria);
     }
 
+    // [7d] Tong hop trang thai (PENDING/SUCCESS/FAILED + PENDING cu nhat) theo branch.
     @Override
     public PaymentSummary getPaymentSummary(Long branchId) {
         return paymentDao.summarize(branchId);
     }
 
+    // Chuan hoa + whitelist phuong thuc: chi chap nhan VNPAY (he thong khong dung tien mat online).
     private String normalizeMethod(String method) {
         if (method == null) {
             throw new IllegalArgumentException("Payment method is required.");
@@ -177,6 +195,8 @@ public class PaymentServiceImpl implements PaymentService {
         return n;
     }
 
+    // Gui email xac nhan (NGOAI transaction) - "Quietly": loi gi cung chi log, KHONG nem ra
+    // de khong anh huong giao dich da commit thanh cong.
     private void sendBookingConfirmationQuietly(long bookingId, String customerUsername) {
         try {
             Booking confirmed = bookingDao.findByIdWithSeats(bookingId);
@@ -189,6 +209,7 @@ public class PaymentServiceImpl implements PaymentService {
                 email = c.getEmail();
             }
             notificationService.sendBookingConfirmation(confirmed, email);
+            // Bao real-time khoa cung ghe cho cac user dang xem so do.
             if (confirmed.getSeatIds() != null) {
                 com.mbcms.ws.SeatWebSocketServer.notifyHardLock(
                         confirmed.getShowtimeId(), confirmed.getSeatIds(), customerUsername);
@@ -198,6 +219,7 @@ public class PaymentServiceImpl implements PaymentService {
         }
     }
 
+    // Rollback "im lang": huy transaction; loi rollback chi nuot (vi da co loi goc can nem ra).
     private void rollbackQuietly(Connection conn) {
         if (conn != null) {
             try {
@@ -207,6 +229,8 @@ public class PaymentServiceImpl implements PaymentService {
         }
     }
 
+    // Dat lai autoCommit=true TRUOC khi tra connection ve pool (pool ky vong autoCommit=true,
+    // neu khong request sau muon dung connection nay se bi treo transaction), roi dong connection.
     private void restoreAndClose(Connection conn) {
         if (conn != null) {
             try {

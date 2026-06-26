@@ -9,6 +9,8 @@ import com.mbcms.service.CinemaBrowseService;
 import com.mbcms.service.GuestMovieService;
 import com.mbcms.service.impl.CinemaBrowseServiceImpl;
 import com.mbcms.service.impl.GuestMovieServiceImpl;
+import com.mbcms.util.BookingCustomerGuard;
+import com.mbcms.model.Customer;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -43,6 +45,12 @@ public class ShowtimeByMovieServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
+
+        // Bat buoc dang nhap Customer truoc khi vao luong dat ve (chan ngay tu dau).
+        Customer customer = BookingCustomerGuard.requireCustomer(req, resp);
+        if (customer == null) {
+            return;
+        }
 
         // --- parse params ---
         Long movieId = parseLong(req.getParameter("movieId"));

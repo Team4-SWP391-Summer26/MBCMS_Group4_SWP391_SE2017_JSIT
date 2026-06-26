@@ -184,6 +184,7 @@ public class SeatDAOImpl extends BaseDAO implements SeatDAO {
 
     @Override
     public boolean updateSeatType(long seatId, String seatType) {
+        // PreparedStatement (dau ?) -> chong SQL Injection, khong noi chuoi truc tiep.
         String sql = "UPDATE dbo.seats SET seat_type = ? WHERE seat_id = ?";
 
         Connection conn = null;

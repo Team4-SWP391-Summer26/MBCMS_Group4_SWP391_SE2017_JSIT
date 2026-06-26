@@ -50,7 +50,16 @@ public class VnPayCallbackService {
         this.bookingDao = bookingDao;
     }
 
+    // ====================================================================
+    // PHAN 2 - VE (loi xu ly chinh): 3 lop kiem tra an toan TRUOC khi ghi tien.
+    //   KIEM 1: chu ky HMAC-SHA512 dung khong?  -> chong gia mao callback
+    //   KIEM 2: ma phan hoi == "00"?            -> giao dich co thuc su thanh cong?
+    //   KIEM 3: so tien khop booking?           -> chong sua so tien tren URL
+    // Qua het 3 -> markPaymentSuccess() ghi DB. Dung dung 1 trong 8 Outcome o tren.
+    // ====================================================================
     public Result process(Map<String, String> vnpParams) {
+        // [KIEM 1] CHU KY: verify HMAC-SHA512 (+ constantTimeEquals). Sai -> dung ngay,
+        // khong tin callback gia mao.
         if (!VnPayUtil.verifyReturn(vnpParams)) {
             return new Result(Outcome.INVALID_SIGNATURE, null);
         }
@@ -66,12 +75,14 @@ public class VnPayCallbackService {
             return new Result(Outcome.BOOKING_NOT_FOUND, null);
         }
 
+        // [KIEM 2] MA PHAN HOI: chi "00" la thanh cong, khac -> that bai.
         String responseCode = vnpParams.get("vnp_ResponseCode");
         String transStatus = vnpParams.get("vnp_TransactionStatus");
         if (!VnPayUtil.isSuccessResponse(responseCode, transStatus)) {
             return new Result(Outcome.PAYMENT_FAILED, booking);
         }
 
+        // [KIEM 3] SO TIEN: vnp_Amount/100 phai bang booking.totalAmount -> chong sua tien tren URL.
         String amountStr = vnpParams.get("vnp_Amount");
         if (amountStr == null || amountStr.isBlank()) {
             return new Result(Outcome.AMOUNT_MISMATCH, booking);
@@ -92,6 +103,7 @@ public class VnPayCallbackService {
             gatewayRef = txnRef;
         }
 
+        // Qua ca 3 kiem -> ghi DB trong 1 transaction (idempotent).
         PaymentService.Result pr = paymentService.markPaymentSuccess(
                 bookingId, Payment.METHOD_VNPAY,
                 booking.getCustomerUsername(), gatewayRef);

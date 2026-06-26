@@ -52,7 +52,7 @@ public class PaymentInvoicePdfServlet extends HttpServlet {
             resp.sendError(HttpServletResponse.SC_NOT_FOUND, "Booking not found.");
             return;
         }
-        // Branch Manager: chi cho phep booking thuoc branch cua minh.
+        // [SCOPE] Branch Manager chi tai duoc booking thuoc branch cua minh; Admin tai moi booking.
         if (!emp.isAdmin()) {
             Long branchId = (Long) session.getAttribute("currentBranchId");
             if (branchId == null || ticket.getBranchId() != branchId) {
@@ -62,12 +62,15 @@ public class PaymentInvoicePdfServlet extends HttpServlet {
         }
 
         Payment payment = paymentDao.findByBookingId(bookingId);
+        // Doi paid_at tu UTC (luu trong DB) sang gio Viet Nam de in dung gio tren hoa don.
         LocalDateTime paidAtVn = (payment != null && payment.getPaidAt() != null)
                 ? payment.getPaidAt().atZone(ZoneOffset.UTC).withZoneSameInstant(VN_ZONE).toLocalDateTime()
                 : null;
 
+        // Dung file PDF bang iText 7 (tra ve mang byte trong bo nho).
         byte[] pdf = InvoicePdfUtil.build(ticket, payment, paidAtVn);
         resp.setContentType("application/pdf");
+        // attachment -> trinh duyet TAI XUONG file (khong mo inline).
         resp.setHeader("Content-Disposition",
                 "attachment; filename=\"invoice-" + ticket.getBookingCode() + ".pdf\"");
         resp.setContentLength(pdf.length);

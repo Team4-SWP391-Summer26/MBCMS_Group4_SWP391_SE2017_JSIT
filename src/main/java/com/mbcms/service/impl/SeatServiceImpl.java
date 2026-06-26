@@ -49,14 +49,19 @@ public class SeatServiceImpl implements SeatService {
 
     @Override
     public boolean updateSeatType(long seatId, long roomId, String seatType) {
+        // (1) Ghe phai thuoc dung phong gui len -> chong gia mao seatId cua phong khac.
         verifySeatInRoom(seatId, roomId);
+        // (2) Co ve cho suat chieu tuong lai -> CHAN (doi loai lam doi gia, khong duoc
+        //     doi ghe khach da mua: tranh mua VIP ma thanh Standard).
         if (seatDAO.hasFutureBookings(seatId)) {
             throw new IllegalArgumentException(
                     "Không thể thay đổi loại ghế này vì đang có vé đặt trước cho suất chiếu trong tương lai.");
         }
+        // (3) Whitelist: chi nhan STANDARD hoac VIP. KHONG tin client (co the gui gia tri bay).
         if (seatType == null || (!seatType.equals(Seat.TYPE_STANDARD) && !seatType.equals(Seat.TYPE_VIP))) {
             throw new IllegalArgumentException("Loại ghế không hợp lệ (STANDARD, VIP).");
         }
+        // Qua ca 3 kiem tra -> ghi xuong DB.
         return seatDAO.updateSeatType(seatId, seatType);
     }
 
