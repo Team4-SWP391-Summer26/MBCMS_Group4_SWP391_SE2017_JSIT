@@ -7,7 +7,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>All Movies - MBCMS</title>
+    <title>All Movies - PentaPlex</title>
     <!-- Include Bootstrap 5 and Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
@@ -457,7 +457,7 @@
             <a href="${pageContext.request.contextPath}/home">Home</a> / <span>Movies</span>
         </div>
         <h1 class="page-title">All Movies</h1>
-        <p class="page-subtitle">Showing <strong>${fn:length(movies)}</strong> movies across all LuminaCine locations.</p>
+        <p class="page-subtitle">Showing <strong>${fn:length(movies)}</strong> movies across all PentaPlex locations.</p>
 
         <!-- Filters Form -->
         <form method="GET" action="${pageContext.request.contextPath}/movies" id="filterForm">

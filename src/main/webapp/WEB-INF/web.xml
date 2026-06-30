@@ -4,7 +4,7 @@
          xsi:schemaLocation="https://jakarta.ee/xml/ns/jakartaee https://jakarta.ee/xml/ns/jakartaee/web-app_6_0.xsd"
          version="6.0">
 
-    <display-name>MBCMS</display-name>
+    <display-name>PentaPlex</display-name>
 
     <!-- ===== Encoding Filter (đặt TRƯỚC tất cả filter khác) ===== -->
     <filter>
