@@ -12,7 +12,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Payment Receipt · ${ticket.bookingCode} – MBCMS</title>
+    <title>Payment Receipt · ${ticket.bookingCode} – PentaPlex</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <link href="${pageContext.request.contextPath}/assets/css/main.css?v=${applicationScope.assetVersion}" rel="stylesheet">
@@ -106,7 +106,7 @@
     <div class="rc-card">
         <div class="rc-head">
             <div>
-                <div class="rc-brand"><i class="bi bi-camera-reels-fill"></i> MBCMS</div>
+                <div class="rc-brand"><i class="bi bi-camera-reels-fill"></i> PentaPlex</div>
                 <div class="rc-issued mt-4">
                     <div class="lbl">Issued to</div>
                     <div class="nm"><c:out value="${ticket.customerFullName}"/></div>
@@ -207,7 +207,7 @@
         </div>
 
         <div class="rc-note">
-            Thank you for choosing <strong>MBCMS</strong>. This receipt is your proof of payment.
+            Thank you for choosing <strong>PentaPlex</strong>. This receipt is your proof of payment.
         </div>
     </div>
 
