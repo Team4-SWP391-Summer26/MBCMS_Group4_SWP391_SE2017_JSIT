@@ -25,7 +25,7 @@
         .lc-topbar-breadcrumb { font-size: .82rem; color: var(--lc-muted); }
         .lc-topbar-breadcrumb a { color: var(--lc-muted); text-decoration: none; }
         .lc-topbar-breadcrumb a:hover { color: var(--lc-primary); }
-        .lc-topbar-title { font-size: 1.45rem; font-weight: 800; color: #0f1e36; margin-top: 1px; }
+        .lc-topbar-title { font-size: 1.45rem; font-weight: 800; color: var(--navy); margin-top: 1px; }
 
         /* ── Panel card ──────────────────────────────────── */
         .lc-panel {
@@ -35,7 +35,7 @@
         .lc-panel-header {
             padding: 1.1rem 1.4rem;
             border-bottom: 1px solid var(--lc-border);
-            font-size: .88rem; font-weight: 700; color: #0f1e36;
+            font-size: .88rem; font-weight: 700; color: var(--navy);
             display: flex; align-items: center; gap: .5rem;
         }
 
@@ -56,14 +56,14 @@
         .lc-input {
             border: 1px solid var(--lc-border); border-radius: 8px;
             padding: .5rem .75rem; font-size: .88rem; width: 100%;
-            background: #fff; color: #0f1e36;
+            background: #fff; color: var(--navy);
             transition: border-color .15s, box-shadow .15s;
         }
         .lc-input:focus {
             outline: none; border-color: var(--lc-primary);
             box-shadow: 0 0 0 3px rgba(37,99,235,.1);
         }
-        .lc-input[readonly] { background: #F8FAFC; color: var(--lc-muted); cursor: not-allowed; }
+        .lc-input[readonly] { background: var(--lc-bg); color: var(--lc-muted); cursor: not-allowed; }
         .lc-input-group { margin-bottom: .9rem; }
         .lc-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; }
 
@@ -78,7 +78,7 @@
         }
         .role-picker-card:hover { border-color: #93C5FD; background: #F8FAFF; }
         .role-picker-input:checked + .role-picker-card {
-            border-color: var(--lc-primary); background: #EFF6FF;
+            border-color: var(--lc-primary); background: var(--lc-light);
             box-shadow: 0 0 0 1.5px var(--lc-primary);
         }
         .role-icon {
@@ -86,7 +86,7 @@
             display: flex; align-items: center; justify-content: center;
             font-size: 1rem; margin-bottom: .2rem;
         }
-        .role-name { font-size: .82rem; font-weight: 700; color: #0f1e36; }
+        .role-name { font-size: .82rem; font-weight: 700; color: var(--navy); }
         .role-desc { font-size: .72rem; color: var(--lc-muted); line-height: 1.3; }
 
         /* ── Status / action cards ───────────────────────── */
@@ -94,7 +94,7 @@
             border: 1px solid var(--lc-border); border-radius: 12px;
             padding: .9rem 1rem; margin-bottom: .75rem;
         }
-        .lc-status-title { font-size: .82rem; font-weight: 700; color: #0f1e36; }
+        .lc-status-title { font-size: .82rem; font-weight: 700; color: var(--navy); }
         .lc-status-sub   { font-size: .75rem; color: var(--lc-muted); }
 
         /* ── Buttons ─────────────────────────────────────── */
@@ -107,7 +107,7 @@
         .lc-btn-primary { background: var(--lc-primary); color: #fff; }
         .lc-btn-primary:hover { background: var(--lc-primary-700); color: #fff; }
         .lc-btn-ghost { background: var(--lc-light); color: #374151; border: 1px solid var(--lc-border); }
-        .lc-btn-ghost:hover { background: #E2E8F0; color: #0f1e36; }
+        .lc-btn-ghost:hover { background: var(--lc-border); color: var(--navy); }
         .lc-btn-danger-soft { background: #FEE2E2; color: #991B1B; border: 1px solid #FECACA; }
         .lc-btn-danger-soft:hover { background: #FECACA; }
         .lc-btn-warn-soft { background: #FEF3C7; color: #92400E; border: 1px solid #FDE68A; }
@@ -269,8 +269,8 @@
                                         <div class="lc-status-title">Account Status</div>
                                         <div class="lc-status-sub">
                                             <c:choose>
-                                                <c:when test="${user.active}"><span style="color:#16A34A;">● Active</span></c:when>
-                                                <c:otherwise><span style="color:#94a3b8;">○ Inactive</span></c:otherwise>
+                                                <c:when test="${user.active}"><span style="color:var(--success);">● Active</span></c:when>
+                                                <c:otherwise><span style="color:var(--text-subtle);">○ Inactive</span></c:otherwise>
                                             </c:choose>
                                         </div>
                                     </div>
@@ -436,7 +436,7 @@
                                            class="role-picker-input"
                                            ${(isAdd and empty param.role) or (!isAdd and user.role == 'CUSTOMER') ? 'checked' : (param.role == 'CUSTOMER' ? 'checked' : '')}>
                                     <label for="roleCustomer" class="role-picker-card">
-                                        <div class="role-icon" style="background:#EFF6FF;color:#2563EB;">
+                                        <div class="role-icon" style="background:var(--lc-light);color:var(--lc-primary);">
                                             <i class="bi bi-person"></i>
                                         </div>
                                         <div class="role-name">Customer</div>
@@ -478,7 +478,7 @@
                                            class="role-picker-input"
                                            ${(!isAdd and user.role == 'ADMIN') ? 'checked' : (param.role == 'ADMIN' ? 'checked' : '')}>
                                     <label for="roleAdmin" class="role-picker-card">
-                                        <div class="role-icon" style="background:#FEF2F2;color:#DC2626;">
+                                        <div class="role-icon" style="background:#FEF2F2;color:var(--danger);">
                                             <i class="bi bi-shield-fill"></i>
                                         </div>
                                         <div class="role-name">Admin</div>

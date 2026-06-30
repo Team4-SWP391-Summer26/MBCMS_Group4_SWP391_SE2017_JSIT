@@ -1,23 +1,11 @@
+@import "tokens.css";
 /* ============================================================
    manager.css - Manager/Admin console layout (owner: HungNT)
    Port tu "Frontend demo" prototype
    de cac man /branch/* dong nhat voi thiet ke da duyet trong SRS.
-   KHONG dung den main.css (style chung cua team).
+   Token (--lc-*, font, shadow) nay duoc dinh nghia trong tokens.css
+   (chung mot nguon voi main.css).
    ============================================================ */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@500;600;700;800&display=swap');
-
-:root {
-    /* Bien rieng cua console, map theo prototype --lc-* */
-    --lc-primary: #2563EB;
-    --lc-primary-700: #1D4ED8;
-    --lc-navy: #0F2247;
-    --lc-light: #EFF4FF;
-    --lc-gold: #FFD66B;
-    --lc-bg: #F5F7FA;
-    --lc-border: #E6EAF2;
-    --lc-muted: #64748B;
-    --lc-shadow: 0 4px 12px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.04);
-}
 
 body.lc-console {
     background: var(--lc-bg);
@@ -47,7 +35,7 @@ body.lc-console h3 { font-weight: 700; }
     background: var(--lc-navy);
     color: #fff;
     width: 240px;
-    min-height: 100vh;
+    height: 100vh;
     position: fixed;
     left: 0;
     top: 0;
@@ -56,6 +44,24 @@ body.lc-console h3 { font-weight: 700; }
     box-shadow: 2px 0 12px rgba(0, 0, 0, .06);
     display: flex;
     flex-direction: column;
+    overflow-y: auto;
+    /* Firefox: thin, subtle scrollbar that blends with the navy sidebar */
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, .18) transparent;
+}
+/* WebKit (Chrome/Edge): slim, theme-matched scrollbar */
+.lc-sidebar::-webkit-scrollbar {
+    width: 6px;
+}
+.lc-sidebar::-webkit-scrollbar-track {
+    background: transparent;
+}
+.lc-sidebar::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, .15);
+    border-radius: 999px;
+}
+.lc-sidebar:hover::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, .30);
 }
 .lc-sb-brand {
     font-weight: 800;
@@ -161,7 +167,7 @@ body.lc-console h3 { font-weight: 700; }
     box-shadow: var(--lc-shadow);
 }
 .text-navy {
-    color: #0f1e36;
+    color: var(--navy);
 }
 
 /* ---------- Branch scope notice ---------- */
@@ -527,16 +533,16 @@ body.lc-console h3 { font-weight: 700; }
 
 /* Custom Typography & General Console overrides */
 body.lc-console {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    color: #1e293b;
+    font-family: var(--font-sans);
+    color: var(--text);
 }
 
-/* Redesigned Sidebar */
+/* Redesigned Sidebar (tokenized + WCAG-safe contrast on dark navy) */
 .lc-sidebar {
-    background: #0f172a;
+    background: var(--navy);
     width: 250px;
     padding: 24px 16px;
-    border-right: 1px solid #1e293b;
+    border-right: 1px solid rgba(255, 255, 255, .06);
 }
 .lc-sb-brand {
     font-size: 1.35rem;
@@ -547,12 +553,12 @@ body.lc-console {
     gap: 8px;
 }
 .lc-sb-brand-icon {
-    color: #fbbf24;
+    color: var(--gold);
     font-size: 1.5rem;
 }
 .lc-sb-subtitle {
     font-size: 0.65rem;
-    color: #64748b;
+    color: rgba(255, 255, 255, .55);
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.1em;
@@ -560,36 +566,36 @@ body.lc-console {
 .lc-sb-section {
     font-size: 0.68rem;
     font-weight: 700;
-    color: #475569;
+    color: rgba(255, 255, 255, .5);
     padding: 20px 8px 8px;
 }
 .lc-sb-item {
     padding: 10px 14px;
     font-size: 0.88rem;
-    color: #94a3b8;
+    color: rgba(255, 255, 255, .72);
     border-radius: 8px;
     margin-bottom: 4px;
 }
 .lc-sb-item:hover {
-    background: #1e293b;
-    color: #f8fafc;
+    background: rgba(255, 255, 255, .08);
+    color: #ffffff;
 }
 .lc-sb-item.active {
-    background: #2563eb;
+    background: var(--primary);
     color: #ffffff;
 }
 .lc-sb-item.active::before {
     display: none; /* remove old gold bar */
 }
 .lc-sb-user {
-    background: #1e293b;
-    border: 1px solid #334155;
+    background: rgba(255, 255, 255, .05);
+    border: 1px solid rgba(255, 255, 255, .08);
     padding: 12px;
 }
 .lc-sb-avatar {
     width: 38px;
     height: 38px;
-    background: #ef4444; /* red avatar for SA */
+    background: var(--primary);
     color: #ffffff;
     font-size: 0.95rem;
 }
@@ -597,7 +603,7 @@ body.lc-console {
 /* Main Panel Layout */
 .lc-admin-main {
     margin-left: 250px;
-    background: #f8fafc;
+    background: var(--bg);
 }
 
 /* Header badge & controls */

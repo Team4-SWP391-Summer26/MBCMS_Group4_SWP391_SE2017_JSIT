@@ -18,8 +18,7 @@
     <link href="${pageContext.request.contextPath}/assets/css/main.css?v=${applicationScope.assetVersion}" rel="stylesheet">
     <style>
         :root {
-            --bk-primary:#2563EB; --bk-navy:#0F1E36; --bk-border:#E6EAF2;
-            --bk-muted:#64748B; --bk-light:#EFF4FF; --bk-bg:#F5F7FA;
+            /* --bk-* tokens come from tokens.css */
             --seat-w:34px; --seat-h:32px; --seat-gap:7px; --aisle-w:30px; --rl-w:24px;
         }
         body { background: var(--bk-bg); }
@@ -34,13 +33,13 @@
 
         /* ===== Stepper ===== */
         .bk-steps { display:flex; align-items:center; }
-        .bk-step { display:flex; align-items:center; gap:.5rem; font-size:.9rem; font-weight:600; color:#94a3b8; white-space:nowrap; }
+        .bk-step { display:flex; align-items:center; gap:.5rem; font-size:.9rem; font-weight:600; color:var(--text-subtle); white-space:nowrap; }
         .bk-step .bk-dot { width:26px; height:26px; border-radius:999px; display:flex; align-items:center;
-            justify-content:center; font-size:.78rem; background:#E2E8F0; color:#64748b; flex-shrink:0; }
-        .bk-step.done { color:#16a34a; } .bk-step.done .bk-dot { background:#16a34a; color:#fff; }
+            justify-content:center; font-size:.78rem; background:var(--border); color:var(--text-muted); flex-shrink:0; }
+        .bk-step.done { color:var(--success); } .bk-step.done .bk-dot { background:var(--success); color:#fff; }
         .bk-step.active { color:var(--bk-primary); } .bk-step.active .bk-dot { background:var(--bk-primary); color:#fff; }
-        .bk-line { flex:1; height:2px; background:#E2E8F0; margin:0 .5rem; min-width:10px; }
-        .bk-line.done { background:#16a34a; }
+        .bk-line { flex:1; height:2px; background:var(--border); margin:0 .5rem; min-width:10px; }
+        .bk-line.done { background:var(--success); }
 
         /* ===== Man chieu (curved screen) ===== */
         .screen-wrap { margin: 4px 0 24px; }
@@ -53,7 +52,7 @@
         .seat-header, .seat-row { display:flex; align-items:center; gap:var(--seat-gap); }
         .seat-row { margin-bottom:var(--seat-gap); }
         .row-label { width:var(--rl-w); font-size:.72rem; font-weight:700; color:var(--bk-muted); text-align:center; flex-shrink:0; }
-        .col-num { width:var(--seat-w); font-size:.68rem; font-weight:600; color:#94a3b8; text-align:center; flex-shrink:0; }
+        .col-num { width:var(--seat-w); font-size:.68rem; font-weight:600; color:var(--text-subtle); text-align:center; flex-shrink:0; }
         .aisle { width:var(--aisle-w); flex-shrink:0; }
 
         .seat-btn {
@@ -66,10 +65,10 @@
         .seat-btn:focus { outline:none; }
 
         /* Trong - Thuong */
-        .seat-available { background:#f0f7ff; border-color:#7cb0f5; color:#1d4ed8; }
-        .seat-available:hover { background:#dbeafe; box-shadow:0 0 0 3px rgba(37,99,235,.25); transform:translateY(-2px); }
+        .seat-available { background:#f0f7ff; border-color:#7cb0f5; color:var(--primary-700); }
+        .seat-available:hover { background:var(--primary-100); box-shadow:0 0 0 3px rgba(37,99,235,.25); transform:translateY(-2px); }
         /* Bạn đang chọn */
-        .seat-selected { background:#16a34a !important; border-color:#15803d !important; color:#fff !important;
+        .seat-selected { background:var(--success) !important; border-color:#15803d !important; color:#fff !important;
             box-shadow:0 0 0 3px rgba(22,163,74,.30); }
         /* Người khác đang chọn (soft-lock) */
         .seat-soft-locked { background:#fef3c7; border-color:#f59e0b; color:#92400e; cursor:not-allowed;
@@ -78,7 +77,7 @@
         /* Đã đặt */
         .seat-booked { background:#fee2e2; border-color:#fca5a5; color:#b91c1c; cursor:not-allowed; opacity:.85; }
         /* Bảo trì - dau X */
-        .seat-maintenance { background:#f3f4f6; border-color:#d1d5db; color:#9ca3af; cursor:not-allowed; }
+        .seat-maintenance { background:#f3f4f6; border-color:var(--border-strong); color:#9ca3af; cursor:not-allowed; }
         .seat-maintenance i { font-size:.85rem; }
         /* VIP (con trong) - vang */
         .seat-VIP.seat-available { background:#fef3c7; border-color:#f59e0b; color:#92400e; }
@@ -198,10 +197,10 @@
                 <div class="d-flex flex-wrap gap-3 mt-4 pt-3" style="border-top:1px solid var(--bk-border);">
                     <div class="legend-item"><div class="legend-box" style="background:#f0f7ff;border-color:#7cb0f5;"></div>Available</div>
                     <div class="legend-item"><div class="legend-box" style="background:#fef3c7;border-color:#f59e0b;"></div>VIP</div>
-                    <div class="legend-item"><div class="legend-box" style="background:#16a34a;border-color:#15803d;"></div>Selected</div>
+                    <div class="legend-item"><div class="legend-box" style="background:var(--success);border-color:#15803d;"></div>Selected</div>
                     <div class="legend-item"><div class="legend-box" style="background:#fef3c7;border-color:#f59e0b;animation:soft-pulse 1.8s ease-in-out infinite;"></div>Held by others</div>
                     <div class="legend-item"><div class="legend-box" style="background:#fee2e2;border-color:#fca5a5;"></div>Booked</div>
-                    <div class="legend-item"><div class="legend-box" style="background:#f3f4f6;border-color:#d1d5db;"></div>Maintenance</div>
+                    <div class="legend-item"><div class="legend-box" style="background:#f3f4f6;border-color:var(--border-strong);"></div>Maintenance</div>
                 </div>
             </div>
         </div>
@@ -222,7 +221,7 @@
                     </button>
                 </div>
                 <div class="sel-empty text-center py-4">
-                    <i class="bi bi-grid-3x3-gap" style="font-size:1.8rem;color:#cbd5e1;"></i>
+                    <i class="bi bi-grid-3x3-gap" style="font-size:1.8rem;color:var(--border-strong);"></i>
                     <div class="mt-2">No seats selected yet.<br>Tap an available seat to choose.</div>
                 </div>
 

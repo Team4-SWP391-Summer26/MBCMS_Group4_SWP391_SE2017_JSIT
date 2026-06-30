@@ -8,7 +8,7 @@
                     <!-- Logo SVG -->
                     <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"
                          style="border-radius: 8px;">
-                        <rect width="32" height="32" rx="8" fill="#182c54" />
+                        <rect width="32" height="32" rx="8" fill="#0F1E36" />
                         <!-- film strip dots -->
                         <rect x="4" y="3" width="3" height="3" rx="1" fill="#FFFFFF" opacity="0.3" />
                         <rect x="11" y="3" width="3" height="3" rx="1" fill="#FFFFFF" opacity="0.3" />
@@ -104,7 +104,7 @@
         <!-- Bottom Bar -->
         <div class="bottom-bar flex-column flex-md-row gap-3">
             <div class="mb-3 mb-md-0 text-secondary" style="font-size: 0.85rem;">
-                <span>&copy; 2026 MBCMS. All rights reserved.</span>
+                <span>&copy; 2026 LuminaCine. All rights reserved.</span>
                 <span class="mx-2">&middot;</span>
                 <a href="#" class="text-secondary hover-white text-decoration-none">Terms</a>
                 <span class="mx-1">&middot;</span>

@@ -20,7 +20,7 @@
                 border-radius: 9999px;
             }
             .status-pending { background-color: #fef3c7; color: #d97706; }
-            .status-preparing { background-color: #dbeafe; color: #2563eb; }
+            .status-preparing { background-color: var(--primary-100); color: var(--primary); }
             .status-ready { background-color: #d1fae5; color: #059669; }
             .status-delivered { background-color: #f3f4f6; color: #4b5563; }
 

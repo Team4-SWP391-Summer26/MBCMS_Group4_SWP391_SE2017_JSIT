@@ -1,4 +1,4 @@
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+﻿<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
@@ -17,7 +17,7 @@
                 border: 2px solid var(--lc-border);
                 border-radius: 12px;
                 background: #fff;
-                color: #0f1e36;
+                color: var(--navy);
                 padding: 1rem;
                 display: block;
                 cursor: pointer;
@@ -36,8 +36,8 @@
                 border-radius: 8px;
             }
             .type-icon.pct {
-                background-color: #dbeafe;
-                color: #2563eb;
+                background-color: var(--primary-100);
+                color: var(--primary);
             }
             .type-icon.fix {
                 background-color: #fef3c7;

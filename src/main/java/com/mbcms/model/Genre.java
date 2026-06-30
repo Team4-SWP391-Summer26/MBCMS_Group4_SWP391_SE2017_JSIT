@@ -7,6 +7,7 @@ public class Genre {
 
     private int genreId;
     private String name;
+    private int movieCount; // chi de hien thi o trang Manage genres (so phim dang dung)
 
     public Genre() {
     }
@@ -25,5 +26,13 @@ public class Genre {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public int getMovieCount() {
+        return movieCount;
+    }
+
+    public void setMovieCount(int movieCount) {
+        this.movieCount = movieCount;
     }
 }

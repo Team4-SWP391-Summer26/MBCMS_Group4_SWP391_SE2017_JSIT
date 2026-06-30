@@ -33,6 +33,7 @@ public class Booking {
     private List<String> seatLabels; // nhan hien thi: row_label + col_number (vd A5)
     private java.time.LocalDateTime showtimeStartTime;
     private String movieTitle;
+    private String posterUrl;
 
     public Booking() {
     }
@@ -155,5 +156,13 @@ public class Booking {
 
     public void setMovieTitle(String movieTitle) {
         this.movieTitle = movieTitle;
+    }
+
+    public String getPosterUrl() {
+        return posterUrl;
+    }
+
+    public void setPosterUrl(String posterUrl) {
+        this.posterUrl = posterUrl;
     }
 }

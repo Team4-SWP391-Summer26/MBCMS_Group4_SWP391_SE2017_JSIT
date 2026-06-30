@@ -16,7 +16,7 @@
         /* ── Category picker cards ──────────────────────── */
         .cat-card-btn {
             border: 2px solid var(--lc-border); border-radius: 12px;
-            background: #fff; color: #0f1e36;
+            background: #fff; color: var(--navy);
             padding: 1rem .75rem; display: block;
             cursor: pointer; transition: all .2s; user-select: none;
             text-align: center;
@@ -42,10 +42,10 @@
             width: 100%; height: 160px; object-fit: cover;
             background: #F1F5F9;
             display: flex; align-items: center; justify-content: center;
-            color: #94A3B8; font-size: 2.5rem;
+            color: var(--text-subtle); font-size: 2.5rem;
         }
         .preview-body { padding: 1rem; }
-        .preview-name { font-size: 1rem; font-weight: 700; color: #0f1e36; }
+        .preview-name { font-size: 1rem; font-weight: 700; color: var(--navy); }
         .preview-desc { font-size: .78rem; color: var(--lc-muted); margin-top: .2rem; }
         .preview-price { font-size: 1.25rem; font-weight: 800; color: var(--lc-primary); margin-top: .5rem; }
         .preview-meta  { font-size: .72rem; color: var(--lc-muted); margin-top: .35rem; }
@@ -341,7 +341,7 @@
         const stockVal = parseInt(stock, 10);
         const stockEl  = document.getElementById('previewStock');
         if (!isNaN(stockVal)) {
-            stockEl.textContent = stockVal === 0 ? '⚠ Out of stock' : stockVal + ' in stock';
+            stockEl.textContent = stockVal === 0 ? 'Out of stock' : stockVal + ' in stock';
             stockEl.style.color = stockVal === 0 ? '#B02A37' : '#64748B';
         } else {
             stockEl.textContent = '';

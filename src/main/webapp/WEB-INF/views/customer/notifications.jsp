@@ -11,7 +11,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <link href="${pageContext.request.contextPath}/assets/css/main.css?v=${applicationScope.assetVersion}" rel="stylesheet">
     <style>
-        body { background: #f3f6fb; }
+        body { background: var(--bg); }
 
         /* ── Sidebar (copied from profile.jsp pattern) ── */
         .lc-elev {
@@ -23,7 +23,7 @@
         .lc-avatar {
             width: 72px; height: 72px;
             border-radius: 50%;
-            background: linear-gradient(135deg,#2563eb,#1e3a5f);
+            background: linear-gradient(135deg,var(--primary),#1e3a5f);
             color: #fff;
             display: flex; align-items: center; justify-content: center;
             font-weight: 700; font-size: 1.55rem;
@@ -40,7 +40,7 @@
         .lc-navitem i { width: 18px; text-align: center; font-size: 1rem; }
         .lc-navitem .lc-badge {
             margin-left: auto;
-            background: #dc2626; color: #fff;
+            background: var(--danger); color: #fff;
             font-size: .67rem; font-weight: 700;
             padding: 1px 6px; border-radius: 99px;
             line-height: 1.5;
@@ -68,7 +68,7 @@
         }
         .new-badge {
             font-size: .72rem; font-weight: 700;
-            background: #dbeafe; color: #1d4ed8;
+            background: var(--primary-100); color: var(--primary-700);
             padding: 2px 9px; border-radius: 99px;
         }
         .mark-all-btn {
@@ -91,8 +91,8 @@
             padding: 5px 14px;
             border-radius: 99px;
             font-size: .78rem; font-weight: 600;
-            border: 1.5px solid #e5e7eb;
-            background: #fff; color: #6b7280;
+            border: 1.5px solid var(--border);
+            background: #fff; color: var(--text-muted);
             cursor: pointer; text-decoration: none;
             transition: all .12s;
             white-space: nowrap;
@@ -102,7 +102,7 @@
 
         /* ── Notification item ── */
         .nitem {
-            display: flex; align-items: flex-start; gap: 14px;
+            display: flex; align-items: center; gap: 14px;
             padding: 16px 24px;
             border-bottom: 1px solid #f1f5f9;
             border-left: 3px solid transparent;
@@ -111,15 +111,10 @@
             position: relative;
         }
         .nitem:last-child { border-bottom: none; }
-        .nitem:hover      { background: #f8fafc; }
+        .nitem:hover      { background: var(--bg); }
         .nitem.unread     { background: #f8fbff; }
 
-        /* Left border colour per type */
-        .nitem.BOOKING   { border-left-color: #2563eb; }
-        .nitem.PAYMENT   { border-left-color: #16a34a; }
-        .nitem.PROMOTION { border-left-color: #ea580c; }
-        .nitem.REMINDER  { border-left-color: #ca8a04; }
-        .nitem.SYSTEM    { border-left-color: #7c3aed; }
+        /* Unread được nhận biết qua nền + chấm cạnh tiêu đề; bỏ thanh màu trái gây rối. */
 
         /* Icon circle */
         .nicon {
@@ -127,8 +122,8 @@
             display: flex; align-items: center; justify-content: center;
             font-size: 1.05rem;
         }
-        .nicon.BOOKING   { background: #dbeafe; color: #2563eb; }
-        .nicon.PAYMENT   { background: #dcfce7; color: #16a34a; }
+        .nicon.BOOKING   { background: var(--primary-100); color: var(--primary); }
+        .nicon.PAYMENT   { background: #dcfce7; color: var(--success); }
         .nicon.PROMOTION { background: #ffedd5; color: #ea580c; }
         .nicon.REMINDER  { background: #fef9c3; color: #ca8a04; }
         .nicon.SYSTEM    { background: #ede9fe; color: #7c3aed; }
@@ -151,8 +146,8 @@
         }
         /* Highlight key info in content */
         .ncontent strong { color: var(--text-dark); }
-        .ncontent .hl-blue   { color: #2563eb; font-weight: 600; }
-        .ncontent .hl-green  { color: #16a34a; font-weight: 600; }
+        .ncontent .hl-blue   { color: var(--primary); font-weight: 600; }
+        .ncontent .hl-green  { color: var(--success); font-weight: 600; }
         .ncontent .hl-orange { color: #ea580c; font-weight: 600; }
 
         .nmeta {
@@ -173,7 +168,7 @@
             padding: 2px 9px; border-radius: 99px;
             white-space: nowrap;
         }
-        .ntype-badge.BOOKING   { background: #dbeafe; color: #1d4ed8; }
+        .ntype-badge.BOOKING   { background: var(--primary-100); color: var(--primary-700); }
         .ntype-badge.PAYMENT   { background: #dcfce7; color: #15803d; }
         .ntype-badge.PROMOTION { background: #ffedd5; color: #c2410c; }
         .ntype-badge.REMINDER  { background: #fef9c3; color: #92400e; }
@@ -184,7 +179,7 @@
         .btn-load-more {
             background: none; border: none;
             font-size: .85rem; font-weight: 600;
-            color: #6b7280; cursor: pointer;
+            color: var(--text-muted); cursor: pointer;
             transition: color .12s;
             display: inline-flex; align-items: center; gap: 6px;
         }
@@ -270,7 +265,7 @@
                         <hr style="margin:10px 0;border-color:#eef1f5;">
                         <form method="post" action="${pageContext.request.contextPath}/auth/logout" class="m-0">
                             <%@ include file="/WEB-INF/views/common/csrf-hidden.jspf" %>
-                            <button type="submit" class="lc-navitem" style="color:#dc3545;border:0;background:none;width:100%;text-align:left;cursor:pointer;">
+                            <button type="submit" class="lc-navitem" style="color:var(--danger);border:0;background:none;width:100%;text-align:left;cursor:pointer;">
                                 <i class="bi bi-box-arrow-right"></i> Sign out
                             </button>
                         </form>
@@ -317,7 +312,7 @@
                     <%-- Notification list (rendered by JS from API) --%>
                     <div id="notifPageList">
                         <div class="notif-empty-state">
-                            <div class="ei">⏳</div>
+                            <div class="ei"><i class="bi bi-hourglass-split"></i></div>
                             <h5>Loading...</h5>
                         </div>
                     </div>
@@ -440,7 +435,7 @@
                 if (state.filtered.length === 0) {
                     list.innerHTML =
                         '<div class="notif-empty-state">'
-                        + '<div class="ei">🔕</div>'
+                        + '<div class="ei"><i class="bi bi-bell-slash"></i></div>'
                         + '<h5>No notifications</h5>'
                         + '<p>Booking confirmations, payment receipts, and promotions will appear here.</p>'
                         + '</div>';
@@ -496,7 +491,7 @@
                 .catch(function () {
                     document.getElementById('notifPageList').innerHTML =
                         '<div class="notif-empty-state">'
-                        + '<div class="ei">⚠️</div>'
+                        + '<div class="ei"><i class="bi bi-exclamation-triangle"></i></div>'
                         + '<h5>Could not load notifications</h5>'
                         + '<p>Please refresh the page to try again.</p>'
                         + '</div>';

@@ -22,7 +22,7 @@
         .lc-topbar-breadcrumb { font-size: .82rem; color: var(--lc-muted); }
         .lc-topbar-breadcrumb a { color: var(--lc-muted); text-decoration: none; }
         .lc-topbar-breadcrumb a:hover { color: var(--lc-primary); }
-        .lc-topbar-title { font-size: 1.45rem; font-weight: 800; color: #0f1e36; margin-top: 1px; }
+        .lc-topbar-title { font-size: 1.45rem; font-weight: 800; color: var(--navy); margin-top: 1px; }
         .lc-admin-badge {
             background: #FEE2E2; color: #B91C1C;
             font-size: .68rem; font-weight: 700; letter-spacing: .06em;
@@ -49,7 +49,7 @@
         }
         .lc-kpi-label { font-size: .75rem; color: var(--lc-muted); font-weight: 600;
                         text-transform: uppercase; letter-spacing: .05em; }
-        .lc-kpi-value { font-size: 1.9rem; font-weight: 800; color: #0f1e36; line-height: 1.1; }
+        .lc-kpi-value { font-size: 1.9rem; font-weight: 800; color: var(--navy); line-height: 1.1; }
 
         /* ── Toolbar (search / filter / add) ────────────────── */
         .lc-toolbar {
@@ -69,7 +69,7 @@
         .lc-search-input:focus { outline: none; border-color: var(--lc-primary); box-shadow: 0 0 0 3px rgba(37,99,235,.1); }
         .lc-filter-select {
             height: 38px; border: 1px solid var(--lc-border); border-radius: 9px;
-            background: #fff; padding: 0 .8rem; font-size: .88rem; color: #0f1e36;
+            background: #fff; padding: 0 .8rem; font-size: .88rem; color: var(--navy);
         }
         .lc-filter-select:focus { outline: none; border-color: var(--lc-primary); }
         .lc-btn-add {
@@ -123,14 +123,14 @@
             padding: 1rem 1.2rem 1.2rem;
             flex: 1; display: flex; flex-direction: column; gap: .7rem;
         }
-        .lc-cinema-name { font-size: 1.05rem; font-weight: 800; color: #0f1e36; margin: 0; }
+        .lc-cinema-name { font-size: 1.05rem; font-weight: 800; color: var(--navy); margin: 0; }
         .lc-cinema-addr { font-size: .78rem; color: var(--lc-muted); margin: 0; }
         .lc-cinema-meta { display: flex; justify-content: space-between; font-size: .78rem; color: var(--lc-muted); }
         .lc-cinema-hours { font-size: .78rem; color: var(--lc-muted); }
         .lc-cinema-actions { display: flex; gap: .6rem; margin-top: auto; }
         .lc-btn-outline {
             flex: 1; padding: .5rem; border-radius: 8px; font-size: .82rem; font-weight: 600;
-            border: 1px solid var(--lc-border); background: #fff; color: #0f1e36;
+            border: 1px solid var(--lc-border); background: #fff; color: var(--navy);
             text-align: center; cursor: pointer;
             transition: background .12s, border-color .12s;
         }
@@ -166,7 +166,7 @@
         .modal-content { border: none; border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,.15); }
         .modal-header { border-bottom: 1px solid var(--lc-border); padding: 1.1rem 1.4rem; }
         .modal-footer { border-top: 1px solid var(--lc-border); padding: .9rem 1.4rem; }
-        .modal-title  { font-weight: 700; font-size: 1rem; color: #0f1e36; }
+        .modal-title  { font-weight: 700; font-size: 1rem; color: var(--navy); }
         .lc-form-label { font-size: .8rem; font-weight: 600; color: #374151; margin-bottom: .3rem; }
         .lc-form-control {
             border: 1px solid var(--lc-border); border-radius: 8px;
@@ -225,7 +225,7 @@
         <div class="row g-3 mb-4">
             <div class="col-6 col-md-3">
                 <div class="lc-kpi-card">
-                    <div class="lc-kpi-icon" style="background:#EFF6FF;color:#2563EB;">
+                    <div class="lc-kpi-icon" style="background:var(--lc-light);color:var(--lc-primary);">
                         <i class="bi bi-building-fill"></i>
                     </div>
                     <div>
@@ -236,7 +236,7 @@
             </div>
             <div class="col-6 col-md-3">
                 <div class="lc-kpi-card">
-                    <div class="lc-kpi-icon" style="background:#F0FDF4;color:#16A34A;">
+                    <div class="lc-kpi-icon" style="background:#F0FDF4;color:var(--success);">
                         <i class="bi bi-check-circle-fill"></i>
                     </div>
                     <div>
@@ -253,17 +253,6 @@
                     <div>
                         <div class="lc-kpi-label">Inactive</div>
                         <div class="lc-kpi-value">${totalCount - activeCount}</div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-6 col-md-3">
-                <div class="lc-kpi-card">
-                    <div class="lc-kpi-icon" style="background:#F5F3FF;color:#7C3AED;">
-                        <i class="bi bi-clock-fill"></i>
-                    </div>
-                    <div>
-                        <div class="lc-kpi-label">Avg. Hours</div>
-                        <div class="lc-kpi-value" style="font-size:1.3rem;">08:00–23:00</div>
                     </div>
                 </div>
             </div>
@@ -358,16 +347,6 @@
                                         <c:otherwise>—</c:otherwise>
                                     </c:choose>
                                 </span>
-                            </div>
-
-                            <div class="lc-cinema-hours">
-                                <i class="bi bi-clock me-1"></i>
-                                <c:choose>
-                                    <c:when test="${b.openingTime != null}">
-                                        ${b.openingTime} – ${b.closingTime}
-                                    </c:when>
-                                    <c:otherwise>Hours not set</c:otherwise>
-                                </c:choose>
                             </div>
 
                            <div class="lc-cinema-actions">
@@ -542,7 +521,7 @@
                     <div class="d-flex align-items-center justify-content-between p-3"
                          style="background:var(--lc-light);border-radius:10px;border:1px solid var(--lc-border);">
                         <div>
-                            <div style="font-size:.85rem;font-weight:600;color:#0f1e36;">Cinema Status</div>
+                            <div style="font-size:.85rem;font-weight:600;color:var(--navy);">Cinema Status</div>
                             <div style="font-size:.75rem;color:var(--lc-muted);">Inactive cinemas are hidden from customer booking</div>
                         </div>
                         <div class="form-check form-switch mb-0">

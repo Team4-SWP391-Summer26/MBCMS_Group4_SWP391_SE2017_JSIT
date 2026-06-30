@@ -79,7 +79,7 @@
                     <div class="col-sm-6 col-xl-3">
                         <div class="card lc-elev p-4 h-100" style="opacity:.65;">
                             <div class="d-flex align-items-center gap-3 mb-3">
-                                <div class="lc-stat-icon" style="background:#EEF1F4; color:#94a3b8;">
+                                <div class="lc-stat-icon" style="background:#EEF1F4; color:var(--text-subtle);">
                                     <i class="bi bi-cash-stack"></i></div>
                                 <div class="text-muted small fw-semibold">TODAY'S REVENUE</div>
                             </div>
@@ -107,11 +107,12 @@
                                     <th>Subtitle</th>
                                     <th class="text-center">Seats</th>
                                     <th>Status</th>
+                                    <th class="text-end">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <c:if test="${empty todayShowtimes}">
-                                    <tr><td colspan="7" class="text-center text-muted py-4">
+                                    <tr><td colspan="8" class="text-center text-muted py-4">
                                             No showtimes scheduled for today.</td></tr>
                                         </c:if>
                                         <c:forEach var="st" items="${todayShowtimes}">
@@ -137,6 +138,13 @@
                                                     <span class="pill pill-gray">${st.status}</span>
                                                 </c:otherwise>
                                             </c:choose>
+                                        </td>
+                                        <td class="text-end">
+                                            <c:if test="${st.status != 'CANCELLED'}">
+                                                <a class="btn btn-sm btn-outline-info py-0 px-2" style="font-size: .75rem;" title="Monitor occupancy"
+                                                   href="${pageContext.request.contextPath}/branch/showtimes/monitor?id=${st.showtimeId}">
+                                                    <i class="bi bi-eye"></i> Monitor</a>
+                                            </c:if>
                                         </td>
                                     </tr>
                                 </c:forEach>

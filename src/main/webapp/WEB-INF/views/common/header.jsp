@@ -1,12 +1,14 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%-- Bootstrap Icons (CDN dùng chung cho mọi trang qua header) --%>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 <nav class="navbar navbar-expand-lg navbar-custom">
     <div class="container">
         <!-- Brand/Logo -->
         <a class="navbar-brand d-flex align-items-center" href="${pageContext.request.contextPath}/home">
             <svg width="32" height="32" viewBox="0 0 32 32" fill="none"
                  xmlns="http://www.w3.org/2000/svg" style="border-radius: 8px;">
-                <rect width="32" height="32" rx="8" fill="#182c54" />
+                <rect width="32" height="32" rx="8" fill="#0F1E36" />
                 <rect x="4"  y="3"  width="3" height="3" rx="1" fill="#FFFFFF" opacity="0.3" />
                 <rect x="11" y="3"  width="3" height="3" rx="1" fill="#FFFFFF" opacity="0.3" />
                 <rect x="18" y="3"  width="3" height="3" rx="1" fill="#FFFFFF" opacity="0.3" />
@@ -17,8 +19,7 @@
                 <rect x="25" y="26" width="3" height="3" rx="1" fill="#FFFFFF" opacity="0.3" />
                 <path d="M13 11V21L21 16L13 11Z" fill="#FFC107" />
             </svg>
-            <span class="ms-2 fw-bold"
-                  style="color: #0F1E36; font-size: 1.35rem; letter-spacing: -0.5px;">MBCMS</span>
+            <span class="ms-2 fw-bold" style="color: #0F1E36; font-size: 1.35rem; letter-spacing: -0.5px;">MBCMS</span>
         </a>
 
         <!-- Mobile toggle -->
@@ -29,14 +30,19 @@
         </button>
 
         <!-- Nav items -->
+        <c:set var="activeMenu" value="${param.activeMenu}" />
         <div class="collapse navbar-collapse" id="navMenu">
             <ul class="navbar-nav ms-lg-5 me-auto mb-2 mb-lg-0 mt-2 mt-lg-0 gap-4">
                 <li class="nav-item">
-                    <a class="nav-link"
+                    <a class="nav-link <c:if test="${activeMenu == 'movies'}">active</c:if>"
                        href="${pageContext.request.contextPath}/movies?status=NOW_SHOWING">Movies</a>
                 </li>
-                <li class="nav-item"><a class="nav-link" href="#">Cinemas</a></li>
-                <li class="nav-item"><a class="nav-link" href="#">Promotions</a></li>
+                <li class="nav-item">
+                    <a class="nav-link <c:if test="${activeMenu == 'cinemas'}">active</c:if>" href="#">Cinemas</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link <c:if test="${activeMenu == 'promotions'}">active</c:if>" href="#">Promotions</a>
+                </li>
             </ul>
 
             <!-- Right Side Actions -->
@@ -61,47 +67,39 @@
 
                 <div class="d-flex align-items-center gap-3">
 
-                    <%-- ── Notification Bell (CUSTOMER only) ── --%>
-                    <c:if test="${not empty sessionScope.currentUser
-                                  and sessionScope.userRole == 'CUSTOMER'}">
-                          <div class="notif-wrap" style="position:relative;">
+                    <c:set var="role" value="${sessionScope.userRole}" />
 
-                              <%-- Bell trigger button – icon-only to match existing CSS --%>
-                              <button class="notification-btn" id="notifBell"
-                                      type="button" title="Thông báo" aria-label="Thông báo">
-                                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
-                                       stroke="currentColor" stroke-width="2"
-                                       stroke-linecap="round" stroke-linejoin="round">
-                                      <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-                                      <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
-                                  </svg>
-                                  <%-- Dot hidden by default; JS shows it when unreadCount > 0 --%>
-                                  <span class="notification-dot" id="notifDot"
-                                        style="display:none;"></span>
-                              </button>
+                    <%-- ── Notification Bell: chỉ dành cho CUSTOMER ── --%>
+                    <c:if test="${not empty sessionScope.currentUser and role == 'CUSTOMER'}">
+                    <div class="notif-wrap" style="position:relative;">
+                        <%-- Bell trigger button --%>
+                        <button class="notification-btn" id="notifBell"
+                                type="button" title="Thông báo" aria-label="Thông báo">
+                            <i class="bi bi-bell" style="font-size:1.05rem;"></i>
+                            <%-- Dot hidden by default; JS shows it when unreadCount > 0 --%>
+                            <span class="notification-dot" id="notifDot"
+                                  style="display:none;"></span>
+                        </button>
 
-                              <%-- Dropdown panel --%>
-                              <div class="notif-panel" id="notifPanel">
-
-                                  <div class="notif-panel-header">
-                                      <span>Notification</span>
-                                      <a href="#" id="notifMarkAll" class="notif-markall"
-                                         style="display:none;">Mark all as read</a>
-                                  </div>
-
-                                  <div class="notif-list" id="notifList">
-                                      <p class="notif-empty">Loading...</p>
-                                  </div>
-
-                                  <a href="${pageContext.request.contextPath}/customer/notifications"
-                                     class="notif-viewall">View all</a>
-                              </div>
-                          </div>
+                        <%-- Dropdown panel for Customer --%>
+                        <div class="notif-panel" id="notifPanel">
+                            <div class="notif-panel-header">
+                                <span>Notification</span>
+                                <a href="#" id="notifMarkAll" class="notif-markall"
+                                   style="display:none;">Mark all as read</a>
+                            </div>
+                            <div class="notif-list" id="notifList">
+                                <p class="notif-empty">Loading...</p>
+                            </div>
+                            <a href="${pageContext.request.contextPath}/customer/notifications"
+                               class="notif-viewall">View all</a>
+                        </div>
+                    </div>
                     </c:if>
 
                     <%-- ── Auth state ── --%>
                     <c:choose>
-                        <c:when test="${not empty sessionScope.currentUser}">
+                        <c:when test="${not empty sessionScope.currentUser and role == 'CUSTOMER'}">
                             <div class="dropdown">
                                 <a class="dropdown-toggle text-dark fw-semibold text-decoration-none
                                    d-flex align-items-center gap-2"
@@ -145,25 +143,6 @@
                                         </a>
                                     </li>
                                     <li>
-                                        <a class="dropdown-item py-2 px-3"
-                                           href="${pageContext.request.contextPath}/customer/notifications"
-                                           style="color:#4b5563;font-size:.9rem;
-                                           display:flex;align-items:center;gap:.5rem;">
-                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-                                                 stroke="currentColor" stroke-width="2">
-                                                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-                                                <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
-                                            </svg> Thông báo
-                                            <c:if test="${not empty sessionScope.userRole
-                                                          and sessionScope.userRole == 'CUSTOMER'}">
-                                                <%-- Unread count badge - loaded via JS --%>
-                                                <span id="dropdownUnreadBadge"
-                                                      class="badge bg-danger ms-auto"
-                                                      style="display:none;font-size:.65rem;"></span>
-                                            </c:if>
-                                        </a>
-                                    </li>
-                                    <li>
                                         <a class="dropdown-item py-2 px-3" href="${pageContext.request.contextPath}/customer/payments"
                                            style="color: #4b5563; font-size: 0.9rem; display: flex; align-items: center; gap: 0.5rem;">
                                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -204,6 +183,42 @@
                                 </ul>
                             </div>
                         </c:when>
+                        <%-- ── Admin / Branch Manager / Branch Staff: chỉ Dashboard + Logout ── --%>
+                        <c:when test="${not empty sessionScope.currentUser}">
+                            <c:choose>
+                                <c:when test="${role == 'ADMIN'}"><c:set var="dashUrl" value="/admin/dashboard" /></c:when>
+                                <c:when test="${role == 'BRANCH_STAFF'}"><c:set var="dashUrl" value="/staff/booking" /></c:when>
+                                <c:otherwise><c:set var="dashUrl" value="/branch/dashboard" /></c:otherwise>
+                            </c:choose>
+                            <div class="dropdown">
+                                <a class="dropdown-toggle fw-semibold text-decoration-none d-flex align-items-center gap-2"
+                                   href="#" data-bs-toggle="dropdown"
+                                   style="color:#1f2937 !important; font-size:.95rem;">
+                                    <i class="bi bi-person-circle" style="color:#4b5563; font-size:1.15rem;"></i>
+                                    ${sessionScope.currentUser.fullName}
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end border-0 shadow-sm"
+                                    style="border:1px solid #e5e7eb !important;border-radius:8px;">
+                                    <li>
+                                        <a class="dropdown-item py-2 px-3 d-flex align-items-center gap-2"
+                                           href="${pageContext.request.contextPath}${dashUrl}"
+                                           style="color:#4b5563;font-size:.9rem;">
+                                            <i class="bi bi-speedometer2"></i> Dashboard
+                                        </a>
+                                    </li>
+                                    <li><hr class="dropdown-divider" style="border-top:1px solid #e5e7eb;"></li>
+                                    <li>
+                                        <form method="post" action="${pageContext.request.contextPath}/auth/logout" class="d-inline m-0">
+                                            <%@ include file="/WEB-INF/views/common/csrf-hidden.jspf" %>
+                                            <button type="submit" class="dropdown-item py-2 px-3 text-danger border-0 bg-transparent w-100 text-start d-flex align-items-center gap-2"
+                                                    style="font-size:.9rem;">
+                                                <i class="bi bi-box-arrow-right"></i> Logout
+                                            </button>
+                                        </form>
+                                    </li>
+                                </ul>
+                            </div>
+                        </c:when>
                         <c:otherwise>
                             <a href="${pageContext.request.contextPath}/auth/login"
                                class="btn-signin text-decoration-none text-nowrap">Sign In</a>
@@ -217,9 +232,7 @@
     </div>
 </nav>
 
-<%-- ── Notification dropdown CSS + JS (only injected for CUSTOMER) ── --%>
-<c:if test="${not empty sessionScope.currentUser
-              and sessionScope.userRole == 'CUSTOMER'}">
+<%-- ── Notification dropdown CSS (Always loaded to prevent layout breaks) ── --%>
       <style>
           .notif-panel {
               display: none;
@@ -263,7 +276,7 @@
           .notif-markall {
               font-size: .75rem;
               font-weight: 600;
-              color: #2563eb;
+              color: var(--primary);
               text-decoration: none;
           }
           .notif-markall:hover {
@@ -279,6 +292,8 @@
               display: flex;
               gap: 10px;
               padding: 11px 16px;
+              padding-right: 30px;
+              align-items: flex-start;
               text-decoration: none;
               border-bottom: 1px solid #f8fafc;
               position: relative;
@@ -291,18 +306,18 @@
               background: #f8fafc;
           }
           .notif-item.unread {
-              background: #eff6ff;
+              background: var(--primary-50);
           }
-          .notif-item.unread::before {
+          .notif-item.unread::after {
               content: '';
               position: absolute;
-              left: 5px;
+              right: 14px;
               top: 50%;
               transform: translateY(-50%);
-              width: 5px;
-              height: 5px;
+              width: 8px;
+              height: 8px;
               border-radius: 50%;
-              background: #2563eb;
+              background: var(--primary);
           }
 
           .notif-item-icon {
@@ -315,12 +330,12 @@
               justify-content: center;
           }
           .notif-item-icon.BOOKING   {
-              background:#eff6ff;
-              color:#2563eb;
+              background:var(--primary-50);
+              color:var(--primary);
           }
           .notif-item-icon.PAYMENT   {
-              background:#f0fdf4;
-              color:#16a34a;
+              background:#dcfce7;
+              color:var(--success);
           }
           .notif-item-icon.PROMOTION {
               background:#fff7ed;
@@ -331,8 +346,8 @@
               color:#ca8a04;
           }
           .notif-item-icon.SYSTEM    {
-              background:#f8fafc;
-              color:#6b7280;
+              background:#ede9fe;
+              color:#7c3aed;
           }
 
           .notif-item-title {
@@ -373,7 +388,7 @@
               padding: 10px;
               font-size: .82rem;
               font-weight: 700;
-              color: #2563eb;
+              color: var(--primary);
               border-top: 1px solid #f1f5f9;
               text-decoration: none;
           }
@@ -382,6 +397,8 @@
           }
       </style>
 
+<c:if test="${not empty sessionScope.currentUser
+              and sessionScope.userRole == 'CUSTOMER'}">
       <script>
           document.addEventListener('DOMContentLoaded', function () {
               var ctx = '${pageContext.request.contextPath}';
@@ -529,4 +546,25 @@
               setInterval(loadNotifications, 30000);
           });
       </script>
+</c:if>
+
+<%-- Guest bell notifications panel toggle script --%>
+<c:if test="${empty sessionScope.currentUser or sessionScope.userRole != 'CUSTOMER'}">
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var bell = document.getElementById('notifBell');
+            var panel = document.getElementById('notifPanel');
+            if (bell && panel) {
+                bell.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    panel.classList.toggle('show');
+                });
+                document.addEventListener('click', function (e) {
+                    if (!panel.contains(e.target) && !bell.contains(e.target)) {
+                        panel.classList.remove('show');
+                    }
+                });
+            }
+        });
+    </script>
 </c:if>

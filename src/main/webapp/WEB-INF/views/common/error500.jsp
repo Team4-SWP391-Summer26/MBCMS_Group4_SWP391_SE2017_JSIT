@@ -14,7 +14,7 @@
 
         <div class="container py-5 d-flex align-items-center justify-content-center" style="min-height: 60vh;">
             <div class="card p-5 border-0 shadow-sm text-center" style="max-width: 480px; border-radius: 16px; background: #ffffff;">
-                <div class="mb-4 d-inline-flex align-items-center justify-content-center rounded-circle" style="width: 80px; height: 80px; background-color: #eff6ff; color: #2563eb; margin: 0 auto;">
+                <div class="mb-4 d-inline-flex align-items-center justify-content-center rounded-circle" style="width: 80px; height: 80px; background-color: var(--primary-50); color: var(--primary); margin: 0 auto;">
                     <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <circle cx="12" cy="12" r="3"></circle>
                     <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
@@ -22,7 +22,7 @@
                 </div>
 
                 <h1 class="fw-bold mb-2" style="font-size: 3rem; color: #1e293b;">500</h1>
-                <h4 class="fw-bold mb-3" style="color: #0f1e36;">Internal server error</h4>
+                <h4 class="fw-bold mb-3" style="color: var(--navy);">Internal server error</h4>
                 <p class="text-secondary mb-4" style="font-size: 0.95rem; line-height: 1.6;">
                     The system encountered a temporary technical issue. Our team is working on a fix. Please try again later.
                 </p>

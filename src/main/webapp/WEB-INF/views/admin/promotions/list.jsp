@@ -15,7 +15,7 @@
         <style>
             .badge-code {
                 background-color: #1e293b;
-                color: #f8fafc;
+                color: var(--lc-bg);
                 font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
                 font-weight: 700;
                 padding: 0.35em 0.65em;
@@ -34,7 +34,7 @@
             }
             .filter-tab:hover {
                 background: #f1f5f9;
-                color: #0f172a;
+                color: var(--navy);
             }
             .filter-tab.active {
                 background: var(--lc-primary);
@@ -42,12 +42,12 @@
             }
             .pill-global {
                 background-color: #f0fdf4;
-                color: #16a34a;
+                color: var(--success);
                 border: 1px solid #bbf7d0;
             }
             .pill-branch {
-                background-color: #eff6ff;
-                color: #2563eb;
+                background-color: var(--lc-light);
+                color: var(--lc-primary);
                 border: 1px solid #bfdbfe;
             }
         </style>

@@ -37,6 +37,11 @@ public class PaymentServlet extends HttpServlet {
     private final PaymentService paymentService = new PaymentServiceImpl();
     private final BookingDAO bookingDao = new BookingDAOImpl();
 
+    // ====================================================================
+    // PHAN 1 - DI (buoc 1/2): mo trang thanh toan. Nap booking PENDING (co
+    // owner-check) + tinh dong ho giu ghe 10 phut, roi forward sang payment.jsp.
+    // Khach bam "Thanh toan" tren do se POST sang FakeGatewayServlet (buoc 2).
+    // ====================================================================
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
@@ -53,24 +58,29 @@ public class PaymentServlet extends HttpServlet {
         }
 
         try {
+            // Nap booking PENDING + owner-check (nem loi neu khong phai chu / da tra / het han).
             Booking booking = paymentService.preparePayment(bookingId, customer.getUsername());
 
             req.setAttribute("booking", booking);
+            // So giay con lai cua dong ho giu ghe (10 phut) -> JS dem nguoc tren payment.jsp.
             req.setAttribute("remainingSeconds", remainingSeconds(booking));
             // err: tu callback chuyen ve (signature | failed) de hien canh bao
             req.setAttribute("payError", req.getParameter("err"));
             req.getRequestDispatcher(VIEW).forward(req, resp);
 
         } catch (SecurityException e) {
+            // Khong phai chu booking -> trang 403.
             resp.setStatus(HttpServletResponse.SC_FORBIDDEN);
             req.getRequestDispatcher("/WEB-INF/views/common/error403.jsp").forward(req, resp);
 
         } catch (IllegalStateException e) {
             // Da thanh toan -> xem chi tiet; con lai (het han) -> ve lich su
             if (e.getMessage() != null && e.getMessage().contains("already been paid")) {
+                // Da CONFIRMED roi (idempotent): khong cho tra lai, chuyen sang xem ve.
                 resp.sendRedirect(req.getContextPath()
                         + "/customer/booking/detail?bookingId=" + bookingId);
             } else {
+                // Het han giu ghe / trang thai khac -> ve lich su kem co bao het han.
                 resp.sendRedirect(req.getContextPath()
                         + "/customer/booking/history?expired=1");
             }
@@ -88,6 +98,7 @@ public class PaymentServlet extends HttpServlet {
         if (bookingDao.isPendingHoldExpired(booking.getBookingId())) {
             return 0;
         }
+        // So giay da troi = now(UTC) - created_at. Dung UTC cho khop voi DB (tranh lech mui gio).
         long elapsed = Duration.between(
                 booking.getCreatedAt(), java.time.LocalDateTime.now(java.time.ZoneOffset.UTC)).getSeconds();
         long remaining = 600 - elapsed;

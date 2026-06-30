@@ -40,9 +40,15 @@ public class FakeGatewayServlet extends HttpServlet {
         resp.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
     }
 
+    // ====================================================================
+    // PHAN 1 - DI (buoc 2/2): khach bam "Thanh toan" tren payment.jsp ->
+    // POST vao day. Nhiem vu: tao payment PENDING + dung URL VNPay co ky chu
+    // ky, roi DAY (redirect) khach sang cong VNPay Sandbox de nhap the test.
+    // ====================================================================
     private void handle(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
 
+        // (a) Bat buoc dang nhap Customer (khong cho khach la tra tien).
         Customer customer = BookingCustomerGuard.requireCustomer(req, resp);
         if (customer == null) {
             return;
@@ -60,14 +66,17 @@ public class FakeGatewayServlet extends HttpServlet {
             redirectToVnPay(req, resp, booking);
 
         } catch (SecurityException e) {
+            // Khong phai chu booking -> 403.
             resp.setStatus(HttpServletResponse.SC_FORBIDDEN);
             req.getRequestDispatcher("/WEB-INF/views/common/error403.jsp").forward(req, resp);
 
         } catch (IllegalStateException e) {
+            // Sai trang thai (da tra / het han) -> quay lai trang thanh toan de hien thong bao.
             resp.sendRedirect(req.getContextPath()
                     + "/booking/payment?bookingId=" + bookingId);
 
         } catch (IllegalArgumentException e) {
+            // Sai phuong thuc thanh toan -> quay lai kem err=method.
             resp.sendRedirect(req.getContextPath()
                     + "/booking/payment?bookingId=" + bookingId + "&err=method");
         }
@@ -82,10 +91,13 @@ public class FakeGatewayServlet extends HttpServlet {
             return;
         }
 
+        // returnUrl = noi VNPay se goi lai sau khi khach tra xong (browser redirect).
         String returnUrl = VnPayUtil.buildAppUrl(req, "/booking/payment/vnpay-return");
+        // So tien lay tu BOOKING (DB), KHONG lay tu client -> chong sua gia.
         long amountVnd = booking.getTotalAmount()
                 .setScale(0, RoundingMode.HALF_UP).longValue();
 
+        // Dung URL day du (co vnp_SecureHash). req.getRemoteAddr() = IP khach (VNPay yeu cau).
         String paymentUrl = VnPayUtil.buildPaymentUrl(
                 booking.getBookingId(),
                 booking.getBookingCode(),
