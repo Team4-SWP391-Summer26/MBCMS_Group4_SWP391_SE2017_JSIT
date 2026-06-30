@@ -57,12 +57,6 @@ public interface BookingService {
      */
     Booking confirmBooking(long bookingId, String customerUsername);
 
-    /**
-     * Cap nhat subtotal, discount va total_amount — chi PENDING + owner.
-     */
-    boolean updateBookingTotals(long bookingId, String customerUsername,
-            java.math.BigDecimal newSubtotal, java.math.BigDecimal discountAmount,
-            java.math.BigDecimal newTotalAmount);
 
     /** True neu booking PENDING da qua 10 phut (UTC, cung logic SQL). */
     boolean isPendingHoldExpired(long bookingId);
@@ -110,4 +104,9 @@ public interface BookingService {
      * BookingExpiryScheduler mỗi 60 giây.
      */
     int releaseExpiredLocks();
+    
+    int markCompletedBookingsAsUsed();
+    
+    Booking applyPromoToBooking(long bookingId, String customerUsername,
+            String promoCode, BigDecimal concessionsSubtotal);
 }

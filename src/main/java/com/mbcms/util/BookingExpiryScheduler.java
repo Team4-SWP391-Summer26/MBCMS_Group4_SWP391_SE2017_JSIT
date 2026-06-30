@@ -12,7 +12,10 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 /**
- * BookingExpiryScheduler - tu dong giai phong PENDING booking qua 10 phut.
+ * BookingExpiryScheduler:
+ *  1. Tu dong giai phong PENDING booking qua 10 phut (releaseExpiredLocks).
+ *  2. Tu dong danh dau CONFIRMED -> USED khi suat chieu da bat dau qua 30
+ *     phut (markCompletedBookingsAsUsed).
  *
  * Chay moi 60 giay. Duoc khoi dong khi deploy, tat khi undeploy.
  *
@@ -42,6 +45,16 @@ public class BookingExpiryScheduler implements ServletContextListener {
                 }
             } catch (Exception e) {
                 System.err.println("[BookingExpiryScheduler] Loi: " + e.getMessage());
+            }
+
+            try {
+                int used = bookingService.markCompletedBookingsAsUsed();
+                if (used > 0) {
+                    System.out.println("[BookingExpiryScheduler] Danh dau "
+                        + used + " booking CONFIRMED -> USED (qua 30 phut chieu).");
+                }
+            } catch (Exception e) {
+                System.err.println("[BookingExpiryScheduler] Loi markCompletedBookingsAsUsed: " + e.getMessage());
             }
         }, 60, 60, TimeUnit.SECONDS);
 
