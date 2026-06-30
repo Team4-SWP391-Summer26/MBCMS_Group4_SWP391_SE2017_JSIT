@@ -5,7 +5,7 @@ import com.mbcms.model.Customer;
 import com.mbcms.service.BookingService;
 import com.mbcms.service.impl.BookingServiceImpl;
 import com.mbcms.util.BookingCustomerGuard;
-import com.mbcms.util.QRCodeUtil;
+import com.mbcms.util.QrCodeUtil;
 
 import com.google.zxing.WriterException;
 
@@ -65,7 +65,7 @@ public class BookingQrServlet extends HttpServlet {
             resp.setHeader("Cache-Control", "private, max-age=300");
             try (OutputStream out = resp.getOutputStream()) {
                 // Ma hoa booking_code (vd "BK-000001") thanh QR 200x200 px bang ZXing.
-                QRCodeUtil.writePng(booking.getBookingCode(), QR_SIZE, out);
+                QrCodeUtil.writePng(booking.getBookingCode(), QR_SIZE, out);
             }
 
         } catch (SecurityException e) {

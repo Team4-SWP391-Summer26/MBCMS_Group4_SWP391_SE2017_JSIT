@@ -15,11 +15,11 @@ import java.util.EnumMap;
 import java.util.Map;
 
 /**
- * QRCodeUtil - sinh ma QR (PNG) phia server bang ZXing.
+ * QrCodeUtil - sinh ma QR (PNG) phia server bang ZXing.
  */
-public final class QRCodeUtil {
+public final class QrCodeUtil {
 
-    private QRCodeUtil() {}
+    private QrCodeUtil() {}
 
     /**
      * Ghi QR cua {@code text} ra {@code out} duoi dang PNG vuong {@code size}px.

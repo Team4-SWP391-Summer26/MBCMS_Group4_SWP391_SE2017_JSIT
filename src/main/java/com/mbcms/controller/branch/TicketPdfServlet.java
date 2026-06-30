@@ -22,7 +22,7 @@ import com.mbcms.model.Booking;
 import com.mbcms.model.BookingTicket;
 import com.mbcms.model.Seat;
 import com.mbcms.model.Showtime;
-import com.mbcms.util.QRCodeUtil;
+import com.mbcms.util.QrCodeUtil;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -89,7 +89,7 @@ public class TicketPdfServlet extends HttpServlet {
 
         try {
             // 1. Tạo QR Code dưới dạng bytes bằng ZXing
-            byte[] qrBytes = QRCodeUtil.generateQRCodeBytes(ticket.getBookingCode(), 200, 200);
+            byte[] qrBytes = QrCodeUtil.generateQRCodeBytes(ticket.getBookingCode(), 200, 200);
 
             // 2. Tạo PDF bằng iText 7
             ByteArrayOutputStream pdfBos = new ByteArrayOutputStream();
@@ -221,7 +221,7 @@ public class TicketPdfServlet extends HttpServlet {
         String timeDisplay = ticket.getStartTime().format(dtf);
 
         try {
-            byte[] qrBytes = QRCodeUtil.generateQRCodeBytes(ticket.getBookingCode(), 200, 200);
+            byte[] qrBytes = QrCodeUtil.generateQRCodeBytes(ticket.getBookingCode(), 200, 200);
 
             ByteArrayOutputStream pdfBos = new ByteArrayOutputStream();
             PdfWriter writer = new PdfWriter(pdfBos);
