@@ -1,4 +1,4 @@
-﻿<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
@@ -285,23 +285,28 @@
                                             </c:choose>
                                         </td>
                                         <td class="text-end pe-3">
-                                            <%-- Chi suat SCHEDULED & CHUA bat dau moi sua/huy (server van verify lai) --%>
-                                            <c:if test="${manageable}">
-                                                <div class="d-flex gap-1 justify-content-end">
-                                                    <a class="btn btn-sm btn-outline-primary" title="Edit"
-                                                       href="${pageContext.request.contextPath}/branch/showtimes/edit?id=${st.showtimeId}">
-                                                        <i class="bi bi-pencil"></i></a>
-                                                        <%-- Cancel = POST (hanh dong doi du lieu) + confirm --%>
-                                                    <form method="post" class="d-inline"
-                                                          action="${pageContext.request.contextPath}/branch/showtimes/cancel"
-                                                          onsubmit="return confirm('Cancel this showtime?');">
-            <%@ include file="/WEB-INF/views/common/csrf-hidden.jspf" %>
-                                                        <input type="hidden" name="id" value="${st.showtimeId}">
-                                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Cancel">
-                                                            <i class="bi bi-x-lg"></i></button>
-                                                    </form>
-                                                </div>
-                                            </c:if>
+                                             <div class="d-flex gap-1 justify-content-end">
+                                                 <c:if test="${st.status != 'CANCELLED'}">
+                                                     <a class="btn btn-sm btn-outline-info" title="Monitor occupancy"
+                                                        href="${pageContext.request.contextPath}/branch/showtimes/monitor?id=${st.showtimeId}">
+                                                         <i class="bi bi-eye"></i></a>
+                                                 </c:if>
+                                                 <%-- Chi suat SCHEDULED & CHUA bat dau moi sua/huy (server van verify lai) --%>
+                                                 <c:if test="${manageable}">
+                                                     <a class="btn btn-sm btn-outline-primary" title="Edit"
+                                                        href="${pageContext.request.contextPath}/branch/showtimes/edit?id=${st.showtimeId}">
+                                                         <i class="bi bi-pencil"></i></a>
+                                                         <%-- Cancel = POST (hanh dong doi du lieu) + confirm --%>
+                                                     <form method="post" class="d-inline"
+                                                           action="${pageContext.request.contextPath}/branch/showtimes/cancel"
+                                                           onsubmit="return confirm('Cancel this showtime?');">
+                                                         <%@ include file="/WEB-INF/views/common/csrf-hidden.jspf" %>
+                                                         <input type="hidden" name="id" value="${st.showtimeId}">
+                                                         <button type="submit" class="btn btn-sm btn-outline-danger" title="Cancel">
+                                                             <i class="bi bi-x-lg"></i></button>
+                                                     </form>
+                                                 </c:if>
+                                             </div>
                                         </td>
                                     </tr>
                                 </c:forEach>
