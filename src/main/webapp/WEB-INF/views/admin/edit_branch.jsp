@@ -1,4 +1,4 @@
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+p<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 
 <!DOCTYPE html>
@@ -180,12 +180,7 @@
 
                             </thead>
 
-                            <tbody>
-
-                            <c:forEach var="day"
-                                       items="${['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday']}"
-                                       varStatus="loop">
-
+                            <tbody>                         
                                 <tr>
 
                                     <td>${day}</td>
@@ -237,8 +232,6 @@
                                     </td>
 
                                 </tr>
-
-                            </c:forEach>
 
                             </tbody>
 
