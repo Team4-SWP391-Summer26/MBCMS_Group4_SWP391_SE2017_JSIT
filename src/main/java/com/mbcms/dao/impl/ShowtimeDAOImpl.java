@@ -25,7 +25,7 @@ public class ShowtimeDAOImpl extends BaseDAO implements ShowtimeDAO {
     private static final String BASE_SELECT
             = "SELECT st.showtime_id, st.room_id, st.movie_id, st.start_time, st.end_time, "
             + "st.base_price, st.format, st.subtitle_type, st.status, "
-            + "m.title AS movie_title, r.name AS room_name, r.room_type AS room_type, r.capacity AS room_capacity, "
+            + "m.title AS movie_title, m.poster_url AS poster_url, r.name AS room_name, r.room_type AS room_type, r.capacity AS room_capacity, "
             + "(SELECT COUNT(*) FROM booking_seats bs "
             + " JOIN bookings b ON bs.booking_id = b.booking_id "
             + " WHERE b.showtime_id = st.showtime_id "
@@ -423,6 +423,7 @@ public class ShowtimeDAOImpl extends BaseDAO implements ShowtimeDAO {
         st.setStatus(rs.getString("status"));
         // Display fields tu JOIN
         st.setMovieTitle(rs.getString("movie_title"));
+        st.setPosterUrl(rs.getString("poster_url"));
         st.setRoomName(rs.getString("room_name"));
         st.setRoomType(rs.getString("room_type"));
         st.setRoomCapacity(rs.getInt("room_capacity"));

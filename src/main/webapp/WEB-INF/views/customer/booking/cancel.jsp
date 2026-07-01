@@ -6,13 +6,14 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>Cancel Booking – MBCMS</title>
+        <title>Cancel Booking – PentaPlex</title>
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
         <link href="${pageContext.request.contextPath}/assets/css/main.css?v=${applicationScope.assetVersion}" rel="stylesheet">
         <style>
             /* ── Page hero ── */
             .page-hero {
-                background: linear-gradient(135deg, #0f1e36 0%, #182c54 100%);
+                background: linear-gradient(135deg, var(--navy) 0%, #182c54 100%);
                 padding: 2rem 0 1.5rem;
                 margin-bottom: 2rem;
             }
@@ -30,7 +31,7 @@
                 color: #fff;
             }
             .page-hero .breadcrumb-item.active {
-                color: #d1d5db;
+                color: var(--border-strong);
                 font-size: 0.85rem;
             }
             .page-hero .breadcrumb-item + .breadcrumb-item::before {
@@ -105,7 +106,7 @@
                 font-family: monospace;
                 font-weight: 800;
                 font-size: 1.25rem;
-                color: #1d4ed8;
+                color: var(--primary-700);
                 letter-spacing: 0.08em;
             }
 
@@ -119,7 +120,7 @@
             }
             .sp-CONFIRMED {
                 background: #dcfce7;
-                color: #16a34a;
+                color: var(--success);
             }
             .sp-PENDING   {
                 background: #fef3c7;
@@ -127,7 +128,7 @@
             }
             .sp-CANCELLED {
                 background: #f1f5f9;
-                color: #64748b;
+                color: var(--text-muted);
             }
             .sp-USED      {
                 background: #ede9fe;
@@ -150,7 +151,7 @@
                 border-bottom: none;
             }
             .info-table .lbl {
-                color: #6b7280;
+                color: var(--text-muted);
                 font-size: 0.85rem;
                 font-weight: 600;
                 width: 140px;
@@ -165,9 +166,9 @@
             /* ── Seat badge ── */
             .seat-badge {
                 display: inline-block;
-                background: #eff6ff;
-                color: #1d4ed8;
-                border: 1px solid #bfdbfe;
+                background: var(--primary-50);
+                color: var(--primary-700);
+                border: 1px solid var(--primary-200);
                 border-radius: 6px;
                 padding: 2px 10px;
                 font-size: 0.82rem;
@@ -185,17 +186,17 @@
                 padding: 7px 0;
             }
             .price-row .lbl {
-                color: #6b7280;
+                color: var(--text-muted);
             }
             .price-row.total-row {
-                border-top: 2px solid #e5e7eb;
+                border-top: 2px solid var(--border);
                 margin-top: 6px;
                 padding-top: 12px;
                 font-weight: 700;
                 font-size: 1.05rem;
             }
             .price-row.total-row .val {
-                color: #1d4ed8;
+                color: var(--primary-700);
             }
 
             /* ── Error notice ── */
@@ -229,7 +230,7 @@
                 display: inline-block;
                 border: 2.5px solid #9ca3af;
                 border-radius: 6px;
-                color: #6b7280;
+                color: var(--text-muted);
                 font-weight: 800;
                 font-size: 1rem;
                 letter-spacing: 0.15em;
@@ -243,7 +244,7 @@
             /* ── Action buttons ── */
             .btn-cancel-booking {
                 background: #fff;
-                color: #dc2626;
+                color: var(--danger);
                 border: 1.5px solid #fca5a5;
                 border-radius: 8px;
                 padding: 10px 22px;
@@ -258,11 +259,11 @@
             }
             .btn-cancel-booking:hover {
                 background: #fef2f2;
-                border-color: #dc2626;
+                border-color: var(--danger);
                 color: #b91c1c;
             }
             .btn-primary-lc {
-                background: #2563eb;
+                background: var(--primary);
                 color: #fff;
                 border: none;
                 border-radius: 8px;
@@ -277,7 +278,7 @@
                 gap: 6px;
             }
             .btn-primary-lc:hover {
-                background: #1d4ed8;
+                background: var(--primary-700);
                 color: #fff;
             }
         </style>
@@ -325,7 +326,7 @@
                 <c:if test="${param.cancelled == '1' || booking.status == 'CANCELLED'}">
 
                     <div class="cancel-header-success">
-                        <div class="cancel-icon-wrap">✓</div>
+                        <div class="cancel-icon-wrap"><i class="bi bi-check-lg"></i></div>
                         <h2>Booking Cancelled</h2>
                         <p>Your booking has been cancelled and your seats have been released.</p>
                     </div>
@@ -366,7 +367,7 @@
                         </table>
 
                         <!-- Price breakdown (read-only reference) -->
-                        <div style="background: #f8fafc; border-radius: 10px; padding: 16px 18px; margin-bottom: 1.5rem;">
+                        <div style="background: var(--bg); border-radius: 10px; padding: 16px 18px; margin-bottom: 1.5rem;">
                             <div class="price-row">
                                 <span class="lbl">Subtotal</span>
                                 <span class="val"><fmt:formatNumber value="${booking.subtotal}" pattern="#,###"/> ₫</span>
@@ -374,7 +375,7 @@
                             <c:if test="${booking.discountAmount != null && booking.discountAmount > 0}">
                                 <div class="price-row">
                                     <span class="lbl">Discount</span>
-                                    <span class="val" style="color: #16a34a; font-weight: 600;">
+                                    <span class="val" style="color: var(--success); font-weight: 600;">
                                         − <fmt:formatNumber value="${booking.discountAmount}" pattern="#,###"/> ₫
                                     </span>
                                 </div>
@@ -385,11 +386,11 @@
                             </div>
                         </div>
 
-                        <div style="font-size: 0.82rem; color: #6b7280; background: #f8fafc;
+                        <div style="font-size: 0.82rem; color: var(--text-muted); background: var(--bg);
                              border-radius: 8px; padding: 12px 14px; margin-bottom: 1.5rem; line-height: 1.6;">
-                            💡 If you paid online, a refund will be processed according to our refund policy within
+                            <i class="bi bi-lightbulb"></i> If you paid online, a refund will be processed according to our refund policy within
                             <strong>3–5 business days</strong>.
-                            Contact <a href="mailto:group4mbcms@gmail.com" style="color: #2563eb;">group4mbcms@gmail.com</a>
+                            Contact <a href="mailto:group4mbcms@gmail.com" style="color: var(--primary);">group4mbcms@gmail.com</a>
                             if you have any questions.
                         </div>
 
@@ -410,7 +411,7 @@
                 <c:if test="${not empty param.cancelErr}">
 
                     <div class="cancel-header-danger">
-                        <div class="cancel-icon-wrap">✕</div>
+                        <div class="cancel-icon-wrap"><i class="bi bi-x-lg"></i></div>
                         <h2>Cancellation Failed</h2>
                         <p>We couldn't cancel this booking.</p>
                     </div>
@@ -419,7 +420,7 @@
 
                         <!-- Error detail -->
                         <div class="error-notice mb-4">
-                            <div class="icon">⛔</div>
+                            <div class="icon"><i class="bi bi-exclamation-octagon"></i></div>
                             <div class="text">
                                 <c:choose>
                                     <c:when test="${param.cancelErr == 'NOT_CANCELLABLE'}">
@@ -489,7 +490,7 @@
                 <c:if test="${empty param.cancelled && empty param.cancelErr && booking.status != 'CANCELLED'}">
 
                     <div class="cancel-header-danger">
-                        <div class="cancel-icon-wrap">⚠️</div>
+                        <div class="cancel-icon-wrap"><i class="bi bi-exclamation-triangle"></i></div>
                         <h2>Cancel Your Booking?</h2>
                         <p>Please review the details below before confirming.</p>
                     </div>
@@ -533,7 +534,7 @@
                         </table>
 
                         <!-- Price breakdown -->
-                        <div style="background: #f8fafc; border-radius: 10px; padding: 16px 18px; margin-bottom: 1.5rem;">
+                        <div style="background: var(--bg); border-radius: 10px; padding: 16px 18px; margin-bottom: 1.5rem;">
                             <div class="price-row">
                                 <span class="lbl">Subtotal</span>
                                 <span class="val"><fmt:formatNumber value="${booking.subtotal}" pattern="#,###"/> ₫</span>
@@ -541,7 +542,7 @@
                             <c:if test="${booking.discountAmount != null && booking.discountAmount > 0}">
                                 <div class="price-row">
                                     <span class="lbl">Discount</span>
-                                    <span class="val" style="color: #16a34a; font-weight: 600;">
+                                    <span class="val" style="color: var(--success); font-weight: 600;">
                                         − <fmt:formatNumber value="${booking.discountAmount}" pattern="#,###"/> ₫
                                     </span>
                                 </div>
@@ -556,7 +557,7 @@
                         <div style="font-size: 0.82rem; color: #78350f; background: #fffbeb;
                              border: 1px solid #fde68a; border-radius: 8px;
                              padding: 12px 14px; margin-bottom: 1.5rem; line-height: 1.6;">
-                            ⚠️ <strong>This action is irreversible.</strong>
+                            <i class="bi bi-exclamation-triangle"></i> <strong>This action is irreversible.</strong>
                             Your seats will be immediately released and made available to other customers.
                         </div>
 

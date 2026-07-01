@@ -1,16 +1,11 @@
-/* MBCMS - Main Stylesheet */
-:root {
-    --primary: #2563eb;
-    --bg-dark: #f4f6fa;
-    --bg-card: #ffffff;
-    --text-muted: #6b7280;
-    --text-dark: #0f1e36;
-}
+@import "tokens.css";
+/* MBCMS - Main Stylesheet
+   Design tokens (màu/typography/spacing/radius/shadow) sống trong tokens.css. */
 
 body {
-    background-color: var(--bg-dark);
-    color: var(--text-dark);
-    font-family: 'Segoe UI', sans-serif;
+    background-color: var(--bg);
+    color: var(--text);
+    font-family: var(--font-sans);
 }
 
 .btn-primary-lc {
@@ -20,7 +15,7 @@ body {
 }
 
 .btn-primary-lc:hover {
-    background-color: #1d4ed8;
+    background-color: var(--primary-700);
     color: #fff;
 }
 
@@ -81,12 +76,12 @@ body {
 }
 
 .navbar-custom .nav-link:hover {
-    color: #2563eb !important;
+    color: var(--primary) !important;
 }
 
 .navbar-custom .nav-link.active {
-    color: #2563eb !important;
-    background-color: #eff6ff;
+    color: var(--primary) !important;
+    background-color: var(--primary-50);
     font-weight: 600;
 }
 
@@ -114,8 +109,8 @@ body {
 
 .navbar-custom .search-input:focus {
     background-color: #ffffff;
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
     outline: none;
 }
 
@@ -146,9 +141,9 @@ body {
 }
 
 .navbar-custom .notification-btn:hover {
-    color: #2563eb;
-    border-color: #bfdbfe;
-    background-color: #eff6ff;
+    color: var(--primary);
+    border-color: var(--primary-200);
+    background-color: var(--primary-50);
 }
 
 .navbar-custom .notification-dot {
@@ -172,11 +167,11 @@ body {
 }
 
 .navbar-custom .btn-signin:hover {
-    color: #2563eb !important;
+    color: var(--primary) !important;
 }
 
 .navbar-custom .btn-register-custom {
-    background-color: #2563eb;
+    background-color: var(--primary);
     color: #ffffff;
     font-weight: 600;
     border-radius: 8px;
@@ -192,13 +187,13 @@ body {
 }
 
 .navbar-custom .btn-register-custom:hover {
-    background-color: #1d4ed8;
+    background-color: var(--primary-700);
     color: #ffffff;
 }
 
 /* Movies Page Custom Hero Banner */
 .movies-hero-banner {
-    background-color: #0f1e36;
+    background-color: var(--navy);
     color: #ffffff;
     padding: 2.5rem 0;
     margin-bottom: 2rem;
@@ -234,11 +229,11 @@ body {
 
 /* Footer specific styles */
 .footer-custom {
-    background-color: #0b1528 !important;
+    background-color: var(--navy) !important;
     color: #9ca3af !important;
     font-size: 0.9rem;
-    padding: 5rem 0 2rem 0;
-    border-top: 1px solid #1e293b;
+    padding: 3rem 0 1.5rem 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .footer-custom h5 {
@@ -246,7 +241,7 @@ body {
     font-size: 0.9rem;
     font-weight: 700;
     letter-spacing: 0.05em;
-    margin-bottom: 1.5rem;
+    margin-bottom: 1rem;
     text-transform: uppercase;
 }
 
@@ -274,7 +269,7 @@ body {
     width: 36px;
     height: 36px;
     border-radius: 50%;
-    background-color: #1e293b;
+    background-color: rgba(255, 255, 255, 0.08);
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -284,7 +279,7 @@ body {
 }
 
 .footer-custom .social-icon:hover {
-    background-color: #2563eb;
+    background-color: var(--primary);
     transform: translateY(-2px);
 }
 
@@ -298,7 +293,7 @@ body {
     width: 36px;
     height: 36px;
     border-radius: 8px;
-    background-color: #1e293b;
+    background-color: rgba(255, 255, 255, 0.08);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -319,9 +314,9 @@ body {
 }
 
 .footer-custom .bottom-bar {
-    border-top: 1px solid #1e293b;
-    margin-top: 4rem;
-    padding-top: 1.5rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    margin-top: 2.5rem;
+    padding-top: 1.25rem;
     display: flex;
     flex-wrap: wrap;
     justify-content: space-between;
@@ -357,7 +352,7 @@ body {
 }
 
 .footer-custom .language-select {
-    border: 1px solid #374151;
+    border: 1px solid rgba(255, 255, 255, 0.2);
     background-color: transparent;
     color: #ffffff;
     padding: 0.25rem 0.75rem;
@@ -379,15 +374,8 @@ body {
 /* =====================================================================
    Booking flow – shared design system (steps 2..6)
    Dùng chung cho seats / checkout / payment / confirm để đồng nhất UI.
+   Token (--bk-*) được định nghĩa trong tokens.css.
    ===================================================================== */
-:root {
-    --bk-primary: #2563EB;
-    --bk-navy:    #0F1E36;
-    --bk-border:  #E6EAF2;
-    --bk-muted:   #64748B;
-    --bk-light:   #EFF4FF;
-    --bk-bg:      #F5F7FA;
-}
 
 .bk-page  { background: var(--bk-bg); }
 .bk-wrap  { max-width: 1080px; }
@@ -482,3 +470,168 @@ body {
 .bk-card .btn-primary { background: var(--bk-primary); border-color: var(--bk-primary); }
 .bk-page .btn-primary:hover,
 .bk-card .btn-primary:hover { background: #1d4ed8; border-color: #1d4ed8; }
+
+/* =====================================================================
+   Auth pages — shared shell (login / register / forgot / change-password)
+   Gộp các định nghĩa từng-trang trùng nhau về MỘT bộ, dùng token.
+   Nhờ vậy 4 trang auth nhìn như cùng một sản phẩm.
+   ===================================================================== */
+.auth-card {
+    border: 0;
+    border-radius: var(--radius-lg);
+    background: var(--surface);
+    box-shadow: var(--shadow-md);
+}
+
+/* Brand panel bên phải — gradient navy thống nhất */
+.branding-card {
+    background: linear-gradient(135deg, var(--navy) 0%, var(--navy-deep) 100%);
+    border-radius: var(--radius-lg);
+    color: #ffffff;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 3rem;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    min-height: 480px;
+}
+
+/* Stacked customer avatars */
+.avatar-circle {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: 2px solid var(--navy);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+}
+
+/* Forgot-password step wizard bullets */
+.step-circle {
+    width: 28px;
+    height: 28px;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+/* ── Decorative galaxy artwork (login/register brand panel) ── */
+.galaxy-glow {
+    position: absolute;
+    width: 450px;
+    height: 450px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(245, 158, 11, 0.15) 0%, rgba(239, 68, 68, 0.06) 45%, rgba(0, 0, 0, 0) 70%);
+    top: 50%;
+    right: -130px;
+    transform: translateY(-50%);
+    z-index: 0;
+    pointer-events: none;
+    filter: blur(10px);
+}
+.galaxy-circle {
+    position: absolute;
+    width: 480px;
+    height: 480px;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    top: 50%;
+    right: -145px;
+    transform: translateY(-50%);
+    z-index: 0;
+    pointer-events: none;
+    animation: spin-galaxy 80s linear infinite;
+}
+.galaxy-circle::before {
+    content: '';
+    position: absolute;
+    width: 5px;
+    height: 5px;
+    background: rgba(255, 255, 255, 0.35);
+    border-radius: 50%;
+    top: 15%;
+    left: 15%;
+}
+.galaxy-circle::after {
+    content: '';
+    position: absolute;
+    width: 5px;
+    height: 5px;
+    background: rgba(255, 255, 255, 0.25);
+    border-radius: 50%;
+    bottom: 25%;
+    right: 8%;
+}
+.galaxy-core {
+    position: absolute;
+    width: 260px;
+    height: 260px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(254, 240, 138, 0.8) 0%, rgba(245, 158, 11, 0.6) 30%, rgba(234, 88, 12, 0.2) 55%, transparent 70%);
+    top: 50%;
+    right: -35px;
+    transform: translateY(-50%);
+    z-index: 0;
+    pointer-events: none;
+    filter: blur(4px);
+}
+.galaxy-core-dark {
+    position: absolute;
+    width: 170px;
+    height: 170px;
+    border-radius: 50%;
+    background: var(--navy-deep);
+    top: 50%;
+    right: 10px;
+    transform: translateY(-50%);
+    z-index: 0;
+    pointer-events: none;
+    box-shadow: inset 0 0 25px rgba(0, 0, 0, 0.95), 0 0 10px rgba(245, 158, 11, 0.1);
+}
+.star {
+    position: absolute;
+    width: 2px;
+    height: 2px;
+    background: rgba(255, 255, 255, 0.4);
+    border-radius: 50%;
+    z-index: 0;
+    pointer-events: none;
+}
+@keyframes spin-galaxy {
+    100% { transform: translateY(-50%) rotate(360deg); }
+}
+
+/* =====================================================================
+   Booking stepper — bản nâng cấp dùng chung cho mọi trang .bk-page
+   (specificity cao hơn các định nghĩa .bk-* cục bộ nên override tất cả).
+   ===================================================================== */
+.bk-page .bk-steps {
+    overflow-x: auto;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: .9rem 1.2rem;
+    box-shadow: var(--shadow-sm);
+}
+.bk-page .bk-step { font-size: 0.88rem; gap: 0.55rem; }
+.bk-page .bk-step .bk-dot {
+    width: 30px;
+    height: 30px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    transition: all 0.2s ease;
+}
+.bk-page .bk-step.done { color: var(--text); }
+.bk-page .bk-step.active .bk-dot { box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.18); }
+.bk-page .bk-line { height: 3px; border-radius: 999px; }

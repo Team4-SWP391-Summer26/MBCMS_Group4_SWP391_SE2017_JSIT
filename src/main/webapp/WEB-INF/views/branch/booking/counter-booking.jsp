@@ -6,7 +6,7 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Counter Booking - MBCMS Staff</title>
+        <title>Counter Booking - PentaPlex Staff</title>
         <!-- Bootstrap 5 CSS -->
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
         <!-- Bootstrap Icons -->
@@ -36,11 +36,26 @@
                 content: '';
                 position: absolute;
                 top: 20px;
-                left: 5%;
-                right: 5%;
+                left: 8.33%;
+                right: 8.33%;
                 height: 3px;
-                background: #e2e8f0;
+                background: var(--lc-border);
                 z-index: 1;
+                border-radius: 999px;
+            }
+
+            /* Progress fill chạy theo bước hiện tại (H2) */
+            .wizard-steps::after {
+                content: '';
+                position: absolute;
+                top: 20px;
+                left: 8.33%;
+                width: var(--wizard-progress, 0%);
+                height: 3px;
+                background: #10b981;
+                z-index: 1;
+                border-radius: 999px;
+                transition: width .3s ease;
             }
 
             .wizard-step {
@@ -55,8 +70,8 @@
                 height: 40px;
                 border-radius: 50%;
                 background: #ffffff;
-                border: 3px solid #e2e8f0;
-                color: #64748b;
+                border: 3px solid var(--lc-border);
+                color: var(--lc-muted);
                 font-weight: 700;
                 display: flex;
                 align-items: center;
@@ -68,7 +83,7 @@
             .step-label {
                 font-size: 0.8rem;
                 font-weight: 600;
-                color: #64748b;
+                color: var(--lc-muted);
                 transition: color 0.25s ease;
             }
 
@@ -95,8 +110,7 @@
             }
 
             :root {
-                --bk-primary:#2563EB; --bk-navy:#0F1E36; --bk-border:#E6EAF2;
-                --bk-muted:#64748B; --bk-light:#EFF4FF; --bk-bg:#F5F7FA;
+                /* --bk-* / --lc-* color tokens come from tokens.css */
                 --seat-w:34px; --seat-h:32px; --seat-gap:7px; --aisle-w:30px; --rl-w:24px;
             }
 
@@ -111,7 +125,7 @@
             .seat-header, .seat-row { display:flex; align-items:center; gap:var(--seat-gap); }
             .seat-row { margin-bottom:var(--seat-gap); }
             .row-label { width:var(--rl-w); font-size:.72rem; font-weight:700; color:var(--bk-muted); text-align:center; flex-shrink:0; }
-            .col-num { width:var(--seat-w); font-size:.68rem; font-weight:600; color:#94a3b8; text-align:center; flex-shrink:0; }
+            .col-num { width:var(--seat-w); font-size:.68rem; font-weight:600; color:var(--text-subtle); text-align:center; flex-shrink:0; }
             .aisle { width:var(--aisle-w); flex-shrink:0; }
 
             .seat-btn {
@@ -233,8 +247,8 @@
             .category-tab {
                 font-weight: 700;
                 font-size: 1.05rem;
-                color: #0f1e36;
-                border-bottom: 2px solid #e2e8f0;
+                color: var(--navy);
+                border-bottom: 2px solid var(--lc-border);
                 padding-bottom: 0.4rem;
                 margin-top: 1rem;
                 margin-bottom: 1rem;
@@ -1693,6 +1707,13 @@
                                                 ind.classList.add('active');
                                             }
                                         }
+                                    }
+
+                                    // Progress fill chạy theo bước hiện tại (5 khoảng giữa 6 mốc)
+                                    var wz = document.querySelector('.wizard-steps');
+                                    if (wz) {
+                                        wz.style.setProperty('--wizard-progress',
+                                            (((stepNum - 1) / 5) * 83.33) + '%');
                                     }
                                 }
 

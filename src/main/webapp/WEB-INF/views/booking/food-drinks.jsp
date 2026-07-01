@@ -6,19 +6,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Select Food & Drinks – MBCMS</title>
+    <title>Select Food & Drinks – PentaPlex</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <link href="${pageContext.request.contextPath}/assets/css/main.css?v=${applicationScope.assetVersion}" rel="stylesheet">
     <style>
-        :root {
-            --bk-primary: #2563EB;
-            --bk-navy: #0F1E36;
-            --bk-border: #E6EAF2;
-            --bk-muted: #64748B;
-            --bk-light: #EFF4FF;
-            --bk-bg: #F5F7FA;
-        }
+        /* --bk-* tokens come from tokens.css */
         body.bk-page { background: var(--bk-bg); }
         .bk-wrap { max-width: 1080px; }
         .bk-card { background:#fff; border:1px solid var(--bk-border); border-radius:14px;
@@ -28,13 +21,13 @@
         .bk-ctx { background:#fff; border-bottom:1px solid var(--bk-border); }
         
         .bk-steps { display:flex; align-items:center; }
-        .bk-step { display:flex; align-items:center; gap:.5rem; font-size:.9rem; font-weight:600; color:#94a3b8; white-space:nowrap; }
+        .bk-step { display:flex; align-items:center; gap:.5rem; font-size:.9rem; font-weight:600; color:var(--text-subtle); white-space:nowrap; }
         .bk-step .bk-dot { width:26px; height:26px; border-radius:999px; display:flex; align-items:center;
-            justify-content:center; font-size:.78rem; background:#E2E8F0; color:#64748b; flex-shrink:0; }
-        .bk-step.done { color:#16a34a; } .bk-step.done .bk-dot { background:#16a34a; color:#fff; }
+            justify-content:center; font-size:.78rem; background:var(--border); color:var(--text-muted); flex-shrink:0; }
+        .bk-step.done { color:var(--success); } .bk-step.done .bk-dot { background:var(--success); color:#fff; }
         .bk-step.active { color:var(--bk-primary); } .bk-step.active .bk-dot { background:var(--bk-primary); color:#fff; }
-        .bk-line { flex:1; height:2px; background:#E2E8F0; margin:0 .5rem; min-width:12px; }
-        .bk-line.done { background:#16a34a; }
+        .bk-line { flex:1; height:2px; background:var(--border); margin:0 .5rem; min-width:12px; }
+        .bk-line.done { background:var(--success); }
         @media (max-width:640px) { .bk-step span:not(.bk-dot) { display:none; } }
 
         .food-card {
@@ -67,7 +60,7 @@
         .combo-red { --item-theme: #db2777; --item-bg: rgba(219, 39, 119, 0.08); --item-gradient: linear-gradient(135deg, rgba(219, 39, 119, 0.1) 0%, rgba(219, 39, 119, 0.01) 100%); }
 
         .food-img-wrapper.themed {
-            background: var(--item-gradient, radial-gradient(circle at 50% 50%, #ffffff 0%, #f8fafc 100%));
+            background: var(--item-gradient, radial-gradient(circle at 50% 50%, #ffffff 0%, var(--bg) 100%));
             color: var(--item-theme);
             height: 150px;
             display: flex;

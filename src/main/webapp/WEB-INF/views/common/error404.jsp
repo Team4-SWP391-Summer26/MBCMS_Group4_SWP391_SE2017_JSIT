@@ -4,7 +4,7 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>404 - Page Not Found | MBCMS</title>
+        <title>404 - Page Not Found | PentaPlex</title>
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
         <link href="${pageContext.request.contextPath}/assets/css/main.css?v=${applicationScope.assetVersion}" rel="stylesheet">
     </head>
@@ -23,7 +23,7 @@
                 </div>
 
                 <h1 class="fw-bold mb-2" style="font-size: 3rem; color: #1e293b;">404</h1>
-                <h4 class="fw-bold mb-3" style="color: #0f1e36;">Page not found</h4>
+                <h4 class="fw-bold mb-3" style="color: var(--navy);">Page not found</h4>
                 <p class="text-secondary mb-4" style="font-size: 0.95rem; line-height: 1.6;">
                     The page you requested does not exist, may have been moved, or is temporarily unavailable. Please return to the home page.
                 </p>

@@ -7,7 +7,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hall Management - MBCMS Admin</title>
+    <title>Hall Management - PentaPlex Admin</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <link href="${pageContext.request.contextPath}/assets/css/manager.css?v=${applicationScope.assetVersion}" rel="stylesheet">
@@ -24,11 +24,11 @@
         .room-chip { font-size:.62rem; font-weight:700; padding:.18rem .5rem; border-radius:999px; background:rgba(255,255,255,.22); display:inline-flex; align-items:center; gap:.25rem; white-space:nowrap; }
         .room-body { padding:.9rem 1rem; flex:1; }
         .room-seats { display:flex; align-items:center; gap:.55rem; margin-bottom:.75rem; }
-        .room-seats .ic { width:30px; height:30px; border-radius:8px; background:#f1f5f9; color:#64748b; display:flex; align-items:center; justify-content:center; font-size:.95rem; }
+        .room-seats .ic { width:30px; height:30px; border-radius:8px; background:#f1f5f9; color:var(--lc-muted); display:flex; align-items:center; justify-content:center; font-size:.95rem; }
         .room-seats .n { font-size:1.45rem; font-weight:800; color:var(--lc-navy); line-height:1; }
         .room-seats .u { font-size:.78rem; color:var(--lc-muted); }
         .room-typebar { display:flex; justify-content:space-between; align-items:center; padding:.45rem .7rem; border-radius:8px; font-size:.8rem; font-weight:600; }
-        .room-typebar.tb-standard { background:#eff6ff; color:#1d4ed8; }
+        .room-typebar.tb-standard { background:var(--lc-light); color:var(--primary-700); }
         .room-typebar.tb-vip { background:#fffbeb; color:#b45309; }
         .room-typebar.tb-imax { background:#f5f3ff; color:#6d28d9; }
         .room-actrow { display:flex; justify-content:space-between; align-items:center; padding:.6rem 1rem; border-top:1px solid var(--lc-border); }

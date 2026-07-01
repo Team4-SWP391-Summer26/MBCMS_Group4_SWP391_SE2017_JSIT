@@ -216,7 +216,8 @@ GO
 
 CREATE TABLE dbo.promotions (
     promo_id         BIGINT        IDENTITY(1,1) NOT NULL,
-    code             VARCHAR(30)   NOT NULL,
+    -- code: max 20 chars (matches servlet validation in PromotionCreateServlet)
+    code             VARCHAR(20)   NOT NULL,
     name             NVARCHAR(150) NOT NULL,
     discount_type    VARCHAR(12)   NOT NULL,
     discount_value   DECIMAL(10,2) NOT NULL,
@@ -224,15 +225,27 @@ CREATE TABLE dbo.promotions (
     valid_from       DATETIME2     NOT NULL,
     valid_to         DATETIME2     NOT NULL,
     max_uses         INT           NULL,             -- NULL = unlimited
-    used_count       INT           NOT NULL CONSTRAINT DF_promotions_used DEFAULT (0),
-    active           BIT           NOT NULL CONSTRAINT DF_promotions_active DEFAULT (1),
+    used_count       INT           NOT NULL CONSTRAINT DF_promotions_used    DEFAULT (0),
+    active           BIT           NOT NULL CONSTRAINT DF_promotions_active  DEFAULT (1),
     is_deleted       BIT           NOT NULL CONSTRAINT DF_promotions_deleted DEFAULT (0),
-    CONSTRAINT PK_promotions PRIMARY KEY (promo_id),
-    CONSTRAINT UQ_promotions_code UNIQUE (code),
+    -- branch_id: NULL = Global promo (applies to all branches)
+    --            non-NULL = scoped to a specific branch only
+    branch_id        BIGINT        NULL,
+    CONSTRAINT PK_promotions       PRIMARY KEY (promo_id),
+    CONSTRAINT FK_promotions_branch FOREIGN KEY (branch_id)
+        REFERENCES dbo.branches (branch_id),
     CONSTRAINT CK_promotions_value CHECK (discount_value > 0),
     CONSTRAINT CK_promotions_dates CHECK (valid_to > valid_from),
     CONSTRAINT CK_promotions_type  CHECK (discount_type IN ('PERCENT','FIXED_AMOUNT'))
 );
+GO
+-- Unique code only among non-deleted rows:
+-- soft-deleted promos do NOT block reuse of the same code (is_deleted = 1 is excluded).
+-- Standard UNIQUE constraint would block reuse even after soft delete.
+CREATE UNIQUE INDEX UQ_promotions_code
+    ON dbo.promotions (code)
+    WHERE is_deleted = 0;
+CREATE INDEX IX_promotions_branch ON dbo.promotions (branch_id);
 GO
 
 CREATE TABLE dbo.bookings (

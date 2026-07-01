@@ -12,12 +12,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Payment Receipt · ${ticket.bookingCode} – MBCMS</title>
+    <title>Payment Receipt · ${ticket.bookingCode} – PentaPlex</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <link href="${pageContext.request.contextPath}/assets/css/main.css?v=${applicationScope.assetVersion}" rel="stylesheet">
     <style>
-        :root { --bk-primary:#2563EB; --bk-navy:#0F1E36; --bk-border:#E6EAF2; --bk-muted:#64748B; --bk-bg:#F5F7FA; }
+        /* --bk-* tokens come from tokens.css */
         body.rc-page { background: var(--bk-bg); }
         .rc-wrap { max-width: 720px; }
         .rc-crumb { font-size:.82rem; color:var(--bk-muted); }
@@ -27,17 +27,17 @@
         .rc-badge { display:inline-flex; align-items:center; gap:.4rem; font-size:.74rem; font-weight:800;
             padding:.3rem .7rem; border-radius:999px; text-transform:uppercase; letter-spacing:.03em; }
         .rc-badge .dot { width:7px; height:7px; border-radius:50%; }
-        .b-done { background:#dcfce7; color:#15803d; } .b-done .dot { background:#16a34a; }
-        .b-pend { background:#fef3c7; color:#b45309; } .b-pend .dot { background:#d97706; }
-        .b-fail { background:#fee2e2; color:#b91c1c; } .b-fail .dot { background:#dc2626; }
-        .b-unpaid { background:#eef1f4; color:#64748b; } .b-unpaid .dot { background:#94a3b8; }
+        .b-done { background:#dcfce7; color:#15803d; } .b-done .dot { background:var(--success); }
+        .b-pend { background:#fef3c7; color:#b45309; } .b-pend .dot { background:var(--warning); }
+        .b-fail { background:#fee2e2; color:#b91c1c; } .b-fail .dot { background:var(--danger); }
+        .b-unpaid { background:#eef1f4; color:var(--text-muted); } .b-unpaid .dot { background:var(--text-subtle); }
 
         .rc-card { background:#fff; border:1px solid var(--bk-border); border-radius:16px; overflow:hidden;
             box-shadow:0 12px 32px rgba(15,23,42,.10); }
-        .rc-head { background:linear-gradient(135deg,#13294f,#0f1e36); color:#fff; padding:24px 28px;
+        .rc-head { background:linear-gradient(135deg,#13294f,var(--navy)); color:#fff; padding:24px 28px;
             display:flex; justify-content:space-between; align-items:flex-start; gap:16px; }
         .rc-brand { font-weight:800; font-size:1.15rem; display:flex; align-items:center; gap:.5rem; }
-        .rc-brand i { color:#FFC107; }
+        .rc-brand i { color:var(--gold); }
         .rc-official { text-align:right; font-size:.68rem; letter-spacing:.1em; color:rgba(255,255,255,.6); }
         .rc-official .num { font-family:ui-monospace,Menlo,Consolas,monospace; font-size:.95rem; color:#fff; letter-spacing:0; }
         .rc-issued .lbl { font-size:.66rem; letter-spacing:.08em; color:rgba(255,255,255,.55); text-transform:uppercase; }
@@ -46,13 +46,13 @@
 
         .rc-body { padding:24px 28px; }
         .rc-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:18px 16px; }
-        .rc-grid .lbl { font-size:.68rem; text-transform:uppercase; letter-spacing:.05em; color:#94a3b8; font-weight:700; }
+        .rc-grid .lbl { font-size:.68rem; text-transform:uppercase; letter-spacing:.05em; color:var(--text-subtle); font-weight:700; }
         .rc-grid .val { font-weight:700; color:var(--bk-navy); margin-top:3px; }
         .rc-grid .val.mono { font-family:ui-monospace,Menlo,Consolas,monospace; font-weight:600; font-size:.9rem; }
         .rc-hr { border:none; border-top:1px dashed var(--bk-border); margin:22px 0; }
 
         .rc-items { width:100%; }
-        .rc-items th { font-size:.68rem; text-transform:uppercase; letter-spacing:.05em; color:#94a3b8; font-weight:700;
+        .rc-items th { font-size:.68rem; text-transform:uppercase; letter-spacing:.05em; color:var(--text-subtle); font-weight:700;
             padding-bottom:8px; border-bottom:1px solid var(--bk-border); }
         .rc-items td { padding:12px 0; border-bottom:1px solid #f1f5f9; vertical-align:top; }
         .rc-items .desc { font-weight:700; color:var(--bk-navy); }
@@ -62,14 +62,14 @@
         .rc-tot { margin-left:auto; max-width:320px; margin-top:18px; }
         .rc-tot .row { display:flex; justify-content:space-between; padding:5px 0; font-size:.92rem; }
         .rc-tot .row .k { color:var(--bk-muted); }
-        .rc-tot .row.disc .v { color:#16a34a; }
+        .rc-tot .row.disc .v { color:var(--success); }
         .rc-tot .grand { border-top:2px solid var(--bk-navy); margin-top:8px; padding-top:12px;
             font-weight:800; font-size:1.05rem; color:var(--bk-navy); }
         .rc-tot .grand .v { color:var(--bk-primary); font-size:1.3rem; }
 
-        .rc-note { background:#f8fafc; border-top:1px solid var(--bk-border); padding:16px 28px;
+        .rc-note { background:var(--bg); border-top:1px solid var(--bk-border); padding:16px 28px;
             text-align:center; font-size:.82rem; color:var(--bk-muted); }
-        .seat-chip { display:inline-block; background:#eff6ff; color:var(--bk-primary); border:1px solid #bfdbfe;
+        .seat-chip { display:inline-block; background:var(--primary-50); color:var(--bk-primary); border:1px solid var(--primary-200);
             border-radius:6px; padding:0 7px; font-weight:700; font-size:.76rem; margin:1px 3px 1px 0;
             font-family:ui-monospace,Menlo,Consolas,monospace; }
 
@@ -106,7 +106,7 @@
     <div class="rc-card">
         <div class="rc-head">
             <div>
-                <div class="rc-brand"><i class="bi bi-camera-reels-fill"></i> MBCMS</div>
+                <div class="rc-brand"><i class="bi bi-camera-reels-fill"></i> PentaPlex</div>
                 <div class="rc-issued mt-4">
                     <div class="lbl">Issued to</div>
                     <div class="nm"><c:out value="${ticket.customerFullName}"/></div>
@@ -207,7 +207,7 @@
         </div>
 
         <div class="rc-note">
-            Thank you for choosing <strong>MBCMS</strong>. This receipt is your proof of payment.
+            Thank you for choosing <strong>PentaPlex</strong>. This receipt is your proof of payment.
         </div>
     </div>
 

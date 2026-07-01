@@ -41,11 +41,14 @@ public class PaymentMonitorServlet extends HttpServlet {
         HttpSession session = req.getSession(false);
         Employee emp = (Employee) session.getAttribute("currentUser");
         boolean isAdmin = emp.isAdmin();
+        // SCOPE theo role: Admin -> branchId=null (toan he thong); Branch Manager ->
+        // branchId cua minh (chi thay giao dich cua branch minh). 1 servlet dung cho 2 URL.
         Long branchId = isAdmin ? null : (Long) session.getAttribute("currentBranchId");
         if (!isAdmin) {
             ConsoleSupport.ensureBranchName(req); // ten branch cho sidebar + scope notice
         }
 
+        // Tong hop trang thai: dem PENDING/SUCCESS/FAILED + method mix (theo scope tren).
         PaymentSummary summary = paymentService.getPaymentSummary(branchId);
 
         // Tuoi (phut) cua PENDING cu nhat - moc 10 phut = booking auto-expire.

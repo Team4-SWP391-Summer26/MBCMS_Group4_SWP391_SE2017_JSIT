@@ -157,13 +157,10 @@ p<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 
                 </div>
 
-                <!-- OPERATING HOURS -->
-
-                <div class="card shadow-sm mb-4">
-
-                    <div class="card-header fw-bold">
-                        Operating Hours
-                    </div>
+                <!-- OPERATING HOURS — đã gỡ khỏi giao diện theo yêu cầu; giữ giá trị để lưu không lỗi -->
+                <input type="hidden" name="openingTime" value="${branch.openingTime}">
+                <input type="hidden" name="closingTime" value="${branch.closingTime}">
+                <div class="d-none">
 
                     <div class="card-body">
 
@@ -190,8 +187,8 @@ p<%@ page contentType="text/html;charset=UTF-8" language="java" %>
                                             <c:when test="${loop.index == 0}">
                                                 <input type="time"
                                                        class="form-control"
-                                                       name="openingTime"
-                                                       value="${branch.openingTime}">
+                                                       value="${branch.openingTime}"
+                                                       disabled>
                                             </c:when>
                                             <c:otherwise>
                                                 <input type="time"
@@ -207,8 +204,8 @@ p<%@ page contentType="text/html;charset=UTF-8" language="java" %>
                                             <c:when test="${loop.index == 0}">
                                                 <input type="time"
                                                        class="form-control"
-                                                       name="closingTime"
-                                                       value="${branch.closingTime}">
+                                                       value="${branch.closingTime}"
+                                                       disabled>
                                             </c:when>
                                             <c:otherwise>
                                                 <input type="time"

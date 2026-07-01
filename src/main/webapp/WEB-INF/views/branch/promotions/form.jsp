@@ -8,7 +8,7 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>${isEdit ? 'Edit Promotion' : 'Add New Promotion'} - MBCMS Manager</title>
+        <title>${isEdit ? 'Edit Promotion' : 'Add New Promotion'} - PentaPlex Manager</title>
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
         <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
         <link href="${pageContext.request.contextPath}/assets/css/manager.css?v=${applicationScope.assetVersion}" rel="stylesheet">
@@ -17,7 +17,7 @@
                 border: 2px solid var(--lc-border);
                 border-radius: 12px;
                 background: #fff;
-                color: #0f1e36;
+                color: var(--navy);
                 padding: 1rem;
                 display: block;
                 cursor: pointer;
@@ -36,8 +36,8 @@
                 border-radius: 8px;
             }
             .type-icon.pct {
-                background-color: #dbeafe;
-                color: #2563eb;
+                background-color: var(--primary-100);
+                color: var(--primary);
             }
             .type-icon.fix {
                 background-color: #fef3c7;

@@ -7,21 +7,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>User Management - MBCMS Admin</title>
+    <title>User Management - PentaPlex Admin</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <link href="${pageContext.request.contextPath}/assets/css/manager.css?v=${applicationScope.assetVersion}" rel="stylesheet">
     <style>
         .u-role { display:inline-flex; align-items:center; font-size:.72rem; font-weight:700; padding:.22rem .6rem; border-radius:999px; white-space:nowrap; }
-        .u-role.r-customer { background:#eff6ff; color:#1d4ed8; }
+        .u-role.r-customer { background:var(--lc-light); color:var(--primary-700); }
         .u-role.r-manager  { background:#f5f3ff; color:#6d28d9; }
         .u-role.r-staff    { background:#fffbeb; color:#b45309; }
         .u-role.r-admin    { background:#fff1f2; color:#be123c; }
         .u-act { width:34px; height:34px; border-radius:9px; border:1px solid var(--lc-border); background:#fff; color:var(--lc-muted); display:inline-flex; align-items:center; justify-content:center; transition:all .12s ease; text-decoration:none; }
         .u-act:hover { transform:translateY(-1px); }
-        .u-act.a-edit:hover    { color:#2563eb; border-color:#bfdbfe; background:#eff6ff; }
+        .u-act.a-edit:hover    { color:var(--lc-primary); border-color:#bfdbfe; background:var(--lc-light); }
         .u-act.a-key:hover     { color:#b45309; border-color:#fde68a; background:#fffbeb; }
-        .u-act.a-suspend:hover { color:#dc2626; border-color:#fecaca; background:#fef2f2; }
+        .u-act.a-suspend:hover { color:var(--danger); border-color:#fecaca; background:#fef2f2; }
         .u-filter { height:38px; border:1px solid var(--lc-border); border-radius:9px; background:#fff; padding:0 .8rem; font-size:.88rem; color:var(--lc-navy); }
         .u-filter:focus { outline:none; border-color:var(--lc-primary); box-shadow:0 0 0 3px rgba(37,99,235,.1); }
     </style>

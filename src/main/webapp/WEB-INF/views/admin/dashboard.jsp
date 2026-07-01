@@ -6,7 +6,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - MBCMS Admin</title>
+    <title>Dashboard - PentaPlex Admin</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <link href="${pageContext.request.contextPath}/assets/css/manager.css?v=${applicationScope.assetVersion}" rel="stylesheet">
@@ -16,7 +16,7 @@
             padding:1.25rem 1.3rem; height:100%; }
         .kpi-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:.85rem; }
         .kpi-lbl { font-size:.72rem; text-transform:uppercase; letter-spacing:.06em; color:var(--lc-muted); font-weight:700; }
-        .kpi-ic { width:34px; height:34px; border-radius:9px; background:#f1f5f9; color:#64748b;
+        .kpi-ic { width:34px; height:34px; border-radius:9px; background:#f1f5f9; color:var(--lc-muted);
             display:flex; align-items:center; justify-content:center; font-size:1.05rem; }
         .kpi-val { font-size:2.1rem; font-weight:800; color:var(--lc-navy); line-height:1; letter-spacing:-.02em; }
         .kpi-sub { font-size:.77rem; color:var(--lc-muted); margin-top:.45rem; }
@@ -36,9 +36,9 @@
         .tile-ds { font-size:.82rem; color:var(--lc-muted); line-height:1.45; }
         .tile-go { font-size:.8rem; font-weight:600; color:var(--lc-primary); display:inline-flex; align-items:center; gap:.35rem; margin-top:auto; }
         .tile.is-soon { opacity:.7; }
-        .tile.is-soon .tile-ic { background:#f1f5f9; color:#94a3b8; }
+        .tile.is-soon .tile-ic { background:#f1f5f9; color:var(--text-subtle); }
         .tile-soon { position:absolute; top:1.1rem; right:1.2rem; font-size:.64rem; font-weight:700; text-transform:uppercase;
-            letter-spacing:.05em; background:#eef1f4; color:#64748b; padding:.2rem .55rem; border-radius:999px; }
+            letter-spacing:.05em; background:#eef1f4; color:var(--lc-muted); padding:.2rem .55rem; border-radius:999px; }
     </style>
 </head>
 <body class="lc-console">
@@ -53,7 +53,7 @@
         <%-- Header --%>
         <div class="text-muted small mb-1">Administration</div>
         <h4 class="text-navy fw-bold mb-1">Dashboard</h4>
-        <div class="text-muted small mb-4">An overview of the MBCMS network across all cinemas.</div>
+        <div class="text-muted small mb-4">An overview of the PentaPlex network across all cinemas.</div>
 
         <%-- KPI --%>
         <div class="row g-3">

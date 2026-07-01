@@ -8,7 +8,7 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Food & Drinks Fulfillments - MBCMS Staff</title>
+        <title>Food & Drinks Fulfillments - PentaPlex Staff</title>
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
         <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
         <link href="${pageContext.request.contextPath}/assets/css/manager.css?v=${applicationScope.assetVersion}" rel="stylesheet">
@@ -20,7 +20,7 @@
                 border-radius: 9999px;
             }
             .status-pending { background-color: #fef3c7; color: #d97706; }
-            .status-preparing { background-color: #dbeafe; color: #2563eb; }
+            .status-preparing { background-color: var(--primary-100); color: var(--primary); }
             .status-ready { background-color: #d1fae5; color: #059669; }
             .status-delivered { background-color: #f3f4f6; color: #4b5563; }
 

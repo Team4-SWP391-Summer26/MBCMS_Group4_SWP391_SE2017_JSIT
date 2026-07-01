@@ -11,7 +11,7 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>Movie Distribution - MBCMS Admin</title>
+        <title>Movie Distribution - PentaPlex Admin</title>
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
         <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
         <link href="${pageContext.request.contextPath}/assets/css/manager.css?v=${applicationScope.assetVersion}" rel="stylesheet">
@@ -24,7 +24,7 @@
             .mv-row:hover { border-color: var(--lc-primary); background: var(--lc-light); }
             .mv-row.checked { border-color: var(--lc-primary); background: #f5f9ff; }
             .mv-check { width: 18px; height: 18px; flex-shrink: 0; cursor: pointer; }
-            .mv-title { font-weight: 600; color: #0f1e36; }
+            .mv-title { font-weight: 600; color: var(--navy); }
             .mv-meta { font-size: .76rem; color: var(--lc-muted); }
             .info-box {
                 background: var(--lc-light); border: 1px solid #cfe0fb; color: #1e40af;

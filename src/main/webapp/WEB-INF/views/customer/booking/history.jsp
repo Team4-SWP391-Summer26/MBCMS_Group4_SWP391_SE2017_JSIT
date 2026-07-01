@@ -12,12 +12,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>My Bookings – MBCMS</title>
+    <title>My Bookings – PentaPlex</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <link href="${pageContext.request.contextPath}/assets/css/main.css?v=${applicationScope.assetVersion}" rel="stylesheet">
     <style>
-        :root { --bk-primary:#2563EB; --bk-navy:#0F1E36; --bk-border:#E6EAF2; --bk-muted:#64748B; --bk-bg:#F5F7FA; }
+        /* --bk-* tokens come from tokens.css */
         body.bk-page { background: var(--bk-bg); }
         .mb-wrap { max-width: 1000px; }
 
@@ -36,25 +36,25 @@
 
         .mb-search { position:relative; }
         .mb-search input { padding-left:34px; border-radius:999px; border:1.5px solid var(--bk-border); font-size:.85rem; min-width:230px; }
-        .mb-search i { position:absolute; left:12px; top:50%; transform:translateY(-50%); color:#94a3b8; }
+        .mb-search i { position:absolute; left:12px; top:50%; transform:translateY(-50%); color:var(--text-subtle); }
 
         .mb-card { background:#fff; border:1px solid var(--bk-border); border-radius:14px; padding:16px 18px;
             margin-bottom:14px; box-shadow:0 2px 10px rgba(15,23,42,.04); transition:box-shadow .15s, transform .15s;
             display:flex; gap:16px; align-items:stretch; }
         .mb-card:hover { box-shadow:0 8px 22px rgba(37,99,235,.10); transform:translateY(-1px); }
         .mb-poster { width:74px; height:100px; border-radius:10px; object-fit:cover; flex-shrink:0;
-            background:linear-gradient(135deg,#1e293b,#0f172a); color:#FFC107; display:flex; align-items:center;
+            background:linear-gradient(135deg,#1e293b,var(--navy)); color:var(--gold); display:flex; align-items:center;
             justify-content:center; font-size:1.4rem; }
         .mb-title { font-weight:800; color:var(--bk-navy); font-size:1.05rem; line-height:1.2; }
         .mb-sub { font-size:.82rem; color:var(--bk-muted); }
         .mb-badge { display:inline-block; font-size:.68rem; font-weight:800; padding:1px 7px; border-radius:5px;
-            background:#FFC107; color:#0f1e36; margin-right:4px; }
-        .mb-col-label { font-size:.7rem; color:#94a3b8; text-transform:uppercase; letter-spacing:.04em; }
+            background:var(--gold); color:var(--text); margin-right:4px; }
+        .mb-col-label { font-size:.7rem; color:var(--text-subtle); text-transform:uppercase; letter-spacing:.04em; }
         .mb-col-val { font-weight:700; color:var(--bk-navy); font-size:.9rem; }
-        .mb-seat { display:inline-block; background:#eff6ff; color:var(--bk-primary); border:1px solid #bfdbfe;
+        .mb-seat { display:inline-block; background:var(--primary-50); color:var(--bk-primary); border:1px solid var(--primary-200);
             border-radius:6px; padding:1px 7px; font-weight:700; font-size:.78rem; margin:1px 3px 1px 0;
             font-family:ui-monospace,Menlo,Consolas,monospace; }
-        .mb-code { font-family:ui-monospace,Menlo,Consolas,monospace; font-size:.74rem; color:#94a3b8; }
+        .mb-code { font-family:ui-monospace,Menlo,Consolas,monospace; font-size:.74rem; color:var(--text-subtle); }
 
         .sp { padding:3px 11px; border-radius:999px; font-size:.72rem; font-weight:800; white-space:nowrap;
             display:inline-flex; align-items:center; gap:4px; }
@@ -88,7 +88,7 @@
     <div class="row g-3 mb-4">
         <div class="col-sm-4">
             <div class="mb-stat">
-                <div class="ic" style="background:#dcfce7; color:#16a34a;"><i class="bi bi-calendar-check"></i></div>
+                <div class="ic" style="background:#dcfce7; color:var(--success);"><i class="bi bi-calendar-check"></i></div>
                 <div><div class="v">${upcoming}</div><div class="l">Upcoming</div></div>
             </div>
         </div>
@@ -100,7 +100,7 @@
         </div>
         <div class="col-sm-4">
             <div class="mb-stat">
-                <div class="ic" style="background:#dbeafe; color:#2563eb;"><i class="bi bi-cash-coin"></i></div>
+                <div class="ic" style="background:var(--primary-100); color:var(--primary);"><i class="bi bi-cash-coin"></i></div>
                 <div><div class="v"><fmt:formatNumber value="${spentThisYear}" pattern="#,###"/>₫</div>
                     <div class="l">Spent this year</div></div>
             </div>

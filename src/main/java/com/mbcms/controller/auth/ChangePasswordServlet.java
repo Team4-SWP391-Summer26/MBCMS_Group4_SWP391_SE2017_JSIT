@@ -32,6 +32,12 @@ public class ChangePasswordServlet extends HttpServlet {
             return;
         }
 
+        // Chi CUSTOMER duoc doi mat khau; admin/branch manager/staff bi khoa tinh nang nay.
+        if (!"CUSTOMER".equals(session.getAttribute("userRole"))) {
+            resp.sendError(HttpServletResponse.SC_FORBIDDEN);
+            return;
+        }
+
         req.getRequestDispatcher("/WEB-INF/views/auth/change-password.jsp").forward(req, resp);
     }
 
@@ -47,6 +53,12 @@ public class ChangePasswordServlet extends HttpServlet {
         // If user is not logged in, redirect to login page
         if (session == null || session.getAttribute("currentUser") == null) {
             resp.sendRedirect(req.getContextPath() + "/auth/login");
+            return;
+        }
+
+        // Chi CUSTOMER duoc doi mat khau; admin/branch manager/staff bi khoa tinh nang nay.
+        if (!"CUSTOMER".equals(session.getAttribute("userRole"))) {
+            resp.sendError(HttpServletResponse.SC_FORBIDDEN);
             return;
         }
 

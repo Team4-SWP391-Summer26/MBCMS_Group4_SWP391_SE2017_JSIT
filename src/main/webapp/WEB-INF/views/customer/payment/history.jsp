@@ -13,12 +13,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Payment History – MBCMS</title>
+    <title>Payment History – PentaPlex</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <link href="${pageContext.request.contextPath}/assets/css/main.css?v=${applicationScope.assetVersion}" rel="stylesheet">
     <style>
-        :root { --bk-primary:#2563EB; --bk-navy:#0F1E36; --bk-border:#E6EAF2; --bk-muted:#64748B; --bk-bg:#F5F7FA; }
+        /* --bk-* tokens come from tokens.css */
         body.bk-page { background: var(--bk-bg); }
         .pm-wrap { max-width: 920px; }
 
@@ -30,15 +30,15 @@
 
         .pm-search { position:relative; }
         .pm-search input { padding-left:34px; border-radius:999px; border:1.5px solid var(--bk-border); font-size:.85rem; min-width:230px; }
-        .pm-search i { position:absolute; left:12px; top:50%; transform:translateY(-50%); color:#94a3b8; }
+        .pm-search i { position:absolute; left:12px; top:50%; transform:translateY(-50%); color:var(--text-subtle); }
 
         .pm-card { background:#fff; border:1px solid var(--bk-border); border-radius:14px; padding:16px 18px;
             margin-bottom:14px; box-shadow:0 2px 10px rgba(15,23,42,.04); display:flex; gap:16px; align-items:stretch; }
         .pm-title { font-weight:800; color:var(--bk-navy); font-size:1.02rem; line-height:1.2; }
         .pm-sub { font-size:.82rem; color:var(--bk-muted); }
-        .pm-col-label { font-size:.7rem; color:#94a3b8; text-transform:uppercase; letter-spacing:.04em; }
+        .pm-col-label { font-size:.7rem; color:var(--text-subtle); text-transform:uppercase; letter-spacing:.04em; }
         .pm-col-val { font-weight:700; color:var(--bk-navy); font-size:.9rem; }
-        .pm-code { font-family:ui-monospace,Menlo,Consolas,monospace; font-size:.74rem; color:#94a3b8; }
+        .pm-code { font-family:ui-monospace,Menlo,Consolas,monospace; font-size:.74rem; color:var(--text-subtle); }
         .pm-divider { width:1px; background:var(--bk-border); align-self:stretch; }
 
         .sp { padding:3px 11px; border-radius:999px; font-size:.72rem; font-weight:800; white-space:nowrap;

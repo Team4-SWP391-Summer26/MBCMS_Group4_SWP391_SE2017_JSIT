@@ -177,9 +177,11 @@ INSERT INTO dbo.employees (username, email, password_hash, full_name, phone, rol
 -- ---------------------------------------------------------------------
 -- 10. Promotions
 -- ---------------------------------------------------------------------
-INSERT INTO dbo.promotions (code, name, discount_type, discount_value, min_order_amount, valid_from, valid_to, max_uses) VALUES
- ('WELCOME10',  N'Welcome 10% off',     'PERCENT',      10, NULL,   '2026-05-01', '2026-12-31', NULL),
- ('SUMMER50K',  N'Summer 50,000 off',   'FIXED_AMOUNT', 50000, 200000, '2026-06-01', '2026-08-31', 1000);
+-- branch_id = NULL means the promo is Global (valid at all branches).
+-- To scope a promo to a specific branch, set branch_id to that branch's ID.
+INSERT INTO dbo.promotions (code, name, discount_type, discount_value, min_order_amount, valid_from, valid_to, max_uses, branch_id) VALUES
+ ('WELCOME10',  N'Welcome 10% off',     'PERCENT',      10,    NULL,   '2026-05-01', '2026-12-31', NULL, NULL),
+ ('SUMMER50K',  N'Summer 50,000 off',   'FIXED_AMOUNT', 50000, 200000, '2026-06-01', '2026-08-31', 1000, NULL);
 
 -- ---------------------------------------------------------------------
 -- 11. Food items
@@ -276,7 +278,7 @@ CREATE TABLE #plan (
     start_time   DATETIME2,
     num_seats    INT,
     [status]     VARCHAR(9)    COLLATE DATABASE_DEFAULT,
-    promo_code   VARCHAR(30)   COLLATE DATABASE_DEFAULT NULL,   -- NULL = no promo
+    promo_code   VARCHAR(20)   COLLATE DATABASE_DEFAULT NULL,   -- NULL = no promo
     pay_method   VARCHAR(5)    COLLATE DATABASE_DEFAULT NULL,   -- NULL = no payment row (e.g. PENDING booking)
     pay_status   VARCHAR(7)    COLLATE DATABASE_DEFAULT NULL,
     booked_at    DATETIME2           -- explicit date so revenue-by-day has spread
@@ -404,20 +406,7 @@ GO
 -- Sample report 2: bookings by status
 SELECT [status], COUNT(*) AS cnt FROM dbo.bookings GROUP BY [status] ORDER BY cnt DESC;
 GO
--- Add opening_time and closing_time columns
-IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('dbo.branches') AND name = 'opening_time')
-BEGIN
-    ALTER TABLE dbo.branches ADD opening_time TIME NULL;
-END
-GO
-
-IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('dbo.branches') AND name = 'closing_time')
-BEGIN
-    ALTER TABLE dbo.branches ADD closing_time TIME NULL;
-END
-GO
-
--- Seed default operating hours for existing branches
+-- Seed default operating hours (opening_time/closing_time already in schema, just fill data)
 UPDATE dbo.branches
 SET opening_time = '08:00:00',
     closing_time = '23:00:00'

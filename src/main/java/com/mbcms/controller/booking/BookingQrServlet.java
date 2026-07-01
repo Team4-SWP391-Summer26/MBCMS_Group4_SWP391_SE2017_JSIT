@@ -37,6 +37,7 @@ public class BookingQrServlet extends HttpServlet {
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
 
+        // Phai dang nhap Customer (anh QR nhung trong ve dien tu cua khach).
         Customer customer = BookingCustomerGuard.requireCustomer(req, resp);
         if (customer == null) {
             return;
@@ -51,15 +52,19 @@ public class BookingQrServlet extends HttpServlet {
         }
 
         try {
+            // OWNER-CHECK: getBookingDetail nem SecurityException neu khong phai chu booking
+            // -> nguoi khac khong xem duoc QR ve cua minh.
             Booking booking = bookingService.getBookingDetail(bookingId, customer.getUsername());
             if (booking == null || booking.getBookingCode() == null) {
                 resp.sendError(HttpServletResponse.SC_NOT_FOUND);
                 return;
             }
 
+            // Stream thang PNG ve browser, KHONG luu file anh tren server.
             resp.setContentType("image/png");
             resp.setHeader("Cache-Control", "private, max-age=300");
             try (OutputStream out = resp.getOutputStream()) {
+                // Ma hoa booking_code (vd "BK-000001") thanh QR 200x200 px bang ZXing.
                 QRCodeUtil.writePng(booking.getBookingCode(), QR_SIZE, out);
             }
 

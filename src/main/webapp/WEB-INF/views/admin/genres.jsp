@@ -6,7 +6,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Genre Management – MBCMS</title>
+    <title>Genre Management – PentaPlex</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <link href="${pageContext.request.contextPath}/assets/css/manager.css?v=${applicationScope.assetVersion}" rel="stylesheet">
@@ -23,10 +23,12 @@
             font-weight:700; padding:.85rem 1.25rem; border-bottom:1px solid var(--lc-border); text-align:left; background:#fafbfd; }
         .genre-table td { padding:.85rem 1.25rem; border-bottom:1px solid var(--lc-border); font-size:.9rem; vertical-align:middle; }
         .genre-table tr:last-child td { border-bottom:none; }
-        .genre-name { font-weight:600; color:#0f1e36; }
+        .genre-table tbody tr:hover { background:#fafbff; }
+        .genre-actions { display:flex; gap:.45rem; justify-content:flex-end; align-items:center; }
+        .genre-name { font-weight:600; color:var(--navy); }
         .count-pill { font-size:.72rem; font-weight:600; padding:.18rem .6rem; border-radius:999px;
             background:var(--lc-light); color:var(--lc-primary); }
-        .count-pill.zero { background:#F1F5F9; color:#64748B; }
+        .count-pill.zero { background:#F1F5F9; color:var(--lc-muted); }
         .icon-btn { width:32px; height:32px; border-radius:8px; border:1px solid var(--lc-border); background:#fff;
             color:#475569; display:inline-flex; align-items:center; justify-content:center; cursor:pointer; transition:.12s; }
         .icon-btn:hover { border-color:var(--lc-primary); color:var(--lc-primary); background:var(--lc-light); }
@@ -34,7 +36,7 @@
         .icon-btn:disabled { opacity:.4; cursor:not-allowed; }
 
         .modal-content { border:none; border-radius:16px; box-shadow:0 20px 60px rgba(0,0,0,.15); }
-        .modal-title { font-weight:700; font-size:1rem; color:#0f1e36; }
+        .modal-title { font-weight:700; font-size:1rem; color:var(--navy); }
         .lc-form-label { font-size:.8rem; font-weight:600; color:#374151; margin-bottom:.3rem; }
         .lc-form-control { border:1px solid var(--lc-border); border-radius:8px; padding:.5rem .75rem; font-size:.88rem; width:100%; }
         .lc-form-control:focus { outline:none; border-color:var(--lc-primary); box-shadow:0 0 0 3px rgba(37,99,235,.1); }
@@ -42,7 +44,7 @@
         .lc-modal-btn-cancel { background:var(--lc-light); color:#374151; border:1px solid var(--lc-border); }
         .lc-modal-btn-save { background:var(--lc-primary); color:#fff; }
         .lc-modal-btn-save:hover { background:var(--lc-primary-700); }
-        .lc-modal-btn-danger { background:#DC2626; color:#fff; }
+        .lc-modal-btn-danger { background:var(--danger); color:#fff; }
         .lc-modal-btn-danger:hover { background:#B91C1C; }
     </style>
 </head>
@@ -54,7 +56,7 @@
 </jsp:include>
 
 <main class="lc-admin-main">
-    <div class="container-fluid px-4 py-4" style="max-width:880px;">
+    <div class="container-fluid px-4 py-4" style="max-width:1080px;">
 
         <div class="text-muted small mb-1">Admin / <span class="fw-semibold">Genres</span></div>
         <div class="d-flex justify-content-between align-items-start mb-4">
@@ -86,7 +88,7 @@
                     <tr>
                         <th style="width:55%;">Genre</th>
                         <th>Movies using it</th>
-                        <th style="width:90px;text-align:right;">Actions</th>
+                        <th style="width:130px;text-align:right;">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -95,6 +97,7 @@
                             <td><span class="genre-name"><i class="bi bi-tag-fill me-2 text-primary opacity-50"></i>${fn:escapeXml(g.name)}</span></td>
                             <td><span class="count-pill ${g.movieCount == 0 ? 'zero' : ''}">${g.movieCount} movie${g.movieCount == 1 ? '' : 's'}</span></td>
                             <td style="text-align:right;">
+                                <div class="genre-actions">
                                 <button type="button" class="icon-btn edit-btn"
                                         data-id="${g.genreId}" data-name="${fn:escapeXml(g.name)}"
                                         data-bs-toggle="modal" data-bs-target="#editModal" title="Rename">
@@ -107,6 +110,7 @@
                                         title="${g.movieCount > 0 ? 'In use - cannot delete' : 'Delete'}">
                                     <i class="bi bi-trash"></i>
                                 </button>
+                                </div>
                             </td>
                         </tr>
                     </c:forEach>

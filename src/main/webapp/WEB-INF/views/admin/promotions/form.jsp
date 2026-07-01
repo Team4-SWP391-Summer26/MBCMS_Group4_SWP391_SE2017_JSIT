@@ -17,7 +17,7 @@
                 border: 2px solid var(--lc-border);
                 border-radius: 12px;
                 background: #fff;
-                color: #0f1e36;
+                color: var(--navy);
                 padding: 1rem;
                 display: block;
                 cursor: pointer;
@@ -37,11 +37,11 @@
             }
             .type-icon.pct {
                 background-color: #dbeafe;
-                color: #2563eb;
+                color: var(--lc-primary);
             }
             .type-icon.fix {
                 background-color: #fef3c7;
-                color: #d97706;
+                color: var(--warning);
             }
 
             /* Ticket Card CSS */
