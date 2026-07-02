@@ -81,7 +81,7 @@ public class BookingServiceImpl implements BookingService {
 
         Promotion p = promoDao.findByCode(code.trim().toUpperCase());
         if (p == null) {
-            return null;
+            throw new IllegalArgumentException("Promotion code not found");
         }
 
         LocalDateTime now = LocalDateTime.now(ZoneOffset.UTC);
