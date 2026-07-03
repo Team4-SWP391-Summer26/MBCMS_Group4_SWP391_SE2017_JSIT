@@ -6,7 +6,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - MBCMS Admin</title>
+    <title>Dashboard - PentaPlex Admin</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <link href="${pageContext.request.contextPath}/assets/css/manager.css?v=${applicationScope.assetVersion}" rel="stylesheet">
@@ -53,7 +53,7 @@
         <%-- Header --%>
         <div class="text-muted small mb-1">Administration</div>
         <h4 class="text-navy fw-bold mb-1">Dashboard</h4>
-        <div class="text-muted small mb-4">An overview of the MBCMS network across all cinemas.</div>
+        <div class="text-muted small mb-4">An overview of the PentaPlex network across all cinemas.</div>
 
         <%-- KPI --%>
         <div class="row g-3">

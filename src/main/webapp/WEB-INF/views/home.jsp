@@ -7,7 +7,7 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>MBCMS - Home</title>
+        <title>PentaPlex - Home</title>
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
         <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
         <link href="${pageContext.request.contextPath}/assets/css/main.css?v=${applicationScope.assetVersion}" rel="stylesheet">
@@ -83,7 +83,7 @@
             .hero-title, .section-title { letter-spacing: -0.02em; }
 
             /* ===== Hero ===== */
-            /* Hero background — exact LuminaCine prototype gradient (blue + warm gold glow) */
+            /* Hero background — exact PentaPlex prototype gradient (blue + warm gold glow) */
             .hero-banner {
                 color: #fff;
                 padding: clamp(1.75rem, 3vw, 2.75rem) 0;

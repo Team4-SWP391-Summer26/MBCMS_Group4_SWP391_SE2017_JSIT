@@ -1,4 +1,4 @@
-# CinemaDB — Database Setup (MBCMS)
+# CinemaDB — Database Setup (PentaPlex)
 
 This folder contains scripts to create and seed the database for the SWP391 project.
 

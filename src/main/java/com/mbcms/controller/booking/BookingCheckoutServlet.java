@@ -148,53 +148,49 @@ public class BookingCheckoutServlet extends HttpServlet {
             return;
         }
 
-        // "Áp dụng mã KM" → huỷ pending booking cũ, tạo lại với promo mới
-        // để subtotal/discount/total được tính lại (calcDiscount chỉ chạy
-        // bên trong createPendingBooking).
+        // "Áp dụng mã KM" → cập nhật promo trực tiếp trên pending booking hiện
+        // có (KHÔNG huỷ + tạo lại), nhờ vậy ghế đang giữ không bị mất/re-lock.
         if (applyPromo) {
-            Long oldBookingId = parseBookingId(bookingIdParam, session);
-            if (oldBookingId != null) {
-                try {
-                    foodService.deleteOrderByBookingId(oldBookingId);
-                    bookingService.cancelBooking(oldBookingId, customer.getUsername());
-                } catch (Exception e) {
-                    System.err.println("WARN: Không huỷ được booking cũ trước khi áp promo: " + e.getMessage());
-                }
-            }
+            Long bookingIdToUpdate = parseBookingId(bookingIdParam, session);
 
             req.setAttribute("showtimeId", showtimeId);
             req.setAttribute("seatIds",    seatIds);
             req.setAttribute("promoCode",  promoCode);
 
+            if (bookingIdToUpdate == null) {
+                req.setAttribute("checkoutError", "Invalid booking session. Please select seats again.");
+                req.setAttribute("seatLabels", seatDao.findLabelsBySeatIds(seatIds));
+                req.getRequestDispatcher("/WEB-INF/views/booking/checkout.jsp").forward(req, resp);
+                return;
+            }
+
             try {
-                // Tạo lại pending booking (re-lock cùng ghế) với promo mới
-                // → subtotal/discount/total được tính lại đúng.
                 BigDecimal foodSubtotal = getFoodSubtotal(session);
-                Booking booking = bookingService.createPendingBooking(
-                        customer.getUsername(), showtimeId, seatIds, promoCode, null, foodSubtotal);
+                Booking booking = bookingService.applyPromoToBooking(
+                        bookingIdToUpdate, customer.getUsername(), promoCode, foodSubtotal);
                 processFoodOrder(booking, session, req);
-                session.setAttribute("pendingBookingId", booking.getBookingId());
                 req.setAttribute("booking", booking);
 
-            } catch (SeatUnavailableException e) {
+            } catch (IllegalArgumentException e) {
+                // Promo không hợp lệ (hết hạn, sai min order, v.v.)
+                // → giữ nguyên booking/ghế, chỉ hiển thị lỗi, giá vẫn là giá gốc
+                // (không có promo) vì applyPromoToBooking chưa kịp update gì.
+                req.setAttribute("checkoutError", e.getMessage());
+                try {
+                    Booking current = bookingService.getBookingDetail(bookingIdToUpdate, customer.getUsername());
+                    req.setAttribute("booking", current);
+                } catch (Exception inner) {
+                    req.setAttribute("checkoutError", "System error: " + inner.getMessage());
+                }
+
+            } catch (IllegalStateException e) {
+                // Booking hết hạn / không còn PENDING → phải book lại từ đầu.
                 resp.sendRedirect(req.getContextPath()
                         + "/booking/seats?showtimeId=" + showtimeId + "&seatConflict=1");
                 return;
 
-            } catch (IllegalArgumentException e) {
-                // Promo không hợp lệ (hết hạn, sai min order, v.v.)
-                // → vẫn re-lock ghế nhưng KHÔNG áp promo, để giá hiển thị đúng giá gốc.
-                req.setAttribute("checkoutError", e.getMessage());
-                try {
-                    BigDecimal foodSubtotal = getFoodSubtotal(session);
-                    Booking fallback = bookingService.createPendingBooking(
-                            customer.getUsername(), showtimeId, seatIds, null, null, foodSubtotal);
-                    processFoodOrder(fallback, session, req);
-                    session.setAttribute("pendingBookingId", fallback.getBookingId());
-                    req.setAttribute("booking", fallback);
-                } catch (Exception inner) {
-                    req.setAttribute("checkoutError", "System error: " + inner.getMessage());
-                }
+            } catch (SecurityException e) {
+                req.setAttribute("checkoutError", "You are not allowed to update this booking.");
             }
 
             req.getRequestDispatcher("/WEB-INF/views/booking/checkout.jsp").forward(req, resp);

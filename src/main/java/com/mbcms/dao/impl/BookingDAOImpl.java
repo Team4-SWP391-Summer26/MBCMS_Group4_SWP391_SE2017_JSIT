@@ -404,23 +404,28 @@ public class BookingDAOImpl extends BaseDAO implements BookingDAO {
     }
 
     @Override
-    public boolean updateBookingTotals(long bookingId, BigDecimal newSubtotal,
+    public boolean updateBookingTotals(long bookingId, Long promoId, BigDecimal newSubtotal,
             BigDecimal discountAmount, BigDecimal newTotalAmount) {
-        String sql = "UPDATE dbo.bookings SET subtotal = ?, discount_amount = ?, total_amount = ? "
+        String sql = "UPDATE dbo.bookings SET promo_id = ?, subtotal = ?, discount_amount = ?, total_amount = ? "
                 + "WHERE booking_id = ? AND [status] = 'PENDING'";
         Connection conn = null;
         PreparedStatement ps = null;
         try {
             conn = getConnection();
             ps = conn.prepareStatement(sql);
-            ps.setBigDecimal(1, newSubtotal);
-            ps.setBigDecimal(2, discountAmount != null ? discountAmount : BigDecimal.ZERO);
-            ps.setBigDecimal(3, newTotalAmount);
-            ps.setLong(4, bookingId);
+            if (promoId != null) {
+                ps.setLong(1, promoId);
+            } else {
+                ps.setNull(1, java.sql.Types.BIGINT);
+            }
+            ps.setBigDecimal(2, newSubtotal);
+            ps.setBigDecimal(3, discountAmount != null ? discountAmount : BigDecimal.ZERO);
+            ps.setBigDecimal(4, newTotalAmount);
+            ps.setLong(5, bookingId);
             int rows = ps.executeUpdate();
             return rows > 0;
         } catch (SQLException e) {
-            throw new RuntimeException("Loi updateBookingTotals: " + e.getMessage(), e);
+            throw new RuntimeException("Loi updateBookingTotalsWithPromo: " + e.getMessage(), e);
         } finally {
             closeAll(ps, conn);
         }
@@ -779,6 +784,29 @@ public class BookingDAOImpl extends BaseDAO implements BookingDAO {
             closeAll(psSeat, null);
             closeAll(psPayment, null);
             closeAll(psPromo, conn);
+        }
+    }
+    
+    @Override
+    public int markCompletedBookingsAsUsed() {
+        // CONFIRMED → USED khi suất chiếu đã bắt đầu được hơn 30 phút.
+        // Join sang showtimes để lấy start_time (bookings không lưu trực tiếp).
+        String sql =
+            "UPDATE b SET b.[status] = 'USED' "
+            + "FROM dbo.bookings b "
+            + "JOIN dbo.showtimes st ON st.showtime_id = b.showtime_id "
+            + "WHERE b.[status] = 'CONFIRMED' "
+            + "  AND DATEADD(MINUTE, 30, st.start_time) <= SYSUTCDATETIME()";
+        Connection conn = null;
+        PreparedStatement ps = null;
+        try {
+            conn = getConnection();
+            ps = conn.prepareStatement(sql);
+            return ps.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException("Loi markCompletedBookingsAsUsed: " + e.getMessage(), e);
+        } finally {
+            closeAll(ps, conn);
         }
     }
 

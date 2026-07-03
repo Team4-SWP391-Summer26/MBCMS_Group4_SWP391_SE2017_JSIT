@@ -60,9 +60,9 @@ public interface BookingDAO {
     /**
      * Cap nhat subtotal va total_amount cua booking.
      */
-    boolean updateBookingTotals(long bookingId, java.math.BigDecimal newSubtotal,
+    boolean updateBookingTotals(long bookingId, Long promoId, java.math.BigDecimal newSubtotal,
             java.math.BigDecimal discountAmount, java.math.BigDecimal newTotalAmount);
-
+    
     /**
      * Kiem tra ghe co bi lock / da dat boi booking khac khong. Return: list
      * seatId da bi chiem -> dung truoc khi tao booking.
@@ -99,4 +99,6 @@ public interface BookingDAO {
     Booking createCounterBooking(Booking booking, List<Long> seatIds);
     
     List<Booking> findConfirmedForReminder(int minutesFrom, int minutesTo);
+    
+    int markCompletedBookingsAsUsed();
 }

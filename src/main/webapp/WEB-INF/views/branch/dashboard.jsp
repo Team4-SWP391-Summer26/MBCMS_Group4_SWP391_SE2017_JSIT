@@ -13,7 +13,7 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>Dashboard - MBCMS Manager</title>
+        <title>Dashboard - PentaPlex Manager</title>
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
         <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
         <link href="${pageContext.request.contextPath}/assets/css/manager.css?v=${applicationScope.assetVersion}" rel="stylesheet">
@@ -107,11 +107,12 @@
                                     <th>Subtitle</th>
                                     <th class="text-center">Seats</th>
                                     <th>Status</th>
+                                    <th class="text-end">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <c:if test="${empty todayShowtimes}">
-                                    <tr><td colspan="7" class="text-center text-muted py-4">
+                                    <tr><td colspan="8" class="text-center text-muted py-4">
                                             No showtimes scheduled for today.</td></tr>
                                         </c:if>
                                         <c:forEach var="st" items="${todayShowtimes}">
@@ -137,6 +138,13 @@
                                                     <span class="pill pill-gray">${st.status}</span>
                                                 </c:otherwise>
                                             </c:choose>
+                                        </td>
+                                        <td class="text-end">
+                                            <c:if test="${st.status != 'CANCELLED'}">
+                                                <a class="btn btn-sm btn-outline-info py-0 px-2" style="font-size: .75rem;" title="Monitor occupancy"
+                                                   href="${pageContext.request.contextPath}/branch/showtimes/monitor?id=${st.showtimeId}">
+                                                    <i class="bi bi-eye"></i> Monitor</a>
+                                            </c:if>
                                         </td>
                                     </tr>
                                 </c:forEach>
