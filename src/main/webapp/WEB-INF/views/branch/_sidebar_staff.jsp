@@ -20,6 +20,11 @@
                         href="${pageContext.request.contextPath}/staff/food-orders">
                         <i class="bi bi-cup-straw"></i> F&B Fulfillments</a>
 
+                    <div class="lc-sb-section">Entry Gate</div>
+                    <a class="lc-sb-item ${param.active == 'ticket-validate' ? 'active' : ''}"
+                        href="${pageContext.request.contextPath}/staff/ticket-validate">
+                        <i class="bi bi-qr-code-scan"></i> Ticket Validation</a>
+
                     <div style="flex:1;"></div>
 
                     <div class="d-flex align-items-center gap-2 p-2 mt-3 lc-sb-user">

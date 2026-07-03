@@ -85,23 +85,23 @@ public class EmailUtil {
             message.addRecipient(Message.RecipientType.TO, new InternetAddress(recipientEmail));
 
             // Set Subject: header field
-            message.setSubject("[MBCMS] Password Reset Verification Code", "UTF-8");
+            message.setSubject("[PentaPlex] Password Reset Verification Code", "UTF-8");
 
             // Compose HTML message body
             String htmlContent = "<div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e5e7eb; border-radius: 12px; background-color: #ffffff;'>"
                     + "<div style='text-align: center; margin-bottom: 20px;'>"
-                    + "  <h2 style='color: #182c54; margin: 0;'>MBCMS Cinema</h2>"
+                    + "  <h2 style='color: #182c54; margin: 0;'>PentaPlex Cinema</h2>"
                     + "</div>"
                     + "<hr style='border: 0; border-top: 1px solid #e5e7eb; margin-bottom: 20px;'>"
                     + "<p>Hello,</p>"
-                    + "<p>We received a request to reset the password for your MBCMS account. Please use the verification code below to proceed with resetting your password:</p>"
+                    + "<p>We received a request to reset the password for your PentaPlex account. Please use the verification code below to proceed with resetting your password:</p>"
                     + "<div style='text-align: center; margin: 30px 0;'>"
                     + "  <span style='display: inline-block; font-size: 32px; font-weight: bold; color: #2563eb; letter-spacing: 6px; padding: 12px 24px; background-color: #f3f4f6; border-radius: 8px; border: 1px dashed #d1d5db;'>" + otpCode + "</span>"
                     + "</div>"
                     + "<p style='color: #ef4444; font-weight: 500;'>This code will expire in 15 minutes. For security, do not share this code with anyone.</p>"
                     + "<p>If you did not make this request, you can safely ignore this email. Your password will remain unchanged.</p>"
                     + "<br>"
-                    + "<p>Thank you,<br>The MBCMS Team</p>"
+                    + "<p>Thank you,<br>The PentaPlex Team</p>"
                     + "</div>";
 
             // Set content type and encoding
@@ -167,23 +167,23 @@ public class EmailUtil {
             message.addRecipient(Message.RecipientType.TO, new InternetAddress(recipientEmail));
 
             // Set Subject: header field
-            message.setSubject("[MBCMS] Xác thực đăng ký tài khoản mới", "UTF-8");
+            message.setSubject("[PentaPlex] Xác thực đăng ký tài khoản mới", "UTF-8");
 
             // Compose HTML message body with a stylized button
             String htmlContent = "<div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e5e7eb; border-radius: 12px; background-color: #ffffff;'>"
                     + "<div style='text-align: center; margin-bottom: 20px;'>"
-                    + "  <h2 style='color: #182c54; margin: 0;'>MBCMS Cinema</h2>"
+                    + "  <h2 style='color: #182c54; margin: 0;'>PentaPlex Cinema</h2>"
                     + "</div>"
                     + "<hr style='border: 0; border-top: 1px solid #e5e7eb; margin-bottom: 20px;'>"
                     + "<p>Xin chào <strong>" + username + "</strong>,</p>"
-                    + "<p>Cảm ơn bạn đã đăng ký tài khoản tại hệ thống rạp chiếu phim MBCMS. Vui lòng bấm vào nút bên dưới để hoàn tất kích hoạt tài khoản của bạn:</p>"
+                    + "<p>Cảm ơn bạn đã đăng ký tài khoản tại hệ thống rạp chiếu phim PentaPlex. Vui lòng bấm vào nút bên dưới để hoàn tất kích hoạt tài khoản của bạn:</p>"
                     + "<div style='text-align: center; margin: 30px 0;'>"
                     + "  <a href='" + verificationLink + "' style='display: inline-block; padding: 12px 24px; font-size: 16px; color: #ffffff; background-color: #2563eb; text-decoration: none; border-radius: 8px; font-weight: bold;'>Xác Thực Tài Khoản</a>"
                     + "</div>"
                     + "<p style='font-size: 0.9rem; color: #6b7280;'>Nếu nút bấm trên không hoạt động, bạn có thể sao chép liên kết dưới đây và dán vào thanh địa chỉ trình duyệt:</p>"
                     + "<p style='font-size: 0.85rem; color: #2563eb; word-break: break-all;'>" + verificationLink + "</p>"
                     + "<br>"
-                    + "<p>Trân trọng,<br>Đội ngũ hỗ trợ MBCMS</p>"
+                    + "<p>Trân trọng,<br>Đội ngũ hỗ trợ PentaPlex</p>"
                     + "</div>";
 
             // Set content type and encoding
@@ -237,20 +237,20 @@ public class EmailUtil {
             MimeMessage message = new MimeMessage(session);
             message.setFrom(new InternetAddress(senderEmail));
             message.addRecipient(Message.RecipientType.TO, new InternetAddress(recipientEmail));
-            message.setSubject("[MBCMS] Vé Xem Phim Điện Tử - " + bookingCode, "UTF-8");
+            message.setSubject("[PentaPlex] Vé Xem Phim Điện Tử - " + bookingCode, "UTF-8");
 
             String htmlContent = "<div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e5e7eb; border-radius: 12px; background-color: #ffffff;'>"
                     + "<div style='text-align: center; margin-bottom: 20px;'>"
-                    + "  <h2 style='color: #182c54; margin: 0;'>MBCMS Cinema</h2>"
+                    + "  <h2 style='color: #182c54; margin: 0;'>PentaPlex Cinema</h2>"
                     + "</div>"
                     + "<hr style='border: 0; border-top: 1px solid #e5e7eb; margin-bottom: 20px;'>"
                     + "<p>Xin chào quý khách,</p>"
-                    + "<p>Cảm ơn quý khách đã tin tưởng và sử dụng dịch vụ đặt vé của MBCMS.</p>"
+                    + "<p>Cảm ơn quý khách đã tin tưởng và sử dụng dịch vụ đặt vé của PentaPlex.</p>"
                     + "<p>Thông tin vé xem phim điện tử của quý khách đã được xuất thành công. Vui lòng xem chi tiết vé trong file đính kèm PDF của email này.</p>"
                     + "<p>Hãy quét mã QR đính kèm trên vé tại cổng kiểm soát để vào phòng chiếu.</p>"
                     + "<br>"
-                    + "<p>Chúc quý khách có những trải nghiệm xem phim tuyệt vời tại MBCMS!</p>"
-                    + "<p>Trân trọng,<br>Đội ngũ MBCMS</p>"
+                    + "<p>Chúc quý khách có những trải nghiệm xem phim tuyệt vời tại PentaPlex!</p>"
+                    + "<p>Trân trọng,<br>Đội ngũ PentaPlex</p>"
                     + "</div>";
 
             // Create multipart content
@@ -305,14 +305,14 @@ public class EmailUtil {
             MimeMessage message = new MimeMessage(session);
             message.setFrom(new InternetAddress(senderEmail));
             message.addRecipient(Message.RecipientType.TO, new InternetAddress(recipientEmail));
-            message.setSubject("[MBCMS] Xác nhận đặt vé thành công – " + booking.getBookingCode(), "UTF-8");
+            message.setSubject("[PentaPlex] Xác nhận đặt vé thành công – " + booking.getBookingCode(), "UTF-8");
 
             String total = String.format("%,.0f", booking.getTotalAmount());
             String html
                     = "<div style='font-family:Arial,sans-serif;max-width:600px;margin:0 auto;"
                     + "padding:20px;border:1px solid #e5e7eb;border-radius:12px;background:#fff'>"
                     + "  <div style='text-align:center;margin-bottom:20px'>"
-                    + "    <h2 style='color:#182c54;margin:0'>MBCMS Cinema</h2>"
+                    + "    <h2 style='color:#182c54;margin:0'>PentaPlex Cinema</h2>"
                     + "  </div>"
                     + "  <hr style='border:0;border-top:1px solid #e5e7eb;margin-bottom:20px'>"
                     + "  <div style='background:#f0fdf4;border:1px solid #86efac;border-radius:8px;"
@@ -339,7 +339,7 @@ public class EmailUtil {
                     + "       font-size:.8rem;color:#4b5563;margin:20px 0'>"
                     + "    💡 Vui lòng xuất trình mã đặt vé này tại quầy vé hoặc cổng vào rạp."
                     + "  </div>"
-                    + "  <p style='font-size:.85rem;color:#6b7280'>Trân trọng,<br>Đội ngũ MBCMS</p>"
+                    + "  <p style='font-size:.85rem;color:#6b7280'>Trân trọng,<br>Đội ngũ PentaPlex</p>"
                     + "</div>";
 
             message.setContent(html, "text/html; charset=UTF-8");
@@ -372,13 +372,13 @@ public class EmailUtil {
             MimeMessage message = new MimeMessage(session);
             message.setFrom(new InternetAddress(senderEmail));
             message.addRecipient(Message.RecipientType.TO, new InternetAddress(recipientEmail));
-            message.setSubject("[MBCMS] Nhắc nhở: Phim \"" + movieTitle + "\" sắp bắt đầu", "UTF-8");
+            message.setSubject("[PentaPlex] Nhắc nhở: Phim \"" + movieTitle + "\" sắp bắt đầu", "UTF-8");
 
             String html
                     = "<div style='font-family:Arial,sans-serif;max-width:600px;margin:0 auto;"
                     + "padding:20px;border:1px solid #e5e7eb;border-radius:12px;background:#fff'>"
                     + "  <div style='text-align:center;margin-bottom:20px'>"
-                    + "    <h2 style='color:#182c54;margin:0'>MBCMS Cinema</h2>"
+                    + "    <h2 style='color:#182c54;margin:0'>PentaPlex Cinema</h2>"
                     + "  </div>"
                     + "  <hr style='border:0;border-top:1px solid #e5e7eb;margin-bottom:20px'>"
                     + "  <div style='background:#fef9c3;border:1px solid #fde047;border-radius:8px;"
@@ -398,7 +398,7 @@ public class EmailUtil {
                     + "        <td style='padding:8px 0;font-family:monospace;font-weight:800'>" + bookingCode + "</td></tr>"
                     + "  </table>"
                     + "  <p style='font-size:.85rem;color:#6b7280;margin-top:20px'>"
-                    + "    Trân trọng,<br>Đội ngũ MBCMS</p>"
+                    + "    Trân trọng,<br>Đội ngũ PentaPlex</p>"
                     + "</div>";
 
             message.setContent(html, "text/html; charset=UTF-8");
@@ -452,7 +452,7 @@ public class EmailUtil {
                 = "<div style='font-family:Arial,sans-serif;max-width:600px;margin:0 auto;"
                 + "padding:20px;border:1px solid #e5e7eb;border-radius:12px;background:#fff'>"
                 + "  <div style='text-align:center;margin-bottom:20px'>"
-                + "    <h2 style='color:#182c54;margin:0'>MBCMS Cinema</h2>"
+                + "    <h2 style='color:#182c54;margin:0'>PentaPlex Cinema</h2>"
                 + "  </div>"
                 + "  <hr style='border:0;border-top:1px solid #e5e7eb;margin-bottom:20px'>"
                 + "  <div style='background:linear-gradient(135deg,#1d4ed8,#3b82f6);border-radius:12px;"
@@ -471,7 +471,7 @@ public class EmailUtil {
                 + "           color:#1d4ed8;letter-spacing:.1em'>" + promotion.getCode() + "</p>"
                 + "    </div>"
                 + "  </div>"
-                + "  <p style='font-size:.85rem;color:#6b7280'>Trân trọng,<br>Đội ngũ MBCMS</p>"
+                + "  <p style='font-size:.85rem;color:#6b7280'>Trân trọng,<br>Đội ngũ PentaPlex</p>"
                 + "</div>";
 
         // Gui theo batch nho (50/lan) de tranh bi spam filter
@@ -487,7 +487,7 @@ public class EmailUtil {
                 for (String email : batch) {
                     message.addRecipient(Message.RecipientType.BCC, new InternetAddress(email));
                 }
-                message.setSubject("[MBCMS] Ưu đãi mới: " + promotion.getName(), "UTF-8");
+                message.setSubject("[PentaPlex] Ưu đãi mới: " + promotion.getName(), "UTF-8");
                 message.setContent(html, "text/html; charset=UTF-8");
                 Transport.send(message);
                 totalSent += batch.size();

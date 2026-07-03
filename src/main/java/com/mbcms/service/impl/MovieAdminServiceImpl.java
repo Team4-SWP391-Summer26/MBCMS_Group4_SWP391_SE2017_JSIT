@@ -46,7 +46,7 @@ public class MovieAdminServiceImpl implements MovieAdminService {
     public boolean update(Movie movie, Set<Integer> genreIds) {
         validate(movie);
         if (movie.getMovieId() <= 0 || movieDAO.findById(movie.getMovieId()) == null) {
-            throw new IllegalArgumentException("Phim không tồn tại.");
+            throw new IllegalArgumentException("Movie does not exist.");
         }
         boolean ok = movieDAO.update(movie);
         movieDAO.replaceGenres(movie.getMovieId(), genreIds);
@@ -56,12 +56,12 @@ public class MovieAdminServiceImpl implements MovieAdminService {
     @Override
     public void delete(long movieId) {
         if (movieDAO.findById(movieId) == null) {
-            throw new IllegalArgumentException("Phim không tồn tại.");
+            throw new IllegalArgumentException("Movie does not exist.");
         }
         int showtimes = movieDAO.countShowtimes(movieId);
         if (showtimes > 0) {
-            throw new IllegalArgumentException("Không thể xóa: phim đang có " + showtimes
-                    + " suất chiếu. Hãy ẩn phim (chuyển sang Inactive) thay vì xóa.");
+            throw new IllegalArgumentException("Cannot delete this movie because it has " + showtimes
+                    + " showtimes. Hide the movie by setting it to Inactive instead of deleting it.");
         }
         movieDAO.delete(movieId);
     }
@@ -69,7 +69,7 @@ public class MovieAdminServiceImpl implements MovieAdminService {
     @Override
     public boolean changeStatus(long movieId, String status) {
         if (!VALID_STATUS.contains(status)) {
-            throw new IllegalArgumentException("Trạng thái phim không hợp lệ.");
+            throw new IllegalArgumentException("Invalid movie status.");
         }
         return movieDAO.updateStatus(movieId, status);
     }
@@ -92,19 +92,19 @@ public class MovieAdminServiceImpl implements MovieAdminService {
     /** Validate khop voi rang buoc CHECK cua bang movies. */
     private void validate(Movie m) {
         if (m.getTitle() == null || m.getTitle().isBlank()) {
-            throw new IllegalArgumentException("Tên phim không được để trống.");
+            throw new IllegalArgumentException("Movie title is required.");
         }
         if (m.getTitle().trim().length() > 200) {
-            throw new IllegalArgumentException("Tên phim tối đa 200 ký tự.");
+            throw new IllegalArgumentException("Movie title must be 200 characters or fewer.");
         }
         if (m.getDurationMin() <= 0) {
-            throw new IllegalArgumentException("Thời lượng phải lớn hơn 0 phút.");
+            throw new IllegalArgumentException("Duration must be greater than 0 minutes.");
         }
         if (m.getStatus() == null || !VALID_STATUS.contains(m.getStatus())) {
-            throw new IllegalArgumentException("Trạng thái phim không hợp lệ.");
+            throw new IllegalArgumentException("Invalid movie status.");
         }
         if (m.getRated() != null && !m.getRated().isBlank() && !VALID_RATED.contains(m.getRated())) {
-            throw new IllegalArgumentException("Nhãn phân loại không hợp lệ.");
+            throw new IllegalArgumentException("Invalid rating label.");
         }
     }
 }

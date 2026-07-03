@@ -49,10 +49,10 @@ public class MovieDAOImpl extends BaseDAO implements MovieDAO {
     public List<Movie> findActiveMoviesForBranch(long branchId) {
         // JOIN movie_branch -> chi phim da duoc cap cho chi nhanh nay. Qualify cot
         // (m.movie_id...) vi movie_branch cung co cot movie_id (tranh ambiguous).
-        String sql = "SELECT m.movie_id, m.title, m.duration_min, m.status, m.active "
+        String sql = "SELECT m.movie_id, m.title, m.duration_min, m.status, m.active, m.poster_url "
                 + "FROM movies m "
                 + "JOIN movie_branch mb ON mb.movie_id = m.movie_id "
-                + "WHERE m.active = 1 AND mb.branch_id = ? "
+                + "WHERE m.active = 1 AND mb.branch_id = ? AND m.status = 'NOW_SHOWING' "
                 + "ORDER BY m.title";
 
         Connection conn = null;
@@ -67,7 +67,7 @@ public class MovieDAOImpl extends BaseDAO implements MovieDAO {
 
             List<Movie> movies = new ArrayList<>();
             while (rs.next()) {
-                movies.add(mapRow(rs));
+                movies.add(mapRowWithPoster(rs));
             }
             return movies;
         } catch (SQLException e) {
@@ -178,6 +178,13 @@ public class MovieDAOImpl extends BaseDAO implements MovieDAO {
         m.setDurationMin(rs.getInt("duration_min"));
         m.setStatus(rs.getString("status"));
         m.setActive(rs.getBoolean("active"));
+        return m;
+    }
+
+    /** Dropdown showtime form + preview poster. */
+    private Movie mapRowWithPoster(ResultSet rs) throws SQLException {
+        Movie m = mapRow(rs);
+        m.setPosterUrl(rs.getString("poster_url"));
         return m;
     }
 

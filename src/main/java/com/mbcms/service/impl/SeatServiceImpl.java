@@ -37,7 +37,7 @@ public class SeatServiceImpl implements SeatService {
         if (!active) {
             if (seatDAO.hasFutureBookings(seatId)) {
                 throw new IllegalArgumentException(
-                        "Không thể đưa ghế này vào diện bảo trì vì đang có vé đặt trước cho suất chiếu trong tương lai.");
+                        "Cannot mark this seat as maintenance because it has future bookings.");
             }
         }
         boolean ok = seatDAO.updateSeatStatus(seatId, active);
@@ -55,11 +55,11 @@ public class SeatServiceImpl implements SeatService {
         //     doi ghe khach da mua: tranh mua VIP ma thanh Standard).
         if (seatDAO.hasFutureBookings(seatId)) {
             throw new IllegalArgumentException(
-                    "Không thể thay đổi loại ghế này vì đang có vé đặt trước cho suất chiếu trong tương lai.");
+                    "Cannot change this seat type because it has future bookings.");
         }
         // (3) Whitelist: chi nhan STANDARD hoac VIP. KHONG tin client (co the gui gia tri bay).
         if (seatType == null || (!seatType.equals(Seat.TYPE_STANDARD) && !seatType.equals(Seat.TYPE_VIP))) {
-            throw new IllegalArgumentException("Loại ghế không hợp lệ (STANDARD, VIP).");
+            throw new IllegalArgumentException("Invalid seat type (STANDARD, VIP).");
         }
         // Qua ca 3 kiem tra -> ghi xuong DB.
         return seatDAO.updateSeatType(seatId, seatType);
@@ -70,21 +70,21 @@ public class SeatServiceImpl implements SeatService {
         RoomLayoutUtil.validateGrid(rowsCount, colsCount);
 
         if (defaultType == null || (!defaultType.equals(Seat.TYPE_STANDARD) && !defaultType.equals(Seat.TYPE_VIP))) {
-            throw new IllegalArgumentException("Loại ghế mặc định không hợp lệ.");
+            throw new IllegalArgumentException("Invalid default seat type.");
         }
 
         Room room = roomDAO.findById(roomId);
         if (room == null) {
-            throw new IllegalArgumentException("Phòng chiếu không tồn tại.");
+            throw new IllegalArgumentException("Hall does not exist.");
         }
 
         if (roomDAO.hasFutureShowtimes(roomId)) {
             throw new IllegalArgumentException(
-                    "Không thể thiết lập lại sơ đồ ghế vì đang có lịch chiếu cho phòng này trong tương lai.");
+                    "Cannot reset the seat layout because this hall has future showtimes.");
         }
         if (seatDAO.hasAnyBookingsForRoom(roomId)) {
             throw new IllegalArgumentException(
-                    "Phòng đã từng có vé đặt. Không thể xóa toàn bộ ghế. Chỉnh từng ghế trên sơ đồ hiện tại.");
+                    "This hall has booking history. You cannot delete all seats; edit seats on the current layout.");
         }
 
         int capacity = rowsCount * colsCount;
@@ -99,7 +99,7 @@ public class SeatServiceImpl implements SeatService {
     private void verifySeatInRoom(long seatId, long roomId) {
         Seat seat = seatDAO.findById(seatId);
         if (seat == null || seat.getRoomId() != roomId) {
-            throw new IllegalArgumentException("Ghế không thuộc phòng chiếu này.");
+            throw new IllegalArgumentException("Seat does not belong to this hall.");
         }
     }
 }

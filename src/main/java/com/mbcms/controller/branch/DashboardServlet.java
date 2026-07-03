@@ -38,7 +38,7 @@ public class DashboardServlet extends HttpServlet {
         }
         Long branchIdObj = (Long) session.getAttribute("currentBranchId");
         if (branchIdObj == null) {
-            resp.sendError(HttpServletResponse.SC_FORBIDDEN, "Bạn không có quyền quản lý chi nhánh này.");
+            resp.sendError(HttpServletResponse.SC_FORBIDDEN, "You do not have permission to manage this branch.");
             return;
         }
         long branchId = branchIdObj;

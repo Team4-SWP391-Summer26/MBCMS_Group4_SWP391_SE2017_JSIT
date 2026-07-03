@@ -9,9 +9,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Real-time Showtime Monitor - PentaPlex Manager</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
-    <link href="${pageContext.request.contextPath}/assets/css/manager.css?v=${applicationScope.assetVersion}" rel="stylesheet">
+    <%@ include file="/WEB-INF/views/branch/_branch-assets.jspf" %>
     <%@ include file="/WEB-INF/views/branch/seat-layout-style.jspf" %>
     <style>
         .sl-seat { cursor: default !important; pointer-events: none; }
@@ -36,18 +34,19 @@
 </jsp:include>
 
 <main class="lc-admin-main">
-    <div class="container-fluid px-4 py-4" style="max-width:1240px;">
+    <div class="lc-page">
 
-        <%-- Header --%>
-        <div class="text-muted small mb-1">
-            Dashboard / Showtimes / <span class="fw-semibold">Real-time Monitor</span>
-        </div>
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h4 class="text-navy fw-bold mb-0">
-                Real-time Seat &amp; Booking Monitor
-            </h4>
-            <a class="btn btn-light btn-sm border" href="${pageContext.request.contextPath}/branch/showtimes?date=${fn:substring(showtime.startTime, 0, 10)}">
-                <i class="bi bi-arrow-left me-1"></i>Back to showtimes</a>
+        <div class="lc-page-head">
+            <div>
+                <div class="lc-page-crumb">
+                    Dashboard / <a href="${pageContext.request.contextPath}/branch/showtimes" class="text-decoration-none text-muted">Showtimes</a>
+                    / <strong>Real-time Monitor</strong>
+                </div>
+                <h1 class="lc-page-title">Real-time Seat &amp; Booking Monitor</h1>
+            </div>
+            <a class="lc-back-link"
+               href="${pageContext.request.contextPath}/branch/showtimes?date=${fn:substring(showtime.startTime, 0, 10)}">
+                <i class="bi bi-arrow-left" aria-hidden="true"></i> Back to showtimes</a>
         </div>
 
         <%-- Showtime Header card --%>
@@ -74,31 +73,35 @@
         </div>
 
         <%-- Live Stats --%>
-        <div class="row g-3 mb-3">
-            <div class="col-md-3 col-6">
-                <div class="card lc-elev p-3 text-center">
-                    <div class="text-muted small fw-semibold">REAL-TIME OCCUPANCY</div>
-                    <div class="text-navy fw-bold fs-3" id="liveOccPct">
+        <div class="lc-kpi-row">
+            <div class="lc-kpi-card">
+                <div class="lc-stat-icon lc-kpi-icon--blue"><i class="bi bi-pie-chart-fill"></i></div>
+                <div>
+                    <div class="lc-kpi-label">Real-time occupancy</div>
+                    <div class="lc-kpi-value" id="liveOccPct">
                         <fmt:formatNumber value="${showtime.roomCapacity > 0 ? showtime.bookedSeats * 100 / showtime.roomCapacity : 0}" maxFractionDigits="0" />%
                     </div>
                 </div>
             </div>
-            <div class="col-md-3 col-6">
-                <div class="card lc-elev p-3 text-center">
-                    <div class="text-muted small fw-semibold">SEATS SOLD (HARD LOCK)</div>
-                    <div class="text-navy fw-bold fs-3" id="liveSold">${showtime.bookedSeats} / ${showtime.roomCapacity}</div>
+            <div class="lc-kpi-card">
+                <div class="lc-stat-icon lc-kpi-icon--green"><i class="bi bi-ticket-perforated-fill"></i></div>
+                <div>
+                    <div class="lc-kpi-label">Seats sold (hard lock)</div>
+                    <div class="lc-kpi-value" id="liveSold">${showtime.bookedSeats} / ${showtime.roomCapacity}</div>
                 </div>
             </div>
-            <div class="col-md-3 col-6">
-                <div class="card lc-elev p-3 text-center">
-                    <div class="text-muted small fw-semibold">SELECTING (SOFT LOCK)</div>
-                    <div class="text-warning fw-bold fs-3" id="liveSoft">0</div>
+            <div class="lc-kpi-card">
+                <div class="lc-stat-icon lc-kpi-icon--amber"><i class="bi bi-hourglass-split"></i></div>
+                <div>
+                    <div class="lc-kpi-label">Selecting (soft lock)</div>
+                    <div class="lc-kpi-value lc-kpi-value--amber" id="liveSoft">${fn:length(heldSeatIds)}</div>
                 </div>
             </div>
-            <div class="col-md-3 col-6">
-                <div class="card lc-elev p-3 text-center">
-                    <div class="text-muted small fw-semibold">WEBSOCKET STATUS</div>
-                    <div class="fw-bold fs-5 mt-2" id="wsStatus">
+            <div class="lc-kpi-card">
+                <div class="lc-stat-icon lc-kpi-icon--slate"><i class="bi bi-broadcast"></i></div>
+                <div>
+                    <div class="lc-kpi-label">Live connection</div>
+                    <div class="lc-kpi-status" id="wsStatus">
                         <span class="badge bg-secondary">Connecting...</span>
                     </div>
                 </div>
@@ -139,8 +142,9 @@
                                 <span class="sl-rlabel">${row.key}</span>
                                 <c:forEach var="seat" items="${row.value}" varStatus="st">
                                     <c:set var="isBooked" value="${bookedSeatIds.contains(seat.getSeatId())}"/>
+                                    <c:set var="isHeld" value="${heldSeatIds.contains(seat.getSeatId())}"/>
                                     <button type="button" id="seat-${seat.seatId}"
-                                            class="sl-seat ${not seat.active ? 'is-off' : (isBooked ? 'is-booked' : (seat.seatType == 'VIP' ? 'is-vip' : 'is-std'))}"
+                                            class="sl-seat ${not seat.active ? 'is-off' : (isBooked ? 'is-booked' : (isHeld ? 'is-soft-locked' : (seat.seatType == 'VIP' ? 'is-vip' : 'is-std')))}"
                                             title="Seat ${seat.rowLabel}${seat.colNumber} (${seat.seatType})"
                                             data-label="${seat.rowLabel}${seat.colNumber}"
                                             data-seatid="${seat.seatId}"></button>
@@ -158,7 +162,7 @@
                         <span><span class="dot d-std"></span>Standard (Available)</span>
                         <span><span class="dot d-vip"></span>VIP (Available)</span>
                         <span><span class="dot d-booked"></span>Booked / Sold</span>
-                        <span><span class="dot d-soft"></span>Selecting (Soft Lock)</span>
+                        <span><span class="dot d-soft"></span>Held / Selecting</span>
                         <span><span class="dot d-off"></span>Off / Maintain</span>
                     </div>
                 </div>
@@ -181,13 +185,13 @@
     </div>
 </main>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<%@ include file="/WEB-INF/views/branch/_branch-scripts.jspf" %>
 <script>
     document.addEventListener("DOMContentLoaded", function() {
         const showtimeId = "${showtime.showtimeId}";
         const totalCapacity = parseInt("${showtime.roomCapacity}");
         let currentSold = parseInt("${showtime.bookedSeats}");
-        let currentSoft = 0;
+        let currentSoft = ${fn:length(heldSeatIds)};
 
         const logPanel = document.getElementById("logPanel");
         const statusBadge = document.getElementById("wsStatus");
@@ -239,6 +243,16 @@
                             }
                             break;
 
+                        case "HELD_LOCK":
+                            if (!seatElement.classList.contains("is-booked") && !seatElement.classList.contains("is-off")) {
+                                if (!seatElement.classList.contains("is-soft-locked")) {
+                                    seatElement.classList.add("is-soft-locked");
+                                    currentSoft++;
+                                    addLog(user || "Customer", "Held (pending payment) Seat " + seatLabel);
+                                }
+                            }
+                            break;
+
                         case "HARD_LOCK":
                             // Chuyen soft-lock/available thanh booked
                             if (seatElement.classList.contains("is-soft-locked")) {
@@ -253,11 +267,15 @@
                             break;
 
                         case "HARD_RELEASE":
-                            // Giai phong ghe
+                            // Giai phong ghe (held hoac booked)
                             if (seatElement.classList.contains("is-booked")) {
                                 seatElement.classList.remove("is-booked");
                                 currentSold = Math.max(0, currentSold - 1);
                                 addLog("System", "Booking expired / Cancelled. Released Seat " + seatLabel);
+                            } else if (seatElement.classList.contains("is-soft-locked")) {
+                                seatElement.classList.remove("is-soft-locked");
+                                currentSoft = Math.max(0, currentSoft - 1);
+                                addLog("System", "Hold expired / Cancelled. Released Seat " + seatLabel);
                             }
                             break;
                     }

@@ -2,6 +2,7 @@ package com.mbcms.dao.impl;
 
 import com.mbcms.dao.NotificationDAO;
 import com.mbcms.model.Notification;
+import com.mbcms.util.DateTimeUtil;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -291,7 +292,9 @@ public class NotificationDAOImpl extends BaseDAO implements NotificationDAO {
         n.setReferenceId(rs.wasNull() ? null : refId);
 
         Timestamp created = rs.getTimestamp("created_at");
-        n.setCreatedAt(created != null ? created.toLocalDateTime() : null);
+        n.setCreatedAt(created != null
+                ? DateTimeUtil.utcToVietnam(created.toLocalDateTime())
+                : null);
 
         return n;
     }

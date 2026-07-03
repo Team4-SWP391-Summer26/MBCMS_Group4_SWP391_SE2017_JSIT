@@ -1,4 +1,4 @@
-﻿<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
@@ -9,38 +9,7 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>Promotion Management - PentaPlex Manager</title>
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
-        <link href="${pageContext.request.contextPath}/assets/css/manager.css?v=${applicationScope.assetVersion}" rel="stylesheet">
-        <style>
-            .badge-code {
-                background-color: var(--navy);
-                color: var(--lc-bg);
-                font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-                font-weight: 700;
-                padding: 0.35em 0.65em;
-                border-radius: 6px;
-                letter-spacing: 0.05em;
-            }
-            .filter-tab {
-                cursor: pointer;
-                padding: 0.4rem 0.8rem;
-                font-size: 0.85rem;
-                font-weight: 600;
-                color: var(--lc-muted);
-                border-radius: 6px;
-                text-decoration: none;
-                transition: all 0.15s ease;
-            }
-            .filter-tab:hover {
-                background: #f1f5f9;
-                color: var(--navy);
-            }
-            .filter-tab.active {
-                background: var(--lc-primary);
-                color: #fff;
-            }
-        </style>
+        <%@ include file="/WEB-INF/views/branch/_branch-assets.jspf" %>
     </head>
     <body class="lc-console">
 
@@ -49,12 +18,13 @@
         </jsp:include>
 
         <main class="lc-admin-main">
-            <div class="container-fluid px-4 py-4" style="max-width: 1240px;">
+            <div class="lc-page">
 
-                <%-- ===== Page header ===== --%>
-                <div class="mb-3">
-                    <div class="text-muted small mb-1">Dashboard / Promotions</div>
-                    <h4 class="text-navy fw-bold mb-0">Promotion Management</h4>
+                <div class="lc-page-head">
+                    <div>
+                        <div class="lc-page-crumb">Dashboard / <strong>Promotions</strong></div>
+                        <h1 class="lc-page-title">Promotion Management</h1>
+                    </div>
                 </div>
 
                 <%-- ===== Branch scope notice ===== --%>
@@ -78,94 +48,65 @@
                 </c:if>
 
                 <%-- ===== KPI statistics cards ===== --%>
-                <div class="row g-3 mb-4">
-                    <div class="col-sm-6 col-xl-3">
-                        <div class="card lc-elev p-3 h-100">
-                            <div class="d-flex align-items-center gap-3">
-                                <div class="lc-stat-icon" style="background:#E7F0FF; color:#0D6EFD;">
-                                    <i class="bi bi-tag-fill"></i></div>
-                                <div>
-                                    <div class="text-muted small fw-semibold">Total promotions</div>
-                                    <div class="text-navy lc-stat-value" style="font-size:1.6rem;">${statTotal}</div>
-                                </div>
-                            </div>
+                <div class="lc-kpi-row">
+                    <div class="lc-kpi-card">
+                        <div class="lc-stat-icon lc-kpi-icon--blue"><i class="bi bi-tag-fill"></i></div>
+                        <div>
+                            <div class="lc-kpi-label">Total promotions</div>
+                            <div class="lc-kpi-value">${statTotal}</div>
                         </div>
                     </div>
-                    <div class="col-sm-6 col-xl-3">
-                        <div class="card lc-elev p-3 h-100">
-                            <div class="d-flex align-items-center gap-3">
-                                <div class="lc-stat-icon" style="background:#E8F5EE; color:#198754;">
-                                    <i class="bi bi-check-circle-fill"></i></div>
-                                <div>
-                                    <div class="text-muted small fw-semibold">Active</div>
-                                    <div class="text-navy lc-stat-value" style="font-size:1.6rem;">${statActive}</div>
-                                </div>
-                            </div>
+                    <div class="lc-kpi-card">
+                        <div class="lc-stat-icon lc-kpi-icon--green"><i class="bi bi-check-circle-fill"></i></div>
+                        <div>
+                            <div class="lc-kpi-label">Active</div>
+                            <div class="lc-kpi-value">${statActive}</div>
                         </div>
                     </div>
-                    <div class="col-sm-6 col-xl-3">
-                        <div class="card lc-elev p-3 h-100">
-                            <div class="d-flex align-items-center gap-3">
-                                <div class="lc-stat-icon" style="background:#FFF4D6; color:#B58105;">
-                                    <i class="bi bi-ticket-perforated-fill"></i></div>
-                                <div>
-                                    <div class="text-muted small fw-semibold">Used this month</div>
-                                    <div class="text-navy lc-stat-value" style="font-size:1.6rem;">${statUsed}</div>
-                                </div>
-                            </div>
+                    <div class="lc-kpi-card">
+                        <div class="lc-stat-icon lc-kpi-icon--amber"><i class="bi bi-ticket-perforated-fill"></i></div>
+                        <div>
+                            <div class="lc-kpi-label">Used this month</div>
+                            <div class="lc-kpi-value">${statUsed}</div>
                         </div>
                     </div>
-                    <div class="col-sm-6 col-xl-3">
-                        <div class="card lc-elev p-3 h-100">
-                            <div class="d-flex align-items-center gap-3">
-                                <div class="lc-stat-icon" style="background:#FBE4E6; color:#B02A37;">
-                                    <i class="bi bi-graph-down-arrow"></i></div>
-                                <div>
-                                    <div class="text-muted small fw-semibold">Revenue impact</div>
-                                    <div class="text-navy lc-stat-value" style="font-size:1.6rem; color:#B02A37;">
-                                        -<fmt:formatNumber value="${statRevenue}" pattern="#,##0" />₫
-                                    </div>
-                                </div>
-                            </div>
+                    <div class="lc-kpi-card">
+                        <div class="lc-stat-icon lc-kpi-icon--rose"><i class="bi bi-graph-down-arrow"></i></div>
+                        <div>
+                            <div class="lc-kpi-label">Revenue impact</div>
+                            <div class="lc-kpi-value" style="color:#B02A37;">-<fmt:formatNumber value="${statRevenue}" pattern="#,##0" />₫</div>
                         </div>
                     </div>
                 </div>
 
-                <%-- ===== Filters & Toolbar ===== --%>
-                <div class="card lc-elev p-3 mb-4">
-                    <form method="get" action="${pageContext.request.contextPath}/branch/promotions" id="filterForm">
-                        <div class="row g-3 align-items-center">
-                            <%-- Search --%>
-                            <div class="col-md-4">
-                                <div class="input-group input-group-sm">
-                                    <span class="input-group-text bg-white border-end-0 text-muted"><i class="bi bi-search"></i></span>
-                                    <input type="text" class="form-control border-start-0" name="search"
-                                           placeholder="Search by code or name..." value="${fn:escapeXml(filterSearch)}">
-                                </div>
-                            </div>
-
-                            <%-- Discount Type dropdown --%>
-                            <div class="col-md-3">
-                                <select class="form-select form-select-sm" name="type" onchange="this.form.submit()">
-                                    <option value="">All Types</option>
-                                    <option value="PERCENT" ${filterType == 'PERCENT' ? 'selected' : ''}>Percentage</option>
-                                    <option value="FIXED_AMOUNT" ${filterType == 'FIXED_AMOUNT' ? 'selected' : ''}>Fixed amount</option>
-                                </select>
-                            </div>
-
-                            <%-- Status tabs --%>
-                            <div class="col-md-5 d-flex align-items-center justify-content-md-between flex-wrap gap-2">
-                                <div class="d-flex gap-1 bg-light p-1 rounded">
-                                    <input type="hidden" name="status" id="statusField" value="${fn:escapeXml(filterStatus)}">
-                                    <a class="filter-tab ${empty filterStatus ? 'active' : ''}" onclick="setStatusFilter('')">All</a>
-                                    <a class="filter-tab ${filterStatus == 'Active' ? 'active' : ''}" onclick="setStatusFilter('Active')">Active</a>
-                                    <a class="filter-tab ${filterStatus == 'Inactive' ? 'active' : ''}" onclick="setStatusFilter('Inactive')">Inactive</a>
-                                    <a class="filter-tab ${filterStatus == 'Expired' ? 'active' : ''}" onclick="setStatusFilter('Expired')">Expired</a>
-                                </div>
-                                <a class="btn btn-primary btn-sm ms-auto" href="${pageContext.request.contextPath}/branch/promotions/create">
-                                    <i class="bi bi-plus-lg me-1"></i>Add Promotion</a>
-                            </div>
+                <div class="st-toolbar st-toolbar--single lc-toolbar mb-4">
+                    <form method="get" action="${pageContext.request.contextPath}/branch/promotions" id="filterForm" class="st-toolbar-track w-100">
+                        <div class="lc-toolbar-search">
+                            <i class="bi bi-search" aria-hidden="true"></i>
+                            <input type="search" name="search" placeholder="Search by code or name..."
+                                   value="${fn:escapeXml(filterSearch)}" aria-label="Search promotions">
                         </div>
+                        <div class="st-toolbar-vrule" aria-hidden="true"></div>
+                        <select class="st-toolbar-select" name="type" onchange="this.form.submit()" aria-label="Discount type">
+                            <option value="">All types</option>
+                            <option value="PERCENT" ${filterType == 'PERCENT' ? 'selected' : ''}>Percentage</option>
+                            <option value="FIXED_AMOUNT" ${filterType == 'FIXED_AMOUNT' ? 'selected' : ''}>Fixed amount</option>
+                        </select>
+                        <div class="st-toolbar-vrule" aria-hidden="true"></div>
+                        <input type="hidden" name="status" id="statusField" value="${fn:escapeXml(filterStatus)}">
+                        <div class="lc-seg" role="tablist" aria-label="Filter by status">
+                            <button type="button" class="lc-seg-btn ${empty filterStatus ? 'active' : ''}"
+                                    onclick="setStatusFilter('')"><i class="bi bi-grid-3x3-gap-fill"></i> All</button>
+                            <button type="button" class="lc-seg-btn ${filterStatus == 'Active' ? 'active' : ''}"
+                                    onclick="setStatusFilter('Active')"><i class="bi bi-check-circle"></i> Active</button>
+                            <button type="button" class="lc-seg-btn ${filterStatus == 'Inactive' ? 'active' : ''}"
+                                    onclick="setStatusFilter('Inactive')"><i class="bi bi-pause-circle"></i> Inactive</button>
+                            <button type="button" class="lc-seg-btn ${filterStatus == 'Expired' ? 'active' : ''}"
+                                    onclick="setStatusFilter('Expired')"><i class="bi bi-clock-history"></i> Expired</button>
+                        </div>
+                        <div class="lc-toolbar-spacer" aria-hidden="true"></div>
+                        <a class="st-toolbar-add" href="${pageContext.request.contextPath}/branch/promotions/create">
+                            <i class="bi bi-plus-lg" aria-hidden="true"></i> Add Promotion</a>
                     </form>
                 </div>
 
@@ -296,7 +237,7 @@
             </div>
         </main>
 
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+        <%@ include file="/WEB-INF/views/branch/_branch-scripts.jspf" %>
         <script>
                                                           function setStatusFilter(status) {
                                                               document.getElementById('statusField').value = status;

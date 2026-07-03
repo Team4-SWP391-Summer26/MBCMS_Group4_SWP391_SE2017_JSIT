@@ -2,6 +2,7 @@
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
+<fmt:setTimeZone value="Asia/Ho_Chi_Minh"/>
 <%--
     My Bookings (owner: HungNT). Dung view-model `tickets` (List<BookingTicket>)
     + so lieu (upcoming / pastVisits / spentThisYear / dem theo status).
@@ -84,6 +85,31 @@
            class="ms-auto btn btn-primary fw-semibold"><i class="bi bi-plus-lg"></i> Book a Ticket</a>
     </div>
 
+    <c:if test="${param.cancelled == '1'}">
+        <div class="alert alert-success border-0 mb-3" style="border-radius: 10px;">
+            <i class="bi bi-check-circle-fill"></i>
+            Booking cancelled. Your seats have been released.
+        </div>
+    </c:if>
+    <c:if test="${param.expired == '1'}">
+        <div class="alert alert-warning border-0 mb-3" style="border-radius: 10px;">
+            <i class="bi bi-clock-history"></i>
+            Your seat reservation expired. Please make a new booking.
+        </div>
+    </c:if>
+    <c:if test="${param.cancelErr == 'NOT_CANCELLABLE'}">
+        <div class="alert alert-warning border-0 mb-3" style="border-radius: 10px;">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            This booking could not be cancelled because it is no longer pending.
+        </div>
+    </c:if>
+    <c:if test="${param.cancelErr == 'SYSTEM'}">
+        <div class="alert alert-danger border-0 mb-3" style="border-radius: 10px;">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            Could not cancel the booking due to a system error. Please try again.
+        </div>
+    </c:if>
+
     <%-- ===== Stats ===== --%>
     <div class="row g-3 mb-4">
         <div class="col-sm-4">
@@ -140,8 +166,7 @@
                         (com.mbcms.model.BookingTicket) pageContext.getAttribute("t");
                     if (_t != null && _t.getStartTime() != null) {
                         pageContext.setAttribute("tStart",
-                            java.util.Date.from(_t.getStartTime()
-                                .atZone(java.time.ZoneId.systemDefault()).toInstant()));
+                            com.mbcms.util.DateTimeUtil.vietnamLocalToDate(_t.getStartTime()));
                     } else {
                         pageContext.setAttribute("tStart", null);
                     }

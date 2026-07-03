@@ -58,7 +58,7 @@
             }
             location.reload();
         } catch (e) {
-            alert('Update failed. Please try again.');
+            lcAlert('Update failed. Please try again.');
             applyBtn.disabled = false;
             updateApplyLabel();
         }

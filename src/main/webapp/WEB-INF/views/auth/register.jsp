@@ -1,435 +1,273 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
-    <%@ taglib prefix="c" uri="jakarta.tags.core" %>
-        <!DOCTYPE html>
-        <html lang="en">
+<%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Register - PentaPlex</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="${pageContext.request.contextPath}/assets/css/main.css?v=${applicationScope.assetVersion}" rel="stylesheet">
+    <link href="${pageContext.request.contextPath}/assets/css/auth.css?v=${applicationScope.assetVersion}" rel="stylesheet">
+</head>
+<body class="auth-page">
 
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1">
-            <title>Register - PentaPlex</title>
-            <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-            <link href="${pageContext.request.contextPath}/assets/css/main.css?v=${applicationScope.assetVersion}"
-                rel="stylesheet">
-            <%-- Auth shell styles (.branding-card / .avatar-circle / galaxy decor) live in main.css --%>
-        </head>
+<jsp:include page="../common/header.jsp"/>
 
-        <body class="bg-light">
+<main class="container py-5">
+    <div class="row align-items-stretch justify-content-center g-4 auth-shell auth-shell-wide">
+        <div class="col-lg-7 d-flex">
+            <div class="auth-card auth-panel auth-form-card w-100">
+                <div class="auth-kicker-inline auth-reveal" style="--i:0">
+                    <i class="bi bi-person-plus"></i> Customer account
+                </div>
+                <h3 class="fw-bold mb-1 auth-title auth-reveal" style="--i:1">Create your account.</h3>
+                <p class="auth-copy mb-4 auth-reveal" style="--i:2">Join PentaPlex and start booking in under a minute.</p>
 
-            <jsp:include page="../common/header.jsp" />
+                    <c:if test="${not empty errorMsg}">
+                        <div class="lc-alert is-error py-2 mb-4">${errorMsg}</div>
+                    </c:if>
 
-            <div class="container py-5">
-                <div class="row align-items-stretch justify-content-center g-4"
-                    style="max-width: 1100px; margin: 0 auto;">
-                    <!-- Left Column: Registration Form Card -->
-                    <div class="col-lg-7 d-flex">
-                        <div class="card p-4 p-md-5 border-0 shadow-sm w-100 d-flex flex-column justify-content-between"
-                            style="border-radius: 16px; background: #ffffff;">
-                            <div>
-                                <div class="text-center mb-3">
-                                    <!-- Logo SVG -->
-                                    <div class="d-inline-flex align-items-center">
-                                        <img src="${pageContext.request.contextPath}/assets/img/logo.png" alt="PentaPlex Logo" height="36" />
-                                    </div>
+                    <form id="registerForm" method="post" action="${pageContext.request.contextPath}/auth/register" class="auth-reveal" style="--i:3">
+                        <%@ include file="/WEB-INF/views/common/csrf-hidden.jspf" %>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label auth-label">Username</label>
+                                <div class="position-relative">
+                                    <span class="auth-input-icon"><i class="bi bi-person"></i></span>
+                                    <input type="text" name="username" class="form-control auth-input"
+                                           placeholder="e.g. moviefan24" value="${param.username}" required>
                                 </div>
-
-                                <h3 class="text-center fw-bold mb-1" style="color: #0F1E36;">Create Your Account</h3>
-                                <p class="text-center text-muted mb-4" style="font-size: 0.9rem;">Join PentaPlex and start
-                                    booking in seconds</p>
-
-                                <c:if test="${not empty errorMsg}">
-                                    <div class="alert alert-danger py-2" style="font-size: 0.85rem;">${errorMsg}</div>
-                                </c:if>
-
-                                <form id="registerForm" method="post"
-                                    action="${pageContext.request.contextPath}/auth/register">
-                                    <%@ include file="/WEB-INF/views/common/csrf-hidden.jspf" %>
-                                        <div class="row g-3 mb-3">
-                                            <!-- Username -->
-                                            <div class="col-md-6">
-                                                <label class="form-label fw-semibold text-secondary mb-1"
-                                                    style="font-size: 0.85rem;">Username</label>
-                                                <div class="position-relative">
-                                                    <span class="position-absolute"
-                                                        style="left: 12px; top: 50%; transform: translateY(-50%); color: #9ca3af; display: flex; align-items: center;">
-                                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
-                                                            stroke="currentColor" stroke-width="2"
-                                                            stroke-linecap="round" stroke-linejoin="round">
-                                                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                                                            <circle cx="12" cy="7" r="4"></circle>
-                                                        </svg>
-                                                    </span>
-                                                    <input type="text" name="username" class="form-control"
-                                                        style="padding-left: 40px; border-radius: 8px; border-color: #d1d5db; height: 40px; font-size: 0.9rem;"
-                                                        placeholder="hung_nguyen" value="${param.username}" required>
-                                                </div>
-                                                <small class="text-secondary"
-                                                    style="font-size: 0.72rem; display: block; margin-top: 4px; color: #6b7280 !important;">
-                                                    4-50 characters &middot; must be unique
-                                                </small>
-                                            </div>
-
-                                            <!-- Full Name -->
-                                            <div class="col-md-6">
-                                                <label class="form-label fw-semibold text-secondary mb-1"
-                                                    style="font-size: 0.85rem;">Full Name</label>
-                                                <div class="position-relative">
-                                                    <span class="position-absolute"
-                                                        style="left: 12px; top: 50%; transform: translateY(-50%); color: #9ca3af; display: flex; align-items: center;">
-                                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
-                                                            stroke="currentColor" stroke-width="2"
-                                                            stroke-linecap="round" stroke-linejoin="round">
-                                                            <rect x="3" y="4" width="18" height="16" rx="2"></rect>
-                                                            <circle cx="9" cy="10" r="2"></circle>
-                                                            <path d="M6 16c0-2 2-3 3-3s3 1 3 3"></path>
-                                                            <line x1="15" y1="8" x2="18" y2="8"></line>
-                                                            <line x1="15" y1="12" x2="18" y2="12"></line>
-                                                        </svg>
-                                                    </span>
-                                                    <input type="text" name="fullName" class="form-control"
-                                                        style="padding-left: 40px; border-radius: 8px; border-color: #d1d5db; height: 40px; font-size: 0.9rem;"
-                                                        placeholder="Nguyen Hung" value="${param.fullName}" required>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div class="row g-3 mb-3">
-                                            <!-- Email -->
-                                            <div class="col-md-6">
-                                                <label class="form-label fw-semibold text-secondary mb-1"
-                                                    style="font-size: 0.85rem;">Email Address</label>
-                                                <div class="position-relative">
-                                                    <span class="position-absolute"
-                                                        style="left: 12px; top: 50%; transform: translateY(-50%); color: #9ca3af; display: flex; align-items: center;">
-                                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
-                                                            stroke="currentColor" stroke-width="2"
-                                                            stroke-linecap="round" stroke-linejoin="round">
-                                                            <path
-                                                                d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z">
-                                                            </path>
-                                                            <polyline points="22,6 12,13 2,6"></polyline>
-                                                        </svg>
-                                                    </span>
-                                                    <input type="email" name="email" class="form-control"
-                                                        style="padding-left: 40px; border-radius: 8px; border-color: #d1d5db; height: 40px; font-size: 0.9rem;"
-                                                        placeholder="you@email.com" value="${param.email}" required>
-                                                </div>
-                                            </div>
-
-                                            <!-- Phone Number -->
-                                            <div class="col-md-6">
-                                                <label class="form-label fw-semibold text-secondary mb-1"
-                                                    style="font-size: 0.85rem;">Phone Number</label>
-                                                <div class="position-relative">
-                                                    <span class="position-absolute"
-                                                        style="left: 12px; top: 50%; transform: translateY(-50%); color: #9ca3af; display: flex; align-items: center;">
-                                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
-                                                            stroke="currentColor" stroke-width="2"
-                                                            stroke-linecap="round" stroke-linejoin="round">
-                                                            <path
-                                                                d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z">
-                                                            </path>
-                                                        </svg>
-                                                    </span>
-                                                    <input type="tel" name="phone" class="form-control"
-                                                        style="padding-left: 40px; border-radius: 8px; border-color: #d1d5db; height: 40px; font-size: 0.9rem;"
-                                                        placeholder="0901234567" value="${param.phone}">
-                                                </div>
-                                                <small class="text-secondary"
-                                                    style="font-size: 0.72rem; display: block; margin-top: 4px; color: #6b7280 !important;">
-                                                    10-11 digits
-                                                </small>
-                                            </div>
-                                        </div>
-
-                                        <div class="row g-3 mb-3">
-                                            <!-- Password -->
-                                            <div class="col-md-6">
-                                                <label class="form-label fw-semibold text-secondary mb-1"
-                                                    style="font-size: 0.85rem;">Password</label>
-                                                <div class="position-relative">
-                                                    <span class="position-absolute"
-                                                        style="left: 12px; top: 50%; transform: translateY(-50%); color: #9ca3af; display: flex; align-items: center;">
-                                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
-                                                            stroke="currentColor" stroke-width="2"
-                                                            stroke-linecap="round" stroke-linejoin="round">
-                                                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2">
-                                                            </rect>
-                                                            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-                                                        </svg>
-                                                    </span>
-                                                    <input type="password" id="password" name="password"
-                                                        class="form-control"
-                                                        style="padding-left: 40px; padding-right: 40px; border-radius: 8px; border-color: #d1d5db; height: 40px; font-size: 0.9rem;"
-                                                        placeholder="At least 8 character" required>
-                                                    <button type="button" id="togglePassword"
-                                                        class="btn btn-link position-absolute p-0 text-muted"
-                                                        style="right: 12px; top: 50%; transform: translateY(-50%); display: flex; align-items: center; border: none; background: none; text-decoration: none;">
-                                                        <svg id="eyeIcon" width="18" height="18" viewBox="0 0 24 24"
-                                                            fill="none" stroke="currentColor" stroke-width="2"
-                                                            stroke-linecap="round" stroke-linejoin="round">
-                                                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z">
-                                                            </path>
-                                                            <circle cx="12" cy="12" r="3"></circle>
-                                                        </svg>
-                                                    </button>
-                                                </div>
-                                                <small class="text-secondary"
-                                                    style="font-size: 0.72rem; display: block; margin-top: 4px; color: #6b7280 !important;">
-                                                    8-64 chars &middot; at least 1 uppercase + 1 digit
-                                                </small>
-                                                <div class="d-flex gap-2 mt-2">
-                                                    <div id="strength-bar-1" class="flex-grow-1"
-                                                        style="height: 4px; background: #e5e7eb; border-radius: 2px; transition: background-color 0.2s ease;">
-                                                    </div>
-                                                    <div id="strength-bar-2" class="flex-grow-1"
-                                                        style="height: 4px; background: #e5e7eb; border-radius: 2px; transition: background-color 0.2s ease;">
-                                                    </div>
-                                                    <div id="strength-bar-3" class="flex-grow-1"
-                                                        style="height: 4px; background: #e5e7eb; border-radius: 2px; transition: background-color 0.2s ease;">
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <!-- Confirm Password -->
-                                            <div class="col-md-6">
-                                                <label class="form-label fw-semibold text-secondary mb-1"
-                                                    style="font-size: 0.85rem;">Confirm Password</label>
-                                                <div class="position-relative">
-                                                    <span class="position-absolute"
-                                                        style="left: 12px; top: 50%; transform: translateY(-50%); color: #9ca3af; display: flex; align-items: center;">
-                                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
-                                                            stroke="currentColor" stroke-width="2"
-                                                            stroke-linecap="round" stroke-linejoin="round">
-                                                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z">
-                                                            </path>
-                                                        </svg>
-                                                    </span>
-                                                    <input type="password" id="confirmPassword" name="confirmPassword"
-                                                        class="form-control"
-                                                        style="padding-left: 40px; border-radius: 8px; border-color: #d1d5db; height: 40px; font-size: 0.9rem;"
-                                                        placeholder="Re-enter password" required>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <!-- Checkbox Terms -->
-                                        <div class="mb-3 d-flex align-items-center">
-                                            <input type="checkbox" id="terms" class="form-check-input me-2" required>
-                                            <label for="terms" class="form-check-label text-secondary"
-                                                style="font-size: 0.85rem;">
-                                                I agree to the <a href="#" class="text-decoration-none fw-semibold"
-                                                    style="color: var(--primary);">Terms of Use</a> and <a href="#"
-                                                    class="text-decoration-none fw-semibold"
-                                                    style="color: var(--primary);">Privacy
-                                                    Policy</a>
-                                            </label>
-                                        </div>
-
-                                        <!-- Register Button -->
-                                        <button type="submit"
-                                            class="btn w-100 text-white fw-semibold mb-3 d-flex align-items-center justify-content-center border-0"
-                                            style="background: var(--primary); height: 44px; border-radius: 8px; font-size: 1rem;">
-                                            Create Account
-                                        </button>
-                                </form>
-
+                                <small class="auth-field-note">4-50 characters, must be unique.</small>
                             </div>
 
-                            <div class="text-center mt-2" style="font-size: 0.9rem;">
-                                <span class="text-secondary">Already have an account?</span>
-                                <a href="${pageContext.request.contextPath}/auth/login"
-                                    class="fw-semibold text-decoration-none" style="color: var(--primary);">Sign In</a>
+                            <div class="col-md-6">
+                                <label class="form-label auth-label">Full Name</label>
+                                <div class="position-relative">
+                                    <span class="auth-input-icon"><i class="bi bi-person-badge"></i></span>
+                                    <input type="text" name="fullName" class="form-control auth-input"
+                                           placeholder="e.g. John Smith" value="${param.fullName}" required>
+                                </div>
                             </div>
                         </div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label auth-label">Email Address</label>
+                                <div class="position-relative">
+                                    <span class="auth-input-icon"><i class="bi bi-envelope"></i></span>
+                                    <input type="email" name="email" class="form-control auth-input"
+                                           placeholder="name@example.com" value="${param.email}" required>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label auth-label">Phone Number</label>
+                                <div class="position-relative">
+                                    <span class="auth-input-icon"><i class="bi bi-telephone"></i></span>
+                                    <input type="tel" name="phone" class="form-control auth-input"
+                                           placeholder="e.g. 0912345678" value="${param.phone}">
+                                </div>
+                                <small class="auth-field-note">10-11 digits.</small>
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label auth-label">Password</label>
+                                <div class="position-relative">
+                                    <span class="auth-input-icon"><i class="bi bi-shield-lock"></i></span>
+                                    <input type="password" id="password" name="password"
+                                           class="form-control auth-input has-action"
+                                           placeholder="At least 8 characters" required>
+                                    <button type="button" id="togglePassword" class="auth-input-action"
+                                            aria-label="Show or hide password">
+                                        <i class="bi bi-eye" id="eyeIcon"></i>
+                                    </button>
+                                </div>
+                                <small class="auth-field-note">8-64 chars, at least 1 uppercase and 1 digit.</small>
+                                <div class="auth-strength">
+                                    <div id="strength-bar-1" class="auth-strength-bar"></div>
+                                    <div id="strength-bar-2" class="auth-strength-bar"></div>
+                                    <div id="strength-bar-3" class="auth-strength-bar"></div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label auth-label">Confirm Password</label>
+                                <div class="position-relative">
+                                    <span class="auth-input-icon"><i class="bi bi-shield-check"></i></span>
+                                    <input type="password" id="confirmPassword" name="confirmPassword"
+                                           class="form-control auth-input has-action"
+                                           placeholder="Re-enter password" required>
+                                    <button type="button" id="toggleConfirmPassword" class="auth-input-action"
+                                            aria-label="Show or hide confirm password">
+                                        <i class="bi bi-eye" id="eyeIconConfirm"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3 d-flex align-items-start gap-2 auth-terms">
+                            <input type="checkbox" id="terms" class="form-check-input mt-1" required>
+                            <label for="terms" class="form-check-label">
+                                I agree to the
+                                <a href="" aria-disabled="true" class="auth-link lc-disabled-link">Terms of Use</a>
+                                and
+                                <a href="" aria-disabled="true" class="auth-link lc-disabled-link">Privacy Policy</a>.
+                            </label>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100 mb-3 d-flex align-items-center justify-content-center gap-2 auth-submit" data-auth-submit>
+                            <span class="auth-spinner" aria-hidden="true"></span>
+                            <span class="auth-submit-label">Create Account</span>
+                        </button>
+                    </form>
+
+                <p class="auth-switch-link auth-reveal" style="--i:4">
+                    <span class="text-secondary">Already have an account?</span>
+                    <a href="${pageContext.request.contextPath}/auth/login" class="auth-link">Sign in</a>
+                </p>
+            </div>
+        </div>
+
+        <div class="col-lg-5 d-none d-lg-flex">
+            <div class="branding-card w-100">
+                <div class="star star-auth-1"></div>
+                <div class="star star-auth-2"></div>
+                <div class="star star-auth-3"></div>
+                <div class="star star-auth-5"></div>
+                <div class="star star-auth-6"></div>
+                <div class="galaxy-glow"></div>
+                <div class="galaxy-circle"></div>
+                <div class="galaxy-core"></div>
+                <div class="galaxy-core-dark"></div>
+
+                <div class="auth-brand-content auth-brand-reveal" style="--i:0">
+                    <div class="auth-kicker">
+                        <i class="bi bi-gift"></i> Join the club
                     </div>
+                    <h1 class="fw-bold auth-brand-title">
+                        Free to join.<br>Earn on every visit.
+                    </h1>
+                    <p class="auth-brand-copy">
+                        Sign up in seconds and start collecting points, gifts, and early access to new screenings.
+                    </p>
 
-                    <!-- Right Column: Branding Welcome Card -->
-                    <div class="col-lg-5 d-none d-lg-flex">
-                        <div class="branding-card w-100 d-flex flex-column justify-content-between">
-                            <!-- Celestial branding backdrop (đồng bộ với trang Sign In) -->
-                            <div class="star" style="top: 12%; left: 15%;"></div>
-                            <div class="star" style="top: 8%; left: 65%; opacity: 0.6; width: 3px; height: 3px;"></div>
-                            <div class="star" style="top: 25%; left: 40%; opacity: 0.3;"></div>
-                            <div class="star" style="top: 55%; left: 12%; opacity: 0.4; width: 3px; height: 3px;"></div>
-                            <div class="star" style="top: 72%; left: 55%; opacity: 0.6;"></div>
-                            <div class="galaxy-glow"></div>
-                            <div class="galaxy-circle"></div>
-                            <div class="galaxy-core"></div>
-                            <div class="galaxy-core-dark"></div>
+                    <div class="auth-feature-list">
+                        <div class="auth-feature"><i class="bi bi-check-lg"></i><span>1 point per 1,000 VND spent, no expiry.</span></div>
+                        <div class="auth-feature"><i class="bi bi-check-lg"></i><span>Welcome gift for your first booking.</span></div>
+                        <div class="auth-feature"><i class="bi bi-check-lg"></i><span>Early access to ticket sales and previews.</span></div>
+                    </div>
+                </div>
 
-                            <div style="position: relative; z-index: 1;">
-                                <!-- Badge -->
-                                <div class="d-inline-flex align-items-center px-3 py-1 mb-4"
-                                    style="background: rgba(255,255,255,0.06); border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); font-size: 0.75rem; color: #ffffff; font-weight: 600; letter-spacing: 1px;">
-                                    <i class="bi bi-gift me-2"></i> JOIN THE CLUB &mdash;
-                                </div>
-
-                                <!-- Title & Subtitle -->
-                                <h1 class="fw-bold text-white mb-3"
-                                    style="font-size: 2.25rem; line-height: 1.25; max-width: 400px;">
-                                    Free to Join.<br>Earn on Every Visit.
-                                </h1>
-                                <p class="text-white-50 mb-5"
-                                    style="font-size: 0.95rem; line-height: 1.6; max-width: 380px;">
-                                    Sign up in seconds and start collecting points. Reach Gold tier for an automatic 10%
-                                    discount on every booking.
-                                </p>
-
-                                <!-- Benefit Checklist -->
-                                <div class="mb-5 d-flex flex-column gap-3" style="font-size: 0.95rem;">
-                                    <div class="d-flex align-items-center gap-3">
-                                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
-                                            xmlns="http://www.w3.org/2000/svg">
-                                            <circle cx="12" cy="12" r="10" fill="#10b981" />
-                                            <path d="M8 12L11 15L16 9" stroke="white" stroke-width="2.5"
-                                                stroke-linecap="round" stroke-linejoin="round" />
-                                        </svg>
-                                        <span class="text-white-50">1 point per 1,000 VND spent · no expiry</span>
-                                    </div>
-                                    <div class="d-flex align-items-center gap-3">
-                                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
-                                            xmlns="http://www.w3.org/2000/svg">
-                                            <circle cx="12" cy="12" r="10" fill="#10b981" />
-                                            <path d="M8 12L11 15L16 9" stroke="white" stroke-width="2.5"
-                                                stroke-linecap="round" stroke-linejoin="round" />
-                                        </svg>
-                                        <span class="text-white-50">Welcome gift: 50,000 VND off your first
-                                            booking</span>
-                                    </div>
-                                    <div class="d-flex align-items-center gap-3">
-                                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
-                                            xmlns="http://www.w3.org/2000/svg">
-                                            <circle cx="12" cy="12" r="10" fill="#10b981" />
-                                            <path d="M8 12L11 15L16 9" stroke="white" stroke-width="2.5"
-                                                stroke-linecap="round" stroke-linejoin="round" />
-                                        </svg>
-                                        <span class="text-white-50">Early access to ticket sales & previews</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Footer statistics -->
-                            <div class="d-flex align-items-center gap-3"
-                                style="position: relative; z-index: 1; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 1.5rem;">
-                                <div class="d-flex">
-                                    <span class="avatar-circle" style="background: #2563eb; z-index: 4;">NH</span>
-                                    <span class="avatar-circle"
-                                        style="background: #10b981; z-index: 3; margin-left: -8px;">TL</span>
-                                    <span class="avatar-circle"
-                                        style="background: #f59e0b; z-index: 2; margin-left: -8px;">LN</span>
-                                    <span class="avatar-circle"
-                                        style="background: #ef4444; z-index: 1; margin-left: -8px;">PH</span>
-                                </div>
-                                <div style="font-size: 0.85rem; color: rgba(255,255,255,0.7); line-height: 1.4;">
-                                    <strong class="text-white">3,400+ members</strong><br>already earning rewards
-                                </div>
-                            </div>
-                        </div>
+                <div class="auth-brand-proof auth-proof-rule auth-brand-reveal" style="--i:1">
+                    <div class="auth-avatar-stack">
+                        <span class="avatar-circle">NH</span>
+                        <span class="avatar-circle">TL</span>
+                        <span class="avatar-circle">LN</span>
+                        <span class="avatar-circle">PH</span>
+                    </div>
+                    <div class="auth-proof-copy">
+                        <strong>3,400+ members</strong>
+                        <span>already earning rewards</span>
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
+</main>
 
-            <jsp:include page="../common/footer.jsp" />
+<jsp:include page="../common/footer.jsp"/>
 
-            <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-            <script>
-                document.addEventListener('DOMContentLoaded', function () {
-                    const passwordInput = document.getElementById('password');
-                    const confirmPasswordInput = document.getElementById('confirmPassword');
-                    const bar1 = document.getElementById('strength-bar-1');
-                    const bar2 = document.getElementById('strength-bar-2');
-                    const bar3 = document.getElementById('strength-bar-3');
-                    const toggleBtn = document.getElementById('togglePassword');
-                    const registerForm = document.getElementById('registerForm');
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const passwordInput = document.getElementById('password');
+        const confirmPasswordInput = document.getElementById('confirmPassword');
+        const bars = [
+            document.getElementById('strength-bar-1'),
+            document.getElementById('strength-bar-2'),
+            document.getElementById('strength-bar-3')
+        ];
+        const toggleBtn = document.getElementById('togglePassword');
+        const eyeIcon = document.getElementById('eyeIcon');
+        const toggleConfirmBtn = document.getElementById('toggleConfirmPassword');
+        const eyeIconConfirm = document.getElementById('eyeIconConfirm');
+        const registerForm = document.getElementById('registerForm');
 
-                    const eyeOpenSvg = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-        <circle cx="12" cy="12" r="3"></circle>
-    </svg>`;
-                    const eyeClosedSvg = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
-        <line x1="1" y1="1" x2="23" y2="23"></line>
-    </svg>`;
+        function setStrength(score) {
+            bars.forEach(function (bar) {
+                bar.classList.remove('is-weak', 'is-medium', 'is-strong');
+            });
+            if (score === 1) {
+                bars[0].classList.add('is-weak');
+            } else if (score === 2) {
+                bars[0].classList.add('is-medium');
+                bars[1].classList.add('is-medium');
+            } else if (score === 3) {
+                bars.forEach(function (bar) { bar.classList.add('is-strong'); });
+            }
+        }
 
-                    // Password Show/Hide Toggle
-                    if (toggleBtn && passwordInput) {
-                        toggleBtn.addEventListener('click', function () {
-                            if (passwordInput.type === 'password') {
-                                passwordInput.type = 'text';
-                                toggleBtn.innerHTML = eyeClosedSvg;
-                            } else {
-                                passwordInput.type = 'password';
-                                toggleBtn.innerHTML = eyeOpenSvg;
-                            }
-                        });
-                    }
+        function passwordScore(value) {
+            let score = 0;
+            if (value.length > 0 && value.length >= 8 && value.length <= 64) score++;
+            if (/[A-Z]/.test(value)) score++;
+            if (/[0-9]/.test(value)) score++;
+            return score;
+        }
 
-                    // Password Strength Checker
-                    if (passwordInput) {
-                        passwordInput.addEventListener('input', function () {
-                            const val = passwordInput.value;
+        if (toggleBtn && passwordInput) {
+            toggleBtn.addEventListener('click', function () {
+                const show = passwordInput.type === 'password';
+                passwordInput.type = show ? 'text' : 'password';
+                eyeIcon.className = show ? 'bi bi-eye-slash' : 'bi bi-eye';
+            });
+        }
 
-                            // Rules:
-                            // 1. Length 8-64 chars
-                            // 2. At least 1 uppercase letter
-                            // 3. At least 1 digit
-                            const hasLength = val.length >= 8 && val.length <= 64;
-                            const hasUppercase = /[A-Z]/.test(val);
-                            const hasDigit = /[0-9]/.test(val);
+        if (toggleConfirmBtn && confirmPasswordInput) {
+            toggleConfirmBtn.addEventListener('click', function () {
+                const show = confirmPasswordInput.type === 'password';
+                confirmPasswordInput.type = show ? 'text' : 'password';
+                eyeIconConfirm.className = show ? 'bi bi-eye-slash' : 'bi bi-eye';
+            });
+        }
 
-                            let score = 0;
-                            if (val.length > 0) {
-                                if (hasLength)
-                                    score++;
-                                if (hasUppercase)
-                                    score++;
-                                if (hasDigit)
-                                    score++;
-                            }
+        if (passwordInput) {
+            passwordInput.addEventListener('input', function () {
+                setStrength(passwordScore(passwordInput.value));
+            });
+        }
 
-                            // Reset bars color
-                            bar1.style.backgroundColor = '#e5e7eb';
-                            bar2.style.backgroundColor = '#e5e7eb';
-                            bar3.style.backgroundColor = '#e5e7eb';
+        if (registerForm) {
+            registerForm.addEventListener('submit', function (e) {
+                const password = passwordInput.value;
+                if (passwordScore(password) < 3) {
+                    e.preventDefault();
+                    lcAlert('Password must be 8-64 characters and contain at least 1 uppercase letter and 1 digit.');
+                    return false;
+                }
+                if (password !== confirmPasswordInput.value) {
+                    e.preventDefault();
+                    lcAlert('Passwords do not match.');
+                    return false;
+                }
+            });
+        }
 
-                            if (score === 1) {
-                                bar1.style.backgroundColor = '#ef4444'; // Red (Weak)
-                            } else if (score === 2) {
-                                bar1.style.backgroundColor = '#f59e0b'; // Orange (Medium)
-                                bar2.style.backgroundColor = '#f59e0b';
-                            } else if (score === 3) {
-                                bar1.style.backgroundColor = '#10b981'; // Green (Strong)
-                                bar2.style.backgroundColor = '#10b981';
-                                bar3.style.backgroundColor = '#10b981';
-                            }
-                        });
-                    }
-
-                    // Form Validation on Submit
-                    if (registerForm) {
-                        registerForm.addEventListener('submit', function (e) {
-                            const val = passwordInput.value;
-                            const confirmVal = confirmPasswordInput.value;
-
-                            const hasLength = val.length >= 8 && val.length <= 64;
-                            const hasUppercase = /[A-Z]/.test(val);
-                            const hasDigit = /[0-9]/.test(val);
-
-                            if (!hasLength || !hasUppercase || !hasDigit) {
-                                e.preventDefault();
-                                alert('Password must be 8-64 characters and contain at least 1 uppercase letter and 1 digit.');
-                                return false;
-                            }
-
-                            if (val !== confirmVal) {
-                                e.preventDefault();
-                                alert('Passwords do not match.');
-                                return false;
-                            }
-                        });
-                    }
-                });
-            </script>
-        </body>
-
-        </html>
+        document.querySelectorAll('[data-auth-submit]').forEach(function (btn) {
+            var form = btn.closest('form');
+            if (!form) return;
+            form.addEventListener('submit', function (e) {
+                if (e.defaultPrevented) return;
+                btn.classList.add('is-loading');
+                var label = btn.querySelector('.auth-submit-label');
+                if (label) label.textContent = 'Creating account...';
+            });
+        });
+    });
+</script>
+</body>
+</html>

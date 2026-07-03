@@ -14,10 +14,11 @@ public interface SeatAvailabilityService {
      */
     List<Seat> getSeats(long showtimeId);
 
-    /**
-     * Set seat_id da bi dat (PENDING chua het han + CONFIRMED + USED).
-     */
+    /** Ghế đã thanh toán (CONFIRMED, USED) — hiển thị "Booked". */
     Set<Long> getBookedSeatIds(long showtimeId);
+
+    /** Ghế đang giữ chỗ chờ thanh toán (PENDING) — hiển thị "Held by others". */
+    Set<Long> getHeldSeatIds(long showtimeId);
 
     /**
      * Ghe nhom theo row — dung de render so do trong JSP. Key = rowLabel (A, B,

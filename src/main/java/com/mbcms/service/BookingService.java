@@ -109,4 +109,7 @@ public interface BookingService {
     
     Booking applyPromoToBooking(long bookingId, String customerUsername,
             String promoCode, BigDecimal concessionsSubtotal);
+
+    /** Mã KM đang gắn trên booking (null nếu chưa áp dụng / không có giảm giá). */
+    String resolveAppliedPromoCode(Booking booking);
 }

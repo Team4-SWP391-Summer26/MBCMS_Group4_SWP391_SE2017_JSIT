@@ -65,6 +65,10 @@ public class ShowtimeByMovieServlet extends HttpServlet {
             resp.sendError(HttpServletResponse.SC_NOT_FOUND, "Movie not found: " + movieId);
             return;
         }
+        if (!"NOW_SHOWING".equals(movie.getStatus())) {
+            resp.sendRedirect(req.getContextPath() + "/movies/detail?id=" + movieId);
+            return;
+        }
 
         // Selected date (default today)
         LocalDate selectedDate;

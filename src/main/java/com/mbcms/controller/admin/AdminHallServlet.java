@@ -50,7 +50,7 @@ public class AdminHallServlet extends HttpServlet {
         
         String action = req.getParameter("action");
         if (action == null) {
-            resp.sendRedirect(redirectHalls(req, "errorMsg", "Hành động không hợp lệ."));
+            resp.sendRedirect(redirectHalls(req, "errorMsg", "Invalid action."));
             return;
         }
 
@@ -69,13 +69,13 @@ public class AdminHallServlet extends HttpServlet {
                     handleDelete(req, resp);
                     break;
                 default:
-                    resp.sendRedirect(redirectHalls(req, "errorMsg", "Hành động không xác định."));
+                    resp.sendRedirect(redirectHalls(req, "errorMsg", "Unknown action."));
             }
         } catch (IllegalArgumentException e) {
             resp.sendRedirect(redirectHalls(req, "errorMsg", e.getMessage()));
         } catch (Exception e) {
-            getServletContext().log("Lỗi trong AdminHallServlet: ", e);
-            resp.sendRedirect(redirectHalls(req, "errorMsg", "Đã xảy ra lỗi hệ thống."));
+            getServletContext().log("Error in AdminHallServlet: ", e);
+            resp.sendRedirect(redirectHalls(req, "errorMsg", "A system error occurred."));
         }
     }
 
@@ -93,9 +93,9 @@ public class AdminHallServlet extends HttpServlet {
 
         boolean success = roomService.addRoom(r);
         if (success) {
-            resp.sendRedirect(redirectHalls(req, "successMsg", "Thêm phòng chiếu mới thành công!"));
+            resp.sendRedirect(redirectHalls(req, "successMsg", "Hall added successfully!"));
         } else {
-            resp.sendRedirect(redirectHalls(req, "errorMsg", "Thêm phòng chiếu thất bại."));
+            resp.sendRedirect(redirectHalls(req, "errorMsg", "Failed to add hall."));
         }
     }
 
@@ -106,16 +106,16 @@ public class AdminHallServlet extends HttpServlet {
 
         Room existing = roomService.getRoomById(roomId);
         if (existing == null) {
-            throw new IllegalArgumentException("Phòng chiếu không tồn tại.");
+            throw new IllegalArgumentException("Hall does not exist.");
         }
         existing.setName(name);
         existing.setRoomType(roomType);
 
         boolean success = roomService.updateRoom(existing);
         if (success) {
-            resp.sendRedirect(redirectHalls(req, "successMsg", "Cập nhật phòng chiếu thành công!"));
+            resp.sendRedirect(redirectHalls(req, "successMsg", "Hall updated successfully!"));
         } else {
-            resp.sendRedirect(redirectHalls(req, "errorMsg", "Cập nhật phòng chiếu thất bại."));
+            resp.sendRedirect(redirectHalls(req, "errorMsg", "Failed to update hall."));
         }
     }
 
@@ -124,11 +124,11 @@ public class AdminHallServlet extends HttpServlet {
         boolean active = Boolean.parseBoolean(req.getParameter("active"));
 
         boolean success = roomService.toggleRoomStatus(roomId, active);
-        String msg = active ? "Kích hoạt phòng chiếu thành công!" : "Vô hiệu hóa phòng chiếu thành công!";
+        String msg = active ? "Hall activated successfully!" : "Hall deactivated successfully!";
         if (success) {
             resp.sendRedirect(redirectHalls(req, "successMsg", msg));
         } else {
-            resp.sendRedirect(redirectHalls(req, "errorMsg", "Thay đổi trạng thái thất bại."));
+            resp.sendRedirect(redirectHalls(req, "errorMsg", "Failed to change status."));
         }
     }
 
@@ -137,9 +137,9 @@ public class AdminHallServlet extends HttpServlet {
 
         boolean success = roomService.deleteRoom(roomId);
         if (success) {
-            resp.sendRedirect(redirectHalls(req, "successMsg", "Xóa phòng chiếu thành công!"));
+            resp.sendRedirect(redirectHalls(req, "successMsg", "Hall deleted successfully!"));
         } else {
-            resp.sendRedirect(redirectHalls(req, "errorMsg", "Xóa phòng chiếu thất bại."));
+            resp.sendRedirect(redirectHalls(req, "errorMsg", "Failed to delete hall."));
         }
     }
 

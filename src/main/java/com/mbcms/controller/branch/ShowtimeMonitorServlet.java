@@ -40,7 +40,7 @@ public class ShowtimeMonitorServlet extends HttpServlet {
         Long branchId = (Long) session.getAttribute("currentBranchId");
 
         if (branchId == null || (!"BRANCH_MANAGER".equals(role) && !"BRANCH_STAFF".equals(role))) {
-            resp.sendError(HttpServletResponse.SC_FORBIDDEN, "Bạn không có quyền truy cập chức năng này.");
+            resp.sendError(HttpServletResponse.SC_FORBIDDEN, "You do not have permission to access this feature.");
             return;
         }
 
@@ -69,17 +69,19 @@ public class ShowtimeMonitorServlet extends HttpServlet {
         // Branch scope: verify that the showtime's room belongs to the current branch
         Long showtimeBranchId = new com.mbcms.dao.impl.RoomDAOImpl().findById(showtime.getRoomId()).getBranchId();
         if (showtimeBranchId == null || !showtimeBranchId.equals(branchId)) {
-            resp.sendError(HttpServletResponse.SC_FORBIDDEN, "Bạn không có quyền theo dõi suất chiếu của chi nhánh khác.");
+            resp.sendError(HttpServletResponse.SC_FORBIDDEN, "You do not have permission to monitor another branch's showtime.");
             return;
         }
 
         // Load data
         Map<String, List<Seat>> seatsByRow = seatAvailabilityService.getSeatsByRow(showtimeId);
         Set<Long> bookedSeatIds = seatAvailabilityService.getBookedSeatIds(showtimeId);
+        Set<Long> heldSeatIds = seatAvailabilityService.getHeldSeatIds(showtimeId);
 
         req.setAttribute("showtime", showtime);
         req.setAttribute("seatsByRow", seatsByRow);
         req.setAttribute("bookedSeatIds", bookedSeatIds);
+        req.setAttribute("heldSeatIds", heldSeatIds);
 
         req.getRequestDispatcher("/WEB-INF/views/branch/showtime/monitor.jsp").forward(req, resp);
     }

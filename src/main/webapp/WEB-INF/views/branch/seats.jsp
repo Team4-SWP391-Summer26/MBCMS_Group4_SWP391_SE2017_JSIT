@@ -12,9 +12,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Seat Layout - PentaPlex Manager</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
-    <link href="${pageContext.request.contextPath}/assets/css/manager.css?v=${applicationScope.assetVersion}" rel="stylesheet">
+    <%@ include file="/WEB-INF/views/branch/_branch-assets.jspf" %>
     <%@ include file="/WEB-INF/views/branch/seat-layout-style.jspf" %>
 </head>
 <body class="lc-console">
@@ -24,15 +22,23 @@
 </jsp:include>
 
 <main class="lc-admin-main">
-    <div class="container-fluid px-4 py-4" style="max-width:1240px;">
+    <div class="lc-page">
 
-        <%-- Header --%>
-        <div class="text-muted small mb-1">
-            Dashboard / Rooms &amp; Seats / <span class="fw-semibold">${room.name} &middot; Seat Layout</span>
+        <div class="lc-page-head mb-2">
+            <div>
+                <div class="lc-page-crumb">
+                    Dashboard / <a href="${pageContext.request.contextPath}/branch/halls" class="text-decoration-none text-muted">Rooms &amp; Seats</a>
+                    / <strong>${room.name} &middot; Seat Layout</strong>
+                </div>
+                <h1 class="lc-page-title">Seat Layout &middot; <c:out value="${room.name}"/> (${room.roomType})</h1>
+            </div>
+            <div class="d-flex flex-wrap align-items-center gap-2">
+                <a class="lc-back-link" href="${pageContext.request.contextPath}/branch/halls">
+                    <i class="bi bi-arrow-left" aria-hidden="true"></i> Back to rooms</a>
+                <button type="button" class="lc-btn-ghost" data-bs-toggle="modal" data-bs-target="#genModal">
+                    <i class="bi bi-arrow-clockwise" aria-hidden="true"></i> Reset / Generate grid</button>
+            </div>
         </div>
-        <h4 class="text-navy fw-bold mb-3">
-            Seat Layout &middot; <c:out value="${room.name}"/> (${room.roomType})
-        </h4>
 
         <%-- Scope notice --%>
         <div class="lc-scope mb-3">
@@ -48,14 +54,6 @@
             <div class="alert alert-danger py-2">${errorMsg}</div>
         </c:if>
 
-        <%-- Action bar --%>
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <a class="btn btn-light btn-sm border" href="${pageContext.request.contextPath}/branch/halls">
-                <i class="bi bi-arrow-left me-1"></i>Back to rooms</a>
-            <button class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#genModal">
-                <i class="bi bi-arrow-clockwise me-1"></i>Reset / Generate grid</button>
-        </div>
-
         <div class="row g-3">
             <%-- ===== LEFT: toolbar + seat map ===== --%>
             <div class="col-lg-8">
@@ -68,7 +66,7 @@
                             <button type="button" class="sl-tool" data-tool="VIP"><span class="dot d-vip"></span>VIP</button>
                             <button type="button" class="sl-tool" data-tool="OFF"><span class="dot d-off"></span>Off</button>
                         </div>
-                        <button type="button" class="btn btn-primary btn-sm px-3" id="applyBtn" disabled>Apply (<span id="selCount">0</span>)</button>
+                        <button type="button" class="st-toolbar-add border-0" id="applyBtn" disabled>Apply (<span id="selCount">0</span>)</button>
                         <span class="vr mx-1"></span>
                         <button type="button" class="btn btn-light btn-sm border" id="selectAllBtn">Select all</button>
                         <button type="button" class="btn btn-light btn-sm border" id="clearBtn">Clear</button>
@@ -204,7 +202,7 @@
     </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<%@ include file="/WEB-INF/views/branch/_branch-scripts.jspf" %>
 <script>
     const CTX = '${pageContext.request.contextPath}';
     const ROOM_ID = '${roomId}';

@@ -18,6 +18,9 @@ public class PromotionDAOImpl extends BaseDAO implements PromotionDAO {
     private static final String BASE_SELECT
             = "SELECT promo_id, code, name, discount_type, discount_value, min_order_amount, "
             + "valid_from, valid_to, max_uses, used_count, active, is_deleted, branch_id FROM promotions ";
+    private static final String VN_MONTH_UTC_FILTER =
+            "AND b.created_at >= DATEADD(HOUR, -7, DATEADD(month, DATEDIFF(month, 0, GETDATE()), 0)) "
+            + "AND b.created_at < DATEADD(HOUR, -7, DATEADD(month, DATEDIFF(month, 0, DATEADD(month, 1, GETDATE())), 0)) ";
 
     @Override
     public List<Promotion> findAll() {
@@ -350,7 +353,7 @@ public class PromotionDAOImpl extends BaseDAO implements PromotionDAO {
         }
         sql += "WHERE b.promo_id IS NOT NULL "
                 + "AND b.status IN ('CONFIRMED','USED') "
-                + "AND b.created_at >= DATEADD(month, DATEDIFF(month, 0, GETDATE()), 0)";
+                + VN_MONTH_UTC_FILTER;
         if (branchId != null) {
             sql += " AND r.branch_id = ?";
         }
@@ -384,7 +387,7 @@ public class PromotionDAOImpl extends BaseDAO implements PromotionDAO {
         }
         sql += "WHERE b.promo_id IS NOT NULL "
                 + "AND b.status IN ('CONFIRMED','USED') "
-                + "AND b.created_at >= DATEADD(month, DATEDIFF(month, 0, GETDATE()), 0)";
+                + VN_MONTH_UTC_FILTER;
         if (branchId != null) {
             sql += " AND r.branch_id = ?";
         }
@@ -467,8 +470,10 @@ public class PromotionDAOImpl extends BaseDAO implements PromotionDAO {
         p.setDiscountType(rs.getString("discount_type"));
         p.setDiscountValue(rs.getBigDecimal("discount_value"));
         p.setMinOrderAmount(rs.getBigDecimal("min_order_amount"));
-        p.setValidFrom(rs.getTimestamp("valid_from").toLocalDateTime());
-        p.setValidTo(rs.getTimestamp("valid_to").toLocalDateTime());
+        Timestamp validFromTs = rs.getTimestamp("valid_from");
+        Timestamp validToTs = rs.getTimestamp("valid_to");
+        p.setValidFrom(validFromTs != null ? validFromTs.toLocalDateTime() : null);
+        p.setValidTo(validToTs != null ? validToTs.toLocalDateTime() : null);
 
         int maxUsesVal = rs.getInt("max_uses");
         if (rs.wasNull()) {

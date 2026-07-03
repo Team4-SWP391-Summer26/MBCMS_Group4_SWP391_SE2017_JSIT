@@ -9,20 +9,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>F&amp;B Menu – PentaPlex Manager</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
-    <link href="${pageContext.request.contextPath}/assets/css/manager.css?v=${applicationScope.assetVersion}" rel="stylesheet">
+    <%@ include file="/WEB-INF/views/branch/_branch-assets.jspf" %>
     <style>
-        /* ── Category filter tabs ───────────────────────── */
-        .filter-tab {
-            cursor: pointer; padding: .4rem .85rem;
-            font-size: .85rem; font-weight: 600;
-            color: var(--lc-muted); border-radius: 6px;
-            text-decoration: none; transition: all .15s;
-        }
-        .filter-tab:hover { background: #f1f5f9; color: var(--navy); }
-        .filter-tab.active { background: var(--lc-primary); color: #fff; }
-
         /* ── Category pills ─────────────────────────────── */
         .cat-snack  { background: #FFF7ED; color: #C2410C; border: 1px solid #FED7AA; }
         .cat-drink  { background: #EFF6FF; color: #1D4ED8; border: 1px solid #BFDBFE; }
@@ -52,12 +40,13 @@
 </jsp:include>
 
 <main class="lc-admin-main">
-<div class="container-fluid px-4 py-4" style="max-width:1240px;">
+<div class="lc-page">
 
-    <%-- ── Page header ──────────────────────────────────── --%>
-    <div class="mb-3">
-        <div class="text-muted small mb-1">Dashboard / F&amp;B Menu</div>
-        <h4 class="text-navy fw-bold mb-0">F&amp;B Menu Management</h4>
+    <div class="lc-page-head mb-2">
+        <div>
+            <div class="lc-page-crumb">Dashboard / <strong>F&amp;B Menu</strong></div>
+            <h1 class="lc-page-title">F&amp;B Menu Management</h1>
+        </div>
     </div>
 
     <%-- ── Scope notice ──────────────────────────────────── --%>
@@ -81,85 +70,67 @@
     </c:if>
 
     <%-- ── KPI cards ──────────────────────────────────────── --%>
-    <div class="row g-3 mb-4">
-        <div class="col-sm-6 col-xl-4">
-            <div class="card lc-elev p-3 h-100">
-                <div class="d-flex align-items-center gap-3">
-                    <div class="lc-stat-icon" style="background:#EFF6FF;color:#1D4ED8;">
-                        <i class="bi bi-cup-straw-fill"></i>
-                    </div>
-                    <div>
-                        <div class="text-muted small fw-semibold">Total Items</div>
-                        <div class="text-navy lc-stat-value" style="font-size:1.6rem;">${totalItems}</div>
-                    </div>
-                </div>
+    <div class="lc-kpi-row lc-kpi-row--3">
+        <div class="lc-kpi-card">
+            <div class="lc-stat-icon lc-kpi-icon--blue"><i class="bi bi-basket-fill"></i></div>
+            <div>
+                <div class="lc-kpi-label">Total items</div>
+                <div class="lc-kpi-value">${totalItems}</div>
             </div>
         </div>
-        <div class="col-sm-6 col-xl-4">
-            <div class="card lc-elev p-3 h-100">
-                <div class="d-flex align-items-center gap-3">
-                    <div class="lc-stat-icon" style="background:#E8F5EE;color:#198754;">
-                        <i class="bi bi-check-circle-fill"></i>
-                    </div>
-                    <div>
-                        <div class="text-muted small fw-semibold">Active</div>
-                        <div class="text-navy lc-stat-value" style="font-size:1.6rem;">${activeItems}</div>
-                    </div>
-                </div>
+        <div class="lc-kpi-card">
+            <div class="lc-stat-icon lc-kpi-icon--green"><i class="bi bi-check-circle-fill"></i></div>
+            <div>
+                <div class="lc-kpi-label">Active</div>
+                <div class="lc-kpi-value">${activeItems}</div>
             </div>
         </div>
-        <div class="col-sm-6 col-xl-4">
-            <div class="card lc-elev p-3 h-100">
-                <div class="d-flex align-items-center gap-3">
-                    <div class="lc-stat-icon" style="background:#FBE4E6;color:#B02A37;">
-                        <i class="bi bi-exclamation-triangle-fill"></i>
-                    </div>
-                    <div>
-                        <div class="text-muted small fw-semibold">Out of Stock</div>
-                        <div class="text-navy lc-stat-value" style="font-size:1.6rem;">${outOfStock}</div>
-                    </div>
-                </div>
+        <div class="lc-kpi-card">
+            <div class="lc-stat-icon lc-kpi-icon--rose"><i class="bi bi-exclamation-triangle-fill"></i></div>
+            <div>
+                <div class="lc-kpi-label">Out of stock</div>
+                <div class="lc-kpi-value">${outOfStock}</div>
             </div>
         </div>
     </div>
 
     <%-- ── Toolbar ────────────────────────────────────────── --%>
-    <div class="card lc-elev p-3 mb-4">
-        <div class="row g-3 align-items-center">
-            <%-- Search --%>
-            <div class="col-md-4">
-                <div class="input-group input-group-sm">
-                    <span class="input-group-text bg-white border-end-0 text-muted">
-                        <i class="bi bi-search"></i>
-                    </span>
-                    <input type="text" id="searchInput" class="form-control border-start-0"
-                           placeholder="Search items..." oninput="filterTable()">
-                </div>
+    <div class="st-toolbar st-toolbar--single fnb-toolbar mb-4">
+        <div class="st-toolbar-track">
+            <div class="fnb-toolbar-search">
+                <i class="bi bi-search" aria-hidden="true"></i>
+                <input type="search" id="searchInput" class="fnb-search-input"
+                       placeholder="Search items..." autocomplete="off"
+                       oninput="filterTable()" aria-label="Search menu items">
             </div>
 
-            <%-- Category filter tabs --%>
-            <div class="col-md-5">
-                <div class="d-flex gap-1 bg-light p-1 rounded">
-                    <a class="filter-tab active" id="tab-all"    onclick="setCategory('')">All</a>
-                    <a class="filter-tab"        id="tab-snack"  onclick="setCategory('SNACK')">
-                        <i class="bi bi-bag me-1"></i>Snack
-                    </a>
-                    <a class="filter-tab"        id="tab-drink"  onclick="setCategory('DRINK')">
-                        <i class="bi bi-cup-straw me-1"></i>Drink
-                    </a>
-                    <a class="filter-tab"        id="tab-combo"  onclick="setCategory('COMBO')">
-                        <i class="bi bi-box-seam me-1"></i>Combo
-                    </a>
-                </div>
+            <div class="st-toolbar-vrule" aria-hidden="true"></div>
+
+            <div class="fnb-seg" role="tablist" aria-label="Filter by category">
+                <button type="button" class="fnb-seg-btn active" id="tab-all" role="tab"
+                        aria-selected="true" onclick="setCategory('')">
+                    <i class="bi bi-grid-3x3-gap-fill" aria-hidden="true"></i> All
+                </button>
+                <button type="button" class="fnb-seg-btn" id="tab-snack" role="tab"
+                        aria-selected="false" onclick="setCategory('SNACK')">
+                    <i class="bi bi-bag" aria-hidden="true"></i> Snack
+                </button>
+                <button type="button" class="fnb-seg-btn" id="tab-drink" role="tab"
+                        aria-selected="false" onclick="setCategory('DRINK')">
+                    <i class="bi bi-cup-straw" aria-hidden="true"></i> Drink
+                </button>
+                <button type="button" class="fnb-seg-btn" id="tab-combo" role="tab"
+                        aria-selected="false" onclick="setCategory('COMBO')">
+                    <i class="bi bi-box-seam" aria-hidden="true"></i> Combo
+                </button>
             </div>
 
-            <%-- Add button --%>
-            <div class="col-md-3 text-md-end">
-                <a class="btn btn-primary btn-sm"
-                   href="${pageContext.request.contextPath}/branch/food?action=add">
-                    <i class="bi bi-plus-lg me-1"></i> Add Item
-                </a>
-            </div>
+            <div class="fnb-toolbar-spacer" aria-hidden="true"></div>
+
+            <a class="st-toolbar-add"
+               href="${pageContext.request.contextPath}/branch/food?action=add">
+                <i class="bi bi-plus-lg" aria-hidden="true"></i> Add Item
+            </a>
         </div>
     </div>
 
@@ -246,7 +217,7 @@
 
                             <%-- Price --%>
                             <td class="fw-bold text-navy">
-                                <fmt:formatNumber value="${item.price}" pattern="#,##0"/>đ
+                                <fmt:formatNumber value="${item.price}" pattern="#,##0"/> VND
                             </td>
 
                             <%-- Stock — inline AJAX edit --%>
@@ -332,7 +303,7 @@
 </div>
 </main>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<%@ include file="/WEB-INF/views/branch/_branch-scripts.jspf" %>
 <script>
     const CTX = '${pageContext.request.contextPath}';
     let activeCategory = '';
@@ -340,11 +311,16 @@
     /* ── Category filter tabs ──────────────────────────── */
     function setCategory(cat) {
         activeCategory = cat;
-        document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.fnb-seg-btn').forEach(t => {
+            t.classList.remove('active');
+            t.setAttribute('aria-selected', 'false');
+        });
         const id = cat === '' ? 'tab-all'
                  : cat === 'SNACK' ? 'tab-snack'
                  : cat === 'DRINK' ? 'tab-drink' : 'tab-combo';
-        document.getElementById(id).classList.add('active');
+        const activeTab = document.getElementById(id);
+        activeTab.classList.add('active');
+        activeTab.setAttribute('aria-selected', 'true');
         filterTable();
     }
 
@@ -378,7 +354,7 @@
         const stock = parseInt(input.value, 10);
 
         if (isNaN(stock) || stock < 0) {
-            alert('Số lượng không hợp lệ.');
+            lcAlert('Invalid quantity.');
             return;
         }
 
@@ -410,10 +386,10 @@
                 // Update KPI out-of-stock count
                 recalcOutOfStock();
             } else {
-                alert(data.message || 'Cập nhật thất bại.');
+                lcAlert(data.message || 'Update failed.');
             }
         } catch (e) {
-            alert('Lỗi mạng. Vui lòng thử lại.');
+            lcAlert('Network error. Please try again.');
         }
     }
 

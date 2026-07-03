@@ -120,7 +120,11 @@ public class PaymentServiceImpl implements PaymentService {
             }
 
             // 2) payments: PENDING -> SUCCESS + transaction_ref + paid_at
-            paymentDao.markSuccess(conn, bookingId, transactionRef);
+            int pay = paymentDao.markSuccess(conn, bookingId, transactionRef);
+            if (pay == 0) {
+                conn.rollback();
+                return Result.EXPIRED;
+            }
 
             // 3) promo used_count++ neu booking co ma (cung transaction, khong vuot max_uses)
             if (b.getPromoId() != null) {
@@ -148,7 +152,7 @@ public class PaymentServiceImpl implements PaymentService {
 
         } catch (SQLException e) {
             rollbackQuietly(conn); // loi giua chung -> huy ca 5 buoc (atomic)
-            throw new RuntimeException("markPaymentSuccess lỗi: " + e.getMessage(), e);
+            throw new RuntimeException("markPaymentSuccess error: " + e.getMessage(), e);
         } finally {
             restoreAndClose(conn);
         }
