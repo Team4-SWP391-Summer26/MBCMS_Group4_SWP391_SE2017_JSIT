@@ -1,10 +1,14 @@
-# Copy file nay thanh database.properties va dien thong tin cua ban
+# Copy file nay thanh src/main/resources/database.properties.
+# File .properties chi duoc gom comment (#) va key=value.
+# KHONG copy dong Markdown fence vao file that.
+#
 # BAT BUOC co db.driver: trong Tomcat driver nam o WEB-INF/lib khong tu dang ky
 # duoc voi DriverManager -> thieu dong nay se loi "No suitable driver".
 db.driver=com.microsoft.sqlserver.jdbc.SQLServerDriver
 db.url=jdbc:sqlserver://localhost:1433;databaseName=CinemaDB;encrypt=false;trustServerCertificate=true
-db.username=
-db.password=
+# Dien tai khoan SQL Server tren may cua ban. Vi du: sa / mat khau luc cai SQL Server.
+db.username=sa
+db.password=YOUR_SQL_SERVER_PASSWORD
 
 db.pool.initialSize=5
 db.pool.maxTotal=20
@@ -31,12 +35,12 @@ payment.vnpay.payUrl=https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
 # payment.vnpay.ipnUrl=http://localhost:9999/MBCMS/booking/payment/vnpay-ipn
 payment.vnpay.locale=en
 
-```properties
-google.oauth.clientId=YOUR_CLIENT_ID
-google.oauth.clientSecret=YOUR_SECRET
-google.oauth.redirectUri=http://localhost:xxxx/MBCMS/auth/google/callback
+# ----- Google OAuth (optional) -----
+# De trong neu chua test Google Login.
+google.oauth.clientId=
+google.oauth.clientSecret=
+google.oauth.redirectUri=http://localhost:9999/MBCMS/auth/google/callback
 google.oauth.scope=openid email profile
 google.oauth.authUrl=https://accounts.google.com/o/oauth2/v2/auth
 google.oauth.tokenUrl=https://oauth2.googleapis.com/token
 google.oauth.userInfoUrl=https://www.googleapis.com/oauth2/v3/userinfo
-```
