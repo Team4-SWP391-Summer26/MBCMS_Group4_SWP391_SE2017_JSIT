@@ -14,9 +14,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Payment History – PentaPlex ${isAdmin ? 'Admin' : 'Manager'}</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
-    <link href="${pageContext.request.contextPath}/assets/css/manager.css?v=${applicationScope.assetVersion}" rel="stylesheet">
+    <%@ include file="/WEB-INF/views/branch/_branch-assets.jspf" %>
 </head>
 <body class="lc-console">
 
@@ -34,20 +32,26 @@
 </c:choose>
 
 <main class="lc-admin-main">
-    <div class="container-fluid px-4 py-4" style="max-width: 1240px;">
+    <div class="lc-page">
 
-        <%-- ===== Header + segmented tab ===== --%>
-        <div class="pay-head">
+        <div class="lc-page-head">
             <div>
-                <div class="pay-eyebrow"><i class="bi bi-credit-card-2-front"></i> Finance &middot; Payments</div>
-                <h1 class="pay-title">Payment History</h1>
+                <c:choose>
+                    <c:when test="${isAdmin}">
+                        <div class="lc-page-crumb">Admin / <strong>Payments</strong></div>
+                    </c:when>
+                    <c:otherwise>
+                        <div class="lc-page-section"><i class="bi bi-credit-card-2-front me-1"></i> Finance / Payments</div>
+                    </c:otherwise>
+                </c:choose>
+                <h1 class="lc-page-title">Payment History</h1>
             </div>
-            <div class="pay-seg">
+            <nav class="lc-page-nav" aria-label="Payment views">
                 <a class="active" href="${pageContext.request.contextPath}${base}/payments">
-                    <i class="bi bi-list-ul"></i> History</a>
+                    <i class="bi bi-list-ul" aria-hidden="true"></i> History</a>
                 <a href="${pageContext.request.contextPath}${base}/payments/monitor">
-                    <i class="bi bi-activity"></i> Monitoring</a>
-            </div>
+                    <i class="bi bi-activity" aria-hidden="true"></i> Monitoring</a>
+            </nav>
         </div>
 
         <c:if test="${not isAdmin}">
@@ -106,9 +110,9 @@
                     <div class="input-group input-group-sm">
                         <input type="text" name="q" class="form-control"
                                placeholder="Code / ref / customer" value="${fn:escapeXml(fQ)}">
-                        <button class="btn btn-primary" type="submit" title="Search">
+                        <button class="btn btn-primary pay-search-btn" type="submit" title="Search">
                             <i class="bi bi-search"></i></button>
-                        <a class="btn btn-outline-secondary"
+                        <a class="btn btn-outline-secondary pay-search-reset"
                            href="${pageContext.request.contextPath}${base}/payments" title="Reset filters">
                             <i class="bi bi-arrow-counterclockwise"></i></a>
                     </div>
@@ -226,6 +230,6 @@
     </div>
 </main>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<%@ include file="/WEB-INF/views/branch/_branch-scripts.jspf" %>
 </body>
 </html>

@@ -1,6 +1,7 @@
 ﻿<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
+<fmt:setTimeZone value="Asia/Ho_Chi_Minh"/>
 <!DOCTYPE html>
 <html lang="en">
     <head>
@@ -260,11 +261,11 @@
                                 <%
                                     java.time.LocalDateTime ldt = ((com.mbcms.model.Booking) request.getAttribute("booking")).getCreatedAt();
                                     if (ldt != null) {
-                                        java.util.Date d = java.util.Date.from(ldt.atZone(java.time.ZoneId.systemDefault()).toInstant());
+                                        java.util.Date d = com.mbcms.util.DateTimeUtil.utcToVietnamDate(ldt);
                                         pageContext.setAttribute("createdAtDate", d);
                                     }
                                 %>
-                                <fmt:formatDate value="${createdAtDate}" pattern="dd/MM/yyyy HH:mm"/>
+                                <fmt:formatDate value="${createdAtDate}" pattern="dd/MM/yyyy HH:mm" timeZone="Asia/Ho_Chi_Minh"/>
                             </div>
                         </div>
                     </div>

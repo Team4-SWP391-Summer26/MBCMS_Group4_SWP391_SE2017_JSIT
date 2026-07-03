@@ -1,0 +1,1238 @@
+@import "tokens.css";
+/* =====================================================================
+   booking.css — PentaPlex online booking flow polish (taste-skill)
+   Layers on main.css --bk-* ; does not change seat-map / WS logic.
+   ===================================================================== */
+
+body.bk-page {
+    --bk-accent: var(--primary-600);
+    --bk-accent-soft: var(--primary-50);
+    --bk-accent-line: var(--primary-200);
+    --bk-warm: var(--gold);
+}
+
+/* ── Context bar: sticky booking context ── */
+body.bk-page .bk-ctx {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background: rgba(255, 255, 255, .94);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--bk-border);
+    box-shadow: 0 8px 24px -20px rgba(15, 30, 54, .18);
+}
+
+body.bk-page .bk-poster {
+    width: 44px;
+    height: 58px;
+    border-radius: var(--radius-sm);
+    object-fit: cover;
+    border: 1px solid var(--bk-border);
+    box-shadow: 0 4px 12px -6px rgba(15, 30, 54, .2);
+}
+
+body.bk-page .bk-poster:not(img) {
+    background: linear-gradient(145deg, var(--navy-soft), var(--navy-deep));
+    color: var(--bk-warm);
+    font-size: 1.1rem;
+}
+
+body.bk-page .bk-reserve {
+    background: rgba(246, 195, 67, .14);
+    border: 1px solid rgba(246, 195, 67, .35);
+    color: #7a5a00;
+    border-radius: var(--radius-pill);
+    padding: .32rem .85rem;
+    font-size: .8rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+
+body.bk-page .bk-reserve.danger {
+    background: var(--danger-bg);
+    border-color: #fca5a5;
+    color: var(--danger-text);
+}
+
+/* Live seat sync — subtle, not cockpit clutter */
+body.bk-page #wsBadge,
+body.bk-page #refreshBadge,
+body.bk-page #availableCountBadge {
+    font-size: .72rem;
+    font-weight: 600;
+    letter-spacing: .01em;
+    border-radius: var(--radius-pill);
+    padding: .28rem .55rem;
+}
+
+body.bk-page #wsBadge.bg-secondary {
+    background: var(--surface-2) !important;
+    color: var(--text-muted) !important;
+}
+
+body.bk-page #refreshBadge {
+    background: rgba(22, 163, 74, .1) !important;
+    color: #15803d !important;
+    border: 1px solid rgba(22, 163, 74, .2);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .2s ease;
+}
+
+body.bk-page #refreshBadge.show {
+    opacity: 1;
+}
+
+/* ── Stepper: one accent, card shell, mobile scroll ── */
+body.bk-page .bk-steps,
+.bk-steps.is-card {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    background: #fff;
+    border: 1px solid var(--bk-border);
+    border-radius: var(--radius-lg);
+    padding: .85rem 1.1rem;
+    box-shadow: 0 10px 28px -18px rgba(15, 30, 54, .12);
+}
+
+body.bk-page .bk-steps::-webkit-scrollbar,
+.bk-steps.is-card::-webkit-scrollbar {
+    display: none;
+}
+
+body.bk-page .bk-step,
+.bk-steps.is-card .bk-step {
+    gap: .5rem;
+    font-size: .84rem;
+    font-weight: 600;
+    color: var(--text-subtle);
+    flex-shrink: 0;
+}
+
+body.bk-page .bk-step .bk-dot,
+.bk-steps.is-card .bk-step .bk-dot {
+    width: 28px;
+    height: 28px;
+    font-size: .76rem;
+    font-weight: 700;
+    background: var(--surface-2);
+    color: var(--text-muted);
+    transition: background-color .16s ease, color .16s ease, box-shadow .16s ease;
+}
+
+/* Single accent: blue for active + done (no green/blue split) */
+body.bk-page .bk-step.done,
+.bk-steps.is-card .bk-step.done {
+    color: var(--text);
+}
+
+body.bk-page .bk-step.done .bk-dot,
+.bk-steps.is-card .bk-step.done .bk-dot {
+    background: var(--bk-accent);
+    color: #fff;
+}
+
+body.bk-page .bk-step.active,
+.bk-steps.is-card .bk-step.active {
+    color: var(--bk-accent);
+}
+
+body.bk-page .bk-step.active .bk-dot,
+.bk-steps.is-card .bk-step.active .bk-dot {
+    background: var(--bk-accent);
+    color: #fff;
+    box-shadow: 0 0 0 4px rgba(37, 99, 235, .16);
+}
+
+body.bk-page .bk-line,
+.bk-steps.is-card .bk-line {
+    flex: 1;
+    min-width: 14px;
+    height: 2px;
+    margin: 0 .45rem;
+    border-radius: 999px;
+    background: var(--border);
+}
+
+body.bk-page .bk-line.done,
+.bk-steps.is-card .bk-line.done {
+    background: var(--bk-accent-line);
+}
+
+/* ── Cards & panels ── */
+body.bk-page .bk-card {
+    border-radius: var(--radius-lg);
+    border-color: rgba(226, 232, 240, .95);
+    box-shadow: 0 12px 32px -20px rgba(15, 30, 54, .1);
+}
+
+body.bk-page .bk-title {
+    font-family: var(--font-display);
+    font-size: clamp(1.25rem, 2vw, 1.45rem);
+    letter-spacing: -.01em;
+}
+
+body.bk-page .bk-summary {
+    top: calc(64px + .75rem);
+}
+
+body.bk-page .bk-card .btn-primary {
+    background: var(--bk-accent);
+    border-color: var(--bk-accent);
+    font-weight: 700;
+    border-radius: var(--radius-md);
+    transition: background-color .16s ease, border-color .16s ease, transform .14s ease;
+}
+
+body.bk-page .bk-card .btn-primary:hover {
+    background: var(--primary-700);
+    border-color: var(--primary-700);
+}
+
+body.bk-page .bk-card .btn-primary:active {
+    transform: scale(.98);
+}
+
+/* Payment method tiles */
+body.bk-page .pm {
+    border-radius: var(--radius-md);
+    transition: border-color .16s ease, background-color .16s ease, transform .14s ease;
+}
+
+body.bk-page .pm.active {
+    border-color: var(--bk-accent);
+    background: var(--bk-accent-soft);
+}
+
+body.bk-page .pm:active {
+    transform: scale(.99);
+}
+
+/* Screen curve — cinema accent */
+body.bk-page .screen-curve {
+    border-top-color: var(--primary-300);
+    background: linear-gradient(to bottom, rgba(37, 99, 235, .12), transparent);
+}
+
+/* Showtime legend: no purple IMAX swatch */
+.showtimes-legend .sw-imax {
+    background: rgba(37, 99, 235, .08);
+    border-color: var(--primary-300);
+}
+
+/* Confirm — keep success green only on ticket hero */
+body.bk-page .cf-hero .cf-check {
+    background: rgba(22, 163, 74, .12);
+    color: #16a34a;
+    border: 1px solid rgba(22, 163, 74, .22);
+}
+
+/* ── Mobile: stepper compact ── */
+@media (max-width: 767.98px) {
+    body.bk-page .bk-steps,
+    .bk-steps.is-card {
+        padding: .7rem .85rem;
+    }
+
+    body.bk-page .bk-step,
+    .bk-steps.is-card .bk-step {
+        font-size: 0;
+        gap: 0;
+    }
+
+    body.bk-page .bk-step .bk-dot,
+    .bk-steps.is-card .bk-step .bk-dot {
+        font-size: .74rem;
+    }
+
+    body.bk-page .bk-line,
+    .bk-steps.is-card .bk-line {
+        min-width: 10px;
+        margin: 0 .3rem;
+    }
+
+    body.bk-page .bk-ctx .container {
+        padding-top: .65rem !important;
+        padding-bottom: .65rem !important;
+    }
+
+    body.bk-page #refreshBadge {
+        display: none;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    body.bk-page .bk-step .bk-dot,
+    body.bk-page .bk-card .btn-primary,
+    body.bk-page .pm {
+        transition: none;
+    }
+}
+
+/* =====================================================================
+   Review / Checkout (step 4) — Bootstrap row/col layout (like seats/fnb)
+   Left col-lg-8: rv-card with rv-sections.
+   Right col-lg-4: reuses fnb-summary sticky panel.
+   ===================================================================== */
+
+/* Page-level alert */
+body.bk-page .rv-alert {
+    margin-bottom: 1.25rem;
+}
+
+/* ── The single left card ── */
+body.bk-page .rv-card {
+    background: #fff;
+    border: 1px solid rgba(226, 232, 240, .9);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 12px 32px -20px rgba(15, 30, 54, .1);
+    overflow: hidden;
+}
+
+/* ── Section dividers inside the card ── */
+body.bk-page .rv-section {
+    padding: 1.45rem 1.5rem;
+}
+
+body.bk-page .rv-section + .rv-section {
+    border-top: 1px solid var(--border);
+}
+
+body.bk-page .rv-section-title {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    margin: 0 0 1rem;
+    font-family: var(--font-display);
+    font-size: .92rem;
+    font-weight: 700;
+    color: var(--navy);
+    letter-spacing: -.01em;
+}
+
+body.bk-page .rv-section-title i {
+    color: var(--bk-accent);
+    font-size: 1rem;
+}
+
+/* ── Definition list (details) ── */
+body.bk-page .rv-dl {
+    margin: 0;
+}
+
+body.bk-page .rv-dl-row {
+    display: grid;
+    grid-template-columns: 9rem 1fr;
+    gap: .5rem 1rem;
+    padding: .7rem 0;
+    border-bottom: 1px solid var(--border);
+    align-items: center;
+}
+
+body.bk-page .rv-dl-row:first-child {
+    padding-top: 0;
+}
+
+body.bk-page .rv-dl-row:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+body.bk-page .rv-dl-row dt {
+    display: flex;
+    align-items: center;
+    gap: .4rem;
+    font-size: .84rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    margin: 0;
+}
+
+body.bk-page .rv-dl-row dt i {
+    font-size: .88rem;
+    color: var(--text-subtle);
+    flex-shrink: 0;
+}
+
+body.bk-page .rv-dl-row dd {
+    font-size: .92rem;
+    font-weight: 600;
+    color: var(--text);
+    margin: 0;
+    text-align: right;
+}
+
+/* Seat chips — reuse existing styles */
+body.bk-page .bk-review-seats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .35rem;
+    justify-content: flex-end;
+}
+
+body.bk-page .bk-review-seat {
+    display: inline-flex;
+    align-items: center;
+    padding: .2rem .65rem;
+    font-family: var(--font-mono);
+    font-size: .78rem;
+    font-weight: 700;
+    letter-spacing: .02em;
+    color: var(--bk-accent);
+    background: var(--bk-accent-soft);
+    border: 1px solid var(--bk-accent-line);
+    border-radius: var(--radius-sm);
+}
+
+/* Status pill */
+body.bk-page .bk-review-status {
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
+    padding: .22rem .65rem;
+    font-size: .78rem;
+    font-weight: 600;
+    color: var(--warning-text);
+    background: var(--warning-bg);
+    border: 1px solid rgba(217, 119, 6, .2);
+    border-radius: var(--radius-pill);
+}
+
+body.bk-page .bk-review-status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--warning);
+    animation: bk-review-pulse 2s ease-in-out infinite;
+}
+
+@keyframes bk-review-pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: .55; transform: scale(.85); }
+}
+
+/* ── Concessions list ── */
+body.bk-page .rv-concessions-list {
+    display: flex;
+    flex-direction: column;
+    gap: .15rem;
+}
+
+body.bk-page .rv-concession-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: .55rem .75rem;
+    background: var(--surface-2);
+    border-radius: var(--radius-md);
+    transition: background-color .14s ease;
+}
+
+body.bk-page .rv-concession-row:hover {
+    background: var(--bk-accent-soft);
+}
+
+body.bk-page .rv-concession-info {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+}
+
+body.bk-page .rv-concession-name {
+    font-size: .88rem;
+    font-weight: 600;
+    color: var(--text);
+}
+
+body.bk-page .rv-concession-qty {
+    font-size: .78rem;
+    font-weight: 700;
+    color: var(--bk-accent);
+    background: var(--bk-accent-soft);
+    border: 1px solid var(--bk-accent-line);
+    border-radius: var(--radius-sm);
+    padding: .1rem .4rem;
+}
+
+body.bk-page .rv-concession-price {
+    font-size: .88rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    color: var(--text);
+}
+
+/* ── Promotion (reuses existing bk-review-promo-* styles) ── */
+body.bk-page .bk-review-promo-field {
+    display: flex;
+    gap: .5rem;
+}
+
+body.bk-page .bk-review-promo-input {
+    flex: 1;
+    min-width: 0;
+    height: var(--control-height-sm);
+    padding: 0 .85rem;
+    font-family: var(--font-mono);
+    font-size: .84rem;
+    font-weight: 600;
+    letter-spacing: .03em;
+    text-transform: uppercase;
+    color: var(--text);
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    outline: none;
+    transition: border-color .16s ease, box-shadow .16s ease;
+}
+
+body.bk-page .bk-review-promo-input::placeholder {
+    color: var(--text-subtle);
+    font-family: var(--font-sans);
+    font-weight: 500;
+    text-transform: none;
+    letter-spacing: 0;
+}
+
+body.bk-page .bk-review-promo-input:focus {
+    border-color: var(--primary-300);
+    box-shadow: var(--focus-ring);
+}
+
+body.bk-page .bk-review-promo-input.is-invalid {
+    border-color: var(--danger);
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, .1);
+}
+
+body.bk-page .bk-review-promo-btn {
+    flex-shrink: 0;
+    height: var(--control-height-sm);
+    padding: 0 1rem;
+    font-size: .84rem;
+    font-weight: 700;
+    color: var(--bk-accent);
+    background: #fff;
+    border: 1px solid var(--bk-accent-line);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: background-color .16s ease, border-color .16s ease, transform .14s ease;
+}
+
+body.bk-page .bk-review-promo-btn:hover {
+    background: var(--bk-accent-soft);
+    border-color: var(--primary-300);
+}
+
+body.bk-page .bk-review-promo-btn:active {
+    transform: scale(.97);
+}
+
+body.bk-page .bk-review-promo-applied {
+    display: inline-flex;
+    align-items: center;
+    gap: .25rem;
+    padding: .25rem .35rem .25rem .85rem;
+    background: var(--success-bg);
+    border: 1px solid rgba(22, 163, 74, .22);
+    border-radius: var(--radius-md);
+}
+
+body.bk-page .bk-review-promo-code {
+    font-family: var(--font-mono);
+    font-size: .84rem;
+    font-weight: 700;
+    color: var(--success-text);
+    letter-spacing: .02em;
+}
+
+body.bk-page .bk-review-promo-remove {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.5rem;
+    height: 1.5rem;
+    padding: 0;
+    border: none;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--success-text);
+    opacity: .6;
+    cursor: pointer;
+    transition: opacity .14s ease, background-color .14s ease;
+}
+
+body.bk-page .bk-review-promo-remove:hover {
+    opacity: 1;
+    background: rgba(15, 30, 54, .06);
+}
+
+body.bk-page .bk-promo-remove-form {
+    display: inline-flex;
+    margin: 0;
+    padding: 0;
+    line-height: 1;
+}
+
+body.bk-page .bk-review-field-error {
+    display: flex;
+    align-items: center;
+    gap: .35rem;
+    margin: .45rem 0 0;
+    font-size: .8rem;
+    font-weight: 600;
+    color: var(--danger-text);
+    line-height: 1.4;
+}
+
+body.bk-page .bk-review-field-error i {
+    font-size: .85rem;
+    flex-shrink: 0;
+}
+
+body.bk-page .rv-promo-hint {
+    margin: .55rem 0 0;
+    font-size: .82rem;
+    color: var(--text-subtle);
+}
+
+/* ── Notes block (inside summary panel) ── */
+body.bk-page .rv-notes-block {
+    margin-top: .25rem;
+}
+
+body.bk-page .rv-notes-label {
+    display: flex;
+    align-items: center;
+    gap: .4rem;
+    margin-bottom: .5rem;
+    font-size: .85rem;
+    font-weight: 700;
+    color: var(--navy);
+}
+
+body.bk-page .rv-notes-label i {
+    color: var(--bk-accent);
+    font-size: .9rem;
+}
+
+/* ── Optional tag ── */
+body.bk-page .rv-optional-tag {
+    display: inline-flex;
+    align-items: center;
+    margin-left: .45rem;
+    padding: .1rem .5rem;
+    font-family: var(--font-sans);
+    font-size: .6rem;
+    font-weight: 600;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    color: var(--text-subtle);
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-pill);
+    vertical-align: middle;
+}
+
+/* ── Notes ── */
+body.bk-page .rv-notes-desc {
+    margin: 0 0 .65rem;
+    font-size: .85rem;
+    color: var(--text-muted);
+    line-height: 1.5;
+}
+
+body.bk-page .rv-notes-textarea {
+    display: block;
+    width: 100%;
+    min-height: 80px;
+    max-height: 180px;
+    padding: .75rem .9rem;
+    font-family: var(--font-sans);
+    font-size: .88rem;
+    font-weight: 400;
+    line-height: 1.55;
+    color: var(--text);
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    outline: none;
+    resize: vertical;
+    transition: border-color .16s ease, box-shadow .16s ease, background-color .16s ease;
+}
+
+body.bk-page .rv-notes-textarea::placeholder {
+    color: var(--text-subtle);
+    font-weight: 400;
+}
+
+body.bk-page .rv-notes-textarea:focus {
+    border-color: var(--primary-300);
+    background: #fff;
+    box-shadow: var(--focus-ring);
+}
+
+body.bk-page .rv-notes-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: .4rem;
+    gap: .75rem;
+}
+
+body.bk-page .rv-notes-hint {
+    font-size: .76rem;
+    font-weight: 500;
+    color: var(--text-subtle);
+    display: flex;
+    align-items: center;
+    gap: .3rem;
+}
+
+body.bk-page .rv-notes-hint i {
+    font-size: .8rem;
+}
+
+body.bk-page .rv-notes-counter {
+    font-family: var(--font-mono);
+    font-size: .72rem;
+    font-weight: 600;
+    color: var(--text-subtle);
+    letter-spacing: .02em;
+    transition: color .16s ease;
+}
+
+body.bk-page .rv-notes-counter.is-near-limit {
+    color: var(--warning-text);
+}
+
+/* ── Summary panel overrides for checkout ── */
+body.bk-page .rv-summary-lines {
+    display: flex;
+    flex-direction: column;
+    gap: .15rem;
+}
+
+body.bk-page .rv-discount-line .fnb-summary-item-name {
+    color: var(--success-text);
+}
+
+body.bk-page .rv-discount-amount {
+    color: var(--success-text) !important;
+}
+
+body.bk-page .rv-promo-badge {
+    display: inline-block;
+    margin-left: .3rem;
+    padding: .08rem .4rem;
+    font-family: var(--font-mono);
+    font-size: .68rem;
+    font-weight: 700;
+    color: var(--success-text);
+    background: var(--success-bg);
+    border: 1px solid rgba(22, 163, 74, .2);
+    border-radius: var(--radius-sm);
+    letter-spacing: .02em;
+}
+
+body.bk-page .rv-secure-note {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: .35rem;
+    margin: .65rem 0 0;
+    font-size: .76rem;
+    font-weight: 500;
+    color: var(--text-subtle);
+}
+
+/* ── Mobile ── */
+@media (max-width: 575.98px) {
+    body.bk-page .rv-section {
+        padding: 1.15rem 1.2rem;
+    }
+
+    body.bk-page .rv-dl-row {
+        grid-template-columns: 1fr;
+        gap: .15rem;
+    }
+
+    body.bk-page .rv-dl-row dd {
+        text-align: left;
+    }
+
+    body.bk-page .bk-review-seats {
+        justify-content: flex-start;
+    }
+
+    body.bk-page .rv-notes-footer {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: .3rem;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    body.bk-page .bk-review-status-dot {
+        animation: none;
+    }
+
+    body.bk-page .bk-review-promo-btn,
+    body.bk-page .rv-notes-textarea,
+    body.bk-page .fnb-summary-cta.fnb-summary-cta--cancel {
+        transition: none;
+    }
+}
+
+/* =====================================================================
+   Food & Drinks (step 3) — polished catalog + sticky summary
+   Mirrors showtime date-tabs + seats sel-panel design language.
+   ===================================================================== */
+
+/* ── Category nav tabs (like showtime date-tabs) ── */
+body.bk-page .fnb-cat-nav {
+    display: flex;
+    gap: .5rem;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: .2rem;
+    margin-bottom: 1.5rem;
+}
+
+body.bk-page .fnb-cat-nav::-webkit-scrollbar { display: none; }
+
+body.bk-page .fnb-cat-btn {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    gap: .45rem;
+    padding: .55rem 1.15rem;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-pill);
+    background: #fff;
+    color: var(--text-muted);
+    font-size: .84rem;
+    font-weight: 700;
+    cursor: pointer;
+    user-select: none;
+    transition: all .16s ease;
+    white-space: nowrap;
+}
+
+body.bk-page .fnb-cat-btn i {
+    font-size: 1rem;
+    transition: transform .16s ease;
+}
+
+body.bk-page .fnb-cat-btn:hover:not(.active) {
+    border-color: var(--primary-300);
+    color: var(--bk-accent);
+    background: var(--bk-accent-soft);
+}
+
+body.bk-page .fnb-cat-btn.active {
+    border-color: var(--bk-accent);
+    background: var(--bk-accent);
+    color: #fff;
+    box-shadow: 0 4px 14px -4px rgba(37, 99, 235, .35);
+}
+
+body.bk-page .fnb-cat-btn.active i {
+    transform: scale(1.1);
+}
+
+body.bk-page .fnb-cat-btn .fnb-cat-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 .35rem;
+    border-radius: var(--radius-pill);
+    font-size: .68rem;
+    font-weight: 800;
+    background: var(--surface-2);
+    color: var(--text-muted);
+    transition: all .16s ease;
+}
+
+body.bk-page .fnb-cat-btn.active .fnb-cat-count {
+    background: rgba(255, 255, 255, .25);
+    color: #fff;
+}
+
+/* ── Category sections ── */
+body.bk-page .fnb-section {
+    animation: fnb-fade-in .25s ease;
+}
+
+body.bk-page .fnb-section.is-hidden {
+    display: none;
+}
+
+@keyframes fnb-fade-in {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+body.bk-page .fnb-section-title {
+    display: flex;
+    align-items: center;
+    gap: .55rem;
+    margin: 0 0 1rem;
+    padding-bottom: .65rem;
+    border-bottom: 2px solid var(--border);
+    font-family: var(--font-display);
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--navy);
+    letter-spacing: -.01em;
+}
+
+body.bk-page .fnb-section-title i {
+    color: var(--bk-accent);
+    font-size: 1.1rem;
+}
+
+/* ── Food card overrides for booking flow ── */
+body.bk-page .food-card {
+    border-color: rgba(226, 232, 240, .9);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 6px 18px -8px rgba(15, 30, 54, .06);
+    transition: border-color .18s ease, box-shadow .18s ease, transform .18s ease;
+}
+
+body.bk-page .food-card:hover {
+    border-color: var(--primary-200);
+    box-shadow: 0 16px 32px -12px rgba(15, 30, 54, .08);
+    transform: translateY(-4px);
+}
+
+body.bk-page .food-card.added {
+    border-color: var(--bk-accent);
+    border-width: 2px;
+    box-shadow: 0 8px 24px -8px rgba(37, 99, 235, .18);
+}
+
+body.bk-page .food-img-wrapper.themed {
+    height: 130px;
+    border-bottom-color: var(--border);
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+}
+
+body.bk-page .food-info {
+    padding: 1rem 1.15rem;
+    min-height: 120px;
+}
+
+body.bk-page .food-name {
+    font-family: var(--font-display);
+    font-size: .92rem;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: -.01em;
+}
+
+body.bk-page .food-price {
+    font-size: 1rem;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    color: var(--bk-accent);
+}
+
+body.bk-page .food-add-btn {
+    border-radius: var(--radius-md);
+    border-color: var(--bk-accent);
+    color: var(--bk-accent);
+    font-size: .8rem;
+    font-weight: 700;
+    padding: .3rem .85rem;
+    transition: all .14s ease;
+}
+
+body.bk-page .food-add-btn:hover {
+    background: var(--bk-accent);
+    border-color: var(--bk-accent);
+    color: #fff;
+    transform: scale(1.03);
+}
+
+body.bk-page .food-stepper {
+    border-radius: var(--radius-md);
+    width: 88px;
+    background: var(--bk-accent) !important;
+    font-size: .82rem;
+    padding: .25rem .55rem;
+}
+
+body.bk-page .food-stepper-btn {
+    font-size: 1rem;
+    opacity: .85;
+    transition: opacity .12s ease;
+}
+
+body.bk-page .food-stepper-btn:hover {
+    opacity: 1;
+}
+
+body.bk-page .added-badge .badge {
+    background: var(--bk-accent) !important;
+    border: none !important;
+    border-radius: var(--radius-pill);
+    font-size: .7rem;
+    font-weight: 700;
+    padding: .3rem .7rem;
+    box-shadow: 0 4px 12px -4px rgba(37, 99, 235, .3);
+}
+
+/* ── Summary panel (mirrors sel-panel from seats) ── */
+body.bk-page .fnb-summary {
+    position: sticky;
+    top: calc(64px + .75rem);
+    background: #fff;
+    border: 1px solid rgba(226, 232, 240, .9);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 12px 32px -20px rgba(15, 30, 54, .1);
+    overflow: hidden;
+}
+
+body.bk-page .fnb-summary-body {
+    padding: 1.35rem 1.4rem;
+}
+
+body.bk-page .fnb-summary-title {
+    font-family: var(--font-display);
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--navy);
+    letter-spacing: -.01em;
+    margin: 0 0 1rem;
+}
+
+body.bk-page .fnb-summary-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: .5rem;
+    padding: 1.5rem 0;
+    color: var(--text-subtle);
+    font-size: .88rem;
+    text-align: center;
+}
+
+body.bk-page .fnb-summary-empty i {
+    font-size: 2rem;
+    color: var(--border-strong);
+}
+
+body.bk-page .fnb-summary-list {
+    min-height: 40px;
+}
+
+body.bk-page .fnb-summary-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: .75rem;
+    padding: .4rem 0;
+    font-size: .85rem;
+}
+
+body.bk-page .fnb-summary-item-name {
+    color: var(--text);
+    font-weight: 500;
+}
+
+body.bk-page .fnb-summary-item-qty {
+    font-weight: 700;
+    color: var(--bk-accent);
+}
+
+body.bk-page .fnb-summary-item-price {
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    color: var(--text);
+    white-space: nowrap;
+}
+
+body.bk-page .fnb-summary-divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: .75rem 0;
+}
+
+body.bk-page .fnb-summary-total {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: .5rem 0 0;
+    font-weight: 700;
+    color: var(--navy);
+}
+
+body.bk-page .fnb-summary-total-amount {
+    font-size: 1.15rem;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    color: var(--bk-accent);
+    letter-spacing: -.01em;
+}
+
+body.bk-page .fnb-summary-cta {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: .5rem;
+    width: 100%;
+    height: 46px;
+    margin-top: 1.15rem;
+    padding: 0 1.25rem;
+    font-size: .95rem;
+    font-weight: 700;
+    color: #fff;
+    background: var(--bk-accent);
+    border: none;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: background-color .16s ease, transform .14s ease;
+}
+
+body.bk-page .fnb-summary-cta:hover {
+    background: var(--primary-700);
+}
+
+body.bk-page .fnb-summary-cta:active {
+    transform: scale(.98);
+}
+
+/* Cancel — outline destructive; must follow .fnb-summary-cta (cascade + specificity) */
+body.bk-page .fnb-summary-cta.fnb-summary-cta--cancel {
+    margin-top: .75rem;
+    color: var(--danger-text);
+    background: transparent;
+    border: 1.5px solid var(--danger);
+    transition: background-color .16s ease, border-color .16s ease, color .16s ease, transform .14s ease;
+}
+
+body.bk-page .fnb-summary-cta.fnb-summary-cta--cancel:hover {
+    color: var(--danger-text);
+    background: var(--danger-bg);
+    border-color: var(--danger);
+}
+
+body.bk-page .fnb-summary-cta.fnb-summary-cta--cancel:active {
+    transform: scale(.98);
+}
+
+body.bk-page .fnb-summary-skip {
+    display: block;
+    width: 100%;
+    margin-top: .6rem;
+    padding: .35rem;
+    font-size: .82rem;
+    font-weight: 600;
+    color: var(--text-subtle);
+    background: none;
+    border: none;
+    cursor: pointer;
+    text-align: center;
+    transition: color .14s ease;
+}
+
+body.bk-page .fnb-summary-skip:hover {
+    color: var(--text);
+}
+
+/* Info note — identical to seats */
+body.bk-page .fnb-info {
+    margin: 1rem 1.4rem 1.4rem;
+    padding: .65rem .85rem;
+    background: var(--bk-accent-soft);
+    border: 1px solid var(--bk-accent-line);
+    border-radius: var(--radius-md);
+    font-size: .8rem;
+    font-weight: 500;
+    color: var(--primary-800);
+    display: flex;
+    gap: .45rem;
+    align-items: flex-start;
+}
+
+body.bk-page .fnb-info i {
+    flex-shrink: 0;
+    margin-top: 1px;
+}
+
+/* ── Post-purchase banner ── */
+body.bk-page .fnb-post-purchase {
+    display: flex;
+    align-items: center;
+    gap: .85rem;
+    padding: .85rem 1.15rem;
+    margin-bottom: 1.25rem;
+    border-radius: var(--radius-lg);
+    background: var(--bk-accent-soft);
+    border: 1px solid var(--bk-accent-line);
+}
+
+body.bk-page .fnb-post-purchase-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: var(--radius-md);
+    background: var(--bk-accent);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+}
+
+body.bk-page .fnb-post-purchase-title {
+    font-weight: 700;
+    font-size: .9rem;
+    color: var(--navy);
+    margin-bottom: .1rem;
+}
+
+body.bk-page .fnb-post-purchase-desc {
+    font-size: .8rem;
+    color: var(--text-muted);
+}
+
+/* ── Mobile adjustments ── */
+@media (max-width: 991.98px) {
+    body.bk-page .fnb-summary {
+        position: static;
+    }
+}
+
+@media (max-width: 575.98px) {
+    body.bk-page .fnb-summary-body {
+        padding: 1.15rem;
+    }
+
+    body.bk-page .fnb-info {
+        margin: .85rem 1.15rem 1.15rem;
+    }
+
+    body.bk-page .food-info {
+        padding: .85rem 1rem;
+        min-height: 100px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    body.bk-page .fnb-section {
+        animation: none;
+    }
+
+    body.bk-page .fnb-summary-cta,
+    body.bk-page .food-add-btn,
+    body.bk-page .fnb-cat-btn {
+        transition: none;
+    }
+}
