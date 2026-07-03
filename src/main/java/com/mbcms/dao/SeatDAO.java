@@ -10,7 +10,14 @@ public interface SeatDAO {
 
     List<Seat> findByRoom(long roomId);
 
+    /** Ghế đã thanh toán / xác nhận (CONFIRMED, USED). */
     Set<Long> findBookedSeatIds(long showtimeId);
+
+    /** Ghế đang giữ chỗ chờ thanh toán (PENDING chưa hết hạn 10 phút). */
+    Set<Long> findHeldSeatIds(long showtimeId);
+
+    /** Ghế không chọn được: held + booked. */
+    Set<Long> findOccupiedSeatIds(long showtimeId);
 
     /** Them danh sach ghe (bulk insert). */
     boolean insertSeats(List<Seat> seats);

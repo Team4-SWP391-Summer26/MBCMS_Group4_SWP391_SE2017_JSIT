@@ -37,7 +37,7 @@ public class PromoValidateServlet extends HttpServlet {
 
         if (code == null || code.trim().isEmpty() || subtotalStr == null || subtotalStr.trim().isEmpty()) {
             result.put("valid", false);
-            result.put("message", "Mã và tổng tiền tạm tính không được để trống");
+            result.put("message", "Promo code and subtotal are required.");
             mapper.writeValue(resp.getWriter(), result);
             return;
         }
@@ -47,7 +47,7 @@ public class PromoValidateServlet extends HttpServlet {
             subtotal = new BigDecimal(subtotalStr.trim());
         } catch (NumberFormatException e) {
             result.put("valid", false);
-            result.put("message", "Tổng tiền tạm tính không đúng định dạng số");
+            result.put("message", "Subtotal must be a valid number.");
             mapper.writeValue(resp.getWriter(), result);
             return;
         }
@@ -59,19 +59,19 @@ public class PromoValidateServlet extends HttpServlet {
             Promotion promo = promotionDAO.findByCode(code.trim().toUpperCase());
             if (promo == null) {
                 result.put("valid", false);
-                result.put("message", "Mã khuyến mãi không tồn tại.");
+                result.put("message", "Promo code does not exist.");
             } else if (promo.getBranchId() != null && (branchId == null || !promo.getBranchId().equals(branchId))) {
                 result.put("valid", false);
-                result.put("message", "Mã khuyến mãi không áp dụng cho chi nhánh này.");
+                result.put("message", "Promo code is not available for this branch.");
             } else if (!promo.isActive() || !"Active".equals(promo.getStatus())) {
                 result.put("valid", false);
-                result.put("message", "Mã khuyến mãi hiện không kích hoạt hoặc đã hết hạn.");
+                result.put("message", "Promo code is inactive or expired.");
             } else if (promo.getMaxUses() != null && promo.getUsedCount() >= promo.getMaxUses()) {
                 result.put("valid", false);
-                result.put("message", "Mã khuyến mãi đã hết lượt sử dụng.");
+                result.put("message", "Promo code has reached its usage limit.");
             } else if (promo.getMinOrderAmount() != null && subtotal.compareTo(promo.getMinOrderAmount()) < 0) {
                 result.put("valid", false);
-                result.put("message", "Đơn hàng chưa đạt giá trị tối thiểu để áp dụng mã này (Tối thiểu: " + promo.getMinOrderAmount() + " VND).");
+                result.put("message", "Order subtotal has not reached the minimum required for this promo code (Minimum: " + promo.getMinOrderAmount() + " VND).");
             } else {
                 // Tinh toan chiet khau
                 BigDecimal discount = BigDecimal.ZERO;
@@ -92,11 +92,11 @@ public class PromoValidateServlet extends HttpServlet {
                 result.put("promoId", promo.getPromoId());
                 result.put("discountAmount", discount);
                 result.put("totalAmount", total);
-                result.put("message", "Áp dụng thành công: " + promo.getName());
+                result.put("message", "Applied successfully: " + promo.getName());
             }
         } catch (Exception e) {
             result.put("valid", false);
-            result.put("message", "Lỗi xử lý khuyến mãi: " + e.getMessage());
+            result.put("message", "Promo processing error: " + e.getMessage());
         }
 
         mapper.writeValue(resp.getWriter(), result);

@@ -20,7 +20,7 @@ public class GenreServiceImpl implements GenreService {
     public int create(String name) {
         String clean = clean(name);
         if (genreDAO.existsByName(clean, null)) {
-            throw new IllegalArgumentException("Thể loại \"" + clean + "\" đã tồn tại.");
+            throw new IllegalArgumentException("Genre \"" + clean + "\" already exists.");
         }
         return genreDAO.insert(clean);
     }
@@ -29,10 +29,10 @@ public class GenreServiceImpl implements GenreService {
     public boolean rename(int genreId, String name) {
         String clean = clean(name);
         if (genreDAO.findById(genreId) == null) {
-            throw new IllegalArgumentException("Thể loại không tồn tại.");
+            throw new IllegalArgumentException("Genre does not exist.");
         }
         if (genreDAO.existsByName(clean, genreId)) {
-            throw new IllegalArgumentException("Thể loại \"" + clean + "\" đã tồn tại.");
+            throw new IllegalArgumentException("Genre \"" + clean + "\" already exists.");
         }
         return genreDAO.update(genreId, clean);
     }
@@ -40,21 +40,21 @@ public class GenreServiceImpl implements GenreService {
     @Override
     public void delete(int genreId) {
         if (genreDAO.findById(genreId) == null) {
-            throw new IllegalArgumentException("Thể loại không tồn tại.");
+            throw new IllegalArgumentException("Genre does not exist.");
         }
         if (genreDAO.isInUse(genreId)) {
-            throw new IllegalArgumentException("Không thể xóa: thể loại đang được gán cho một số phim.");
+            throw new IllegalArgumentException("Cannot delete this genre because it is assigned to one or more movies.");
         }
         genreDAO.delete(genreId);
     }
 
     private String clean(String name) {
         if (name == null || name.isBlank()) {
-            throw new IllegalArgumentException("Tên thể loại không được để trống.");
+            throw new IllegalArgumentException("Genre name is required.");
         }
         String clean = name.trim();
         if (clean.length() > 50) {
-            throw new IllegalArgumentException("Tên thể loại tối đa 50 ký tự.");
+            throw new IllegalArgumentException("Genre name must be 50 characters or fewer.");
         }
         return clean;
     }

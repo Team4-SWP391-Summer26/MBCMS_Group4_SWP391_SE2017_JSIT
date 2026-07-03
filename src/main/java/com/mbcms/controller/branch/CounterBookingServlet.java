@@ -123,7 +123,7 @@ public class CounterBookingServlet extends HttpServlet {
         }
         Customer c = customerDAO.findByUsername(username);
         if (c == null || !c.isActive()) {
-            throw new IllegalArgumentException("Khách hàng không tồn tại hoặc đã bị khóa.");
+                throw new IllegalArgumentException("Customer does not exist or has been locked.");
         }
         return c.getUsername();
     }
@@ -196,6 +196,7 @@ public class CounterBookingServlet extends HttpServlet {
 
             Map<String, List<Seat>> seatsByRow = seatService.getSeatsByRow(showtimeId);
             Set<Long> bookedSeatIds = seatService.getBookedSeatIds(showtimeId);
+            Set<Long> heldSeatIds = seatService.getHeldSeatIds(showtimeId);
 
             // Convert to safe map objects
             Map<String, List<Map<String, Object>>> seatsByRowMap = new LinkedHashMap<>();
@@ -218,6 +219,7 @@ public class CounterBookingServlet extends HttpServlet {
             result.put("showtimeBasePrice", showtime.getBasePrice());
             result.put("seatsByRow", seatsByRowMap);
             result.put("bookedSeatIds", bookedSeatIds);
+            result.put("heldSeatIds", heldSeatIds);
 
             mapper.writeValue(resp.getWriter(), result);
 
@@ -271,23 +273,23 @@ public class CounterBookingServlet extends HttpServlet {
         try {
             Long branchId = (Long) req.getSession().getAttribute("currentBranchId");
             if (branchId == null) {
-                throw new SecurityException("Phiên làm việc không hợp lệ.");
+                throw new SecurityException("Invalid session.");
             }
 
             String showtimeIdParam = req.getParameter("showtimeId");
             if (showtimeIdParam == null || showtimeIdParam.trim().isEmpty()) {
-                throw new IllegalArgumentException("Vui lòng chọn suất chiếu.");
+                throw new IllegalArgumentException("Please select a showtime.");
             }
 
             long showtimeId = Long.parseLong(showtimeIdParam.trim());
             Showtime showtime = showtimeDAO.findById(showtimeId);
             if (showtime == null) {
-                throw new IllegalArgumentException("Không tìm thấy suất chiếu tương ứng.");
+                throw new IllegalArgumentException("Matching showtime was not found.");
             }
 
             // Verify showtime belongs to the staff's branch
             if (!roomBelongsToBranch(showtime.getRoomId(), branchId)) {
-                throw new SecurityException("Suất chiếu không thuộc chi nhánh của bạn.");
+                throw new SecurityException("This showtime does not belong to your branch.");
             }
 
             // Parse selected seat IDs
@@ -309,7 +311,7 @@ public class CounterBookingServlet extends HttpServlet {
             }
 
             if (seatIds.isEmpty()) {
-                throw new IllegalArgumentException("Vui lòng chọn ít nhất 1 ghế.");
+                throw new IllegalArgumentException("Please select at least 1 seat.");
             }
 
             String promoCode = req.getParameter("promoCode");
@@ -339,7 +341,7 @@ public class CounterBookingServlet extends HttpServlet {
                         }
                     }
                 } catch (Exception e) {
-                    System.err.println("Lỗi parse foodItems: " + e.getMessage());
+                    System.err.println("Error parsing foodItems: " + e.getMessage());
                 }
             }
             Booking createdBooking = null;
@@ -372,7 +374,7 @@ public class CounterBookingServlet extends HttpServlet {
                 result.put("bookingCode", createdBooking.getBookingCode());
                 result.put("totalAmount", createdBooking.getTotalAmount());
                 result.put("redirectUrl", paymentUrl);
-                result.put("message", "Đang chuyển hướng sang cổng thanh toán VNPay...");
+            result.put("message", "Redirecting to the VNPay payment gateway...");
             } else {
                 // For Cash: existing flow
                 // Calculate base total for verification
@@ -411,11 +413,11 @@ public class CounterBookingServlet extends HttpServlet {
                 result.put("bookingId", createdBooking.getBookingId());
                 result.put("bookingCode", createdBooking.getBookingCode());
                 result.put("totalAmount", createdBooking.getTotalAmount());
-                result.put("message", "Đã thanh toán thành công và xác nhận đặt vé!");
+            result.put("message", "Payment completed and booking confirmed successfully!");
             }
         } catch (Exception e) {
             result.put("success", false);
-            result.put("message", "Lỗi đặt vé: " + e.getMessage());
+            result.put("message", "Booking error: " + e.getMessage());
         }
 
         mapper.writeValue(resp.getWriter(), result);

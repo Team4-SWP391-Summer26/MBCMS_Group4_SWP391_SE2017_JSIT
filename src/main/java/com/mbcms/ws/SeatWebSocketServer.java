@@ -167,8 +167,27 @@ public class SeatWebSocketServer {
 
     // ── Static methods cho Servlet gọi sau khi tạo/cancel booking ────────────
     /**
-     * BookingCreateServlet gọi sau khi INSERT booking thành công. Chuyển soft
-     * lock → hard lock và broadcast.
+     * BookingCreateServlet / BookingService gọi sau khi INSERT booking PENDING.
+     * Giữ ghế chờ thanh toán (hiển thị vàng), chưa phải booked.
+     */
+    public static void notifyHeldLock(long showtimeId, List<Long> seatIds, String username) {
+        Map<Long, String> locks = softLocks.get(showtimeId);
+        if (locks != null) {
+            seatIds.forEach(seatId -> locks.remove(seatId, username));
+        }
+        seatIds.forEach(seatId
+                -> broadcast(showtimeId,
+                        new SeatSelectionMessage(
+                                SeatSelectionMessage.HELD_LOCK,
+                                seatId, showtimeId, username
+                        ).toJson(),
+                        null
+                )
+        );
+    }
+
+    /**
+     * Gọi sau khi thanh toán thành công (CONFIRMED). Chuyển held → booked.
      */
     public static void notifyHardLock(long showtimeId, List<Long> seatIds, String username) {
         Map<Long, String> locks = softLocks.get(showtimeId);
@@ -205,14 +224,22 @@ public class SeatWebSocketServer {
     // ── Private helpers ───────────────────────────────────────────────────────
     private void sendInitialState(Session session, long showtimeId, String username) {
         try {
-            // Hard locks từ DB
             List<Seat> seats = seatAvailabilityService.getSeats(showtimeId);
             Set<Long> booked = seatAvailabilityService.getBookedSeatIds(showtimeId);
+            Set<Long> held = seatAvailabilityService.getHeldSeatIds(showtimeId);
             for (Seat seat : seats) {
-                boolean available = seat.isActive() && !booked.contains(seat.getSeatId());
-                if (!available) {
+                long seatId = seat.getSeatId();
+                if (!seat.isActive()) {
+                    continue;
+                }
+                if (booked.contains(seatId)) {
                     sendToSession(session,
-                            new SeatSelectionMessage(HARD_LOCK, seat.getSeatId(), showtimeId, "").toJson());
+                            new SeatSelectionMessage(HARD_LOCK, seatId, showtimeId, "").toJson());
+                } else if (held.contains(seatId)) {
+                    sendToSession(session,
+                            new SeatSelectionMessage(
+                                    SeatSelectionMessage.HELD_LOCK, seatId, showtimeId, ""
+                            ).toJson());
                 }
             }
 

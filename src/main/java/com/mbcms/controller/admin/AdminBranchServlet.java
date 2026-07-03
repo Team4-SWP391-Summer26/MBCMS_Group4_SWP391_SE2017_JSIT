@@ -36,8 +36,8 @@ public class AdminBranchServlet extends HttpServlet {
             req.setAttribute("errorMsg", req.getParameter("errorMsg"));
             req.getRequestDispatcher("/WEB-INF/views/admin/branches.jsp").forward(req, resp);
         } catch (Exception e) {
-            getServletContext().log("Lỗi doGet AdminBranchServlet: ", e);
-            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Lỗi khi tải dữ liệu chi nhánh.");
+            getServletContext().log("Error in AdminBranchServlet#doGet: ", e);
+            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Error loading branch data.");
         }
     }
 
@@ -47,7 +47,7 @@ public class AdminBranchServlet extends HttpServlet {
 
         String action = req.getParameter("action");
         if (action == null) {
-            resp.sendRedirect(req.getContextPath() + "/admin/branches?errorMsg=Hành động không hợp lệ.");
+            resp.sendRedirect(req.getContextPath() + "/admin/branches?errorMsg=Invalid action.");
             return;
         }
 
@@ -66,14 +66,14 @@ public class AdminBranchServlet extends HttpServlet {
                     handleDelete(req, resp);
                     break;
                 default:
-                    resp.sendRedirect(req.getContextPath() + "/admin/branches?errorMsg=Hành động không xác định.");
+                    resp.sendRedirect(req.getContextPath() + "/admin/branches?errorMsg=Unknown action.");
             }
         } catch (IllegalArgumentException e) {
             resp.sendRedirect(req.getContextPath() + "/admin/branches?errorMsg="
                     + java.net.URLEncoder.encode(e.getMessage(), "UTF-8"));
         } catch (Exception e) {
-            getServletContext().log("Lỗi trong AdminBranchServlet: ", e);
-            resp.sendRedirect(req.getContextPath() + "/admin/branches?errorMsg=Đã xảy ra lỗi hệ thống.");
+            getServletContext().log("Error in AdminBranchServlet: ", e);
+            resp.sendRedirect(req.getContextPath() + "/admin/branches?errorMsg=A system error occurred.");
         }
     }
 
@@ -82,10 +82,10 @@ public class AdminBranchServlet extends HttpServlet {
         boolean success = branchService.addBranch(b);
         if (success) {
             resp.sendRedirect(req.getContextPath() + "/admin/branches?successMsg="
-                    + java.net.URLEncoder.encode("Thêm chi nhánh mới thành công!", "UTF-8"));
+                    + java.net.URLEncoder.encode("Branch added successfully!", "UTF-8"));
         } else {
             resp.sendRedirect(req.getContextPath() + "/admin/branches?errorMsg="
-                    + java.net.URLEncoder.encode("Thêm chi nhánh thất bại.", "UTF-8"));
+                    + java.net.URLEncoder.encode("Failed to add branch.", "UTF-8"));
         }
     }
 
@@ -101,10 +101,10 @@ public class AdminBranchServlet extends HttpServlet {
         boolean success = branchService.saveBranchDetails(b, open, close, active);
         if (success) {
             resp.sendRedirect(req.getContextPath() + "/admin/branches?successMsg="
-                    + java.net.URLEncoder.encode("Cập nhật thông tin chi nhánh thành công!", "UTF-8"));
+                    + java.net.URLEncoder.encode("Branch information updated successfully!", "UTF-8"));
         } else {
             resp.sendRedirect(req.getContextPath() + "/admin/branches?errorMsg="
-                    + java.net.URLEncoder.encode("Cập nhật thất bại.", "UTF-8"));
+                    + java.net.URLEncoder.encode("Update failed.", "UTF-8"));
         }
     }
 
@@ -113,13 +113,13 @@ public class AdminBranchServlet extends HttpServlet {
         boolean active = Boolean.parseBoolean(req.getParameter("active"));
 
         boolean success = branchService.toggleBranchStatus(branchId, active);
-        String msg = active ? "Kích hoạt chi nhánh thành công!" : "Vô hiệu hóa chi nhánh thành công!";
+        String msg = active ? "Branch activated successfully!" : "Branch deactivated successfully!";
         if (success) {
             resp.sendRedirect(req.getContextPath() + "/admin/branches?successMsg="
                     + java.net.URLEncoder.encode(msg, "UTF-8"));
         } else {
             resp.sendRedirect(req.getContextPath() + "/admin/branches?errorMsg="
-                    + java.net.URLEncoder.encode("Thay đổi trạng thái thất bại.", "UTF-8"));
+                    + java.net.URLEncoder.encode("Failed to change status.", "UTF-8"));
         }
     }
 
@@ -128,10 +128,10 @@ public class AdminBranchServlet extends HttpServlet {
         boolean success = branchService.toggleBranchStatus(branchId, false);
         if (success) {
             resp.sendRedirect(req.getContextPath() + "/admin/branches?successMsg="
-                    + java.net.URLEncoder.encode("Đã vô hiệu hóa chi nhánh thành công!", "UTF-8"));
+                    + java.net.URLEncoder.encode("Branch deactivated successfully!", "UTF-8"));
         } else {
             resp.sendRedirect(req.getContextPath() + "/admin/branches?errorMsg="
-                    + java.net.URLEncoder.encode("Xóa/vô hiệu hóa chi nhánh thất bại.", "UTF-8"));
+                    + java.net.URLEncoder.encode("Failed to delete or deactivate branch.", "UTF-8"));
         }
     }
 
@@ -159,7 +159,7 @@ public class AdminBranchServlet extends HttpServlet {
             }
             return LocalTime.parse(value);
         } catch (DateTimeParseException e) {
-            throw new IllegalArgumentException("Định dạng thời gian không hợp lệ.");
+            throw new IllegalArgumentException("Invalid time format.");
         }
     }
 }

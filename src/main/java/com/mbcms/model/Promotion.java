@@ -137,7 +137,10 @@ public class Promotion {
         if (!active) {
             return "Inactive";
         }
-        java.time.LocalDateTime now = java.time.LocalDateTime.now();
+        if (validFrom == null || validTo == null) {
+            return active ? "Active" : "Inactive";
+        }
+        LocalDateTime now = LocalDateTime.now();
         if (now.isBefore(validFrom)) {
             return "Inactive";
         }

@@ -32,7 +32,7 @@ public class VerifyServlet extends HttpServlet {
 
         // Validate that parameters are not empty
         if (username == null || username.isEmpty() || token == null || token.isEmpty()) {
-            req.setAttribute("errorMsg", "Yêu cầu xác thực không hợp lệ (thiếu tham số).");
+            req.setAttribute("errorMsg", "Invalid verification request. Missing required parameters.");
             req.getRequestDispatcher("/WEB-INF/views/auth/login.jsp").forward(req, resp);
             return;
         }
@@ -44,12 +44,12 @@ public class VerifyServlet extends HttpServlet {
                 resp.sendRedirect(req.getContextPath() + "/auth/login?verified=true");
             } else {
                 // Verification failed (token expired, mismatch, or already verified)
-                req.setAttribute("errorMsg", "Mã xác thực không hợp lệ hoặc tài khoản đã được kích hoạt trước đó.");
+                req.setAttribute("errorMsg", "Invalid verification code or the account has already been activated.");
                 req.getRequestDispatcher("/WEB-INF/views/auth/login.jsp").forward(req, resp);
             }
         } catch (Exception e) {
             getServletContext().log("System error during account verification for: " + username, e);
-            req.setAttribute("errorMsg", "Hệ thống gặp sự cố trong quá trình xác thực. Vui lòng thử lại sau.");
+            req.setAttribute("errorMsg", "The system encountered an error during verification. Please try again later.");
             req.getRequestDispatcher("/WEB-INF/views/auth/login.jsp").forward(req, resp);
         }
     }

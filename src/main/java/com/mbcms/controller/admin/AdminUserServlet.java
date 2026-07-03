@@ -49,8 +49,8 @@ public class AdminUserServlet extends HttpServlet {
                     break;
             }
         } catch (Exception e) {
-            getServletContext().log("Lỗi doGet AdminUserServlet: ", e);
-            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Lỗi hệ thống khi tải trang quản lý người dùng.");
+            getServletContext().log("Error in AdminUserServlet#doGet: ", e);
+            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "System error while loading user management.");
         }
     }
 
@@ -58,7 +58,7 @@ public class AdminUserServlet extends HttpServlet {
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         String action = req.getParameter("action");
         if (action == null) {
-            resp.sendRedirect(req.getContextPath() + "/admin/users?errorMsg=" + URLEncoder.encode("Hành động không hợp lệ.", "UTF-8"));
+            resp.sendRedirect(req.getContextPath() + "/admin/users?errorMsg=" + URLEncoder.encode("Invalid action.", "UTF-8"));
             return;
         }
 
@@ -86,7 +86,7 @@ public class AdminUserServlet extends HttpServlet {
                     handleExportCSV(req, resp);
                     break;
                 default:
-                    resp.sendRedirect(req.getContextPath() + "/admin/users?errorMsg=" + URLEncoder.encode("Hành động không xác định.", "UTF-8"));
+                    resp.sendRedirect(req.getContextPath() + "/admin/users?errorMsg=" + URLEncoder.encode("Unknown action.", "UTF-8"));
             }
         } catch (IllegalArgumentException e) {
             // Send error back to respective form or list
@@ -101,8 +101,8 @@ public class AdminUserServlet extends HttpServlet {
             String separator = path.contains("?") ? "&" : "?";
             resp.sendRedirect(path + separator + "errorMsg=" + URLEncoder.encode(e.getMessage(), "UTF-8"));
         } catch (Exception e) {
-            getServletContext().log("Lỗi doPost AdminUserServlet: ", e);
-            resp.sendRedirect(req.getContextPath() + "/admin/users?errorMsg=" + URLEncoder.encode("Đã xảy ra lỗi hệ thống.", "UTF-8"));
+            getServletContext().log("Error in AdminUserServlet#doPost: ", e);
+            resp.sendRedirect(req.getContextPath() + "/admin/users?errorMsg=" + URLEncoder.encode("A system error occurred.", "UTF-8"));
         }
     }
 
@@ -166,13 +166,13 @@ public class AdminUserServlet extends HttpServlet {
     private void showEditForm(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         String username = req.getParameter("username");
         if (username == null || username.trim().isEmpty()) {
-            resp.sendRedirect(req.getContextPath() + "/admin/users?errorMsg=" + URLEncoder.encode("Tên đăng nhập không hợp lệ.", "UTF-8"));
+            resp.sendRedirect(req.getContextPath() + "/admin/users?errorMsg=" + URLEncoder.encode("Invalid username.", "UTF-8"));
             return;
         }
 
         UserDTO user = userService.getUserByUsername(username.trim());
         if (user == null) {
-            resp.sendRedirect(req.getContextPath() + "/admin/users?errorMsg=" + URLEncoder.encode("Người dùng không tồn tại.", "UTF-8"));
+            resp.sendRedirect(req.getContextPath() + "/admin/users?errorMsg=" + URLEncoder.encode("User does not exist.", "UTF-8"));
             return;
         }
 
@@ -191,9 +191,9 @@ public class AdminUserServlet extends HttpServlet {
 
         boolean success = userService.addUser(u, password);
         if (success) {
-            resp.sendRedirect(req.getContextPath() + "/admin/users?successMsg=" + URLEncoder.encode("Thêm người dùng mới thành công!", "UTF-8"));
+            resp.sendRedirect(req.getContextPath() + "/admin/users?successMsg=" + URLEncoder.encode("User added successfully!", "UTF-8"));
         } else {
-            resp.sendRedirect(req.getContextPath() + "/admin/users?action=add&errorMsg=" + URLEncoder.encode("Thêm thất bại.", "UTF-8"));
+            resp.sendRedirect(req.getContextPath() + "/admin/users?action=add&errorMsg=" + URLEncoder.encode("Failed to add user.", "UTF-8"));
         }
     }
 
@@ -203,9 +203,9 @@ public class AdminUserServlet extends HttpServlet {
 
         boolean success = userService.editUser(u, password, sessionUser);
         if (success) {
-            resp.sendRedirect(req.getContextPath() + "/admin/users?successMsg=" + URLEncoder.encode("Cập nhật thông tin người dùng thành công!", "UTF-8"));
+            resp.sendRedirect(req.getContextPath() + "/admin/users?successMsg=" + URLEncoder.encode("User information updated successfully!", "UTF-8"));
         } else {
-            resp.sendRedirect(req.getContextPath() + "/admin/users?action=edit&username=" + u.getUsername() + "&errorMsg=" + URLEncoder.encode("Cập nhật thất bại.", "UTF-8"));
+            resp.sendRedirect(req.getContextPath() + "/admin/users?action=edit&username=" + u.getUsername() + "&errorMsg=" + URLEncoder.encode("Update failed.", "UTF-8"));
         }
     }
 
@@ -214,11 +214,11 @@ public class AdminUserServlet extends HttpServlet {
         boolean active = Boolean.parseBoolean(req.getParameter("active"));
 
         boolean success = userService.toggleStatus(username, active, sessionUser);
-        String msg = active ? "Kích hoạt tài khoản thành công!" : "Đã vô hiệu hóa tài khoản thành công!";
+        String msg = active ? "Account activated successfully!" : "Account deactivated successfully!";
         if (success) {
             resp.sendRedirect(req.getContextPath() + "/admin/users?successMsg=" + URLEncoder.encode(msg, "UTF-8"));
         } else {
-            resp.sendRedirect(req.getContextPath() + "/admin/users?errorMsg=" + URLEncoder.encode("Thay đổi trạng thái thất bại.", "UTF-8"));
+            resp.sendRedirect(req.getContextPath() + "/admin/users?errorMsg=" + URLEncoder.encode("Failed to change status.", "UTF-8"));
         }
     }
 
@@ -227,9 +227,9 @@ public class AdminUserServlet extends HttpServlet {
 
         boolean success = userService.deleteUser(username, sessionUser);
         if (success) {
-            resp.sendRedirect(req.getContextPath() + "/admin/users?successMsg=" + URLEncoder.encode("Xóa tài khoản thành công!", "UTF-8"));
+            resp.sendRedirect(req.getContextPath() + "/admin/users?successMsg=" + URLEncoder.encode("Account deleted successfully!", "UTF-8"));
         } else {
-            resp.sendRedirect(req.getContextPath() + "/admin/users?errorMsg=" + URLEncoder.encode("Xóa tài khoản thất bại.", "UTF-8"));
+            resp.sendRedirect(req.getContextPath() + "/admin/users?errorMsg=" + URLEncoder.encode("Failed to delete account.", "UTF-8"));
         }
     }
 
@@ -238,9 +238,9 @@ public class AdminUserServlet extends HttpServlet {
 
         boolean success = userService.sendPasswordResetEmail(username);
         if (success) {
-            resp.sendRedirect(req.getContextPath() + "/admin/users?action=edit&username=" + username + "&successMsg=" + URLEncoder.encode("Đã gửi email khôi phục mật khẩu giả lập thành công!", "UTF-8"));
+            resp.sendRedirect(req.getContextPath() + "/admin/users?action=edit&username=" + username + "&successMsg=" + URLEncoder.encode("Mock password recovery email sent successfully!", "UTF-8"));
         } else {
-            resp.sendRedirect(req.getContextPath() + "/admin/users?action=edit&username=" + username + "&errorMsg=" + URLEncoder.encode("Gửi thất bại.", "UTF-8"));
+            resp.sendRedirect(req.getContextPath() + "/admin/users?action=edit&username=" + username + "&errorMsg=" + URLEncoder.encode("Send failed.", "UTF-8"));
         }
     }
 
@@ -267,7 +267,7 @@ public class AdminUserServlet extends HttpServlet {
         PrintWriter writer = resp.getWriter();
         writer.write('\ufeff');
 
-        writer.println("Tên đăng nhập,Email,Họ và tên,Số điện thoại,Vai trò,Chi nhánh gán,Trạng thái");
+        writer.println("Username,Email,Full name,Phone,Role,Assigned branch,Status");
         for (UserDTO u : users) {
             String branchName = u.getBranchName() != null ? u.getBranchName() : "—";
             String statusText = u.isActive() ? "Active" : "Inactive";

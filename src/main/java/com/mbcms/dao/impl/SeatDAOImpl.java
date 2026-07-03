@@ -49,15 +49,32 @@ public class SeatDAOImpl extends BaseDAO implements SeatDAO {
 
     @Override
     public Set<Long> findBookedSeatIds(long showtimeId) {
-        Set<Long> booked = new HashSet<>();
-        // CONFIRMED/USED: always booked; PENDING: only if not yet expired (< 10 min)
+        return querySeatIdsByBookingStatus(showtimeId,
+                "b.[status] IN ('CONFIRMED', 'USED')");
+    }
+
+    @Override
+    public Set<Long> findHeldSeatIds(long showtimeId) {
+        return querySeatIdsByBookingStatus(showtimeId,
+                "b.[status] = 'PENDING' "
+                + "AND DATEDIFF(MINUTE, b.created_at, SYSUTCDATETIME()) < 10");
+    }
+
+    @Override
+    public Set<Long> findOccupiedSeatIds(long showtimeId) {
+        return querySeatIdsByBookingStatus(showtimeId,
+                "b.[status] IN ('CONFIRMED', 'USED') "
+                + "OR (b.[status] = 'PENDING' "
+                + "    AND DATEDIFF(MINUTE, b.created_at, SYSUTCDATETIME()) < 10)");
+    }
+
+    private Set<Long> querySeatIdsByBookingStatus(long showtimeId, String statusFilter) {
+        Set<Long> seatIds = new HashSet<>();
         String sql = "SELECT bs.seat_id "
                 + "  FROM dbo.booking_seats bs "
                 + "  JOIN dbo.bookings b ON b.booking_id = bs.booking_id "
                 + " WHERE b.showtime_id = ? "
-                + "   AND b.[status] IN ('PENDING', 'CONFIRMED', 'USED') "
-                + "   AND (b.[status] != 'PENDING' "
-                + "        OR DATEDIFF(MINUTE, b.created_at, SYSUTCDATETIME()) < 10)";
+                + "   AND (" + statusFilter + ")";
 
         Connection conn = null;
         PreparedStatement ps = null;
@@ -70,15 +87,15 @@ public class SeatDAOImpl extends BaseDAO implements SeatDAO {
             rs = ps.executeQuery();
 
             while (rs.next()) {
-                booked.add(rs.getLong("seat_id"));
+                seatIds.add(rs.getLong("seat_id"));
             }
         } catch (SQLException e) {
-            throw new RuntimeException("Error querying seat.findBookedSeatIds: " + e.getMessage(), e);
+            throw new RuntimeException("Error querying seat availability: " + e.getMessage(), e);
         } finally {
             closeAll(rs, ps, conn);
         }
 
-        return booked;
+        return seatIds;
     }
 
     @Override

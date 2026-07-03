@@ -29,11 +29,9 @@ public class ShowtimeCancelServlet extends HttpServlet {
             throws ServletException, IOException {
 
         long branchId = (Long) req.getSession(false).getAttribute("currentBranchId");
-        String base = req.getContextPath() + "/branch/showtimes";
-
         Long id = parseId(req.getParameter("id"));
         if (id == null) {
-            resp.sendRedirect(base + "?notFound=1");
+            resp.sendRedirect(buildListRedirect(req, "notFound", null));
             return;
         }
 
@@ -42,23 +40,23 @@ public class ShowtimeCancelServlet extends HttpServlet {
             result = new ShowtimeServiceImpl().cancelShowtime(id, branchId);
         } catch (RuntimeException ex) {
             getServletContext().log("System error while cancelling showtime", ex);
-            resp.sendRedirect(base + "?cancelErr=SYSTEM");
+            resp.sendRedirect(buildListRedirect(req, "cancelErr=SYSTEM", "showtime-" + id));
             return;
         }
 
         switch (result) {
             case ShowtimeService.RESULT_OK:
-                resp.sendRedirect(base + "?cancelled=1");
+                resp.sendRedirect(buildListRedirect(req, "cancelled", "showtime-list"));
                 break;
             case ShowtimeService.RESULT_HAS_BOOKINGS:
-                resp.sendRedirect(base + "?cancelErr=HAS_BOOKINGS");
+                resp.sendRedirect(buildListRedirect(req, "cancelErr=HAS_BOOKINGS", "showtime-" + id));
                 break;
             case ShowtimeService.RESULT_NOT_EDITABLE:
-                resp.sendRedirect(base + "?cancelErr=NOT_EDITABLE");
+                resp.sendRedirect(buildListRedirect(req, "cancelErr=NOT_EDITABLE", "showtime-" + id));
                 break;
             case ShowtimeService.RESULT_NOT_FOUND:
             default:
-                resp.sendRedirect(base + "?notFound=1");
+                resp.sendRedirect(buildListRedirect(req, "notFound", null));
                 break;
         }
     }
@@ -72,5 +70,26 @@ public class ShowtimeCancelServlet extends HttpServlet {
         } catch (NumberFormatException e) {
             return null;
         }
+    }
+
+    private String buildListRedirect(HttpServletRequest req, String param, String fragment) {
+        StringBuilder url = new StringBuilder(req.getContextPath()).append("/branch/showtimes?");
+        String date = req.getParameter("returnDate");
+        if (isIsoDate(date)) {
+            url.append("date=").append(date.trim()).append("&");
+        }
+        if (param.contains("=")) {
+            url.append(param);
+        } else {
+            url.append(param).append("=1");
+        }
+        if (fragment != null && !fragment.trim().isEmpty()) {
+            url.append("#").append(fragment);
+        }
+        return url.toString();
+    }
+
+    private boolean isIsoDate(String value) {
+        return value != null && value.trim().matches("\\d{4}-\\d{2}-\\d{2}");
     }
 }

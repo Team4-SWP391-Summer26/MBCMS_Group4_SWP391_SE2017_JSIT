@@ -58,6 +58,12 @@ public class PaymentServlet extends HttpServlet {
         }
 
         try {
+            try {
+                bookingDao.releaseExpiredLocks();
+            } catch (RuntimeException cleanupError) {
+                getServletContext().log("Could not clean expired pending bookings before payment load", cleanupError);
+            }
+
             // Nap booking PENDING + owner-check (nem loi neu khong phai chu / da tra / het han).
             Booking booking = paymentService.preparePayment(bookingId, customer.getUsername());
 

@@ -5,6 +5,7 @@ import com.mbcms.model.Payment;
 import com.mbcms.model.PaymentRecord;
 import com.mbcms.model.PaymentSearchCriteria;
 import com.mbcms.model.PaymentSummary;
+import com.mbcms.util.DateTimeUtil;
 
 import java.math.BigDecimal;
 import java.sql.Connection;
@@ -13,8 +14,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -252,11 +251,11 @@ public class PaymentDAOImpl extends BaseDAO implements PaymentDAO {
         }
         if (c.getDateFrom() != null) {
             w.append("AND COALESCE(p.paid_at, b.created_at) >= ? ");
-            params.add(Timestamp.valueOf(c.getDateFrom().atStartOfDay()));
+            params.add(Timestamp.valueOf(DateTimeUtil.vietnamStartOfDayToUtc(c.getDateFrom())));
         }
         if (c.getDateTo() != null) {
             w.append("AND COALESCE(p.paid_at, b.created_at) < ? ");
-            params.add(Timestamp.valueOf(c.getDateTo().plusDays(1).atStartOfDay()));
+            params.add(Timestamp.valueOf(DateTimeUtil.vietnamStartOfDayToUtc(c.getDateTo().plusDays(1))));
         }
         if (c.getKeyword() != null && !c.getKeyword().isBlank()) {
             w.append("AND (b.booking_code LIKE ? OR p.transaction_ref LIKE ? OR c.full_name LIKE ?) ");
@@ -277,13 +276,9 @@ public class PaymentDAOImpl extends BaseDAO implements PaymentDAO {
         return i;
     }
 
-    /** Gio hien thi: DB luu UTC (SYSUTCDATETIME) -> doi sang gio VN cho UI. */
-    private static final ZoneId VN_ZONE = ZoneId.of("Asia/Ho_Chi_Minh");
-
     private LocalDateTime utcToVn(Timestamp ts) {
         if (ts == null) return null;
-        return ts.toLocalDateTime().atZone(ZoneOffset.UTC)
-                .withZoneSameInstant(VN_ZONE).toLocalDateTime();
+        return DateTimeUtil.utcToVietnam(ts.toLocalDateTime());
     }
 
     private PaymentRecord mapRecord(ResultSet rs) throws SQLException {

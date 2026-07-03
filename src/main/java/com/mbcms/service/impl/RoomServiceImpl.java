@@ -55,7 +55,7 @@ public class RoomServiceImpl implements RoomService {
         List<Room> existingRooms = roomDAO.findAllByBranch(room.getBranchId(), true);
         for (Room r : existingRooms) {
             if (r.getName().equalsIgnoreCase(room.getName().trim())) {
-                throw new IllegalArgumentException("Tên phòng chiếu đã tồn tại trong chi nhánh này.");
+                throw new IllegalArgumentException("Hall name already exists in this branch.");
             }
         }
 
@@ -72,13 +72,13 @@ public class RoomServiceImpl implements RoomService {
 
         Room existing = roomDAO.findById(room.getRoomId());
         if (existing == null) {
-            throw new IllegalArgumentException("Phòng chiếu không tồn tại.");
+            throw new IllegalArgumentException("Hall does not exist.");
         }
 
         List<Room> existingRooms = roomDAO.findAllByBranch(existing.getBranchId(), true);
         for (Room r : existingRooms) {
             if (r.getRoomId() != room.getRoomId() && r.getName().equalsIgnoreCase(room.getName().trim())) {
-                throw new IllegalArgumentException("Tên phòng chiếu đã tồn tại trong chi nhánh này.");
+                throw new IllegalArgumentException("Hall name already exists in this branch.");
             }
         }
 
@@ -87,11 +87,11 @@ public class RoomServiceImpl implements RoomService {
             RoomLayoutUtil.validateCapacity(room.getCapacity());
             if (roomDAO.hasFutureShowtimes(room.getRoomId())) {
                 throw new IllegalArgumentException(
-                        "Không thể thay đổi sức chứa vì đang có lịch chiếu trong tương lai.");
+                        "Cannot change capacity because this hall has future showtimes.");
             }
             if (seatDAO.hasAnyBookingsForRoom(room.getRoomId())) {
                 throw new IllegalArgumentException(
-                        "Phòng đã từng có vé đặt. Chỉnh số ghế qua Seat Layout (tắt/bật ghế), không đổi capacity tại đây.");
+                        "This hall has booking history. Adjust seats in Seat Layout instead of changing capacity here.");
             }
         }
 
@@ -112,7 +112,7 @@ public class RoomServiceImpl implements RoomService {
         if (!active) {
             if (roomDAO.hasFutureShowtimes(roomId)) {
                 throw new IllegalArgumentException(
-                        "Không thể vô hiệu hóa phòng chiếu vì đang có lịch chiếu trong tương lai.");
+                        "Cannot deactivate this hall because it has future showtimes.");
             }
         }
         return roomDAO.updateStatus(roomId, active);
@@ -132,18 +132,18 @@ public class RoomServiceImpl implements RoomService {
 
     private void validateRoom(Room r) {
         if (r == null) {
-            throw new IllegalArgumentException("Thông tin phòng chiếu trống.");
+            throw new IllegalArgumentException("Hall information is empty.");
         }
         if (ValidationUtil.isNullOrEmpty(r.getName())) {
-            throw new IllegalArgumentException("Tên phòng chiếu không được để trống.");
+            throw new IllegalArgumentException("Hall name is required.");
         }
         if (r.getCapacity() <= 0) {
-            throw new IllegalArgumentException("Sức chứa tối đa phải lớn hơn 0.");
+            throw new IllegalArgumentException("Capacity must be greater than 0.");
         }
         if (r.getRoomType() == null || (!r.getRoomType().equals(Room.TYPE_STANDARD)
                 && !r.getRoomType().equals(Room.TYPE_VIP)
                 && !r.getRoomType().equals(Room.TYPE_IMAX))) {
-            throw new IllegalArgumentException("Loại phòng chiếu không hợp lệ (STANDARD, VIP, IMAX).");
+            throw new IllegalArgumentException("Invalid hall type (STANDARD, VIP, IMAX).");
         }
     }
 }

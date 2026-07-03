@@ -4,17 +4,19 @@ package com.mbcms.ws;
  * DTO trao đổi qua WebSocket. Serialize/deserialize thủ công bằng JSON string
  * đơn giản (không cần Jackson trong WebSocket endpoint).
  *
- * Format JSON: { "action" : "SELECT" | "DESELECT" | "HARD_LOCK" |
- * "HARD_RELEASE", "seatId" : 123, "showtimeId" : 456, "username" : "userA" }
+ * Format JSON: { "action" : "SELECT" | "DESELECT" | "HELD_LOCK" |
+ * "HARD_LOCK" | "HARD_RELEASE", "seatId" : 123, "showtimeId" : 456, "username" : "userA" }
  *
  * SELECT = user click chọn ghế (soft lock) DESELECT = user bỏ chọn ghế (release
- * soft lock) HARD_LOCK = booking PENDING đã tạo (từ server broadcast)
+ * soft lock) HELD_LOCK = booking PENDING đã tạo (giữ ghế chờ thanh toán)
+ * HARD_LOCK = booking CONFIRMED (đã thanh toán)
  * HARD_RELEASE= booking hết hạn / cancelled (từ server broadcast)
  */
 public class SeatSelectionMessage {
 
     public static final String SELECT = "SELECT";
     public static final String DESELECT = "DESELECT";
+    public static final String HELD_LOCK = "HELD_LOCK";
     public static final String HARD_LOCK = "HARD_LOCK";
     public static final String HARD_RELEASE = "HARD_RELEASE";
     public static final String INIT = "INIT";  // server gửi trạng thái ban đầu

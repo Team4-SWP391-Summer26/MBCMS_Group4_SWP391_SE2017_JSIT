@@ -76,18 +76,23 @@ public class MovieDetailServlet extends HttpServlet {
         // Fetch active branches for the dropdown filter
         List<Branch> branches = guestMovieService.getBranches();
 
+        // Chi phim dang chieu moi hien lich; UPCOMING/ENDED khong cho dat ve.
+        boolean showtimesAvailable = "NOW_SHOWING".equals(movie.getStatus());
+
         // Get showtimes grouped by branch and room for the selected date
         List<BranchShowtimes> branchShowtimesList = new ArrayList<>();
         List<Branch> branchesToQuery = new ArrayList<>();
-        if (selectedBranchId != null) {
-            for (Branch b : branches) {
-                if (b.getBranchId() == selectedBranchId) {
-                    branchesToQuery.add(b);
-                    break;
+        if (showtimesAvailable) {
+            if (selectedBranchId != null) {
+                for (Branch b : branches) {
+                    if (b.getBranchId() == selectedBranchId) {
+                        branchesToQuery.add(b);
+                        break;
+                    }
                 }
+            } else {
+                branchesToQuery.addAll(branches);
             }
-        } else {
-            branchesToQuery.addAll(branches);
         }
 
         DateTimeFormatter timeFmt = DateTimeFormatter.ofPattern("HH:mm");
@@ -148,6 +153,7 @@ public class MovieDetailServlet extends HttpServlet {
         req.setAttribute("selectedDate", selectedDate.toString());
         req.setAttribute("selectedBranchId", selectedBranchId == null ? "all" : selectedBranchId);
         req.setAttribute("branchShowtimesList", branchShowtimesList);
+        req.setAttribute("showtimesAvailable", showtimesAvailable);
 
         req.getRequestDispatcher("/WEB-INF/views/movie/detail.jsp").forward(req, resp);
     }
