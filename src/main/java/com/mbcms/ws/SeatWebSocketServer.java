@@ -182,10 +182,13 @@ public class SeatWebSocketServer {
      * Giữ ghế chờ thanh toán (hiển thị vàng), chưa phải booked.
      */
     public static void notifyHeldLock(long showtimeId, List<Long> seatIds, String username) {
+        // [Flow Step: Servlet/Service -> WebSocket -> JSP] Invoke notifyHeldLock upon PENDING booking registration to hold seats (yellow color)
+        // [Flow Step: WebSocket -> Memory] Purge temporary soft lock items from memory map as they are now held pending checkout
         Map<Long, String> locks = softLocks.get(showtimeId);
         if (locks != null) {
             seatIds.forEach(seatId -> locks.remove(seatId, username));
         }
+        // [Flow Step: WebSocket -> JSP] Broadcast HELD_LOCK status to seat monitor client displays
         seatIds.forEach(seatId
                 -> broadcast(showtimeId,
                         new SeatSelectionMessage(
