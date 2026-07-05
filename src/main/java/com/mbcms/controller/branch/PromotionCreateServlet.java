@@ -29,6 +29,7 @@ public class PromotionCreateServlet extends HttpServlet {
             throws ServletException, IOException {
         ConsoleSupport.ensureBranchName(req);
 
+        // [Flow Step: Servlet -> JSP] Initialize an empty template model and forward to form.jsp view
         req.setAttribute("isEdit", false);
         req.setAttribute("promo", new Promotion()); // blank object
         req.setAttribute("rawDiscountValue", "");
@@ -46,6 +47,7 @@ public class PromotionCreateServlet extends HttpServlet {
             throws ServletException, IOException {
         ConsoleSupport.ensureBranchName(req);
 
+        // [Flow Step: JSP -> Servlet] Form fields are submitted by browser and parsed by the Servlet
         String code = req.getParameter("code");
         String name = req.getParameter("name");
         String discountType = req.getParameter("discountType");
@@ -145,12 +147,13 @@ public class PromotionCreateServlet extends HttpServlet {
             }
         }
 
-        // Check code uniqueness
+        // [Flow Step: Servlet -> Database] Query DB via DAO to verify code uniqueness in active promotions
         if (errorMsg == null && promotionDAO.existsByCode(p.getCode())) {
             errorMsg = "Promotion code already exists.";
         }
 
         if (errorMsg != null) {
+            // [Flow Step: Servlet -> JSP] Re-forward back to form.jsp template to output validation error message
             req.setAttribute("errorMsg", errorMsg);
             req.setAttribute("isEdit", false);
             req.setAttribute("promo", p);
@@ -168,10 +171,11 @@ public class PromotionCreateServlet extends HttpServlet {
         long branchId = (Long) req.getSession(false).getAttribute("currentBranchId");
         p.setBranchId(branchId);
 
-        // Save and redirect
+        // [Flow Step: Servlet -> Database] Save new promotion entity into DB
         boolean success = promotionDAO.insert(p);
         if (success) {
             if (p.isActive()) {
+                // [Flow Step: Service] Initiate async background thread to broadcast new active promotion notifications
                 new Thread(() -> {
                     Promotion saved = promotionDAO.findByCode(code);  // re-fetch → real promoId
                     if (saved != null) {
@@ -179,6 +183,7 @@ public class PromotionCreateServlet extends HttpServlet {
                     }
                 }, "promo-broadcast-" + code).start();
             }
+            // [Flow Step: Servlet -> Browser] Perform Post-Redirect-Get pattern back to the list URL with success flag
             resp.sendRedirect(req.getContextPath() + "/branch/promotions?created=1");
         } else {
             resp.sendRedirect(req.getContextPath() + "/branch/promotions?error=1");

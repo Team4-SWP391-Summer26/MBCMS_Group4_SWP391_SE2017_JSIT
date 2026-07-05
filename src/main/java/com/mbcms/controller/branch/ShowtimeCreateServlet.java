@@ -60,7 +60,7 @@ public class ShowtimeCreateServlet extends HttpServlet {
             if (error == null) {
                 // Thanh cong -> REDIRECT sang trang list (khong forward). Lam vay de
                 // user co F5 lai cung khong gui POST lai -> tranh tao trung 2 suat.
-                resp.sendRedirect(req.getContextPath() + "/branch/showtimes?created=1");
+                resp.sendRedirect(buildListRedirect(req, "created", "showtime-list"));
                 return;
             }
             // Loi nghiep vu (trung lich / sai phong...) -> de message cho JSP hien.
@@ -117,5 +117,29 @@ public class ShowtimeCreateServlet extends HttpServlet {
         RoomDAO roomDAO = new RoomDAOImpl();
         req.setAttribute("movies", movieDAO.findActiveMoviesForBranch(branchId));
         req.setAttribute("rooms", roomDAO.findActiveByBranch(branchId));
+    }
+
+    private String buildListRedirect(HttpServletRequest req, String flag, String fragment) {
+        StringBuilder url = new StringBuilder(req.getContextPath()).append("/branch/showtimes?");
+        String date = firstNonBlank(req.getParameter("returnDate"), req.getParameter("date"));
+        if (isIsoDate(date)) {
+            url.append("date=").append(date).append("&");
+        }
+        url.append(flag).append("=1");
+        if (fragment != null && !fragment.trim().isEmpty()) {
+            url.append("#").append(fragment);
+        }
+        return url.toString();
+    }
+
+    private String firstNonBlank(String first, String second) {
+        if (first != null && !first.trim().isEmpty()) {
+            return first.trim();
+        }
+        return second == null ? null : second.trim();
+    }
+
+    private boolean isIsoDate(String value) {
+        return value != null && value.matches("\\d{4}-\\d{2}-\\d{2}");
     }
 }

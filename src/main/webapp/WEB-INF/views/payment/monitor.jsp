@@ -15,9 +15,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Payment Monitoring – PentaPlex ${isAdmin ? 'Admin' : 'Manager'}</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
-    <link href="${pageContext.request.contextPath}/assets/css/manager.css?v=${applicationScope.assetVersion}" rel="stylesheet">
+    <%@ include file="/WEB-INF/views/branch/_branch-assets.jspf" %>
 </head>
 <body class="lc-console">
 
@@ -35,20 +33,26 @@
 </c:choose>
 
 <main class="lc-admin-main">
-    <div class="container-fluid px-4 py-4" style="max-width: 1240px;">
+    <div class="lc-page">
 
-        <%-- ===== Header + segmented tab ===== --%>
-        <div class="pay-head">
+        <div class="lc-page-head">
             <div>
-                <div class="pay-eyebrow"><i class="bi bi-activity"></i> Finance &middot; Payments</div>
-                <h1 class="pay-title">Payment Status Monitoring</h1>
+                <c:choose>
+                    <c:when test="${isAdmin}">
+                        <div class="lc-page-crumb">Admin / <strong>Payments</strong></div>
+                    </c:when>
+                    <c:otherwise>
+                        <div class="lc-page-section"><i class="bi bi-activity me-1"></i> Finance / Payments</div>
+                    </c:otherwise>
+                </c:choose>
+                <h1 class="lc-page-title">Payment Status Monitoring</h1>
             </div>
-            <div class="pay-seg">
+            <nav class="lc-page-nav" aria-label="Payment views">
                 <a href="${pageContext.request.contextPath}${base}/payments">
-                    <i class="bi bi-list-ul"></i> History</a>
+                    <i class="bi bi-list-ul" aria-hidden="true"></i> History</a>
                 <a class="active" href="${pageContext.request.contextPath}${base}/payments/monitor">
-                    <i class="bi bi-activity"></i> Monitoring</a>
-            </div>
+                    <i class="bi bi-activity" aria-hidden="true"></i> Monitoring</a>
+            </nav>
         </div>
 
         <c:if test="${not isAdmin}">
@@ -60,45 +64,37 @@
         </c:if>
 
         <%-- ===== KPI cards ===== --%>
-        <div class="row g-3 mb-3">
-            <div class="col-6 col-xl-3">
-                <div class="pay-kpi k-green">
-                    <div class="row1">
-                        <div class="ic" style="background:#E8F5EE; color:#146C43;"><i class="bi bi-check-circle-fill"></i></div>
-                        <div class="lbl">Success</div>
-                    </div>
-                    <div class="val">${summary.countSuccess}</div>
-                    <div class="sub">Confirmed: <fmt:formatNumber value="${summary.totalSuccessAmount}" pattern="#,###"/>₫</div>
+        <div class="lc-kpi-row">
+            <div class="lc-kpi-card">
+                <div class="lc-stat-icon lc-kpi-icon--green"><i class="bi bi-check-circle-fill"></i></div>
+                <div>
+                    <div class="lc-kpi-label">Success</div>
+                    <div class="lc-kpi-value">${summary.countSuccess}</div>
+                    <div class="lc-kpi-hint">Confirmed: <fmt:formatNumber value="${summary.totalSuccessAmount}" pattern="#,###"/>₫</div>
                 </div>
             </div>
-            <div class="col-6 col-xl-3">
-                <div class="pay-kpi k-amber">
-                    <div class="row1">
-                        <div class="ic" style="background:#FFF4D6; color:#9a6700;"><i class="bi bi-hourglass-split"></i></div>
-                        <div class="lbl">Pending</div>
-                    </div>
-                    <div class="val">${summary.countPending}</div>
-                    <div class="sub">Awaiting payment</div>
+            <div class="lc-kpi-card">
+                <div class="lc-stat-icon lc-kpi-icon--amber"><i class="bi bi-hourglass-split"></i></div>
+                <div>
+                    <div class="lc-kpi-label">Pending</div>
+                    <div class="lc-kpi-value">${summary.countPending}</div>
+                    <div class="lc-kpi-hint">Awaiting payment</div>
                 </div>
             </div>
-            <div class="col-6 col-xl-3">
-                <div class="pay-kpi k-red">
-                    <div class="row1">
-                        <div class="ic" style="background:#FBE4E6; color:#b02a37;"><i class="bi bi-x-circle-fill"></i></div>
-                        <div class="lbl">Failed</div>
-                    </div>
-                    <div class="val">${summary.countFailed}</div>
-                    <div class="sub">Failed / expired</div>
+            <div class="lc-kpi-card">
+                <div class="lc-stat-icon lc-kpi-icon--rose"><i class="bi bi-x-circle-fill"></i></div>
+                <div>
+                    <div class="lc-kpi-label">Failed</div>
+                    <div class="lc-kpi-value">${summary.countFailed}</div>
+                    <div class="lc-kpi-hint">Failed / expired</div>
                 </div>
             </div>
-            <div class="col-6 col-xl-3">
-                <div class="pay-kpi k-blue">
-                    <div class="row1">
-                        <div class="ic" style="background:var(--lc-light); color:var(--lc-primary);"><i class="bi bi-graph-up-arrow"></i></div>
-                        <div class="lbl">Success rate</div>
-                    </div>
-                    <div class="val">${summary.successRate}%</div>
-                    <div class="sub">${summary.total} total transaction(s)</div>
+            <div class="lc-kpi-card">
+                <div class="lc-stat-icon lc-kpi-icon--blue"><i class="bi bi-graph-up-arrow"></i></div>
+                <div>
+                    <div class="lc-kpi-label">Success rate</div>
+                    <div class="lc-kpi-value">${summary.successRate}%</div>
+                    <div class="lc-kpi-hint">${summary.total} total transaction(s)</div>
                 </div>
             </div>
         </div>
@@ -242,6 +238,6 @@
     </div>
 </main>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<%@ include file="/WEB-INF/views/branch/_branch-scripts.jspf" %>
 </body>
 </html>

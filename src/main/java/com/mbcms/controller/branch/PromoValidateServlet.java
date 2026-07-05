@@ -30,6 +30,8 @@ public class PromoValidateServlet extends HttpServlet {
             throws ServletException, IOException {
 
         resp.setContentType("application/json;charset=UTF-8");
+        
+        // [Flow Step: JSP -> Servlet] Parse AJAX query parameters: code and subtotal
         String code = req.getParameter("code");
         String subtotalStr = req.getParameter("subtotal");
 
@@ -56,7 +58,10 @@ public class PromoValidateServlet extends HttpServlet {
         Long branchId = session != null ? (Long) session.getAttribute("currentBranchId") : null;
 
         try {
+            // [Flow Step: Servlet -> Database] Fetch matching promotion details by unique code from Database
             Promotion promo = promotionDAO.findByCode(code.trim().toUpperCase());
+            
+            // Validate all coupon conditions sequentially
             if (promo == null) {
                 result.put("valid", false);
                 result.put("message", "Mã khuyến mãi không tồn tại.");
@@ -99,6 +104,7 @@ public class PromoValidateServlet extends HttpServlet {
             result.put("message", "Lỗi xử lý khuyến mãi: " + e.getMessage());
         }
 
+        // [Flow Step: Servlet -> JSP] Return calculation check results as a JSON payload to AJAX success handler
         mapper.writeValue(resp.getWriter(), result);
     }
 }

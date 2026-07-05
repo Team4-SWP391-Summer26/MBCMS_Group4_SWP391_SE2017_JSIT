@@ -21,6 +21,7 @@ public class PromotionListServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
+        // [Flow Step: JSP -> Servlet] The request originates from promotions list page (list.jsp) upon loading, or filtering forms
         long branchId = (Long) req.getSession(false).getAttribute("currentBranchId");
         ConsoleSupport.ensureBranchName(req);
 
@@ -31,13 +32,13 @@ public class PromotionListServlet extends HttpServlet {
 
         PromotionDAO promotionDAO = new PromotionDAOImpl();
 
-        // Retrieve statistics
+        // [Flow Step: Servlet -> Database] Retrieve statistics and branch metrics from Database via PromotionDAO
         int totalPromotions = promotionDAO.getTotalPromotionsCount(branchId);
         int activePromotions = promotionDAO.getActivePromotionsCount(branchId);
         int usedThisMonth = promotionDAO.getUsedThisMonthCount(branchId);
         BigDecimal revenueImpact = promotionDAO.getRevenueImpactThisMonth(branchId);
 
-        // Retrieve filtered list of promotions
+        // [Flow Step: Servlet -> Database] Fetch filtered list of promotions from DB based on filter parameters
         List<Promotion> list = promotionDAO.findByFilters(search, type, status, branchId);
 
         // Set attributes
@@ -51,7 +52,7 @@ public class PromotionListServlet extends HttpServlet {
         req.setAttribute("filterType", type);
         req.setAttribute("filterStatus", status);
 
-        // Handle success/error feedback messages (PRG)
+        // Handle success/error feedback messages (PRG redirect parameters)
         if ("1".equals(req.getParameter("created"))) {
             req.setAttribute("successMsg", "Added successfully.");
         } else if ("1".equals(req.getParameter("updated"))) {
@@ -68,6 +69,7 @@ public class PromotionListServlet extends HttpServlet {
             req.setAttribute("errorMsg", "Cannot delete: This promotion has already been applied to booking records.");
         }
 
+        // [Flow Step: Servlet -> JSP] Forward request payload and attributes to the list.jsp view for browser rendering
         req.getRequestDispatcher(VIEW).forward(req, resp);
     }
 }

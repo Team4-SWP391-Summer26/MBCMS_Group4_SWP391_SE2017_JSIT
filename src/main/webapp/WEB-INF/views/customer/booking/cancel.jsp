@@ -1,6 +1,7 @@
 ﻿<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
+<fmt:setTimeZone value="Asia/Ho_Chi_Minh"/>
 <!DOCTYPE html>
 <html lang="en">
     <head>
@@ -313,9 +314,7 @@
                 /* Convert LocalDateTime → java.util.Date for fmt:formatDate */
                 com.mbcms.model.Booking bk = (com.mbcms.model.Booking) request.getAttribute("booking");
                 if (bk != null && bk.getCreatedAt() != null) {
-                    java.util.Date d = java.util.Date.from(
-                        bk.getCreatedAt().atZone(java.time.ZoneId.systemDefault()).toInstant()
-                    );
+                    java.util.Date d = com.mbcms.util.DateTimeUtil.utcToVietnamDate(bk.getCreatedAt());
                     pageContext.setAttribute("createdAtDate", d);
                 }
             %>
@@ -347,7 +346,7 @@
                             <tr>
                                 <td class="lbl">Booked on</td>
                                 <td class="val">
-                                    <fmt:formatDate value="${createdAtDate}" pattern="dd/MM/yyyy HH:mm"/>
+                                    <fmt:formatDate value="${createdAtDate}" pattern="dd/MM/yyyy HH:mm" timeZone="Asia/Ho_Chi_Minh"/>
                                 </td>
                             </tr>
                             <tr>
@@ -514,7 +513,7 @@
                             <tr>
                                 <td class="lbl">Booked on</td>
                                 <td class="val">
-                                    <fmt:formatDate value="${createdAtDate}" pattern="dd/MM/yyyy HH:mm"/>
+                                    <fmt:formatDate value="${createdAtDate}" pattern="dd/MM/yyyy HH:mm" timeZone="Asia/Ho_Chi_Minh"/>
                                 </td>
                             </tr>
                             <tr>

@@ -112,7 +112,7 @@ public class TicketPdfServlet extends HttpServlet {
             }
 
             // Cấu trúc nội dung vé
-            doc.add(createBoldParagraph("MBCMS CINEMA TICKET", 22, fontBold).setTextAlignment(TextAlignment.CENTER));
+            doc.add(createBoldParagraph("PENTAPLEX CINEMA TICKET", 22, fontBold).setTextAlignment(TextAlignment.CENTER));
             doc.add(new Paragraph("=========================================")
                     .setTextAlignment(TextAlignment.CENTER)
                     .setFontSize(10));
@@ -242,7 +242,7 @@ public class TicketPdfServlet extends HttpServlet {
                 doc.setFont(fontRegular);
             }
 
-            doc.add(createBoldParagraph("MBCMS CINEMA TICKET", 22, fontBold).setTextAlignment(TextAlignment.CENTER));
+            doc.add(createBoldParagraph("PENTAPLEX CINEMA TICKET", 22, fontBold).setTextAlignment(TextAlignment.CENTER));
             doc.add(new Paragraph("=========================================")
                     .setTextAlignment(TextAlignment.CENTER)
                     .setFontSize(10));

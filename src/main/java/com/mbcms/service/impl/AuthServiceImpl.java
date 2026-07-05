@@ -116,12 +116,12 @@ public class AuthServiceImpl implements AuthService {
 
         // Kiem tra ten dang nhap ton tai
         if (customerDAO.findByUsername(customer.getUsername()) != null) {
-            throw new IllegalArgumentException("Tên đăng nhập đã tồn tại trong hệ thống.");
+            throw new IllegalArgumentException("Username already exists.");
         }
 
         // Kiem tra email ton tai
         if (customerDAO.existsByEmail(customer.getEmail())) {
-            throw new IllegalArgumentException("Email đã được sử dụng bởi tài khoản khác.");
+            throw new IllegalArgumentException("Email is already used by another account.");
         }
 
         // Hash password bang BCrypt

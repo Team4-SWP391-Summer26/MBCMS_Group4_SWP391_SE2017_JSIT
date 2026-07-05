@@ -14,7 +14,7 @@ import java.util.List;
 
 public class ShowtimeDAOImpl extends BaseDAO implements ShowtimeDAO {
 
-    /** PENDING counts only if hold not expired (align with SeatDAOImpl.findBookedSeatIds). */
+    /** PENDING counts only if hold not expired (align with SeatDAOImpl.findOccupiedSeatIds). */
     private static final String ACTIVE_BOOKING_FILTER =
             " AND b.status IN ('PENDING','CONFIRMED','USED') "
             + " AND (b.[status] != 'PENDING' "

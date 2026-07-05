@@ -272,7 +272,9 @@ public class BranchDAOImpl extends BaseDAO implements BranchDAO {
                 + "    (SELECT COUNT(*) FROM rooms r WHERE r.branch_id = b.branch_id AND r.active = 1) AS rooms_count, "
                 + "    (SELECT COUNT(*) FROM seats s JOIN rooms r ON s.room_id = r.room_id WHERE r.branch_id = b.branch_id AND r.active = 1 AND s.active = 1) AS seats_count, "
                 + "    (SELECT COUNT(*) FROM showtimes st JOIN rooms r ON st.room_id = r.room_id WHERE r.branch_id = b.branch_id AND CAST(st.start_time AS DATE) = CAST(GETDATE() AS DATE)) AS today_showtimes, "
-                + "    (SELECT COALESCE(SUM(bk.total_amount), 0) FROM bookings bk JOIN showtimes st ON bk.showtime_id = st.showtime_id JOIN rooms r ON st.room_id = r.room_id WHERE r.branch_id = b.branch_id AND bk.status IN ('CONFIRMED', 'USED') AND MONTH(bk.created_at) = MONTH(GETDATE()) AND YEAR(bk.created_at) = YEAR(GETDATE())) AS monthly_revenue, "
+                + "    (SELECT COALESCE(SUM(bk.total_amount), 0) FROM bookings bk JOIN showtimes st ON bk.showtime_id = st.showtime_id JOIN rooms r ON st.room_id = r.room_id WHERE r.branch_id = b.branch_id AND bk.status IN ('CONFIRMED', 'USED') "
+                + "AND bk.created_at >= DATEADD(HOUR, -7, DATEADD(month, DATEDIFF(month, 0, GETDATE()), 0)) "
+                + "AND bk.created_at < DATEADD(HOUR, -7, DATEADD(month, DATEDIFF(month, 0, DATEADD(month, 1, GETDATE())), 0))) AS monthly_revenue, "
                 + "    (SELECT TOP 1 full_name FROM employees WHERE branch_id = b.branch_id AND role = 'BRANCH_MANAGER' AND active = 1) AS manager_name "
                 + "FROM branches b ";
         if (!includeInactive) {

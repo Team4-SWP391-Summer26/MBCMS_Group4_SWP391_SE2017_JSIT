@@ -35,6 +35,12 @@ public class BookingHistoryServlet extends HttpServlet {
         }
         Customer customer = (Customer) session.getAttribute("currentUser");
 
+        try {
+            bookingService.releaseExpiredLocks();
+        } catch (RuntimeException e) {
+            getServletContext().log("Could not clean expired pending bookings before history load", e);
+        }
+
         List<BookingTicket> tickets =
                 bookingService.getBookingHistoryTickets(customer.getUsername());
 

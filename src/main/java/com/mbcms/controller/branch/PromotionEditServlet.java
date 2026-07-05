@@ -26,6 +26,7 @@ public class PromotionEditServlet extends HttpServlet {
             throws ServletException, IOException {
         ConsoleSupport.ensureBranchName(req);
 
+        // [Flow Step: JSP -> Servlet] GET request targeting promotion edit action with parameter 'id'
         String idStr = req.getParameter("id");
         if (idStr == null || idStr.trim().isEmpty()) {
             resp.sendRedirect(req.getContextPath() + "/branch/promotions?error=1");
@@ -35,18 +36,22 @@ public class PromotionEditServlet extends HttpServlet {
         try {
             long id = Long.parseLong(idStr.trim());
             PromotionDAO promotionDAO = new PromotionDAOImpl();
+            
+            // [Flow Step: Servlet -> Database] Fetch existing promotion from DB
             Promotion p = promotionDAO.findById(id);
             if (p == null) {
                 resp.sendRedirect(req.getContextPath() + "/branch/promotions?error=1");
                 return;
             }
 
+            // Verify branch boundary permission
             Long sessionBranchId = (Long) req.getSession(false).getAttribute("currentBranchId");
             if (sessionBranchId == null || !sessionBranchId.equals(p.getBranchId())) {
-                resp.sendRedirect(req.getContextPath() + "/branch/promotions?error=1");
+                resp.sendError(HttpServletResponse.SC_FORBIDDEN, "You do not have permission to edit this promotion.");
                 return;
             }
 
+            // [Flow Step: Servlet -> JSP] Bind properties and forward to form.jsp in Edit mode (isEdit=true)
             req.setAttribute("isEdit", true);
             req.setAttribute("promo", p);
 
@@ -68,6 +73,7 @@ public class PromotionEditServlet extends HttpServlet {
             throws ServletException, IOException {
         ConsoleSupport.ensureBranchName(req);
 
+        // [Flow Step: JSP -> Servlet] Parsed edit form submit data
         String idStr = req.getParameter("promoId");
         if (idStr == null || idStr.trim().isEmpty()) {
             resp.sendRedirect(req.getContextPath() + "/branch/promotions?error=1");
@@ -83,6 +89,8 @@ public class PromotionEditServlet extends HttpServlet {
         }
 
         PromotionDAO promotionDAO = new PromotionDAOImpl();
+        
+        // [Flow Step: Servlet -> Database] Query DB via DAO to obtain original promotion entity details
         Promotion existing = promotionDAO.findById(id);
         if (existing == null) {
             resp.sendRedirect(req.getContextPath() + "/branch/promotions?error=1");
@@ -194,12 +202,13 @@ public class PromotionEditServlet extends HttpServlet {
             }
         }
 
-        // Check code uniqueness excluding this ID
+        // [Flow Step: Servlet -> Database] Query DB to check if the new code conflicts with another promotion code (excluding current edit ID)
         if (errorMsg == null && promotionDAO.existsByCodeExcludeId(p.getCode(), p.getPromoId())) {
             errorMsg = "Promotion code already exists.";
         }
 
         if (errorMsg != null) {
+            // [Flow Step: Servlet -> JSP] Re-forward form fields and validation warning messages back to form.jsp
             req.setAttribute("errorMsg", errorMsg);
             req.setAttribute("isEdit", true);
             req.setAttribute("promo", p);
@@ -213,9 +222,10 @@ public class PromotionEditServlet extends HttpServlet {
             return;
         }
 
-        // Update and redirect
+        // [Flow Step: Servlet -> Database] Update the promotion records in DB via PromotionDAO
         boolean success = promotionDAO.update(p);
         if (success) {
+            // [Flow Step: Servlet -> Browser] Perform Post-Redirect-Get redirect back to listing view
             resp.sendRedirect(req.getContextPath() + "/branch/promotions?updated=1");
         } else {
             resp.sendRedirect(req.getContextPath() + "/branch/promotions?error=1");

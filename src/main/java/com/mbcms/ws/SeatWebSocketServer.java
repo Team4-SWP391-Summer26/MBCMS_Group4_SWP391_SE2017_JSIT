@@ -52,6 +52,7 @@ public class SeatWebSocketServer {
     public void onOpen(Session session,
             @PathParam("showtimeId") long showtimeId) throws IOException {
 
+        // [Flow Step: JSP -> WebSocket] Client browser initiates WebSocket connection handshake
         // Lưu showtimeId vào session để dùng khi onClose
         session.getUserProperties().put("showtimeId", showtimeId);
 
@@ -66,6 +67,7 @@ public class SeatWebSocketServer {
 
         softLocks.computeIfAbsent(showtimeId, k -> new ConcurrentHashMap<>());
 
+        // [Flow Step: WebSocket -> Database] Fetch DB-persisted bookings (hard locks) and memory soft locks to sync grid on connection open
         // Gửi trạng thái hiện tại cho user vừa kết nối (HARD LOCK từ DB)
         sendInitialState(session, showtimeId, username);
     }
@@ -73,6 +75,7 @@ public class SeatWebSocketServer {
     // ── onMessage ─────────────────────────────────────────────────────────────
     @OnMessage
     public void onMessage(String text, Session session) {
+        // [Flow Step: JSP -> WebSocket] Browser customer client sends selection interaction state (SELECT or DESELECT) to server
         SeatSelectionMessage msg = SeatSelectionMessage.fromJson(text);
         long showtimeId = (long) session.getUserProperties().get("showtimeId");
         String username = (String) session.getUserProperties().get("username");
@@ -85,11 +88,13 @@ public class SeatWebSocketServer {
         switch (msg.getAction()) {
 
             case SeatSelectionMessage.SELECT:
+                // [Flow Step: WebSocket -> Memory] Store soft lock ticket reservations temporarily in server ConcurrentHashMap memory
                 // Chỉ cho phép soft lock nếu ghế chưa bị ai giữ
                 locks.putIfAbsent(msg.getSeatId(), username);
 
                 // Nếu putIfAbsent thành công (mình vừa lock được)
                 if (username.equals(locks.get(msg.getSeatId()))) {
+                    // [Flow Step: WebSocket -> JSP] Broadcast active soft lock select event to all registered clients viewing showtime room monitor
                     broadcast(showtimeId,
                             new SeatSelectionMessage(
                                     SeatSelectionMessage.SELECT,
@@ -110,8 +115,11 @@ public class SeatWebSocketServer {
                 break;
 
             case SeatSelectionMessage.DESELECT:
+                // [Flow Step: WebSocket -> Memory] Clear soft lock ticket reservations from ConcurrentHashMap memory
                 // Chỉ người đang giữ mới được release
                 locks.remove(msg.getSeatId(), username);
+                
+                // [Flow Step: WebSocket -> JSP] Broadcast active soft lock deselect event to all registered clients
                 broadcast(showtimeId,
                         new SeatSelectionMessage(
                                 SeatSelectionMessage.DESELECT,
@@ -126,6 +134,7 @@ public class SeatWebSocketServer {
     // ── onClose ───────────────────────────────────────────────────────────────
     @OnClose
     public void onClose(Session session) {
+        // [Flow Step: JSP -> WebSocket] Browser connection closes. Clean up matching session room bindings
         long showtimeId = (long) session.getUserProperties().get("showtimeId");
         String username = (String) session.getUserProperties().get("username");
 
@@ -135,6 +144,7 @@ public class SeatWebSocketServer {
             room.remove(session);
         }
 
+        // [Flow Step: WebSocket -> Memory] Clean up and release all soft locks owned by this specific session username
         // Release tất cả soft lock của user này
         Map<Long, String> locks = softLocks.get(showtimeId);
         if (locks != null) {
@@ -147,6 +157,7 @@ public class SeatWebSocketServer {
                 return false;
             });
 
+            // [Flow Step: WebSocket -> JSP] Broadcast soft lock releases to other active clients
             // Broadcast release cho các user khác
             released.forEach(seatId
                     -> broadcast(showtimeId,
@@ -167,14 +178,36 @@ public class SeatWebSocketServer {
 
     // ── Static methods cho Servlet gọi sau khi tạo/cancel booking ────────────
     /**
-     * BookingCreateServlet gọi sau khi INSERT booking thành công. Chuyển soft
-     * lock → hard lock và broadcast.
+     * BookingCreateServlet / BookingService gọi sau khi INSERT booking PENDING.
+     * Giữ ghế chờ thanh toán (hiển thị vàng), chưa phải booked.
      */
-    public static void notifyHardLock(long showtimeId, List<Long> seatIds, String username) {
+    public static void notifyHeldLock(long showtimeId, List<Long> seatIds, String username) {
         Map<Long, String> locks = softLocks.get(showtimeId);
         if (locks != null) {
             seatIds.forEach(seatId -> locks.remove(seatId, username));
         }
+        seatIds.forEach(seatId
+                -> broadcast(showtimeId,
+                        new SeatSelectionMessage(
+                                SeatSelectionMessage.HELD_LOCK,
+                                seatId, showtimeId, username
+                        ).toJson(),
+                        null
+                )
+        );
+    }
+
+    /**
+     * Gọi sau khi thanh toán thành công (CONFIRMED). Chuyển held → booked.
+     */
+    public static void notifyHardLock(long showtimeId, List<Long> seatIds, String username) {
+        // [Flow Step: Servlet -> WebSocket -> JSP] Backend Servlet invokes notifyHardLock upon successful SQL booking transaction
+        // [Flow Step: WebSocket -> Memory] Purge temporary soft lock items from memory map as they are now persisted in Database
+        Map<Long, String> locks = softLocks.get(showtimeId);
+        if (locks != null) {
+            seatIds.forEach(seatId -> locks.remove(seatId, username));
+        }
+        // [Flow Step: WebSocket -> JSP] Broadcast HARD_LOCK status conversions to seat monitor browser displays
         seatIds.forEach(seatId
                 -> broadcast(showtimeId,
                         new SeatSelectionMessage(
@@ -191,6 +224,8 @@ public class SeatWebSocketServer {
      * hard lock, ghế về AVAILABLE.
      */
     public static void notifyHardRelease(long showtimeId, List<Long> seatIds) {
+        // [Flow Step: Service -> WebSocket -> JSP] Background scheduler worker invokes notifyHardRelease upon transaction expiry
+        // [Flow Step: WebSocket -> JSP] Broadcast HARD_RELEASE state adjustments to release grid seats back to available
         seatIds.forEach(seatId
                 -> broadcast(showtimeId,
                         new SeatSelectionMessage(
@@ -205,14 +240,22 @@ public class SeatWebSocketServer {
     // ── Private helpers ───────────────────────────────────────────────────────
     private void sendInitialState(Session session, long showtimeId, String username) {
         try {
-            // Hard locks từ DB
             List<Seat> seats = seatAvailabilityService.getSeats(showtimeId);
             Set<Long> booked = seatAvailabilityService.getBookedSeatIds(showtimeId);
+            Set<Long> held = seatAvailabilityService.getHeldSeatIds(showtimeId);
             for (Seat seat : seats) {
-                boolean available = seat.isActive() && !booked.contains(seat.getSeatId());
-                if (!available) {
+                long seatId = seat.getSeatId();
+                if (!seat.isActive()) {
+                    continue;
+                }
+                if (booked.contains(seatId)) {
                     sendToSession(session,
-                            new SeatSelectionMessage(HARD_LOCK, seat.getSeatId(), showtimeId, "").toJson());
+                            new SeatSelectionMessage(HARD_LOCK, seatId, showtimeId, "").toJson());
+                } else if (held.contains(seatId)) {
+                    sendToSession(session,
+                            new SeatSelectionMessage(
+                                    SeatSelectionMessage.HELD_LOCK, seatId, showtimeId, ""
+                            ).toJson());
                 }
             }
 

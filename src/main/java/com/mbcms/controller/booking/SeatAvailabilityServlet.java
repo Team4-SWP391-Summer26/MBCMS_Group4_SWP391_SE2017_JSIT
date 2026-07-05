@@ -2,7 +2,9 @@ package com.mbcms.controller.booking;
 
 import com.mbcms.model.Seat;
 import com.mbcms.model.Showtime;
+import com.mbcms.service.PricingService;
 import com.mbcms.service.SeatAvailabilityService;
+import com.mbcms.service.impl.PricingServiceImpl;
 import com.mbcms.service.impl.SeatAvailabilityServiceImpl;
 import com.mbcms.util.BookingCustomerGuard;
 import com.mbcms.model.Customer;
@@ -30,6 +32,7 @@ public class SeatAvailabilityServlet extends HttpServlet {
             = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
 
     private final SeatAvailabilityService seatService = new SeatAvailabilityServiceImpl();
+    private final PricingService pricingService = new PricingServiceImpl();
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
@@ -57,14 +60,21 @@ public class SeatAvailabilityServlet extends HttpServlet {
 
             Map<String, List<Seat>> seatsByRow = seatService.getSeatsByRow(showtimeId);
             Set<Long> bookedSeatIds = seatService.getBookedSeatIds(showtimeId);
+            Set<Long> heldSeatIds = seatService.getHeldSeatIds(showtimeId);
             int availableCount = seatService.countAvailable(showtimeId);
 
             req.setAttribute("showtime", showtime);
             req.setAttribute("seatsByRow", seatsByRow);
             req.setAttribute("bookedSeatIds", bookedSeatIds);
+            req.setAttribute("heldSeatIds", heldSeatIds);
             req.setAttribute("availableCount", availableCount);
             req.setAttribute("showtimeId", showtimeId);
+            req.setAttribute("showtimeDate", showtime.getStartTime().toLocalDate().toString());
             req.setAttribute("startTimeStr", showtime.getStartTime().format(DT_FMT));
+            req.setAttribute("standardPrice",
+                    pricingService.calculateSeatPrice(showtime.getBasePrice(), Seat.TYPE_STANDARD));
+            req.setAttribute("vipPrice",
+                    pricingService.calculateSeatPrice(showtime.getBasePrice(), Seat.TYPE_VIP));
 
             req.getRequestDispatcher("/WEB-INF/views/booking/seats.jsp").forward(req, resp);
 

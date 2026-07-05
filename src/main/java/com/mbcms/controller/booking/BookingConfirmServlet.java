@@ -59,6 +59,15 @@ public class BookingConfirmServlet extends HttpServlet {
                 response.sendRedirect(request.getContextPath() + "/customer/booking/history");
                 return;
             }
+            if (Booking.STATUS_PENDING.equals(booking.getStatus())) {
+                response.sendRedirect(request.getContextPath()
+                        + "/booking/payment?bookingId=" + bookingId);
+                return;
+            }
+            if (!Booking.STATUS_CONFIRMED.equals(booking.getStatus())) {
+                response.sendRedirect(request.getContextPath() + "/customer/booking/history");
+                return;
+            }
             session.removeAttribute("pendingBookingId");
             request.setAttribute("booking", booking);
             try {

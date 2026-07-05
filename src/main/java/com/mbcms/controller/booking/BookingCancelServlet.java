@@ -4,6 +4,8 @@ import com.mbcms.model.Booking;
 import com.mbcms.model.Customer;
 import com.mbcms.service.BookingService;
 import com.mbcms.service.impl.BookingServiceImpl;
+import com.mbcms.util.BookingCustomerGuard;
+import com.mbcms.ws.SeatWebSocketServer;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -13,6 +15,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
 import java.io.IOException;
+import java.util.List;
 
 /**
  * BookingCancelServlet – POST /customer/booking/cancel
@@ -22,14 +25,11 @@ import java.io.IOException;
  * Business rules (thực thi ở DAO):
  *   - Chỉ huỷ được booking có status = PENDING.
  *   - Chỉ huỷ được booking thuộc về customer đang đăng nhập.
- *   - CONFIRMED / USED / CANCELLED → không được huỷ, redirect với cancelErr.
+ *   - CONFIRMED / USED / CANCELLED → không được huỷ.
  *
  * Flow:
- *   POST /customer/booking/cancel?bookingId=X
- *     → Nếu có param "showtimeId" (cancel từ trang checkout):
- *         redirect /booking/seats?showtimeId=X&cancelled=1   (quay lại chọn ghế)
- *     → Ngược lại (cancel từ trang lịch sử/chi tiết):
- *         redirect /customer/booking/detail?bookingId=X&cancelled=1
+ *   POST từ checkout (có showtimeId) → /customer/booking/history?cancelled=1
+ *   POST từ lịch sử/chi tiết      → /customer/booking/detail?bookingId=X&cancelled=1
  */
 @WebServlet("/customer/booking/cancel")
 public class BookingCancelServlet extends HttpServlet {
@@ -40,65 +40,140 @@ public class BookingCancelServlet extends HttpServlet {
     protected void doPost(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
 
-        HttpSession session = req.getSession(false);
-        if (session == null || session.getAttribute("currentUser") == null) {
-            resp.sendRedirect(req.getContextPath() + "/auth/login");
+        Customer customer = BookingCustomerGuard.requireCustomer(req, resp);
+        if (customer == null) {
             return;
         }
-        Customer customer = (Customer) session.getAttribute("currentUser");
 
-        // ── Parse bookingId ───────────────────────────────────────────────
         Long bookingId = parseId(req.getParameter("bookingId"));
         if (bookingId == null) {
             resp.sendRedirect(req.getContextPath() + "/customer/booking/history");
             return;
         }
 
-        // "showtimeId" hiện diện khi cancel từ trang checkout → quay về chọn ghế
         String showtimeIdParam = req.getParameter("showtimeId");
-
+        boolean fromCheckout = showtimeIdParam != null && !showtimeIdParam.isBlank();
         String detailUrl = req.getContextPath() + "/customer/booking/detail?bookingId=" + bookingId;
+        String ctx = req.getContextPath();
 
-        // ── Gọi service ───────────────────────────────────────────────────
+        Booking pending = loadPendingBooking(bookingId, customer.getUsername());
+
+        int rows;
         try {
-            int rows = bookingService.cancelBooking(bookingId, customer.getUsername());
-
-            // Xoá pendingBookingId khỏi session nếu đúng booking này
-            Object pendingId = session.getAttribute("pendingBookingId");
-            if (pendingId != null && Long.parseLong(pendingId.toString()) == bookingId) {
-                session.removeAttribute("pendingBookingId");
-            }
-
-            if (rows > 0) {
-                if (showtimeIdParam != null && !showtimeIdParam.isBlank()) {
-                    // Cancel từ checkout → về lại trang chọn ghế
-                    resp.sendRedirect(req.getContextPath()
-                            + "/booking/seats?showtimeId=" + showtimeIdParam
-                            + "&cancelled=1");
-                } else {
-                    // Cancel từ trang lịch sử/chi tiết
-                    resp.sendRedirect(detailUrl + "&cancelled=1");
-                }
-            } else {
-                // 0 rows: không thể huỷ (sai owner / không PENDING / không tồn tại)
-                resp.sendRedirect(detailUrl + "&cancelErr=NOT_CANCELLABLE");
-            }
-
+            rows = bookingService.cancelBooking(bookingId, customer.getUsername());
         } catch (SecurityException e) {
             resp.setStatus(HttpServletResponse.SC_FORBIDDEN);
             req.getRequestDispatcher("/WEB-INF/views/common/error403.jsp").forward(req, resp);
+            return;
+        } catch (Exception e) {
+            getServletContext().log("Cancel failed for booking id=" + bookingId, e);
+            redirectCancelError(resp, fromCheckout, showtimeIdParam, detailUrl, ctx);
+            return;
+        }
 
-        } catch (RuntimeException e) {
-            getServletContext().log("System error while cancelling booking id=" + bookingId, e);
-            resp.sendRedirect(detailUrl + "&cancelErr=SYSTEM");
+        if (rows > 0) {
+            // DB đã CANCELLED — cleanup/WS không được làm user thấy SYSTEM nếu redirect thất bại.
+            try {
+                afterSuccessfulCancel(req.getSession(false), bookingId, pending);
+            } catch (Exception e) {
+                getServletContext().log(
+                        "Post-cancel cleanup failed for booking id=" + bookingId, e);
+            }
+            redirectCancelSuccess(resp, fromCheckout, showtimeIdParam, detailUrl, ctx);
+            return;
+        }
+
+        redirectNotCancellable(resp, fromCheckout, showtimeIdParam, detailUrl, ctx);
+    }
+
+    private Booking loadPendingBooking(long bookingId, String username) {
+        try {
+            Booking booking = bookingService.getBookingDetail(bookingId, username);
+            if (booking != null && Booking.STATUS_PENDING.equals(booking.getStatus())) {
+                return booking;
+            }
+        } catch (Exception e) {
+            getServletContext().log("Could not preload booking id=" + bookingId + " before cancel", e);
+        }
+        return null;
+    }
+
+    private void afterSuccessfulCancel(HttpSession session, long bookingId, Booking pending) {
+        clearBookingSession(session, bookingId);
+        if (pending == null) {
+            return;
+        }
+        List<Long> seatIds = pending.getSeatIds();
+        if (seatIds == null || seatIds.isEmpty()) {
+            return;
+        }
+        SeatWebSocketServer.notifyHardRelease(pending.getShowtimeId(), seatIds);
+    }
+
+    private void redirectCancelSuccess(HttpServletResponse resp, boolean fromCheckout,
+            String showtimeIdParam, String detailUrl, String ctx) throws IOException {
+        if (fromCheckout) {
+            resp.sendRedirect(ctx + "/customer/booking/history?cancelled=1");
+        } else {
+            resp.sendRedirect(detailUrl + "&cancelled=1");
         }
     }
 
-    // ── Helper ────────────────────────────────────────────────────────────
+    private void redirectNotCancellable(HttpServletResponse resp, boolean fromCheckout,
+            String showtimeIdParam, String detailUrl, String ctx) throws IOException {
+        if (fromCheckout) {
+            resp.sendRedirect(ctx + "/customer/booking/history?cancelErr=NOT_CANCELLABLE");
+        } else {
+            resp.sendRedirect(detailUrl + "&cancelErr=NOT_CANCELLABLE");
+        }
+    }
+
+    private void redirectCancelError(HttpServletResponse resp, boolean fromCheckout,
+            String showtimeIdParam, String detailUrl, String ctx) throws IOException {
+        if (fromCheckout) {
+            resp.sendRedirect(ctx + "/customer/booking/history?cancelErr=SYSTEM");
+        } else {
+            resp.sendRedirect(ctx + "/customer/booking/history?cancelErr=SYSTEM");
+        }
+    }
+
+    /** Xoá session giữ booking / F&B — an toàn với mọi kiểu pendingBookingId. */
+    private void clearBookingSession(HttpSession session, long bookingId) {
+        if (session == null) {
+            return;
+        }
+        try {
+            Long pendingId = toLong(session.getAttribute("pendingBookingId"));
+            if (pendingId != null && pendingId == bookingId) {
+                session.removeAttribute("pendingBookingId");
+            }
+            session.removeAttribute("selectedFoodItems");
+        } catch (IllegalStateException e) {
+            // Session đã hết hạn — booking vẫn đã huỷ ở DB.
+            getServletContext().log("Session expired during cancel cleanup booking id=" + bookingId, e);
+        }
+    }
+
     private Long parseId(String s) {
-        if (s == null || s.trim().isEmpty()) return null;
+        if (s == null || s.trim().isEmpty()) {
+            return null;
+        }
         try {
             return Long.parseLong(s.trim());
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
+    private Long toLong(Object value) {
+        if (value == null) {
+            return null;
+        }
+        if (value instanceof Number number) {
+            return number.longValue();
+        }
+        try {
+            return Long.parseLong(value.toString().trim());
         } catch (NumberFormatException e) {
             return null;
         }

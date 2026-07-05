@@ -46,7 +46,7 @@ public class ShowtimeEditServlet extends HttpServlet {
         // verify lai trong updateShowtime khi submit.
         if (st == null || !Showtime.STATUS_SCHEDULED.equals(st.getStatus())
                 || !st.getStartTime().isAfter(java.time.LocalDateTime.now())) {
-            resp.sendRedirect(req.getContextPath() + "/branch/showtimes?notFound=1");
+            resp.sendRedirect(buildListRedirect(req, "notFound", null));
             return;
         }
 
@@ -63,7 +63,7 @@ public class ShowtimeEditServlet extends HttpServlet {
 
         Long id = parseId(req.getParameter("id"));
         if (id == null) {
-            resp.sendRedirect(req.getContextPath() + "/branch/showtimes?notFound=1");
+            resp.sendRedirect(buildListRedirect(req, "notFound", null));
             return;
         }
 
@@ -71,7 +71,7 @@ public class ShowtimeEditServlet extends HttpServlet {
             String error = handleUpdate(req, id, branchId);
             if (error == null) {
                 // PRG: list.jsp hien toast MSG03 "Updated successfully."
-                resp.sendRedirect(req.getContextPath() + "/branch/showtimes?updated=1");
+                resp.sendRedirect(buildListRedirect(req, "updated", "showtime-" + id));
                 return;
             }
             req.setAttribute("errorMsg", error);
@@ -136,5 +136,29 @@ public class ShowtimeEditServlet extends HttpServlet {
         } catch (NumberFormatException e) {
             return null;
         }
+    }
+
+    private String buildListRedirect(HttpServletRequest req, String flag, String fragment) {
+        StringBuilder url = new StringBuilder(req.getContextPath()).append("/branch/showtimes?");
+        String date = firstNonBlank(req.getParameter("returnDate"), req.getParameter("date"));
+        if (isIsoDate(date)) {
+            url.append("date=").append(date).append("&");
+        }
+        url.append(flag).append("=1");
+        if (fragment != null && !fragment.trim().isEmpty()) {
+            url.append("#").append(fragment);
+        }
+        return url.toString();
+    }
+
+    private String firstNonBlank(String first, String second) {
+        if (first != null && !first.trim().isEmpty()) {
+            return first.trim();
+        }
+        return second == null ? null : second.trim();
+    }
+
+    private boolean isIsoDate(String value) {
+        return value != null && value.matches("\\d{4}-\\d{2}-\\d{2}");
     }
 }

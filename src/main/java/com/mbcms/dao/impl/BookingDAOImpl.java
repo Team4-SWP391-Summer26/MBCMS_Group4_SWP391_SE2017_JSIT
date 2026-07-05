@@ -244,7 +244,7 @@ public class BookingDAOImpl extends BaseDAO implements BookingDAO {
     @Override
     public List<BookingTicket> findTicketsByCustomer(String customerUsername) {
         String sql = TICKET_SELECT +
-                "WHERE b.customer_username = ? ORDER BY st.start_time DESC";
+                "WHERE b.customer_username = ? ORDER BY b.created_at DESC, b.booking_id DESC";
         Connection conn = null; PreparedStatement ps = null; ResultSet rs = null;
         try {
             conn = getConnection();
@@ -277,8 +277,7 @@ public class BookingDAOImpl extends BaseDAO implements BookingDAO {
         t.setSubtotal(rs.getBigDecimal("subtotal"));
         t.setDiscountAmount(rs.getBigDecimal("discount_amount"));
         t.setTotalAmount(rs.getBigDecimal("total_amount"));
-        Timestamp created = rs.getTimestamp("created_at");
-        t.setCreatedAt(created != null ? created.toLocalDateTime() : null);
+        t.setCreatedAt(readUtcLocalDateTime(rs, "created_at"));
 
         t.setMovieTitle(rs.getString("movie_title"));
         t.setMovieRated(rs.getString("rated"));
@@ -404,23 +403,28 @@ public class BookingDAOImpl extends BaseDAO implements BookingDAO {
     }
 
     @Override
-    public boolean updateBookingTotals(long bookingId, BigDecimal newSubtotal,
+    public boolean updateBookingTotals(long bookingId, Long promoId, BigDecimal newSubtotal,
             BigDecimal discountAmount, BigDecimal newTotalAmount) {
-        String sql = "UPDATE dbo.bookings SET subtotal = ?, discount_amount = ?, total_amount = ? "
+        String sql = "UPDATE dbo.bookings SET promo_id = ?, subtotal = ?, discount_amount = ?, total_amount = ? "
                 + "WHERE booking_id = ? AND [status] = 'PENDING'";
         Connection conn = null;
         PreparedStatement ps = null;
         try {
             conn = getConnection();
             ps = conn.prepareStatement(sql);
-            ps.setBigDecimal(1, newSubtotal);
-            ps.setBigDecimal(2, discountAmount != null ? discountAmount : BigDecimal.ZERO);
-            ps.setBigDecimal(3, newTotalAmount);
-            ps.setLong(4, bookingId);
+            if (promoId != null) {
+                ps.setLong(1, promoId);
+            } else {
+                ps.setNull(1, java.sql.Types.BIGINT);
+            }
+            ps.setBigDecimal(2, newSubtotal);
+            ps.setBigDecimal(3, discountAmount != null ? discountAmount : BigDecimal.ZERO);
+            ps.setBigDecimal(4, newTotalAmount);
+            ps.setLong(5, bookingId);
             int rows = ps.executeUpdate();
             return rows > 0;
         } catch (SQLException e) {
-            throw new RuntimeException("Loi updateBookingTotals: " + e.getMessage(), e);
+            throw new RuntimeException("Loi updateBookingTotalsWithPromo: " + e.getMessage(), e);
         } finally {
             closeAll(ps, conn);
         }
@@ -624,6 +628,125 @@ public class BookingDAOImpl extends BaseDAO implements BookingDAO {
         }
     }
 
+    // ── Ticket validation / check-in (Branch Staff) ──────────────────────────
+
+    @Override
+    public int checkInBooking(long bookingId) {
+        // Guard WHERE [status]='CONFIRMED' la chot chong duplicate entry:
+        // ve USED/PENDING/CANCELLED -> UPDATE 0 row -> service tu choi check-in.
+        String updateBooking
+                = "UPDATE dbo.bookings SET [status] = 'USED' "
+                + "WHERE booking_id = ? AND [status] = 'CONFIRMED'";
+        String updateSeats
+                = "UPDATE dbo.booking_seats "
+                + "SET is_checked_in = 1, check_in_time = SYSUTCDATETIME() "
+                + "WHERE booking_id = ? AND is_checked_in = 0";
+
+        Connection conn = null;
+        PreparedStatement psBooking = null;
+        PreparedStatement psSeats = null;
+        try {
+            conn = getConnection();
+            conn.setAutoCommit(false);
+
+            psBooking = conn.prepareStatement(updateBooking);
+            psBooking.setLong(1, bookingId);
+            int rows = psBooking.executeUpdate();
+
+            if (rows > 0) {
+                psSeats = conn.prepareStatement(updateSeats);
+                psSeats.setLong(1, bookingId);
+                psSeats.executeUpdate();
+            }
+
+            conn.commit();
+            return rows;
+        } catch (SQLException e) {
+            rollbackQuietly(conn);
+            throw new RuntimeException("Loi checkInBooking: " + e.getMessage(), e);
+        } finally {
+            closeAll(psBooking, null);
+            closeAll(psSeats, null);
+            restoreAndClose(conn);
+        }
+    }
+
+    @Override
+    public java.time.LocalDateTime findCheckInTime(long bookingId) {
+        String sql = "SELECT MAX(check_in_time) AS check_in_time "
+                + "FROM dbo.booking_seats WHERE booking_id = ? AND is_checked_in = 1";
+        Connection conn = null; PreparedStatement ps = null; ResultSet rs = null;
+        try {
+            conn = getConnection();
+            ps = conn.prepareStatement(sql);
+            ps.setLong(1, bookingId);
+            rs = ps.executeQuery();
+            if (rs.next()) {
+                return readUtcLocalDateTime(rs, "check_in_time");
+            }
+            return null;
+        } catch (SQLException e) {
+            throw new RuntimeException("findCheckInTime lỗi: " + e.getMessage(), e);
+        } finally {
+            closeAll(rs, ps, conn);
+        }
+    }
+
+    @Override
+    public List<com.mbcms.model.ShowtimeAttendance> findAttendanceByBranch(
+            long branchId, java.time.LocalDate date) {
+        // Dem tren booking_seats: booked = ghe thuoc booking CONFIRMED/USED,
+        // checked-in = ghe co is_checked_in = 1. LEFT JOIN de suat chua ban ve
+        // van hien thi voi so lieu 0.
+        String sql =
+            "SELECT st.showtime_id, st.start_time, st.end_time, st.format, st.[status], " +
+            "       m.title AS movie_title, r.name AS room_name, r.capacity, " +
+            "       COUNT(bs.seat_id) AS booked_seats, " +
+            "       SUM(CASE WHEN bs.is_checked_in = 1 THEN 1 ELSE 0 END) AS checked_in_seats " +
+            "FROM dbo.showtimes st " +
+            "JOIN dbo.rooms  r ON r.room_id  = st.room_id " +
+            "JOIN dbo.movies m ON m.movie_id = st.movie_id " +
+            "LEFT JOIN dbo.bookings b ON b.showtime_id = st.showtime_id " +
+            "       AND b.[status] IN ('CONFIRMED','USED') " +
+            "LEFT JOIN dbo.booking_seats bs ON bs.booking_id = b.booking_id " +
+            "WHERE r.branch_id = ? " +
+            "  AND st.[status] <> 'CANCELLED' " +
+            "  AND CAST(st.start_time AS DATE) = ? " +
+            "GROUP BY st.showtime_id, st.start_time, st.end_time, st.format, st.[status], " +
+            "         m.title, r.name, r.capacity " +
+            "ORDER BY st.start_time";
+        Connection conn = null; PreparedStatement ps = null; ResultSet rs = null;
+        try {
+            conn = getConnection();
+            ps = conn.prepareStatement(sql);
+            ps.setLong(1, branchId);
+            ps.setDate(2, java.sql.Date.valueOf(date));
+            rs = ps.executeQuery();
+            List<com.mbcms.model.ShowtimeAttendance> list = new ArrayList<>();
+            while (rs.next()) {
+                com.mbcms.model.ShowtimeAttendance a = new com.mbcms.model.ShowtimeAttendance();
+                a.setShowtimeId(rs.getLong("showtime_id"));
+                Timestamp start = rs.getTimestamp("start_time");
+                a.setStartTime(start != null ? start.toLocalDateTime() : null);
+                Timestamp end = rs.getTimestamp("end_time");
+                a.setEndTime(end != null ? end.toLocalDateTime() : null);
+                a.setFormat(rs.getString("format"));
+                a.setStatus(rs.getString("status"));
+                a.setMovieTitle(rs.getString("movie_title"));
+                a.setRoomName(rs.getString("room_name"));
+                a.setRoomCapacity(rs.getInt("capacity"));
+                a.setBookedSeats(rs.getInt("booked_seats"));
+                a.setCheckedInSeats(rs.getInt("checked_in_seats"));
+                list.add(a);
+            }
+            return list;
+        } catch (SQLException e) {
+            throw new RuntimeException("findAttendanceByBranch lỗi: " + e.getMessage(), e);
+        } finally {
+            closeAll(rs, ps, conn);
+        }
+    }
+
     // ── Helpers ───────────────────────────────────────────────────────────────
     private Booking mapRow(ResultSet rs) throws SQLException {
         Booking b = new Booking();
@@ -779,6 +902,29 @@ public class BookingDAOImpl extends BaseDAO implements BookingDAO {
             closeAll(psSeat, null);
             closeAll(psPayment, null);
             closeAll(psPromo, conn);
+        }
+    }
+    
+    @Override
+    public int markCompletedBookingsAsUsed() {
+        // CONFIRMED → USED khi suất chiếu đã bắt đầu được hơn 30 phút.
+        // Join sang showtimes để lấy start_time (bookings không lưu trực tiếp).
+        String sql =
+            "UPDATE b SET b.[status] = 'USED' "
+            + "FROM dbo.bookings b "
+            + "JOIN dbo.showtimes st ON st.showtime_id = b.showtime_id "
+            + "WHERE b.[status] = 'CONFIRMED' "
+            + "  AND DATEADD(MINUTE, 30, st.start_time) <= GETDATE()";
+        Connection conn = null;
+        PreparedStatement ps = null;
+        try {
+            conn = getConnection();
+            ps = conn.prepareStatement(sql);
+            return ps.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException("Loi markCompletedBookingsAsUsed: " + e.getMessage(), e);
+        } finally {
+            closeAll(ps, conn);
         }
     }
 

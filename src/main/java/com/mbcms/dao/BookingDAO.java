@@ -60,9 +60,9 @@ public interface BookingDAO {
     /**
      * Cap nhat subtotal va total_amount cua booking.
      */
-    boolean updateBookingTotals(long bookingId, java.math.BigDecimal newSubtotal,
+    boolean updateBookingTotals(long bookingId, Long promoId, java.math.BigDecimal newSubtotal,
             java.math.BigDecimal discountAmount, java.math.BigDecimal newTotalAmount);
-
+    
     /**
      * Kiem tra ghe co bi lock / da dat boi booking khac khong. Return: list
      * seatId da bi chiem -> dung truoc khi tao booking.
@@ -99,4 +99,31 @@ public interface BookingDAO {
     Booking createCounterBooking(Booking booking, List<Long> seatIds);
     
     List<Booking> findConfirmedForReminder(int minutesFrom, int minutesTo);
+    
+    int markCompletedBookingsAsUsed();
+
+    // ── Ticket validation / check-in (Branch Staff) ──────────────────────────
+
+    /**
+     * Check-in ca booking tai cua vao (1 transaction):
+     *  1) bookings: CONFIRMED -> USED (guard WHERE status='CONFIRMED' de chong
+     *     duplicate entry — ve da USED thi UPDATE 0 row, khong check-in lai duoc).
+     *  2) booking_seats: is_checked_in=1 + check_in_time=SYSUTCDATETIME().
+     * Return so row bookings duoc update: 1 = check-in thanh cong, 0 = ve khong
+     * o trang thai CONFIRMED (chua thanh toan / da huy / da vao rap).
+     */
+    int checkInBooking(long bookingId);
+
+    /**
+     * Thoi diem check-in cua booking (MAX check_in_time trong booking_seats),
+     * doc theo UTC (cung he voi SYSUTCDATETIME luc ghi). Null neu chua check-in.
+     */
+    java.time.LocalDateTime findCheckInTime(long bookingId);
+
+    /**
+     * Attendance tracking: thong ke so ghe da dat vs so khach da check-in cho
+     * tung suat chieu cua 1 chi nhanh trong 1 ngay (theo start_time).
+     * Chi dem booking CONFIRMED/USED; bo qua suat CANCELLED.
+     */
+    List<com.mbcms.model.ShowtimeAttendance> findAttendanceByBranch(long branchId, java.time.LocalDate date);
 }

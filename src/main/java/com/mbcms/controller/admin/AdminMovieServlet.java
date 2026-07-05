@@ -56,7 +56,7 @@ public class AdminMovieServlet extends HttpServlet {
                 Movie movie = movieService.get(id);
                 if (movie == null) {
                     resp.sendRedirect(req.getContextPath() + "/admin/movies?errorMsg="
-                            + enc("Không tìm thấy phim."));
+                            + enc("Movie not found."));
                     return;
                 }
                 showForm(req, resp, movie);
@@ -64,10 +64,10 @@ public class AdminMovieServlet extends HttpServlet {
                 showList(req, resp);
             }
         } catch (NumberFormatException e) {
-            resp.sendRedirect(req.getContextPath() + "/admin/movies?errorMsg=" + enc("Tham số không hợp lệ."));
+            resp.sendRedirect(req.getContextPath() + "/admin/movies?errorMsg=" + enc("Invalid parameter."));
         } catch (Exception e) {
-            getServletContext().log("Lỗi doGet AdminMovieServlet: ", e);
-            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Lỗi khi tải dữ liệu phim.");
+            getServletContext().log("Error in AdminMovieServlet#doGet: ", e);
+            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Error loading movie data.");
         }
     }
 
@@ -77,7 +77,7 @@ public class AdminMovieServlet extends HttpServlet {
 
         String action = req.getParameter("action");
         if (action == null) {
-            resp.sendRedirect(req.getContextPath() + "/admin/movies?errorMsg=" + enc("Hành động không hợp lệ."));
+            resp.sendRedirect(req.getContextPath() + "/admin/movies?errorMsg=" + enc("Invalid action."));
             return;
         }
 
@@ -99,13 +99,13 @@ public class AdminMovieServlet extends HttpServlet {
                     handleToggleActive(req, resp);
                     break;
                 default:
-                    resp.sendRedirect(req.getContextPath() + "/admin/movies?errorMsg=" + enc("Hành động không xác định."));
+                    resp.sendRedirect(req.getContextPath() + "/admin/movies?errorMsg=" + enc("Unknown action."));
             }
         } catch (IllegalArgumentException e) {
             resp.sendRedirect(req.getContextPath() + "/admin/movies?errorMsg=" + enc(e.getMessage()));
         } catch (Exception e) {
-            getServletContext().log("Lỗi trong AdminMovieServlet: ", e);
-            resp.sendRedirect(req.getContextPath() + "/admin/movies?errorMsg=" + enc("Đã xảy ra lỗi hệ thống."));
+            getServletContext().log("Error in AdminMovieServlet: ", e);
+            resp.sendRedirect(req.getContextPath() + "/admin/movies?errorMsg=" + enc("A system error occurred."));
         }
     }
 
@@ -167,32 +167,32 @@ public class AdminMovieServlet extends HttpServlet {
         if (isEdit) {
             movieService.update(m, genreIds);
             resp.sendRedirect(req.getContextPath() + "/admin/movies?successMsg="
-                    + enc("Cập nhật phim thành công!"));
+                    + enc("Movie updated successfully!"));
         } else {
             movieService.create(m, genreIds);
             resp.sendRedirect(req.getContextPath() + "/admin/movies?successMsg="
-                    + enc("Thêm phim mới thành công!"));
+                    + enc("Movie added successfully!"));
         }
     }
 
     private void handleDelete(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         long id = Long.parseLong(req.getParameter("movieId"));
         movieService.delete(id);
-        resp.sendRedirect(req.getContextPath() + "/admin/movies?successMsg=" + enc("Đã xóa phim thành công!"));
+        resp.sendRedirect(req.getContextPath() + "/admin/movies?successMsg=" + enc("Movie deleted successfully!"));
     }
 
     private void handleChangeStatus(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         long id = Long.parseLong(req.getParameter("movieId"));
         String status = req.getParameter("status");
         movieService.changeStatus(id, status);
-        resp.sendRedirect(req.getContextPath() + "/admin/movies?successMsg=" + enc("Đã cập nhật trạng thái phim!"));
+        resp.sendRedirect(req.getContextPath() + "/admin/movies?successMsg=" + enc("Movie status updated!"));
     }
 
     private void handleToggleActive(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         long id = Long.parseLong(req.getParameter("movieId"));
         boolean active = Boolean.parseBoolean(req.getParameter("active"));
         movieService.setActive(id, active);
-        String msg = active ? "Đã hiển thị phim trở lại!" : "Đã ẩn phim khỏi danh mục!";
+        String msg = active ? "Movie is visible again!" : "Movie has been hidden from the catalog!";
         resp.sendRedirect(req.getContextPath() + "/admin/movies?successMsg=" + enc(msg));
     }
 
@@ -213,16 +213,16 @@ public class AdminMovieServlet extends HttpServlet {
         }
         String ext = extensionOf(submitted);
         if (!ALLOWED_EXT.contains(ext)) {
-            throw new IllegalArgumentException("Poster phải là ảnh (jpg, png, webp, gif).");
+            throw new IllegalArgumentException("Poster must be an image file (jpg, png, webp, gif).");
         }
 
         String realDir = getServletContext().getRealPath(POSTER_DIR);
         if (realDir == null) {
-            throw new IllegalArgumentException("Máy chủ không hỗ trợ lưu file poster.");
+            throw new IllegalArgumentException("The server does not support saving poster files.");
         }
         File dir = new File(realDir);
         if (!dir.exists() && !dir.mkdirs()) {
-            throw new IllegalArgumentException("Không thể tạo thư mục lưu poster.");
+            throw new IllegalArgumentException("Could not create the poster upload directory.");
         }
 
         String fileName = "movie_" + System.currentTimeMillis() + "." + ext;
@@ -257,7 +257,7 @@ public class AdminMovieServlet extends HttpServlet {
         try {
             return Integer.parseInt(s == null ? "" : s.trim());
         } catch (NumberFormatException e) {
-            throw new IllegalArgumentException("Thời lượng phải là số nguyên hợp lệ.");
+            throw new IllegalArgumentException("Duration must be a valid integer.");
         }
     }
 
@@ -268,7 +268,7 @@ public class AdminMovieServlet extends HttpServlet {
         try {
             return LocalDate.parse(s.trim());
         } catch (DateTimeParseException e) {
-            throw new IllegalArgumentException("Ngày phát hành không hợp lệ.");
+            throw new IllegalArgumentException("Invalid release date.");
         }
     }
 

@@ -3,6 +3,7 @@ package com.mbcms.dao.impl;
 import com.mbcms.dao.FoodDAO;
 import com.mbcms.model.FoodItem;
 import com.mbcms.model.FoodOrderDetail;
+import com.mbcms.util.DateTimeUtil;
 
 import java.math.BigDecimal;
 import java.sql.*;
@@ -256,11 +257,11 @@ public class FoodDAOImpl extends BaseDAO implements FoodDAO {
                 order.setBookingId(rs.getLong("booking_id"));
                 order.setStatus(rs.getString("status"));
                 Timestamp created = rs.getTimestamp("created_at");
-                order.setCreatedAt(created != null ? created.toLocalDateTime() : null);
+                order.setCreatedAt(utcToVietnam(created));
                 Timestamp ready = rs.getTimestamp("ready_at");
-                order.setReadyAt(ready != null ? ready.toLocalDateTime() : null);
+                order.setReadyAt(utcToVietnam(ready));
                 Timestamp deliv = rs.getTimestamp("delivered_at");
-                order.setDeliveredAt(deliv != null ? deliv.toLocalDateTime() : null);
+                order.setDeliveredAt(utcToVietnam(deliv));
                 return order;
             }
             return null;
@@ -305,13 +306,13 @@ public class FoodDAOImpl extends BaseDAO implements FoodDAO {
                     detail.setBookingId(rs.getLong("booking_id"));
                     detail.setBookingCode(rs.getString("booking_code"));
                     detail.setStatus(rs.getString("status"));
-                    detail.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
+                    detail.setCreatedAt(utcToVietnam(rs.getTimestamp("created_at")));
 
                     Timestamp ready = rs.getTimestamp("ready_at");
-                    detail.setReadyAt(ready != null ? ready.toLocalDateTime() : null);
+                    detail.setReadyAt(utcToVietnam(ready));
 
                     Timestamp deliv = rs.getTimestamp("delivered_at");
-                    detail.setDeliveredAt(deliv != null ? deliv.toLocalDateTime() : null);
+                    detail.setDeliveredAt(utcToVietnam(deliv));
 
                     String custName = rs.getString("customer_name");
                     detail.setCustomerName(
@@ -516,6 +517,10 @@ public class FoodDAOImpl extends BaseDAO implements FoodDAO {
                 }
             }
         }
+    }
+
+    private java.time.LocalDateTime utcToVietnam(Timestamp ts) {
+        return ts != null ? DateTimeUtil.utcToVietnam(ts.toLocalDateTime()) : null;
     }
 
     // ── Branch menu management ───────────────────────────────────────

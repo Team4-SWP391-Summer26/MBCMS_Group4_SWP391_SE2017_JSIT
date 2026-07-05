@@ -9,9 +9,7 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>${isEdit ? 'Edit Promotion' : 'Add New Promotion'} - Admin Console</title>
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
-        <link href="${pageContext.request.contextPath}/assets/css/manager.css?v=${applicationScope.assetVersion}" rel="stylesheet">
+        <%@ include file="/WEB-INF/views/admin/_admin-assets.jspf" %>
         <style>
             .type-card-btn {
                 border: 2px solid var(--lc-border);
@@ -104,24 +102,27 @@
         </jsp:include>
 
         <main class="lc-admin-main">
-            <div class="container-fluid px-4 py-4" style="max-width: 1200px;">
+            <div class="lc-page">
 
-                <%-- ===== Page header ===== --%>
-                <div class="d-flex justify-content-between align-items-center mb-4">
+                <div class="lc-form-actions">
                     <div>
-                        <div class="text-muted small mb-1">
-                            <a href="${pageContext.request.contextPath}/admin/promotions" class="text-decoration-none text-muted">Promotions</a> 
-                            / ${isEdit ? 'Edit' : 'Add new'}
+                        <div class="lc-page-crumb">
+                            <a href="${pageContext.request.contextPath}/admin/promotions" class="text-decoration-none text-muted">Admin / Promotions</a>
+                            / <strong>${isEdit ? 'Edit' : 'Add new'}</strong>
                         </div>
-                        <h4 class="text-navy fw-bold mb-0">${isEdit ? 'Edit Promotion' : 'Add New Promotion'}</h4>
+                        <h1 class="lc-page-title mb-0">${isEdit ? 'Edit Promotion' : 'Add New Promotion'}</h1>
                     </div>
-                    <div>
-                        <a class="btn btn-outline-secondary btn-sm me-2" href="${pageContext.request.contextPath}/admin/promotions">Cancel</a>
-                        <button type="submit" form="promoForm" class="btn btn-primary btn-sm">
-                            <i class="bi bi-check-lg me-1"></i>${isEdit ? 'Save Changes' : 'Create Promotion'}
+                    <div class="lc-form-actions-end">
+                        <a class="lc-btn-ghost" href="${pageContext.request.contextPath}/admin/promotions">Cancel</a>
+                        <button type="submit" form="promoForm" class="st-toolbar-add border-0">
+                            <i class="bi bi-check-lg" aria-hidden="true"></i>${isEdit ? 'Save Changes' : 'Create Promotion'}
                         </button>
                     </div>
                 </div>
+
+                <span class="lc-admin-scope d-inline-flex mb-4">
+                    <i class="bi bi-shield-lock-fill"></i> System admin scope
+                </span>
 
                 <c:if test="${not empty errorMsg}">
                     <div class="alert alert-danger py-2 alert-dismissible fade show" role="alert">
@@ -347,7 +348,7 @@
             </div>
         </main>
 
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+        <%@ include file="/WEB-INF/views/admin/_admin-scripts.jspf" %>
         <script>
             // Elements
             const inputCode = document.getElementById('inputCode');

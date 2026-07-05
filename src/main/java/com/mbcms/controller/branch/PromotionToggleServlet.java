@@ -22,6 +22,7 @@ public class PromotionToggleServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
+        // [Flow Step: JSP -> Servlet] Post request triggers promotion toggle with id parameter
         String idStr = req.getParameter("id");
         if (idStr == null || idStr.trim().isEmpty()) {
             resp.sendRedirect(req.getContextPath() + "/branch/promotions?error=1");
@@ -30,6 +31,8 @@ public class PromotionToggleServlet extends HttpServlet {
 
         try {
             long id = Long.parseLong(idStr.trim());
+            
+            // [Flow Step: Servlet -> Database] Query DB via DAO to verify promotion existence
             Promotion before = promotionDAO.findById(id);
             if (before == null) {
                 resp.sendRedirect(req.getContextPath() + "/branch/promotions?error=1");
@@ -44,18 +47,22 @@ public class PromotionToggleServlet extends HttpServlet {
 
             boolean wasInactive = !before.isActive();
 
+            // [Flow Step: Servlet -> Database] Execute active state toggle update in the DB via XOR bit update
             boolean success = promotionDAO.toggleActive(id);
             if (success) {
                 // Neu vua duoc bat active (inactive → active), phat thu chuong khuyen mai
                 if (wasInactive) {
+                    // [Flow Step: Servlet -> Database] Fetch updated promotion state from Database
                     Promotion afterToggle = promotionDAO.findById(id);
                     if (afterToggle != null && afterToggle.isActive()) {
+                        // [Flow Step: Service] Spawn background thread to broadcast new active promotion notifications
                         new Thread(
                                 () -> notificationService.broadcastPromotion(afterToggle),
                                 "promo-broadcast-" + id
                         ).start();
                     }
                 }
+                // [Flow Step: Servlet -> Browser] Perform Post-Redirect-Get pattern redirect
                 resp.sendRedirect(req.getContextPath() + "/branch/promotions?toggled=1");
             } else {
                 resp.sendRedirect(req.getContextPath() + "/branch/promotions?error=1");

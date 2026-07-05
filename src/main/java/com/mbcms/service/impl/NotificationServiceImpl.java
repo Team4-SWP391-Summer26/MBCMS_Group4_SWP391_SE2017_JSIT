@@ -144,16 +144,16 @@ public class NotificationServiceImpl implements NotificationService {
         String code = booking.getBookingCode();
 
         // 1. Thong bao xac nhan dat ve (BOOKING)
-        String bookingTitle = "Đặt vé thành công – " + code;
-        String bookingContent = "Vé của bạn đã được xác nhận. Mã đặt vé: " + code
-                + ". Tổng thanh toán: "
-                + String.format("%,.0f", booking.getTotalAmount()) + " ₫.";
+        String bookingTitle = "Booking Confirmed - " + code;
+        String bookingContent = "Your ticket has been confirmed. Booking code: " + code
+                + ". Total payment: "
+                + String.format("%,.0f", booking.getTotalAmount()) + " VND.";
         create(username, bookingTitle, bookingContent, Notification.TYPE_BOOKING, bookingId);
 
         // 2. Thong bao xac nhan thanh toan (PAYMENT) – cung booking_id
-        String paymentTitle = "Thanh toán thành công – " + code;
-        String paymentContent = "Thanh toán " + String.format("%,.0f", booking.getTotalAmount())
-                + " ₫ cho vé " + code + " đã được ghi nhận.";
+        String paymentTitle = "Payment Successful - " + code;
+        String paymentContent = "Payment of " + String.format("%,.0f", booking.getTotalAmount())
+                + " VND for ticket " + code + " has been recorded.";
         create(username, paymentTitle, paymentContent, Notification.TYPE_PAYMENT, bookingId);
 
         // 3. Email xac nhan – gui bat dong bo
@@ -189,11 +189,11 @@ public class NotificationServiceImpl implements NotificationService {
             return false;
         }
 
-        String startStr = showtimeStart != null ? showtimeStart.format(DISPLAY_FMT) : "sắp tới";
+        String startStr = showtimeStart != null ? showtimeStart.format(DISPLAY_FMT) : "soon";
 
-        String title = "Nhắc nhở: Phim \"" + movieTitle + "\" bắt đầu lúc " + startStr;
-        String content = "Suất chiếu của bạn (mã vé: " + booking.getBookingCode()
-                + ") sẽ bắt đầu lúc " + startStr + ". Vui lòng đến rạp trước 15 phút.";
+        String title = "Reminder: \"" + movieTitle + "\" starts at " + startStr;
+        String content = "Your showtime (ticket code: " + booking.getBookingCode()
+                + ") starts at " + startStr + ". Please arrive 15 minutes early.";
 
         create(booking.getCustomerUsername(), title, content,
                 Notification.TYPE_REMINDER, bookingId);
@@ -327,15 +327,15 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     private String buildPromoContent(Promotion promotion) {
-        StringBuilder sb = new StringBuilder("Mã: ").append(promotion.getCode()).append(". ");
+        StringBuilder sb = new StringBuilder("Code: ").append(promotion.getCode()).append(". ");
         if ("PERCENT".equals(promotion.getDiscountType())) {
-            sb.append("Giảm ").append(promotion.getDiscountValue().toPlainString()).append("%");
+            sb.append("Save ").append(promotion.getDiscountValue().toPlainString()).append("%");
         } else {
-            sb.append("Giảm ").append(
-                    String.format("%,.0f", promotion.getDiscountValue())).append(" ₫");
+            sb.append("Save ").append(
+                    String.format("%,.0f", promotion.getDiscountValue())).append(" VND");
         }
         if (promotion.getValidTo() != null) {
-            sb.append(" – HSD: ").append(promotion.getValidTo().format(DISPLAY_FMT));
+            sb.append(" - Valid until: ").append(promotion.getValidTo().format(DISPLAY_FMT));
         }
         return sb.toString();
     }

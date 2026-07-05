@@ -28,13 +28,13 @@ public class AdminSeatServlet extends HttpServlet {
         
         Long roomId = parseLong(req.getParameter("roomId"));
         if (roomId == null) {
-            resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Thiếu tham số roomId.");
+            resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Missing roomId parameter.");
             return;
         }
 
         Room room = roomService.getRoomById(roomId);
         if (room == null) {
-            resp.sendError(HttpServletResponse.SC_NOT_FOUND, "Không tìm thấy phòng chiếu.");
+            resp.sendError(HttpServletResponse.SC_NOT_FOUND, "Hall not found.");
             return;
         }
 
@@ -65,10 +65,10 @@ public class AdminSeatServlet extends HttpServlet {
             String roomIdParam = req.getParameter("roomId");
             if (roomIdParam != null && !roomIdParam.isBlank()) {
                 resp.sendRedirect(req.getContextPath() + "/admin/seats?roomId=" + roomIdParam.trim()
-                        + "&errorMsg=" + java.net.URLEncoder.encode("Hành động không hợp lệ.", "UTF-8"));
+                        + "&errorMsg=" + java.net.URLEncoder.encode("Invalid action.", "UTF-8"));
             } else {
                 resp.sendRedirect(req.getContextPath() + "/admin/halls?errorMsg="
-                        + java.net.URLEncoder.encode("Hành động không hợp lệ.", "UTF-8"));
+                        + java.net.URLEncoder.encode("Invalid action.", "UTF-8"));
             }
             return;
         }
@@ -79,7 +79,7 @@ public class AdminSeatServlet extends HttpServlet {
             } else if ("updateSeat".equals(action)) {
                 handleUpdateSeatAJAX(req, resp);
             } else {
-                resp.sendRedirect(req.getContextPath() + "/admin/seats?errorMsg=Hành động không xác định.");
+                resp.sendRedirect(req.getContextPath() + "/admin/seats?errorMsg=Unknown action.");
             }
         } catch (IllegalArgumentException e) {
             if ("updateSeat".equals(action)) {
@@ -93,15 +93,15 @@ public class AdminSeatServlet extends HttpServlet {
                 }
             }
         } catch (Exception e) {
-            getServletContext().log("Lỗi trong AdminSeatServlet: ", e);
+            getServletContext().log("Error in AdminSeatServlet: ", e);
             if ("updateSeat".equals(action)) {
-                sendErrorJSON(resp, "Lỗi hệ thống.");
+                sendErrorJSON(resp, "System error.");
             } else {
                 String roomIdParam = req.getParameter("roomId");
                 if (roomIdParam != null && !roomIdParam.isBlank()) {
-                    resp.sendRedirect(req.getContextPath() + "/admin/seats?roomId=" + roomIdParam + "&errorMsg=Đã xảy ra lỗi hệ thống.");
+                    resp.sendRedirect(req.getContextPath() + "/admin/seats?roomId=" + roomIdParam + "&errorMsg=A system error occurred.");
                 } else {
-                    resp.sendRedirect(req.getContextPath() + "/admin/halls?errorMsg=Đã xảy ra lỗi hệ thống.");
+                    resp.sendRedirect(req.getContextPath() + "/admin/halls?errorMsg=A system error occurred.");
                 }
             }
         }
@@ -115,9 +115,9 @@ public class AdminSeatServlet extends HttpServlet {
 
         boolean success = seatService.regenerateLayout(roomId, rowsCount, colsCount, defaultType);
         if (success) {
-            resp.sendRedirect(req.getContextPath() + "/admin/seats?roomId=" + roomId + "&successMsg=" + java.net.URLEncoder.encode("Thiết lập lại sơ đồ ghế thành công!", "UTF-8"));
+            resp.sendRedirect(req.getContextPath() + "/admin/seats?roomId=" + roomId + "&successMsg=" + java.net.URLEncoder.encode("Seat layout reset successfully!", "UTF-8"));
         } else {
-            resp.sendRedirect(req.getContextPath() + "/admin/seats?roomId=" + roomId + "&errorMsg=" + java.net.URLEncoder.encode("Thiết lập sơ đồ ghế thất bại.", "UTF-8"));
+            resp.sendRedirect(req.getContextPath() + "/admin/seats?roomId=" + roomId + "&errorMsg=" + java.net.URLEncoder.encode("Failed to reset seat layout.", "UTF-8"));
         }
     }
 
@@ -142,7 +142,7 @@ public class AdminSeatServlet extends HttpServlet {
         if (success) {
             out.print("{\"success\":true}");
         } else {
-            out.print("{\"success\":false,\"message\":\"Cập nhật thất bại.\"}");
+            out.print("{\"success\":false,\"message\":\"Update failed.\"}");
         }
         out.flush();
     }

@@ -3,28 +3,24 @@
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 <%--
   Reusable movie poster.
-  - Real posterUrl present  -> show ONLY the image (no generated text/gradient).
-  - No posterUrl            -> generated gradient-art fallback (deep colour from
-                               movieId + faint gold rings + title text).
+  - posterUrl + image OK  -> photo on top of gradient base
+  - no posterUrl / broken -> gradient-art fallback (poster-bg + title)
   Params: movieId, title, posterUrl (opt), ribbon (opt), rating (opt)
 --%>
-<div class="poster-art">
-    <c:choose>
-        <c:when test="${not empty param.posterUrl}">
-            <img src="<c:url value='${param.posterUrl}'/>" alt="<c:out value='${param.title}'/> poster">
-        </c:when>
-        <c:otherwise>
-            <c:set var="pHue" value="${(param.movieId * 47) mod 360}" />
-            <div class="poster-bg" style="background:linear-gradient(160deg, hsl(${pHue} 58% 22%), hsl(${pHue} 60% 8%));"></div>
-            <svg class="poster-rings" viewBox="0 0 200 300" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-                <c:forEach var="i" begin="0" end="7">
-                    <circle cx="${(i*31) mod 200}" cy="${(i*43) mod 300}" r="${20 + i*8}"
-                            fill="none" stroke="#FFC107" stroke-width="0.5" opacity="0.12" />
-                </c:forEach>
-            </svg>
-            <div class="poster-name"><c:out value="${fn:toUpperCase(param.title)}" /></div>
-        </c:otherwise>
-    </c:choose>
+<div class="poster-art" data-movie-id="<c:out value='${param.movieId}'/>">
+    <div class="poster-bg" aria-hidden="true"></div>
+    <div class="poster-rings" aria-hidden="true"></div>
+    <div class="poster-name poster-name-fallback" <c:if test="${not empty param.posterUrl}">hidden</c:if>>
+        <c:out value="${fn:toUpperCase(param.title)}" />
+    </div>
+    <c:if test="${not empty param.posterUrl}">
+        <img class="poster-img"
+             src="<c:url value='${param.posterUrl}'/>"
+             alt="<c:out value='${param.title}'/> poster"
+             loading="eager"
+             decoding="async"
+             onerror="this.classList.add('is-broken');var a=this.closest('.poster-art');if(a){a.classList.add('poster-art--fallback');var n=a.querySelector('.poster-name-fallback');if(n)n.hidden=false;a.dispatchEvent(new CustomEvent('poster:ready',{bubbles:true}));}">
+    </c:if>
     <c:if test="${not empty param.ribbon}">
         <span class="poster-ribbon"><c:out value="${param.ribbon}" /></span>
     </c:if>

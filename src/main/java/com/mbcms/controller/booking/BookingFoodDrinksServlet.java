@@ -1,18 +1,25 @@
 package com.mbcms.controller.booking;
 
+import com.mbcms.dao.SeatDAO;
+import com.mbcms.dao.impl.SeatDAOImpl;
 import com.mbcms.model.Booking;
 import com.mbcms.model.Customer;
 import com.mbcms.model.FoodItem;
+import com.mbcms.model.Showtime;
 import com.mbcms.service.BookingService;
 import com.mbcms.service.FoodService;
+import com.mbcms.service.SeatAvailabilityService;
 import com.mbcms.service.impl.BookingServiceImpl;
 import com.mbcms.service.impl.FoodServiceImpl;
+import com.mbcms.service.impl.SeatAvailabilityServiceImpl;
 import com.mbcms.util.BookingCustomerGuard;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
 import java.io.IOException;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -24,13 +31,20 @@ import java.util.Map;
 @WebServlet("/booking/food-drinks")
 public class BookingFoodDrinksServlet extends HttpServlet {
 
+    private static final DateTimeFormatter DT_FMT
+            = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+
     private FoodService foodService;
     private BookingService bookingService;
+    private SeatDAO seatDao;
+    private SeatAvailabilityService seatService;
 
     @Override
     public void init() {
         foodService = new FoodServiceImpl();
         bookingService = new BookingServiceImpl();
+        seatDao = new SeatDAOImpl();
+        seatService = new SeatAvailabilityServiceImpl();
     }
 
     @Override
@@ -45,11 +59,12 @@ public class BookingFoodDrinksServlet extends HttpServlet {
         String bookingIdParam = req.getParameter("bookingId");
         String showtimeIdParam = req.getParameter("showtimeId");
         String seatIdsParam = req.getParameter("seatIds");
+        Booking booking = null;
 
         if (bookingIdParam != null) {
             try {
                 long bookingId = Long.parseLong(bookingIdParam.trim());
-                Booking booking = bookingService.getBookingDetail(bookingId, customer.getUsername());
+                booking = bookingService.getBookingDetail(bookingId, customer.getUsername());
                 if (booking != null) {
                     showtimeIdParam = String.valueOf(booking.getShowtimeId());
                     List<Long> seatIds = booking.getSeatIds();
@@ -64,6 +79,7 @@ public class BookingFoodDrinksServlet extends HttpServlet {
                     }
                     seatIdsParam = sb.toString();
                     req.setAttribute("bookingId", bookingId);
+                    req.setAttribute("booking", booking);
 
                     Map<FoodItem, Integer> existingFood = foodService.getFoodItemsByBookingId(bookingId);
                     req.setAttribute("existingFood", existingFood);
@@ -85,12 +101,25 @@ public class BookingFoodDrinksServlet extends HttpServlet {
             return;
         }
 
+        List<Long> seatIdList = parseSeatIds(seatIdsParam);
+        Showtime showtime = seatService.getShowtime(showtimeId);
+        if (showtime == null) {
+            resp.sendRedirect(req.getContextPath() + "/");
+            return;
+        }
+
         // Chi hien thi mon cua chi nhanh so huu suat chieu nay (khong lo mon chi nhanh khac).
         List<FoodItem> foodItems = foodService.getActiveFoodItemsForShowtime(showtimeId);
 
         req.setAttribute("foodItems", foodItems);
-        req.setAttribute("showtimeId", showtimeIdParam);
+        req.setAttribute("showtimeId", showtimeId);
+        req.setAttribute("showtime", showtime);
+        req.setAttribute("showtimeDate", showtime.getStartTime().toLocalDate().toString());
+        req.setAttribute("startTimeStr", showtime.getStartTime().format(DT_FMT));
         req.setAttribute("seatIds", seatIdsParam);
+        req.setAttribute("seatLabels", booking != null && booking.getSeatLabels() != null
+                ? booking.getSeatLabels()
+                : seatDao.findLabelsBySeatIds(seatIdList));
 
         req.getRequestDispatcher("/WEB-INF/views/booking/food-drinks.jsp").forward(req, resp);
     }
@@ -157,5 +186,22 @@ public class BookingFoodDrinksServlet extends HttpServlet {
 
         resp.sendRedirect(req.getContextPath()
                 + "/booking/checkout?showtimeId=" + showtimeIdParam + "&seatIds=" + seatIdsParam);
+    }
+
+    private List<Long> parseSeatIds(String seatIdsParam) {
+        List<Long> result = new ArrayList<>();
+        if (seatIdsParam == null || seatIdsParam.trim().isEmpty()) {
+            return result;
+        }
+        for (String token : seatIdsParam.split(",")) {
+            token = token.trim();
+            if (!token.isEmpty()) {
+                try {
+                    result.add(Long.parseLong(token));
+                } catch (NumberFormatException ignored) {
+                }
+            }
+        }
+        return result;
     }
 }

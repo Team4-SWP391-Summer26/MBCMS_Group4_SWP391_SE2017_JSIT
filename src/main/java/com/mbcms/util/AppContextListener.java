@@ -19,12 +19,12 @@ public class AppContextListener implements ServletContextListener {
         // Truoc day attribute nay khong duoc set -> "?v=" co dinh -> CSS bi cache vinh vien.
         sce.getServletContext().setAttribute("assetVersion",
                 String.valueOf(System.currentTimeMillis()));
-        System.out.println("[MBCMS] Ung dung khoi dong - DBCP2 pool ready");
+        System.out.println("[PentaPlex] Ung dung khoi dong - DBCP2 pool ready");
     }
 
     @Override
     public void contextDestroyed(ServletContextEvent sce) {
         DBUtil.shutdown();
-        System.out.println("[MBCMS] Ung dung tat - DBCP2 pool dong");
+        System.out.println("[PentaPlex] Ung dung tat - DBCP2 pool dong");
     }
 }

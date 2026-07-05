@@ -1,4 +1,4 @@
-﻿<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
@@ -9,42 +9,10 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>${isEdit ? 'Edit Promotion' : 'Add New Promotion'} - PentaPlex Manager</title>
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
-        <link href="${pageContext.request.contextPath}/assets/css/manager.css?v=${applicationScope.assetVersion}" rel="stylesheet">
+        <%@ include file="/WEB-INF/views/branch/_branch-assets.jspf" %>
         <style>
-            .type-card-btn {
-                border: 2px solid var(--lc-border);
-                border-radius: 12px;
-                background: #fff;
-                color: var(--navy);
-                padding: 1rem;
-                display: block;
-                cursor: pointer;
-                transition: all 0.2s ease;
-                user-select: none;
-            }
-            .btn-check:checked + .type-card-btn {
-                border-color: var(--lc-primary);
-                background-color: var(--lc-light);
-            }
-            .type-icon {
-                font-size: 1.5rem;
-                margin-bottom: 0.5rem;
-                display: inline-block;
-                padding: 0.4rem 0.6rem;
-                border-radius: 8px;
-            }
-            .type-icon.pct {
-                background-color: var(--primary-100);
-                color: var(--primary);
-            }
-            .type-icon.fix {
-                background-color: #fef3c7;
-                color: #d97706;
-            }
-
-            /* Ticket Card CSS */
+            .lc-picker-icon.pct { background-color: var(--primary-100, #E7F0FF); color: var(--primary, #2563eb); }
+            .lc-picker-icon.fix { background-color: #fef3c7; color: #d97706; }
             .ticket-card {
                 background: linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%);
                 color: white;
@@ -104,21 +72,20 @@
         </jsp:include>
 
         <main class="lc-admin-main">
-            <div class="container-fluid px-4 py-4" style="max-width: 1200px;">
+            <div class="lc-page">
 
-                <%-- ===== Page header ===== --%>
-                <div class="d-flex justify-content-between align-items-center mb-4">
+                <div class="lc-form-actions">
                     <div>
-                        <div class="text-muted small mb-1">
-                            <a href="${pageContext.request.contextPath}/branch/promotions" class="text-decoration-none text-muted">Promotions</a> 
-                            / ${isEdit ? 'Edit' : 'Add new'}
+                        <div class="lc-page-crumb">
+                            <a href="${pageContext.request.contextPath}/branch/promotions" class="text-decoration-none text-muted">Promotions</a>
+                            / <strong>${isEdit ? 'Edit' : 'Add new'}</strong>
                         </div>
-                        <h4 class="text-navy fw-bold mb-0">${isEdit ? 'Edit Promotion' : 'Add New Promotion'}</h4>
+                        <h1 class="lc-page-title mb-0">${isEdit ? 'Edit Promotion' : 'Add New Promotion'}</h1>
                     </div>
-                    <div>
-                        <a class="btn btn-outline-secondary btn-sm me-2" href="${pageContext.request.contextPath}/branch/promotions">Cancel</a>
-                        <button type="submit" form="promoForm" class="btn btn-primary btn-sm">
-                            <i class="bi bi-check-lg me-1"></i>${isEdit ? 'Save Changes' : 'Create Promotion'}
+                    <div class="lc-form-actions-end">
+                        <a class="lc-btn-ghost" href="${pageContext.request.contextPath}/branch/promotions">Cancel</a>
+                        <button type="submit" form="promoForm" class="st-toolbar-add border-0">
+                            <i class="bi bi-check-lg" aria-hidden="true"></i>${isEdit ? 'Save Changes' : 'Create Promotion'}
                         </button>
                     </div>
                 </div>
@@ -182,8 +149,8 @@
                                     <div class="col-6">
                                         <input type="radio" class="btn-check" name="discountType" id="typePercentage" value="PERCENT" 
                                                ${promo.discountType != 'FIXED_AMOUNT' ? 'checked' : ''} onchange="onDiscountTypeChange()">
-                                        <label class="type-card-btn h-100" for="typePercentage">
-                                            <span class="type-icon pct"><i class="bi bi-percent"></i></span>
+                                        <label class="lc-picker-card h-100" for="typePercentage">
+                                            <span class="lc-picker-icon pct"><i class="bi bi-percent"></i></span>
                                             <div class="fw-bold text-navy">Percentage</div>
                                             <div class="text-muted small mt-1" style="font-size: 0.75rem;">e.g. 10% off the order</div>
                                         </label>
@@ -191,8 +158,8 @@
                                     <div class="col-6">
                                         <input type="radio" class="btn-check" name="discountType" id="typeFixed" value="FIXED_AMOUNT" 
                                                ${promo.discountType == 'FIXED_AMOUNT' ? 'checked' : ''} onchange="onDiscountTypeChange()">
-                                        <label class="type-card-btn h-100" for="typeFixed">
-                                            <span class="type-icon fix"><i class="bi bi-cash"></i></span>
+                                        <label class="lc-picker-card h-100" for="typeFixed">
+                                            <span class="lc-picker-icon fix"><i class="bi bi-cash"></i></span>
                                             <div class="fw-bold text-navy">Fixed amount</div>
                                             <div class="text-muted small mt-1" style="font-size: 0.75rem;">e.g. 50,000₫ off the order</div>
                                         </label>
@@ -337,7 +304,7 @@
             </div>
         </main>
 
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+        <%@ include file="/WEB-INF/views/branch/_branch-scripts.jspf" %>
         <script>
                                                    // Elements
                                                    const inputCode = document.getElementById('inputCode');

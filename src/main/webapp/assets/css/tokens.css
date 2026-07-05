@@ -1,83 +1,124 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Sora:wght@500;600;700;800&display=swap');
-/* =====================================================================
-   MBCMS (LuminaCine) — Design tokens (single source of truth)
-   Loaded by BOTH main.css (public/customer) and manager.css (admin/branch).
-   Mọi token màu / typography / spacing / radius / shadow nằm ở đây.
-   Các biến cũ (--primary, --bk-*, --lc-*) được map alias về token gốc
-   để CSS hiện có vẫn chạy nhưng chỉ còn MỘT nguồn giá trị.
-   ===================================================================== */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800&family=Sora:wght@500;600;700;800&display=swap');
+
+/*
+   PentaPlex design tokens.
+   One shared source for public pages, booking flow, and admin/branch consoles.
+   Keep legacy aliases so existing JSP/CSS keeps working while the UI is upgraded.
+*/
 :root {
-    /* ---- Brand primary scale (blue) ---- */
+    /* Brand scale */
     --primary-50:  #EFF4FF;
     --primary-100: #DBE7FE;
     --primary-200: #BFD3FE;
     --primary-300: #93B4FD;
     --primary-400: #608DFA;
     --primary-500: #3B72EE;
-    --primary-600: #2563EB;   /* brand base */
-    --primary-700: #1D4ED8;   /* hover/active */
+    --primary-600: #2563EB;
+    --primary-700: #1D4ED8;
     --primary-800: #1E40AF;
     --primary-900: #1E3A8A;
-    --primary:     #2563EB;
+    --primary:     var(--primary-600);
 
-    /* ---- Dark / navy surfaces ---- */
-    --navy:       #0F1E36;    /* console sidebar, dark headings */
-    --navy-deep:  #0A1426;    /* footer */
+    /* Cinema neutrals */
+    --navy:       #0F1E36;
+    --navy-deep:  #071225;
     --navy-soft:  #1B2C49;
+    --ink:        #111827;
 
-    /* ---- Neutral surfaces & text ---- */
-    --bg:           #F5F7FA;
-    --surface:      #FFFFFF;
-    --surface-2:    #F7F9FC;
-    --border:       #E6EAF2;
-    --border-strong:#D4DBE8;
-    --text:         #0F1E36;
-    --text-muted:   #64748B;
-    --text-subtle:  #94A3B8;
+    /* Surfaces */
+    --bg:             #F4F7FB;
+    --bg-subtle:      #EEF3F9;
+    --surface:        #FFFFFF;
+    --surface-2:      #F8FAFD;
+    --surface-3:      #F1F5FA;
+    --surface-raised: #FFFFFF;
+    --border:         #E2E8F0;
+    --border-strong:  #CBD5E1;
 
-    /* ---- Accent ---- */
-    --gold:      #FFC107;
-    --gold-soft: #FFD66B;
+    /* Text */
+    --text:        #102033;
+    --text-muted:  #64748B;
+    --text-subtle: #94A3B8;
+    --text-invert: #FFFFFF;
 
-    /* ---- Semantic colors (base / soft bg / readable text) ---- */
-    --success:#16A34A; --success-bg:#E8F5EE; --success-text:#146C43;
-    --warning:#D97706; --warning-bg:#FFF4D6; --warning-text:#9A6700;
-    --danger: #DC2626; --danger-bg: #FBE4E6; --danger-text: #B02A37;
-    --info:   #0EA5E9; --info-bg:   #E0F2FE; --info-text:   #075985;
+    /* Accent */
+    --gold:      #F6C343;
+    --gold-soft: #FFE49A;
+    --accent:    var(--gold);
 
-    /* ---- Typography ---- */
-    --font-sans:    'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-    --font-display: 'Sora', 'Inter', system-ui, sans-serif;
-    --font-mono:    ui-monospace, Menlo, Consolas, monospace;
+    /* Semantic colors */
+    --success:      #16A34A;
+    --success-bg:   #E8F5EE;
+    --success-text: #146C43;
+    --warning:      #D97706;
+    --warning-bg:   #FFF4D6;
+    --warning-text: #8A5A00;
+    --danger:       #DC2626;
+    --danger-bg:    #FBE4E6;
+    --danger-text:  #B02A37;
+    --info:         #0EA5E9;
+    --info-bg:      #E0F2FE;
+    --info-text:    #075985;
 
-    --fs-h1: 2.25rem;  --fs-h2: 1.75rem;  --fs-h3: 1.4rem;
-    --fs-h4: 1.15rem;  --fs-h5: 1rem;     --fs-h6: .9rem;
-    --fs-body: 1rem;   --fs-sm: .875rem;  --fs-xs: .75rem;
-    --lh-tight: 1.2;   --lh-base: 1.55;
-    --fw-normal:400; --fw-medium:500; --fw-semibold:600; --fw-bold:700; --fw-extrabold:800;
+    /* Typography — Inter body; Outfit public headings; Sora console headings */
+    --font-sans:             'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    --font-display:          'Outfit', 'Inter', system-ui, sans-serif;
+    --font-display-console:  'Sora', 'Inter', system-ui, sans-serif;
+    --font-mono:    ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace;
+    --fs-h1: 2.5rem;
+    --fs-h2: 1.85rem;
+    --fs-h3: 1.45rem;
+    --fs-h4: 1.15rem;
+    --fs-body: 1rem;
+    --fs-sm: .875rem;
+    --fs-xs: .75rem;
+    --lh-tight: 1.15;
+    --lh-base: 1.58;
+    --fw-normal: 400;
+    --fw-medium: 500;
+    --fw-semibold: 600;
+    --fw-bold: 700;
+    --fw-extrabold: 800;
 
-    /* ---- Spacing scale (4 / 8 px) ---- */
-    --space-1:.25rem; --space-2:.5rem;  --space-3:.75rem; --space-4:1rem;
-    --space-5:1.5rem; --space-6:2rem;   --space-8:3rem;
+    /* Spacing */
+    --space-1: .25rem;
+    --space-2: .5rem;
+    --space-3: .75rem;
+    --space-4: 1rem;
+    --space-5: 1.5rem;
+    --space-6: 2rem;
+    --space-7: 2.5rem;
+    --space-8: 3rem;
 
-    /* ---- Radius ---- */
-    --radius-sm:6px; --radius-md:10px; --radius-lg:14px; --radius-pill:999px;
+    /* Shape and elevation */
+    --radius-xs: 4px;
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 14px;
+    --radius-xl: 18px;
+    --radius-pill: 999px;
+    --shadow-xs: 0 1px 2px rgba(15, 23, 42, .05);
+    --shadow-sm: 0 2px 8px rgba(15, 23, 42, .06);
+    --shadow-md: 0 8px 24px rgba(15, 23, 42, .08);
+    --shadow-lg: 0 18px 50px rgba(15, 23, 42, .14);
+    --shadow-blue: 0 16px 36px rgba(37, 99, 235, .18);
 
-    /* ---- Shadow ---- */
-    --shadow-sm: 0 1px 2px rgba(15,23,42,.06);
-    --shadow-md: 0 4px 12px rgba(15,23,42,.06), 0 1px 3px rgba(15,23,42,.04);
-    --shadow-lg: 0 10px 26px rgba(15,23,42,.10);
+    /* Component contracts — 1320px = Bootstrap xxl; full bleed navy, content rong hon 1180 */
+    --container-public: 1320px;
+    --container-console: 1240px;
+    --control-height: 42px;
+    --control-height-sm: 34px;
+    --st-bar-h: 40px;
+    --focus-ring: 0 0 0 .22rem rgba(37, 99, 235, .18);
+    --table-head-bg: #F7F9FC;
+    --table-row-hover: #FAFCFF;
+    --toast-bg: #0F1E36;
 
-    /* =================================================================
-       LEGACY ALIASES — giữ nguyên tên biến cũ, trỏ về token gốc.
-       (Nhờ vậy navy / nền / viền được đồng nhất trên cả 3 hệ.)
-       ================================================================= */
-    /* main.css (khối A) */
+    /* Legacy aliases */
     --bg-dark:   var(--bg);
     --bg-card:   var(--surface);
     --text-dark: var(--text);
 
-    /* main.css booking flow (--bk-*) */
     --bk-primary: var(--primary);
     --bk-navy:    var(--navy);
     --bk-border:  var(--border);
@@ -85,22 +126,19 @@
     --bk-light:   var(--primary-50);
     --bk-bg:      var(--bg);
 
-    /* manager.css console (--lc-*) */
     --lc-primary:     var(--primary);
     --lc-primary-700: var(--primary-700);
     --lc-navy:        var(--navy);
     --lc-light:       var(--primary-50);
-    --lc-gold:        var(--gold-soft);
+    --lc-gold:        var(--gold);
     --lc-bg:          var(--bg);
     --lc-border:      var(--border);
     --lc-muted:       var(--text-muted);
-    --lc-shadow:      var(--shadow-md);
+    --lc-shadow:      var(--shadow-sm);
 
-    /* =================================================================
-       BOOTSTRAP 5.3 BRIDGE — để component Bootstrap tự bám theo palette.
-       ================================================================= */
+    /* Bootstrap bridge */
     --bs-primary: #2563EB;
-    --bs-primary-rgb: 37,99,235;
+    --bs-primary-rgb: 37, 99, 235;
     --bs-body-bg: var(--bg);
     --bs-body-color: var(--text);
     --bs-border-color: var(--border);
@@ -108,28 +146,68 @@
     --bs-border-radius-sm: var(--radius-sm);
     --bs-border-radius-lg: var(--radius-lg);
     --bs-link-color: var(--primary);
-    --bs-link-color-rgb: 37,99,235;
+    --bs-link-color-rgb: 37, 99, 235;
     --bs-link-hover-color: var(--primary-700);
     --bs-font-sans-serif: var(--font-sans);
 }
 
-/* =====================================================================
-   GLOBAL POLISH — đồng nhất nút / focus / link trên mọi trang.
-   Chỉ chỉnh trình bày, không đụng layout hay logic.
-   ===================================================================== */
+* {
+    box-sizing: border-box;
+}
 
-/* Primary button = brand blue (Bootstrap mặc định là #0d6efd → lệch) */
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-sans);
+    line-height: var(--lh-base);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, h5, h6,
+.lc-display {
+    font-family: var(--font-display);
+    letter-spacing: -0.02em;
+}
+
+a {
+    text-underline-offset: 3px;
+}
+
+/* Public layout rail — navbar, footer, pages with .public-shell share one column */
+.navbar-custom > .container,
+.footer-custom > .container,
+.container.public-shell {
+    max-width: var(--container-public);
+}
+
+.btn,
+.form-control,
+.form-select,
+.form-check-input {
+    transition: border-color .16s ease, background-color .16s ease, color .16s ease, box-shadow .16s ease, transform .16s ease;
+}
+
+.btn:active {
+    transform: translateY(1px);
+}
+
 .btn-primary {
     --bs-btn-bg: var(--primary);
     --bs-btn-border-color: var(--primary);
     --bs-btn-hover-bg: var(--primary-700);
     --bs-btn-hover-border-color: var(--primary-700);
-    --bs-btn-active-bg: var(--primary-700);
-    --bs-btn-active-border-color: var(--primary-700);
+    --bs-btn-active-bg: var(--primary-800);
+    --bs-btn-active-border-color: var(--primary-800);
     --bs-btn-disabled-bg: var(--primary);
     --bs-btn-disabled-border-color: var(--primary);
-    --bs-btn-focus-shadow-rgb: 37,99,235;
+    --bs-btn-focus-shadow-rgb: 37, 99, 235;
 }
+
 .btn-outline-primary {
     --bs-btn-color: var(--primary);
     --bs-btn-border-color: var(--primary);
@@ -137,22 +215,38 @@
     --bs-btn-hover-border-color: var(--primary);
     --bs-btn-active-bg: var(--primary);
     --bs-btn-active-border-color: var(--primary);
-    --bs-btn-focus-shadow-rgb: 37,99,235;
+    --bs-btn-focus-shadow-rgb: 37, 99, 235;
 }
 
-/* Consistent focus ring for form controls */
+.form-control,
+.form-select {
+    min-height: var(--control-height);
+    border-color: var(--border);
+    color: var(--text);
+}
+
 .form-control:focus,
 .form-select:focus,
 .form-check-input:focus {
     border-color: var(--primary);
-    box-shadow: 0 0 0 .2rem rgba(37,99,235,.20);
+    box-shadow: var(--focus-ring);
 }
 
-/* Visible keyboard focus (WCAG) on interactive elements */
 a:focus-visible,
 button:focus-visible,
 .btn:focus-visible,
 [tabindex]:focus-visible {
     outline: 2px solid var(--primary);
     outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+        transition-duration: .01ms !important;
+    }
 }

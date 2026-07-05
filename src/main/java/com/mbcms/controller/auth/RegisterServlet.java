@@ -39,7 +39,7 @@ public class RegisterServlet extends HttpServlet {
                 || ValidationUtil.isNullOrEmpty(password)
                 || ValidationUtil.isNullOrEmpty(confirmPassword)) {
 
-            req.setAttribute("errorMsg", "Vui lòng nhập đầy đủ các thông tin bắt buộc.");
+            req.setAttribute("errorMsg", "Please fill in all required fields.");
             req.getRequestDispatcher("/WEB-INF/views/auth/register.jsp").forward(req, resp);
             return;
         }
@@ -53,28 +53,28 @@ public class RegisterServlet extends HttpServlet {
 
         // 2. Validate dinh dang email
         if (!ValidationUtil.isValidEmail(email)) {
-            req.setAttribute("errorMsg", "Email không đúng định dạng hợp lệ.");
+            req.setAttribute("errorMsg", "Please enter a valid email address.");
             req.getRequestDispatcher("/WEB-INF/views/auth/register.jsp").forward(req, resp);
             return;
         }
 
         // 3. Validate dinh dang so dien thoai (neu nhap)
         if (!ValidationUtil.isNullOrEmpty(phone) && !ValidationUtil.isValidPhone(phone)) {
-            req.setAttribute("errorMsg", "Số điện thoại không đúng định dạng Việt Nam.");
+            req.setAttribute("errorMsg", "Please enter a valid Vietnamese phone number.");
             req.getRequestDispatcher("/WEB-INF/views/auth/register.jsp").forward(req, resp);
             return;
         }
 
         // 4. Validate do manh mat khau (toi thieu 8 ky tu, chu hoa, thuong, so)
         if (!ValidationUtil.isValidPassword(password)) {
-            req.setAttribute("errorMsg", "Mật khẩu tối thiểu 8 ký tự, chứa chữ hoa, chữ thường và chữ số.");
+            req.setAttribute("errorMsg", "Password must be at least 8 characters and include uppercase, lowercase, and numeric characters.");
             req.getRequestDispatcher("/WEB-INF/views/auth/register.jsp").forward(req, resp);
             return;
         }
 
         // 5. Kiem tra mat khau xac nhan trung khop
         if (!password.equals(confirmPassword)) {
-            req.setAttribute("errorMsg", "Mật khẩu xác nhận không khớp.");
+            req.setAttribute("errorMsg", "Password confirmation does not match.");
             req.getRequestDispatcher("/WEB-INF/views/auth/register.jsp").forward(req, resp);
             return;
         }
@@ -94,7 +94,7 @@ public class RegisterServlet extends HttpServlet {
                 // Dang ky thanh cong -> chuyen huong toi trang dang nhap
                 resp.sendRedirect(req.getContextPath() + "/auth/login?registered=true");
             } else {
-                req.setAttribute("errorMsg", "Đăng ký không thành công. Vui lòng thử lại.");
+                req.setAttribute("errorMsg", "Registration failed. Please try again.");
                 req.getRequestDispatcher("/WEB-INF/views/auth/register.jsp").forward(req, resp);
             }
         } catch (IllegalArgumentException ex) {
@@ -104,7 +104,7 @@ public class RegisterServlet extends HttpServlet {
         } catch (RuntimeException ex) {
             // Loi he thong, ghi log va thong bao chung chung
             getServletContext().log("Loi he thong khi dang ky tai khoan cho: " + username, ex);
-            req.setAttribute("errorMsg", "Hệ thống đang gặp sự cố. Vui lòng thử lại sau.");
+            req.setAttribute("errorMsg", "The system is currently unavailable. Please try again later.");
             req.getRequestDispatcher("/WEB-INF/views/auth/register.jsp").forward(req, resp);
         }
     }
