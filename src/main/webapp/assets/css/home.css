@@ -1,10 +1,10 @@
-@import "tokens.css";
+@import url("tokens.css");
 /* =====================================================================
    home.css — PentaPlex home
    Palette: navy hero + blue (CTA/nav) + gold (rating/stars/warm accents)
    ===================================================================== */
 
-body:has(.home-main) {
+.home-main {
     --home-accent: var(--primary-600);
     --home-accent-hover: var(--primary-700);
     --home-accent-light: var(--primary-50);

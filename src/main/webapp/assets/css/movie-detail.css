@@ -1,4 +1,4 @@
-@import "tokens.css";
+@import url("tokens.css");
 /* =====================================================================
    movie-detail.css — PentaPlex /movies/detail (taste-skill)
    ===================================================================== */
@@ -11,7 +11,7 @@ body.movie-detail-page {
     background: var(--bg);
 }
 
-html:has(.movie-detail-page) {
+html {
     scroll-behavior: smooth;
 }
 

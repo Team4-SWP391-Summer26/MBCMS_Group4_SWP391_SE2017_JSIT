@@ -1,4 +1,4 @@
-@import "tokens.css";
+@import url("tokens.css");
 /* PentaPlex - Main Stylesheet
    Design tokens (màu/typography/spacing/radius/shadow) sống trong tokens.css. */
 

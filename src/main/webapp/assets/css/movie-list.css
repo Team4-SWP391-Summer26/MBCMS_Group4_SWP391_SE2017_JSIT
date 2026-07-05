@@ -1,9 +1,9 @@
-@import "tokens.css";
+@import url("tokens.css");
 /* =====================================================================
    movie-list.css — PentaPlex /movies (dong bo home.css blue accent)
    ===================================================================== */
 
-body:has(.movie-list-main) {
+.movie-list-main {
     --ml-accent: var(--primary-600);
     --ml-accent-hover: var(--primary-700);
     --ml-accent-light: var(--primary-50);
