@@ -28,19 +28,23 @@ public class ForgotPasswordServlet extends HttpServlet {
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
 
-        // If a user is already logged in, redirect them to the home page
+        // [Security Check] If a user is already logged in, redirect them to the home page
         HttpSession session = req.getSession(false);
         if (session != null && session.getAttribute("currentUser") != null) {
             resp.sendRedirect(req.getContextPath() + "/home");
             return;
         }
 
-        // [Flow Step: Servlet -> JSP] Forward request to forgot-password.jsp for email entry view
+        // [Flow Step: Servlet -> JSP] Forward request to forgot-password.jsp for email entry view (Step 1)
         req.getRequestDispatcher("/WEB-INF/views/auth/forgot-password.jsp").forward(req, resp);
     }
 
     /**
      * Process submissions from all 3 steps of the wizard.
+     * Actions:
+     * - "send-code": Trigger email checking, generate OTP and dispatch email (Step 1)
+     * - "verify-code": Validate user OTP submission against stored DB hash (Step 2)
+     * - "reset-password": Update credentials with the new password (Step 3)
      */
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp)
@@ -52,7 +56,7 @@ public class ForgotPasswordServlet extends HttpServlet {
             return;
         }
 
-        // Action dispatcher depending on wizard step
+        // Action dispatcher depending on wizard step parameter
         switch (action) {
             case "send-code":
                 handleSendCode(req, resp);

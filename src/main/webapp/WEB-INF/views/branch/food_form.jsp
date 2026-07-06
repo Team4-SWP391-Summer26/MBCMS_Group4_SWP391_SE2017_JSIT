@@ -283,22 +283,32 @@
 
 <%@ include file="/WEB-INF/views/branch/_branch-scripts.jspf" %>
 <script>
+    // Category mapping configuration containing labels and CSS classes
     const CAT_CONFIG = {
         SNACK: { label: 'Snack', cls: 'cat-snack' },
         DRINK: { label: 'Drink', cls: 'cat-drink' },
         COMBO: { label: 'Combo', cls: 'cat-combo' }
     };
 
+    /**
+     * [Flow Step: JavaScript] Evaluates the currently selected category radio button
+     */
     function selectedCategory() {
         const r = document.querySelector('input[name="category"]:checked');
         return r ? r.value : '';
     }
 
+    /**
+     * [Flow Step: JavaScript] Formats prices to local currency style (e.g., 45,000 VND)
+     */
     function formatPrice(val) {
         if (!val || isNaN(val)) return '0 VND';
         return new Intl.NumberFormat('en-US').format(val) + ' VND';
     }
 
+    /**
+     * [Flow Step: JavaScript] Refreshes all elements in the preview card on text input changes
+     */
     function updatePreview() {
         const name  = document.getElementById('inputName').value.trim()  || 'Item name';
         const desc  = document.getElementById('inputDesc').value.trim();
@@ -306,6 +316,7 @@
         const stock = document.getElementById('inputStock').value;
         const cat   = selectedCategory();
 
+        // Sync name, description, and formatted price
         document.getElementById('previewName').textContent  = name;
         document.getElementById('previewDesc').textContent  = desc;
         document.getElementById('previewPrice').textContent = formatPrice(price);
@@ -313,13 +324,14 @@
         const stockVal = parseInt(stock, 10);
         const stockEl  = document.getElementById('previewStock');
         if (!isNaN(stockVal)) {
+            // Apply text and styling dynamically depending on stock availability
             stockEl.textContent = stockVal === 0 ? 'Out of stock' : stockVal + ' in stock';
-            stockEl.style.color = stockVal === 0 ? '#B02A37' : '#64748B';
+            stockEl.style.color = stockVal === 0 ? '#B02A37' : '#64748B'; // Red if out of stock, slate gray otherwise
         } else {
             stockEl.textContent = '';
         }
 
-        // Category pill
+        // Apply category badge pill properties dynamically
         const catEl = document.getElementById('previewCat');
         if (cat && CAT_CONFIG[cat]) {
             const cfg = CAT_CONFIG[cat];
@@ -331,6 +343,9 @@
         }
     }
 
+    /**
+     * [Flow Step: JavaScript] Synchronizes the card image with the entered URL. Displays error block on fail
+     */
     function updatePreviewImage() {
         const url  = document.getElementById('inputImageUrl').value.trim();
         const wrap = document.getElementById('previewImgWrap');
@@ -344,14 +359,15 @@
                 + 'color:#991B1B;font-size:.82rem;gap:.4rem;">'
                 + '<i class="bi bi-exclamation-triangle"></i> Invalid image URL</div>';
         } else {
+            // Default blank placeholder state
             wrap.innerHTML = '<div class="preview-img"><i class="bi bi-image"></i></div>';
         }
     }
 
-    // Init preview on load
+    // Initialize layout preview on window load hooks
     window.addEventListener('DOMContentLoaded', function () {
         updatePreview();
-        // Bind category radio change
+        // Register change listener on radio buttons
         document.querySelectorAll('input[name="category"]').forEach(r => {
             r.addEventListener('change', updatePreview);
         });

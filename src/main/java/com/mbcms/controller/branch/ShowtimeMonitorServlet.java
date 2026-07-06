@@ -33,14 +33,16 @@ public class ShowtimeMonitorServlet extends HttpServlet {
         // [Flow Step: JSP -> Servlet] GET request targeting showtime monitor with parameter 'id'
         HttpSession session = req.getSession(false);
         if (session == null) {
+            // Redirect to login if user session has expired
             resp.sendRedirect(req.getContextPath() + "/auth/login");
             return;
         }
 
+        // [Security Check] Retrieve credentials and branch context from session variables
         String role = (String) session.getAttribute("userRole");
         Long branchId = (Long) session.getAttribute("currentBranchId");
 
-        // Enforce role boundary access controls
+        // Enforce role boundary access controls: Only branch manager and staff are authorized
         if (branchId == null || (!"BRANCH_MANAGER".equals(role) && !"BRANCH_STAFF".equals(role))) {
             resp.sendError(HttpServletResponse.SC_FORBIDDEN, "You do not have permission to access this feature.");
             return;

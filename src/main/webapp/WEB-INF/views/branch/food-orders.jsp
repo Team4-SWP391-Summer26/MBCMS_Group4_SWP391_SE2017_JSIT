@@ -237,17 +237,21 @@
 
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
         <script>
+            // Client state tracking current active filter status
             let currentFilter = 'ALL';
 
+            /**
+             * [Flow Step: JavaScript] Switch active status tab and trigger table filter
+             */
             function filterStatus(status) {
                 currentFilter = status;
                 
-                // Toggle active class on buttons
+                // Remove active styling class from all navigation tab buttons
                 document.querySelectorAll('#statusFilters .lc-seg-btn').forEach(btn => {
                     btn.classList.remove('active');
                 });
                 
-                // Find correct active button
+                // Map status code string to its 0-indexed position in the DOM segment array
                 const btnMap = {
                     'ALL': 0,
                     'PENDING': 1,
@@ -260,10 +264,16 @@
                 applyFilters();
             }
 
+            /**
+             * [Flow Step: JavaScript] Search input event handler to filter booking codes in real-time
+             */
             function searchOrders() {
                 applyFilters();
             }
 
+            /**
+             * [Flow Step: JavaScript] Evaluates both search text and category status filters to hide/show table rows
+             */
             function applyFilters() {
                 const searchQuery = document.getElementById('orderSearch').value.toUpperCase().trim();
                 const rows = document.querySelectorAll('#ordersTable tbody tr');
@@ -272,22 +282,28 @@
                     const rowStatus = row.getAttribute('data-status');
                     const rowBookingCode = row.getAttribute('data-booking-code') || '';
                     
+                    // Match condition 1: Row matches current filter tab (or 'ALL')
                     const matchesStatus = (currentFilter === 'ALL' || rowStatus === currentFilter);
+                    // Match condition 2: Row booking code includes search substring
                     const matchesSearch = (searchQuery === '' || rowBookingCode.toUpperCase().includes(searchQuery));
                     
                     if (matchesStatus && matchesSearch) {
-                        row.style.display = '';
+                        row.style.display = ''; // Show row
                     } else {
-                        row.style.display = 'none';
+                        row.style.display = 'none'; // Hide row
                     }
                 });
             }
 
+            /**
+             * [Flow Step: JavaScript] Displays dynamic feedback notifications using Bootstrap Toast elements
+             */
             function showToast(message, type = 'success') {
                 const toastEl = document.getElementById('toastFeedback');
                 const msgEl = document.getElementById('toastMessage');
                 msgEl.textContent = message;
                 
+                // Assign CSS background color according to alert type
                 toastEl.className = 'toast align-items-center text-white border-0 shadow-lg ' + 
                     (type === 'success' ? 'bg-success' : (type === 'danger' ? 'bg-danger' : 'bg-warning'));
                 
@@ -295,16 +311,21 @@
                 bsToast.show();
             }
 
+            /**
+             * [Flow Step: AJAX -> Servlet] Updates order status asynchronously using HTTP POST
+             */
             function updateStatus(foodOrderId, newStatus) {
                 const button = document.querySelector('#action-cell-' + foodOrderId + ' button');
-                if (button) button.disabled = true;
+                if (button) button.disabled = true; // Prevent double click submissions
 
+                // Build standard urlencoded form body containing action, order parameters and security CSRF token
                 const formData = new URLSearchParams();
                 formData.append('action', 'updateStatus');
                 formData.append('foodOrderId', foodOrderId);
                 formData.append('status', newStatus);
                 formData.append('_csrf', '${sessionScope.csrfToken}');
 
+                // [Flow Step: JS -> Servlet] POST request dispatch to FoodOrderServlet
                 fetch('${pageContext.request.contextPath}/staff/food-orders', {
                     method: 'POST',
                     headers: {
@@ -315,7 +336,7 @@
                 .then(res => res.json())
                 .then(data => {
                     if (data.success) {
-                        // Dynamically update UI
+                        // Dynamically look up and modify matching row attributes
                         const rows = document.querySelectorAll('#ordersTable tbody tr');
                         let targetRow = null;
                         rows.forEach(r => {
@@ -328,7 +349,7 @@
                             targetRow.setAttribute('data-status', newStatus);
                         }
 
-                        // Update Status Cell
+                        // [Flow Step: JavaScript] Dynamically swap status badges inside the modified cell
                         const statusCell = document.getElementById('status-cell-' + foodOrderId);
                         let statusBadge = '';
                         if (newStatus === 'PREPARING') {
@@ -340,7 +361,7 @@
                         }
                         statusCell.innerHTML = statusBadge;
 
-                        // Update Action Cell
+                        // [Flow Step: JavaScript] Dynamically swap action buttons inside the modified cell
                         const actionCell = document.getElementById('action-cell-' + foodOrderId);
                         let actionHtml = '';
                         if (newStatus === 'PREPARING') {
@@ -365,7 +386,7 @@
                         }
                         actionCell.innerHTML = actionHtml;
 
-                        // Show success toast
+                        // Trigger visual success notification toast
                         showToast('Order #' + foodOrderId + ' status updated to ' + newStatus + '.', 'success');
                         applyFilters();
                     } else {

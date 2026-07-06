@@ -17,6 +17,14 @@ public class PromotionDeleteServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
+        
+        // [Security Check] Verify active HTTP session
+        jakarta.servlet.http.HttpSession session = req.getSession(false);
+        if (session == null || session.getAttribute("currentBranchId") == null) {
+            resp.sendRedirect(req.getContextPath() + "/auth/login");
+            return;
+        }
+
         // [Flow Step: JSP -> Servlet] Post request received to soft-delete a promotion with parameter 'id'
         String idStr = req.getParameter("id");
         if (idStr == null || idStr.trim().isEmpty()) {
@@ -35,7 +43,8 @@ public class PromotionDeleteServlet extends HttpServlet {
                 return;
             }
 
-            Long sessionBranchId = (Long) req.getSession(false).getAttribute("currentBranchId");
+            // Verify branch boundary permission (Security check)
+            Long sessionBranchId = (Long) session.getAttribute("currentBranchId");
             if (sessionBranchId == null || !sessionBranchId.equals(p.getBranchId())) {
                 resp.sendRedirect(req.getContextPath() + "/branch/promotions?error=1");
                 return;

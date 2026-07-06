@@ -188,11 +188,13 @@
 <%@ include file="/WEB-INF/views/branch/_branch-scripts.jspf" %>
 <script>
     document.addEventListener("DOMContentLoaded", function() {
+        // Dynamic JSTL parameter bindings
         const showtimeId = "${showtime.showtimeId}";
         const totalCapacity = parseInt("${showtime.roomCapacity}");
         let currentSold = parseInt("${showtime.bookedSeats}");
         let currentSoft = ${fn:length(heldSeatIds)};
 
+        // DOM elements cache references
         const logPanel = document.getElementById("logPanel");
         const statusBadge = document.getElementById("wsStatus");
         const soldDisplay = document.getElementById("liveSold");
@@ -202,11 +204,15 @@
         // Set initial log time
         document.getElementById("logInitTime").innerText = formatTime(new Date());
 
-        // Connect to WebSocket
+        // Connect to WebSocket using protocol helper matching secure context (wss / ws)
         const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
         const wsUrl = protocol + "//" + window.location.host + "${pageContext.request.contextPath}/ws/seats/" + showtimeId;
         
         let ws;
+
+        /**
+         * [Flow Step: WebSocket] Establish real-time connection to SeatWebSocketServer
+         */
         function connect() {
             ws = new WebSocket(wsUrl);
 
@@ -215,6 +221,7 @@
                 addLog("System", "Live connection established successfully.");
             };
 
+            // [Flow Step: WebSocket -> Client] Receive real-time seat lock state broadcasts
             ws.onmessage = function(event) {
                 try {
                     const msg = JSON.parse(event.data);
@@ -226,6 +233,7 @@
 
                     switch(msg.action) {
                         case "SELECT":
+                            // Customer chooses a seat: add soft-locked visual style (amber)
                             if (!seatElement.classList.contains("is-booked") && !seatElement.classList.contains("is-off")) {
                                 if (!seatElement.classList.contains("is-soft-locked")) {
                                     seatElement.classList.add("is-soft-locked");
@@ -236,6 +244,7 @@
                             break;
 
                         case "DESELECT":
+                            // Customer deselects a seat: remove soft-locked visual style
                             if (seatElement.classList.contains("is-soft-locked")) {
                                 seatElement.classList.remove("is-soft-locked");
                                 currentSoft = Math.max(0, currentSoft - 1);
@@ -244,6 +253,7 @@
                             break;
 
                         case "HELD_LOCK":
+                            // Converted to temporary payment hold: maintain soft-locked style
                             if (!seatElement.classList.contains("is-booked") && !seatElement.classList.contains("is-off")) {
                                 if (!seatElement.classList.contains("is-soft-locked")) {
                                     seatElement.classList.add("is-soft-locked");
@@ -254,7 +264,7 @@
                             break;
 
                         case "HARD_LOCK":
-                            // Chuyen soft-lock/available thanh booked
+                            // Confirm database reservation: switch to booked status (red)
                             if (seatElement.classList.contains("is-soft-locked")) {
                                 seatElement.classList.remove("is-soft-locked");
                                 currentSoft = Math.max(0, currentSoft - 1);
@@ -267,7 +277,7 @@
                             break;
 
                         case "HARD_RELEASE":
-                            // Giai phong ghe (held hoac booked)
+                            // Release locks (payment timeout or transaction cancel)
                             if (seatElement.classList.contains("is-booked")) {
                                 seatElement.classList.remove("is-booked");
                                 currentSold = Math.max(0, currentSold - 1);
@@ -280,17 +290,18 @@
                             break;
                     }
 
-                    // Update UI stats
+                    // [Flow Step: JavaScript] Update KPI stat card counters and occupancy percentage dynamically
                     soldDisplay.innerText = currentSold + " / " + totalCapacity;
                     softDisplay.innerText = currentSoft;
                     const pct = totalCapacity > 0 ? Math.round((currentSold * 100) / totalCapacity) : 0;
                     pctDisplay.innerText = pct + "%";
 
                 } catch (e) {
-                    console.error("Loi parse message WS:", e);
+                    console.error("Error parsing WS message:", e);
                 }
             };
 
+            // Connection lost hook: trigger reconnection loop after 5 seconds
             ws.onclose = function() {
                 statusBadge.innerHTML = '<span class="badge bg-danger">Disconnected</span>';
                 addLog("System", "Connection lost. Reconnecting in 5 seconds...");
@@ -298,13 +309,15 @@
             };
 
             ws.onerror = function(err) {
-                console.error("Loi WebSocket:", err);
+                console.error("WebSocket error:", err);
             };
         }
 
         connect();
 
-        // Helper to format time
+        /**
+         * [Flow Step: JavaScript] Formats Date instance to local HH:MM:SS format
+         */
         function formatTime(d) {
             const h = String(d.getHours()).padStart(2, '0');
             const m = String(d.getMinutes()).padStart(2, '0');
@@ -312,7 +325,9 @@
             return h + ":" + m + ":" + s;
         }
 
-        // Helper to add log line
+        /**
+         * [Flow Step: JavaScript] Appends a log message item to the console board
+         */
         function addLog(actor, message) {
             const timeStr = formatTime(new Date());
             const entry = document.createElement("div");
@@ -321,16 +336,16 @@
                               '<strong>[' + actor + ']</strong> ' +
                               '<span class="log-action">' + message + '</span>';
             
-            // Insert at the top
+            // Insert at the top to keep recent logs visible immediately
             logPanel.insertBefore(entry, logPanel.firstChild);
             
-            // Limit to 50 logs to keep memory clean
+            // Cap entries count to 50 items to keep page memory consumption low
             if (logPanel.childNodes.length > 50) {
                 logPanel.removeChild(logPanel.lastChild);
             }
         }
 
-        // Clear logs
+        // Add clear logger click event listener
         document.getElementById("clearLogBtn").addEventListener("click", function() {
             logPanel.innerHTML = '<div class="log-entry"><span class="log-time">' + formatTime(new Date()) + '</span><span class="text-info">Logs cleared. Real-time stream active.</span></div>';
         });

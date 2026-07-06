@@ -45,7 +45,7 @@ public class BranchFoodServlet extends HttpServlet {
 
         ConsoleSupport.ensureBranchName(req);
 
-        // [Flow Step: JSP -> Servlet] GET request received targeting food management dashboard or CRUD templates
+        // [Security Check] Load currentBranchId from session context. Reject if null
         long branchId = currentBranchId(req, resp);
         if (branchId < 0) return;
 
@@ -86,6 +86,7 @@ public class BranchFoodServlet extends HttpServlet {
     protected void doPost(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
 
+        // [Security Check] Load currentBranchId from session context
         long branchId = currentBranchId(req, resp);
         if (branchId < 0) return;
 

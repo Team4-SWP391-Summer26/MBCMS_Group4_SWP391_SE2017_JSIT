@@ -221,17 +221,26 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
+        // Enforce DOM references for input fields and UI indicators
         const passwordInput = document.getElementById('password');
         const confirmPasswordInput = document.getElementById('confirmPassword');
         const toggleBtn = document.getElementById('togglePassword');
         const eyeIcon = document.getElementById('eyeIcon');
         const resetPasswordForm = document.getElementById('resetPasswordForm');
+        
+        // Array mapping to password strength indicator bars
         const bars = [
             document.getElementById('strength-bar-1'),
             document.getElementById('strength-bar-2'),
             document.getElementById('strength-bar-3')
         ];
 
+        /**
+         * [Flow Step: JavaScript] Evaluates password complexity matching UC11 rules
+         * - Rule 1: Length must be between 8 and 64 characters
+         * - Rule 2: Must contain at least one uppercase letter
+         * - Rule 3: Must contain at least one numeric digit
+         */
         function passwordScore(value) {
             let score = 0;
             if (value.length > 0 && value.length >= 8 && value.length <= 64) score++;
@@ -240,6 +249,9 @@
             return score;
         }
 
+        /**
+         * [Flow Step: JavaScript] Updates strength indicator colors dynamically based on passwordScore
+         */
         function setStrength(score) {
             bars.forEach(function (bar) {
                 if (!bar) return;
@@ -247,15 +259,16 @@
             });
             if (!bars[0]) return;
             if (score === 1) {
-                bars[0].classList.add('is-weak');
+                bars[0].classList.add('is-weak'); // Weak indicator: Red
             } else if (score === 2) {
-                bars[0].classList.add('is-medium');
+                bars[0].classList.add('is-medium'); // Medium indicator: Yellow
                 bars[1].classList.add('is-medium');
             } else if (score === 3) {
-                bars.forEach(function (bar) { bar.classList.add('is-strong'); });
+                bars.forEach(function (bar) { bar.classList.add('is-strong'); }); // Strong indicator: Green
             }
         }
 
+        // Toggle cleartext visibility in password field
         if (toggleBtn && passwordInput) {
             toggleBtn.addEventListener('click', function () {
                 const show = passwordInput.type === 'password';
@@ -264,12 +277,14 @@
             });
         }
 
+        // Bind input event to update strength bars dynamically
         if (passwordInput) {
             passwordInput.addEventListener('input', function () {
                 setStrength(passwordScore(passwordInput.value));
             });
         }
 
+        // [Flow Step: JavaScript] Prevent form submit if passwords do not match or fail regex conditions
         if (resetPasswordForm) {
             resetPasswordForm.addEventListener('submit', function (e) {
                 const password = passwordInput.value;

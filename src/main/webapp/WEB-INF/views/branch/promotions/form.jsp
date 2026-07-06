@@ -306,124 +306,142 @@
 
         <%@ include file="/WEB-INF/views/branch/_branch-scripts.jspf" %>
         <script>
-                                                   // Elements
-                                                   const inputCode = document.getElementById('inputCode');
-                                                   const inputName = document.getElementById('inputName');
-                                                   const typePercentage = document.getElementById('typePercentage');
-                                                   const typeFixed = document.getElementById('typeFixed');
-                                                   const inputValue = document.getElementById('inputValue');
-                                                   const inputMinOrder = document.getElementById('inputMinOrder');
-                                                   const inputStart = document.getElementById('inputStart');
-                                                   const inputEnd = document.getElementById('inputEnd');
-                                                   const toggleLimit = document.getElementById('toggleLimit');
-                                                   const inputMaxUses = document.getElementById('inputMaxUses');
+            // ── DOM Element Bindings ──────────────────────────────────────────
+            // Obtain references to HTML inputs for form processing
+            const inputCode = document.getElementById('inputCode');
+            const inputName = document.getElementById('inputName');
+            const typePercentage = document.getElementById('typePercentage');
+            const typeFixed = document.getElementById('typeFixed');
+            const inputValue = document.getElementById('inputValue');
+            const inputMinOrder = document.getElementById('inputMinOrder');
+            const inputStart = document.getElementById('inputStart');
+            const inputEnd = document.getElementById('inputEnd');
+            const toggleLimit = document.getElementById('toggleLimit');
+            const inputMaxUses = document.getElementById('inputMaxUses');
 
-                                                   // Preview Elements
-                                                   const previewCode = document.getElementById('previewCode');
-                                                   const previewName = document.getElementById('previewName');
-                                                   const previewValue = document.getElementById('previewValue');
-                                                   const previewMinOrder = document.getElementById('previewMinOrder');
-                                                   const previewDates = document.getElementById('previewDates');
-                                                   const examplePromoLabel = document.getElementById('examplePromoLabel');
-                                                   const exampleDiscount = document.getElementById('exampleDiscount');
-                                                   const exampleFinal = document.getElementById('exampleFinal');
+            // Obtain references to Live Preview card nodes (dynamic update targets)
+            const previewCode = document.getElementById('previewCode');
+            const previewName = document.getElementById('previewName');
+            const previewValue = document.getElementById('previewValue');
+            const previewMinOrder = document.getElementById('previewMinOrder');
+            const previewDates = document.getElementById('previewDates');
+            const examplePromoLabel = document.getElementById('examplePromoLabel');
+            const exampleDiscount = document.getElementById('exampleDiscount');
+            const exampleFinal = document.getElementById('exampleFinal');
 
+            /**
+             * [Flow Step: JavaScript] Formats numbers to local Vietnamese Dong currency format (e.g., 250,000₫)
+             */
+            function formatCurrency(num) {
+                return new Intl.NumberFormat('vi-VN').format(num) + '₫';
+            }
 
+            /**
+             * [Flow Step: JavaScript] Converts date string format 'YYYY-MM-DD' to friendly 'DD/MM' display
+             */
+            function formatDateString(dateStr) {
+                if (!dateStr) return '';
+                const parts = dateStr.split('-');
+                if (parts.length === 3) {
+                    return parts[2] + '/' + parts[1]; // Returns Day/Month only for clean layout space
+                }
+                return dateStr;
+            }
 
-                                                   function formatCurrency(num) {
-                                                       return new Intl.NumberFormat('vi-VN').format(num) + '₫';
-                                                   }
+            /**
+             * [Flow Step: JavaScript] Recalculates simulated cart values and reflects inputs onto the preview card
+             */
+            function updatePreview() {
+                const isPercent = typePercentage.checked;
+                const val = parseFloat(inputValue.value) || 0;
+                const code = inputCode.value || 'PROMO_CODE';
+                const name = inputName.value || 'Promotion name';
+                const minOrder = parseFloat(inputMinOrder.value) || 0;
 
-                                                   function formatDateString(dateStr) {
-                                                       if (!dateStr)
-                                                           return '';
-                                                       const parts = dateStr.split('-');
-                                                       if (parts.length === 3) {
-                                                           return parts[2] + '/' + parts[1];
-                                                       }
-                                                       return dateStr;
-                                                   }
+                // Sync code and name to the preview DOM text nodes
+                previewCode.textContent = code;
+                previewName.textContent = name;
+                examplePromoLabel.textContent = 'Discount (' + code + ')';
 
-                                                   function updatePreview() {
-                                                       const isPercent = typePercentage.checked;
-                                                       const val = parseFloat(inputValue.value) || 0;
-                                                       const code = inputCode.value || 'PROMO_CODE';
-                                                       const name = inputName.value || 'Promotion name';
-                                                       const minOrder = parseFloat(inputMinOrder.value) || 0;
+                // Handle percentage vs fixed amount discount preview math
+                if (isPercent) {
+                    previewValue.textContent = val + '%';
+                    exampleDiscount.textContent = '-' + formatCurrency(265000 * (val / 100));
+                    exampleFinal.textContent = formatCurrency(265000 - (265000 * (val / 100)));
+                } else {
+                    previewValue.textContent = formatCurrency(val);
+                    exampleDiscount.textContent = '-' + formatCurrency(val);
+                    exampleFinal.textContent = formatCurrency(Math.max(0, 265000 - val));
+                }
 
-                                                       // Update text
-                                                       previewCode.textContent = code;
-                                                       previewName.textContent = name;
-                                                       examplePromoLabel.textContent = 'Discount (' + code + ')';
+                // Sync minimum order requirements
+                previewMinOrder.textContent = minOrder > 0 ? 'Min. ' + formatCurrency(minOrder) : 'No minimum order';
 
-                                                       // Update Value
-                                                       if (isPercent) {
-                                                           previewValue.textContent = val + '%';
-                                                           exampleDiscount.textContent = '-' + formatCurrency(265000 * (val / 100));
-                                                           exampleFinal.textContent = formatCurrency(265000 - (265000 * (val / 100)));
-                                                       } else {
-                                                           previewValue.textContent = formatCurrency(val);
-                                                           exampleDiscount.textContent = '-' + formatCurrency(val);
-                                                           exampleFinal.textContent = formatCurrency(Math.max(0, 265000 - val));
-                                                       }
+                // Sync validity date strings
+                const start = formatDateString(inputStart.value);
+                const end = formatDateString(inputEnd.value);
+                previewDates.textContent = 'Valid: ' + start + ' → ' + end;
+            }
 
-                                                       // Update Min Order
-                                                       previewMinOrder.textContent = minOrder > 0 ? 'Min. ' + formatCurrency(minOrder) : 'No minimum order';
+            /**
+             * [Flow Step: JavaScript] Enforces date continuity (end date cannot be before start date)
+             */
+            function updateEndDateMin() {
+                if (inputStart.value) {
+                    inputEnd.min = inputStart.value; // Dynamically set the minimum allowed date on the end-date calendarpicker
+                }
+            }
 
-                                                       // Update Dates
-                                                       const start = formatDateString(inputStart.value);
-                                                       const end = formatDateString(inputEnd.value);
-                                                       previewDates.textContent = 'Valid: ' + start + ' → ' + end;
-                                                   }
+            /**
+             * [Flow Step: JavaScript] Changes form constraints depending on discount type selection
+             */
+            function onDiscountTypeChange() {
+                const suffix = document.getElementById('valueSuffix');
+                if (typePercentage.checked) {
+                    suffix.textContent = '%';
+                    inputValue.max = 100; // Enforce maximum 100% discount boundary on browser side
+                } else {
+                    suffix.textContent = '₫';
+                    inputValue.removeAttribute('max');
+                }
+                updatePreview();
+            }
 
-                                                   function updateEndDateMin() {
-                                                       if (inputStart.value) {
-                                                           inputEnd.min = inputStart.value;
-                                                       }
-                                                   }
+            /**
+             * [Flow Step: JavaScript] Shows or hides usage count inputs based on limit toggler switch
+             */
+            function onLimitToggleChange() {
+                const group = document.getElementById('maxUsesGroup');
+                if (toggleLimit.checked) {
+                    group.classList.remove('d-none');
+                    inputMaxUses.setAttribute('required', 'required');
+                } else {
+                    group.classList.add('d-none');
+                    inputMaxUses.removeAttribute('required');
+                    inputMaxUses.value = ''; // Clean input value when disabled
+                }
+            }
 
-                                                   function onDiscountTypeChange() {
-                                                       const suffix = document.getElementById('valueSuffix');
-                                                       if (typePercentage.checked) {
-                                                           suffix.textContent = '%';
-                                                           inputValue.max = 100;
-                                                       } else {
-                                                           suffix.textContent = '₫';
-                                                           inputValue.removeAttribute('max');
-                                                       }
-                                                       updatePreview();
-                                                   }
+            // ── Event Listener Registrations ──────────────────────────────────
+            // Re-render live preview on any input interaction
+            inputCode.addEventListener('input', updatePreview);
+            inputName.addEventListener('input', updatePreview);
+            inputValue.addEventListener('input', updatePreview);
+            inputMinOrder.addEventListener('input', updatePreview);
+            inputStart.addEventListener('change', () => {
+                updateEndDateMin();
+                updatePreview();
+            });
+            inputEnd.addEventListener('change', updatePreview);
 
-                                                   function onLimitToggleChange() {
-                                                       const group = document.getElementById('maxUsesGroup');
-                                                       if (toggleLimit.checked) {
-                                                           group.classList.remove('d-none');
-                                                           inputMaxUses.setAttribute('required', 'required');
-                                                       } else {
-                                                           group.classList.add('d-none');
-                                                           inputMaxUses.removeAttribute('required');
-                                                           inputMaxUses.value = '';
-                                                       }
-                                                   }
-
-                                                   // Bind listeners
-                                                   inputCode.addEventListener('input', updatePreview);
-                                                   inputName.addEventListener('input', updatePreview);
-                                                   inputValue.addEventListener('input', updatePreview);
-                                                   inputMinOrder.addEventListener('input', updatePreview);
-                                                   inputStart.addEventListener('change', () => {
-                                                       updateEndDateMin();
-                                                       updatePreview();
-                                                   });
-                                                   inputEnd.addEventListener('change', updatePreview);
-
-                                                   // Initialization
-                                                   window.addEventListener('DOMContentLoaded', () => {
-                                                       onDiscountTypeChange();
-                                                       onLimitToggleChange();
-                                                       updateEndDateMin();
-                                                       updatePreview();
-                                                   });
+            // ── Page Initialization ──────────────────────────────────────────
+            // Trigger baseline rendering when browser finishes parsing DOM
+            window.addEventListener('DOMContentLoaded', () => {
+                onDiscountTypeChange();
+                onLimitToggleChange();
+                updateEndDateMin();
+                updatePreview();
+            });
         </script>
     </body>
 </html>

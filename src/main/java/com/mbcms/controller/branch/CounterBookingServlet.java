@@ -70,12 +70,13 @@ public class CounterBookingServlet extends HttpServlet {
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
 
-        // [Flow Step: JSP -> Servlet] GET request received to load the walk-in booking screen or fetch list options
-        Long branchId = (Long) req.getSession().getAttribute("currentBranchId");
-        if (branchId == null) {
+        // [Security Check] Verify active HTTP session
+        jakarta.servlet.http.HttpSession session = req.getSession(false);
+        if (session == null || session.getAttribute("currentBranchId") == null) {
             resp.sendRedirect(req.getContextPath() + "/auth/login");
             return;
         }
+        Long branchId = (Long) session.getAttribute("currentBranchId");
 
         ConsoleSupport.ensureBranchName(req);
 
@@ -193,7 +194,7 @@ public class CounterBookingServlet extends HttpServlet {
                 resp.sendError(HttpServletResponse.SC_NOT_FOUND, "Showtime not found");
                 return;
             }
-            // Branch scope: chi load so do ghe cua suat thuoc chi nhanh staff
+            // Branch scope check: only load seat layout for showtimes within manager's branch
             if (!roomBelongsToBranch(showtime.getRoomId(), branchId)) {
                 resp.sendError(HttpServletResponse.SC_FORBIDDEN, "Showtime not in your branch");
                 return;
@@ -278,12 +279,14 @@ public class CounterBookingServlet extends HttpServlet {
         Map<String, Object> result = new HashMap<>();
 
         try {
-            // [Flow Step: JSP -> Servlet] AJAX POST request received containing counter booking checkout details
-            Long branchId = (Long) req.getSession().getAttribute("currentBranchId");
-            if (branchId == null) {
+            // [Security Check] Verify active HTTP session
+            jakarta.servlet.http.HttpSession session = req.getSession(false);
+            if (session == null || session.getAttribute("currentBranchId") == null) {
                 throw new SecurityException("Invalid session.");
             }
+            Long branchId = (Long) session.getAttribute("currentBranchId");
 
+            // [Flow Step: JSP -> Servlet] AJAX POST request received containing counter booking checkout details
             String showtimeIdParam = req.getParameter("showtimeId");
             if (showtimeIdParam == null || showtimeIdParam.trim().isEmpty()) {
                 throw new IllegalArgumentException("Please select a showtime.");
@@ -297,7 +300,7 @@ public class CounterBookingServlet extends HttpServlet {
                 throw new IllegalArgumentException("Matching showtime was not found.");
             }
 
-            // Verify showtime belongs to the staff's branch
+            // Verify showtime belongs to the staff's branch (Security check)
             if (!roomBelongsToBranch(showtime.getRoomId(), branchId)) {
                 throw new SecurityException("This showtime does not belong to your branch.");
             }
@@ -387,7 +390,7 @@ public class CounterBookingServlet extends HttpServlet {
                 result.put("redirectUrl", paymentUrl);
                 result.put("message", "Redirecting to the VNPay payment gateway...");
             } else {
-                // For Cash: existing flow
+                // For Cash checkout: existing flow
                 // Calculate base total for verification
                 List<Seat> allSeats = seatDAO.findByRoom(showtime.getRoomId());
                 List<Seat> selectedSeats = new ArrayList<>();
@@ -415,7 +418,7 @@ public class CounterBookingServlet extends HttpServlet {
                 }
 
                 // [Flow Step: Service -> WebSocket] Broadcast seat status conversion (HARD_LOCK) to seat monitor clients
-                String staffUsername = (String) req.getSession().getAttribute("username");
+                String staffUsername = (String) session.getAttribute("username");
                 if (staffUsername == null) {
                     staffUsername = "staff";
                 }

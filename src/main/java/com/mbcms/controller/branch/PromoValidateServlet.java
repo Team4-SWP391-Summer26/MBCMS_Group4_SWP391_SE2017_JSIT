@@ -31,6 +31,14 @@ public class PromoValidateServlet extends HttpServlet {
 
         resp.setContentType("application/json;charset=UTF-8");
         
+        // [Security Check] Enforce active HTTP session for AJAX request validation
+        jakarta.servlet.http.HttpSession session = req.getSession(false);
+        if (session == null || session.getAttribute("currentBranchId") == null) {
+            resp.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized access.");
+            return;
+        }
+        long branchId = (Long) session.getAttribute("currentBranchId");
+        
         // [Flow Step: JSP -> Servlet] Parse AJAX query parameters: code and subtotal
         String code = req.getParameter("code");
         String subtotalStr = req.getParameter("subtotal");
@@ -54,18 +62,15 @@ public class PromoValidateServlet extends HttpServlet {
             return;
         }
 
-        jakarta.servlet.http.HttpSession session = req.getSession(false);
-        Long branchId = session != null ? (Long) session.getAttribute("currentBranchId") : null;
-
         try {
             // [Flow Step: Servlet -> Database] Fetch matching promotion details by unique code from Database
             Promotion promo = promotionDAO.findByCode(code.trim().toUpperCase());
             
-            // Validate all coupon conditions sequentially
+            // Validate all coupon conditions sequentially (Security & Logic checks)
             if (promo == null) {
                 result.put("valid", false);
                 result.put("message", "Promo code does not exist.");
-            } else if (promo.getBranchId() != null && (branchId == null || !promo.getBranchId().equals(branchId))) {
+            } else if (promo.getBranchId() != null && !promo.getBranchId().equals(branchId)) {
                 result.put("valid", false);
                 result.put("message", "Promo code is not available for this branch.");
             } else if (!promo.isActive() || !"Active".equals(promo.getStatus())) {
@@ -78,17 +83,20 @@ public class PromoValidateServlet extends HttpServlet {
                 result.put("valid", false);
                 result.put("message", "Order subtotal has not reached the minimum required for this promo code (Minimum: " + promo.getMinOrderAmount() + " VND).");
             } else {
-                // Tinh toan chiet khau
+                // Calculate discount amount based on promo configuration type
                 BigDecimal discount = BigDecimal.ZERO;
                 if (Promotion.TYPE_PERCENT.equals(promo.getDiscountType())) {
+                    // Percentage based: subtotal * value / 100
                     discount = subtotal.multiply(promo.getDiscountValue())
                             .divide(BigDecimal.valueOf(100), 0, java.math.RoundingMode.HALF_UP);
                 } else if (Promotion.TYPE_FIXED_AMOUNT.equals(promo.getDiscountType())) {
+                    // Fixed amount discount
                     discount = promo.getDiscountValue();
                 }
 
+                // Cap discount at total subtotal value (avoid negative billing)
                 if (discount.compareTo(subtotal) > 0) {
-                    discount = subtotal; // giam toi da bang subtotal
+                    discount = subtotal;
                 }
 
                 BigDecimal total = subtotal.subtract(discount);

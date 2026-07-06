@@ -722,13 +722,14 @@
 
         <!-- Wizard Core Logic -->
         <script>
+                                // [Flow Step: JavaScript] Context path helper to match servlet mapping URLs dynamically
                                 const contextPath = '${pageContext.request.contextPath}';
                                 const CURRENT_USER = '${sessionScope.username}';
 
                                 let ws = null;
                                 let wsRetryDelay = 2000;
 
-                                // Wizard State
+                                // [Flow Step: JavaScript] Client-side state machine tracker to maintain selections across wizard steps
                                 let state = {
                                     currentStep: 1,
                                     showtimeId: null,
@@ -752,14 +753,14 @@
                                     foodSubtotalAmount: 0
                                 };
 
-                                // DOM Elements
+                                // DOM Input elements bindings for filtering & event actions
                                 const dateFilter = document.getElementById('date-filter');
                                 const movieSearch = document.getElementById('movie-search');
                                 const roomFilter = document.getElementById('room-filter');
                                 const showtimesContainer = document.getElementById('showtimes-container');
                                 const btnToStep2 = document.getElementById('btn-to-step2');
 
-                                // Pre-fill today's date in local YYYY-MM-DD
+                                // Pre-fill today's date in local YYYY-MM-DD format as a baseline filter
                                 const todayStr = new Date().toISOString().split('T')[0];
                                 dateFilter.value = todayStr;
 
@@ -774,18 +775,18 @@
 
                                 // Init Step 1 on Load
                                 document.addEventListener('DOMContentLoaded', () => {
-                                    // Event Listeners for Filters
+                                    // Register Event Listeners for Filters to reload showtimes asynchronously
                                     dateFilter.addEventListener('change', loadShowtimes);
                                     movieSearch.addEventListener('input', loadShowtimes);
                                     roomFilter.addEventListener('change', loadShowtimes);
 
-                                    // Check if redirected on successful payment return
+                                    // [Flow Step: JSP -> JS] Check if user was redirected from VNPay gateway return mapping
                                     const successParam = '${success}';
                                     if (successParam === '1') {
                                         state.bookingCode = '${successBookingCode}';
                                         state.bookingId = '${successBookingId}';
 
-                                        // Fetch booking detail to populate Step 6 UI
+                                        // [Flow Step: JS -> Servlet] Fetch details of the newly paid ticket using AJAX
                                         fetch(contextPath + '/staff/booking?action=getBookingDetail&bookingId=' + state.bookingId)
                                                 .then(res => res.json())
                                                 .then(ticket => {
@@ -813,7 +814,7 @@
                                                     document.getElementById('final-time').innerText = showtimeDateStr;
                                                     document.getElementById('final-seats').innerText = (ticket.seatLabels || []).join(', ');
 
-                                                    // Fetch concessions for this booking
+                                                    // Fetch concessions for this booking to show on the receipt screen
                                                     fetch(contextPath + '/staff/booking?action=getBookingFoodItems&bookingId=' + state.bookingId)
                                                             .then(r => r.json())
                                                             .then(foodItems => {
@@ -829,6 +830,7 @@
                                                                 } else {
                                                                     finalConRow.classList.add('d-none');
                                                                 }
+                                                                // Automatically fast-forward to Step 6 showing success details
                                                                 goToStep(6);
                                                             })
                                                             .catch(e => {
@@ -1134,129 +1136,144 @@
                                     }
                                 }
 
-                                function connectWS(showtimeId) {
-                                    closeWS();
-                                    const WS_URL = (location.protocol === 'https:' ? 'wss' : 'ws')
-                                            + '://' + location.host
-                                            + contextPath + '/ws/seats/' + showtimeId;
+                                /**
+                                 * [Flow Step: WebSocket] Connects to the seat mapping websocket channel to receive real-time state broadcast updates
+                                 */
+                                 function connectWS(showtimeId) {
+                                     closeWS(); // Ensure no multiple WebSocket instances are active concurrently
+                                     
+                                     // Build localized WS / WSS protocol URL relative to context path
+                                     const WS_URL = (location.protocol === 'https:' ? 'wss' : 'ws')
+                                             + '://' + location.host
+                                             + contextPath + '/ws/seats/' + showtimeId;
 
-                                    ws = new WebSocket(WS_URL);
+                                     ws = new WebSocket(WS_URL);
 
-                                    ws.onopen = function () {
-                                        setWsBadge('Realtime Connected', 'bg-success');
-                                        wsRetryDelay = 2000;
-                                    };
+                                     // Connection success hook
+                                     ws.onopen = function () {
+                                         setWsBadge('Realtime Connected', 'bg-success');
+                                         wsRetryDelay = 2000; // Reset exponential retry delay on successful link establishment
+                                     };
 
-                                    ws.onmessage = function (event) {
-                                        let msg;
-                                        try {
-                                            msg = JSON.parse(event.data);
-                                        } catch (e) {
-                                            return;
-                                        }
+                                     // [Flow Step: WebSocket -> Client] Receive real-time seat lock state broadcasts
+                                     ws.onmessage = function (event) {
+                                         let msg;
+                                         try {
+                                             msg = JSON.parse(event.data);
+                                         } catch (e) {
+                                             return;
+                                         }
 
-                                        const seatIdStr = String(msg.seatId);
-                                        const seatDiv = document.querySelector('[data-seat-id="' + msg.seatId + '"]');
-                                        if (!seatDiv)
-                                            return;
+                                         const seatIdStr = String(msg.seatId);
+                                         const seatDiv = document.querySelector('[data-seat-id="' + msg.seatId + '"]');
+                                         if (!seatDiv)
+                                             return;
 
-                                        const isMySelection = state.selectedSeats.some(s => String(s.seatId) === seatIdStr);
+                                         // Enforce client-side check if the broadcasted seat ID matches staff's current selections
+                                         const isMySelection = state.selectedSeats.some(s => String(s.seatId) === seatIdStr);
 
-                                        switch (msg.action) {
-                                            case 'SELECT':
-                                                if (isMySelection)
-                                                    return;
-                                                setSeatState(seatDiv, 'soft-locked');
-                                                break;
-                                            case 'DESELECT':
-                                                if (isMySelection)
-                                                    return;
-                                                setSeatState(seatDiv, 'available');
-                                                flashRefreshBadge();
-                                                break;
-                                            case 'HELD_LOCK':
-                                                if (isMySelection) {
-                                                    const index = state.selectedSeats.findIndex(s => String(s.seatId) === seatIdStr);
-                                                    if (index > -1) {
-                                                        state.selectedSeats.splice(index, 1);
-                                                        updateSeatsSummary();
-                                                    }
-                                                    lcAlert('Seat ' + seatDiv.getAttribute('data-seat-label')
-                                                        + ' is being held for payment. Please choose another seat.');
-                                                }
-                                                setSeatState(seatDiv, 'soft-locked');
-                                                flashRefreshBadge();
-                                                break;
-                                            case 'HARD_LOCK':
-                                                if (isMySelection) {
-                                                    if (msg.username !== CURRENT_USER) {
-                                                        const index = state.selectedSeats.findIndex(s => String(s.seatId) === seatIdStr);
-                                                        if (index > -1) {
-                                                            state.selectedSeats.splice(index, 1);
-                                                            updateSeatsSummary();
-                                                        }
-                                                        lcAlert('Seat ' + seatDiv.getAttribute('data-seat-label') + ' was just selected by someone else. Please choose another seat.');
-                                                    }
-                                                }
-                                                setSeatState(seatDiv, 'booked');
-                                                flashRefreshBadge();
-                                                break;
-                                            case 'HARD_RELEASE':
-                                                if (isMySelection)
-                                                    return;
-                                                setSeatState(seatDiv, 'available');
-                                                flashRefreshBadge();
-                                                break;
-                                        }
-                                    };
+                                         switch (msg.action) {
+                                             case 'SELECT':
+                                                 if (isMySelection)
+                                                     return;
+                                                 setSeatState(seatDiv, 'soft-locked'); // Mark seat as soft-locked (amber) in DOM
+                                                 break;
+                                             case 'DESELECT':
+                                                 if (isMySelection)
+                                                     return;
+                                                 setSeatState(seatDiv, 'available'); // Mark seat as free (blue)
+                                                 flashRefreshBadge();
+                                                 break;
+                                             case 'HELD_LOCK':
+                                                 // Another transaction has locked this seat for payment processing (temporary lock)
+                                                 if (isMySelection) {
+                                                     const index = state.selectedSeats.findIndex(s => String(s.seatId) === seatIdStr);
+                                                     if (index > -1) {
+                                                         state.selectedSeats.splice(index, 1);
+                                                         updateSeatsSummary();
+                                                     }
+                                                     lcAlert('Seat ' + seatDiv.getAttribute('data-seat-label')
+                                                         + ' is being held for payment. Please choose another seat.');
+                                                 }
+                                                 setSeatState(seatDiv, 'soft-locked');
+                                                 flashRefreshBadge();
+                                                 break;
+                                             case 'HARD_LOCK':
+                                                 // Seat purchased and finalized in database (hard lock)
+                                                 if (isMySelection) {
+                                                     if (msg.username !== CURRENT_USER) {
+                                                         const index = state.selectedSeats.findIndex(s => String(s.seatId) === seatIdStr);
+                                                         if (index > -1) {
+                                                             state.selectedSeats.splice(index, 1);
+                                                             updateSeatsSummary();
+                                                         }
+                                                         lcAlert('Seat ' + seatDiv.getAttribute('data-seat-label') + ' was just selected by someone else. Please choose another seat.');
+                                                     }
+                                                 }
+                                                 setSeatState(seatDiv, 'booked'); // Red booked seat style in DOM
+                                                 flashRefreshBadge();
+                                                 break;
+                                             case 'HARD_RELEASE':
+                                                 if (isMySelection)
+                                                     return;
+                                                 setSeatState(seatDiv, 'available');
+                                                 flashRefreshBadge();
+                                                 break;
+                                         }
+                                     };
 
-                                    ws.onclose = function () {
-                                        setWsBadge('Disconnected – retrying…', 'bg-warning text-dark');
-                                        setTimeout(() => {
-                                            if (state.currentStep >= 2 && state.showtimeId === showtimeId) {
-                                                connectWS(showtimeId);
-                                            }
-                                        }, Math.min(wsRetryDelay, 30000));
-                                        wsRetryDelay *= 2;
-                                    };
+                                     // Connection lost hook
+                                     ws.onclose = function () {
+                                         setWsBadge('Disconnected – retrying…', 'bg-warning text-dark');
+                                         // Exponential backoff logic for auto-reconnection
+                                         setTimeout(() => {
+                                             if (state.currentStep >= 2 && state.showtimeId === showtimeId) {
+                                                 connectWS(showtimeId);
+                                             }
+                                         }, Math.min(wsRetryDelay, 30000));
+                                         wsRetryDelay *= 2;
+                                     };
 
-                                    ws.onerror = function () {
-                                        ws.close();
-                                    };
-                                }
+                                     ws.onerror = function () {
+                                         ws.close();
+                                     };
+                                 }
 
-                                function closeWS() {
-                                    if (ws) {
-                                        ws.onclose = null;
-                                        ws.close();
-                                        ws = null;
-                                    }
-                                    setWsBadge('Disconnected', 'bg-secondary');
-                                }
+                                 function closeWS() {
+                                     if (ws) {
+                                         ws.onclose = null;
+                                         ws.close();
+                                         ws = null;
+                                     }
+                                     setWsBadge('Disconnected', 'bg-secondary');
+                                 }
 
-                                function setWsBadge(text, cls) {
-                                    const b = document.getElementById('wsBadge');
-                                    if (b) {
-                                        b.textContent = text;
-                                        b.className = 'badge ' + cls;
-                                    }
-                                }
+                                 function setWsBadge(text, cls) {
+                                     const b = document.getElementById('wsBadge');
+                                     if (b) {
+                                         b.textContent = text;
+                                         b.className = 'badge ' + cls;
+                                     }
+                                 }
 
-                                function flashRefreshBadge() {
-                                    const b = document.getElementById('refreshBadge');
-                                    if (b) {
-                                        b.style.opacity = '1';
-                                        setTimeout(() => {
-                                            b.style.opacity = '0';
-                                        }, 2000);
-                                    }
-                                }
+                                 function flashRefreshBadge() {
+                                     const b = document.getElementById('refreshBadge');
+                                     if (b) {
+                                         b.style.opacity = '1';
+                                         setTimeout(() => {
+                                             b.style.opacity = '0';
+                                         }, 2000);
+                                     }
+                                 }
 
-                                function sendWS(payload) {
-                                    if (ws && ws.readyState === WebSocket.OPEN) {
-                                        ws.send(JSON.stringify(payload));
-                                    }
-                                }
+                                 /**
+                                  * [Flow Step: WebSocket -> Server] Emit current staff actions (SELECT / DESELECT) to keep all clients synced
+                                  */
+                                 function sendWS(payload) {
+                                     if (ws && ws.readyState === WebSocket.OPEN) {
+                                         ws.send(JSON.stringify(payload));
+                                     }
+                                 }
 
                                 function updateSeatsSummary() {
                                     if (state.selectedSeats.length === 0) {

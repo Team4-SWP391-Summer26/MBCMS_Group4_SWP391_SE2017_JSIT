@@ -27,11 +27,20 @@ public class PromotionCreateServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
+        
+        // [Security Check] Verify active HTTP session
+        jakarta.servlet.http.HttpSession session = req.getSession(false);
+        if (session == null || session.getAttribute("currentBranchId") == null) {
+            resp.sendRedirect(req.getContextPath() + "/auth/login");
+            return;
+        }
+
         ConsoleSupport.ensureBranchName(req);
 
         // [Flow Step: Servlet -> JSP] Initialize an empty template model and forward to form.jsp view
+        // Setting attributes to avoid JSP rendering errors (null values)
         req.setAttribute("isEdit", false);
-        req.setAttribute("promo", new Promotion()); // blank object
+        req.setAttribute("promo", new Promotion()); // Blank model placeholder
         req.setAttribute("rawDiscountValue", "");
         req.setAttribute("rawMinOrderAmount", "0");
         req.setAttribute("rawMaxUses", "");
@@ -45,9 +54,17 @@ public class PromotionCreateServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
+        
+        // [Security Check] Verify active HTTP session
+        jakarta.servlet.http.HttpSession session = req.getSession(false);
+        if (session == null || session.getAttribute("currentBranchId") == null) {
+            resp.sendRedirect(req.getContextPath() + "/auth/login");
+            return;
+        }
+
         ConsoleSupport.ensureBranchName(req);
 
-        // [Flow Step: JSP -> Servlet] Form fields are submitted by browser and parsed by the Servlet
+        // [Flow Step: JSP -> Servlet] Parse raw input values sent by the form POST request
         String code = req.getParameter("code");
         String name = req.getParameter("name");
         String discountType = req.getParameter("discountType");
@@ -58,6 +75,7 @@ public class PromotionCreateServlet extends HttpServlet {
         String endDateStr = req.getParameter("endDate");
         boolean active = req.getParameter("active") != null;
 
+        // Initialize entities and DAO dependencies
         PromotionDAO promotionDAO = new PromotionDAOImpl();
         Promotion p = new Promotion();
         p.setCode(code != null ? code.trim().toUpperCase() : "");
@@ -67,15 +85,21 @@ public class PromotionCreateServlet extends HttpServlet {
 
         String errorMsg = null;
 
-        // Validation logic
+        // ── Validation Phase ──────────────────────────────────────────────────
+        // Rule 1: Code validation (must be alphanumeric, max 20 chars)
         if (p.getCode().isEmpty() || p.getCode().length() > 20 || !p.getCode().matches("^[a-zA-Z0-9]+$")) {
             errorMsg = "Code is required, alphanumeric only, and maximum 20 characters.";
-        } else if (p.getName().isEmpty() || p.getName().length() > 150) {
+        } 
+        // Rule 2: Name validation (max 150 chars)
+        else if (p.getName().isEmpty() || p.getName().length() > 150) {
             errorMsg = "Name is required and maximum 150 characters.";
-        } else if (!"PERCENT".equals(discountType) && !"FIXED_AMOUNT".equals(discountType)) {
+        } 
+        // Rule 3: Discount type validation
+        else if (!"PERCENT".equals(discountType) && !"FIXED_AMOUNT".equals(discountType)) {
             errorMsg = "Invalid discount type.";
-        } else {
-            // Validate discount value
+        } 
+        // Rule 4: Discount value validation
+        else {
             try {
                 BigDecimal discountValue = new BigDecimal(discountValueStr.trim());
                 if (discountValue.compareTo(BigDecimal.ZERO) <= 0) {
@@ -90,7 +114,7 @@ public class PromotionCreateServlet extends HttpServlet {
             }
         }
 
-        // Validate min order amount
+        // Rule 5: Minimum order threshold validation
         if (errorMsg == null) {
             try {
                 BigDecimal minOrder = (minOrderAmountStr == null || minOrderAmountStr.trim().isEmpty())
@@ -106,11 +130,11 @@ public class PromotionCreateServlet extends HttpServlet {
             }
         }
 
-        // Validate max uses
+        // Rule 6: Max usage count validation
         if (errorMsg == null) {
             try {
                 if (maxUsesStr == null || maxUsesStr.trim().isEmpty()) {
-                    p.setMaxUses(null);
+                    p.setMaxUses(null); // Null value indicates infinite usage availability
                 } else {
                     int maxUses = Integer.parseInt(maxUsesStr.trim());
                     if (maxUses <= 0) {
@@ -124,7 +148,7 @@ public class PromotionCreateServlet extends HttpServlet {
             }
         }
 
-        // Validate dates
+        // Rule 7: Validity date period checks
         if (errorMsg == null) {
             try {
                 if (startDateStr == null || startDateStr.trim().isEmpty()
@@ -147,17 +171,16 @@ public class PromotionCreateServlet extends HttpServlet {
             }
         }
 
-        // [Flow Step: Servlet -> Database] Query DB via DAO to verify code uniqueness in active promotions
+        // Rule 8: Uniqueness of code check in Database
         if (errorMsg == null && promotionDAO.existsByCode(p.getCode())) {
             errorMsg = "Promotion code already exists.";
         }
 
+        // [Form Feedback Handler] If validation failed, re-render form with inputs preserved (UX friendly)
         if (errorMsg != null) {
-            // [Flow Step: Servlet -> JSP] Re-forward back to form.jsp template to output validation error message
             req.setAttribute("errorMsg", errorMsg);
             req.setAttribute("isEdit", false);
             req.setAttribute("promo", p);
-            // Put raw string values back to restore input states
             req.setAttribute("rawDiscountValue", discountValueStr);
             req.setAttribute("rawMinOrderAmount", minOrderAmountStr);
             req.setAttribute("rawMaxUses", maxUsesStr);
@@ -168,22 +191,24 @@ public class PromotionCreateServlet extends HttpServlet {
             return;
         }
 
-        long branchId = (Long) req.getSession(false).getAttribute("currentBranchId");
+        // Apply scoped branchId from session
+        long branchId = (Long) session.getAttribute("currentBranchId");
         p.setBranchId(branchId);
 
-        // [Flow Step: Servlet -> Database] Save new promotion entity into DB
+        // [Database Persist] Insert new record via PromotionDAO
         boolean success = promotionDAO.insert(p);
         if (success) {
             if (p.isActive()) {
-                // [Flow Step: Service] Initiate async background thread to broadcast new active promotion notifications
+                // [Flow Step: Notification Service] Spawn an asynchronous background worker thread to broadcast 
+                // the new active promotion notification to all registered customers without blocking the main HTTP request thread.
                 new Thread(() -> {
-                    Promotion saved = promotionDAO.findByCode(code);  // re-fetch → real promoId
+                    Promotion saved = promotionDAO.findByCode(code);
                     if (saved != null) {
-                        notificationService.broadcastPromotion(saved); // existing method, works as-is
+                        notificationService.broadcastPromotion(saved);
                     }
                 }, "promo-broadcast-" + code).start();
             }
-            // [Flow Step: Servlet -> Browser] Perform Post-Redirect-Get pattern back to the list URL with success flag
+            // PRG Pattern: Redirect browser to GET promotion list showing success parameter
             resp.sendRedirect(req.getContextPath() + "/branch/promotions?created=1");
         } else {
             resp.sendRedirect(req.getContextPath() + "/branch/promotions?error=1");

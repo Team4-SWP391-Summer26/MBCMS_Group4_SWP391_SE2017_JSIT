@@ -19,15 +19,15 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  * Endpoint: ws://host/ws/seats/{showtimeId}
  *
- * Quản lý 2 tầng trạng thái: SOFT LOCK: ConcurrentHashMap trong memory seatId →
- * username đang chọn (chưa submit) HARD LOCK: DB (bookings PENDING/CONFIRMED) -
- * đã có sẵn
+ * Manages two layers of seat lock states:
+ * 1. SOFT LOCK: Tracked temporarily in memory (ConcurrentHashMap) for active selections (seatId -> username).
+ * 2. HARD LOCK: Read from Database tables (bookings in PENDING/CONFIRMED status).
  *
- * Mỗi showtime có 1 "room" riêng (sessions theo showtimeId).
+ * Each showtimeId establishes a virtual broadcast room containing sessions monitoring that specific showtime.
  */
 @ServerEndpoint(
         value = "/ws/seats/{showtimeId}",
-        configurator = HttpSessionConfigurator.class
+        configurator = HttpSessionConfigurator.class // Extends handshake to fetch username and context from HTTP Session
 )
 public class SeatWebSocketServer {
 

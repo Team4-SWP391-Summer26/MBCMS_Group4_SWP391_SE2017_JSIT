@@ -305,10 +305,13 @@
 
 <%@ include file="/WEB-INF/views/branch/_branch-scripts.jspf" %>
 <script>
+    // CTX: Dynamic Context Path binder matching client URLs to J2EE server paths
     const CTX = '${pageContext.request.contextPath}';
     let activeCategory = '';
 
-    /* ── Category filter tabs ──────────────────────────── */
+    /**
+     * [Flow Step: JavaScript] Sets active category filter and triggers table re-render
+     */
     function setCategory(cat) {
         activeCategory = cat;
         document.querySelectorAll('.fnb-seg-btn').forEach(t => {
@@ -324,7 +327,9 @@
         filterTable();
     }
 
-    /* ── Search + category filter ──────────────────────── */
+    /**
+     * [Flow Step: JavaScript] Client-side search and category filtering logic (no-reload UX)
+     */
     function filterTable() {
         const q   = document.getElementById('searchInput').value.toLowerCase();
         const rows = document.querySelectorAll('#menuTable tbody tr[data-name]');
@@ -338,17 +343,22 @@
             if (show) shown++;
         });
 
-        // Show empty state if nothing visible
+        // Show empty placeholder row if no elements match the query
         const emptyRow = document.querySelector('#menuTable tbody tr:not([data-name])');
         if (emptyRow) emptyRow.style.display = shown === 0 ? '' : 'none';
     }
 
-    /* ── Stock inline edit ─────────────────────────────── */
+    /**
+     * [Flow Step: JavaScript] Display check button when stock quantity changes from original baseline
+     */
     function onStockInput(input) {
         const btn = document.getElementById('stockBtn-' + input.dataset.foodId);
         if (btn) btn.style.display = input.value !== input.dataset.original ? 'inline-block' : 'none';
     }
 
+    /**
+     * [Flow Step: AJAX -> Servlet] Asynchronously updates stock values using fetch POST request without page reload
+     */
     async function saveStock(foodId) {
         const input = document.getElementById('stock-' + foodId);
         const stock = parseInt(input.value, 10);
@@ -359,6 +369,7 @@
         }
 
         try {
+            // [Flow Step: JS -> Servlet] POST AJAX request containing updated stock values
             const res  = await fetch(CTX + '/branch/food', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -370,7 +381,7 @@
                 const btn = document.getElementById('stockBtn-' + foodId);
                 if (btn) btn.style.display = 'none';
 
-                // Update Out of stock badge in same cell
+                // Dynamically update Out of stock badge in the table cell
                 const cell  = input.closest('td');
                 const badge = cell.querySelector('.pill-red');
                 if (stock === 0 && !badge) {
@@ -383,7 +394,7 @@
                     badge.remove();
                 }
 
-                // Update KPI out-of-stock count
+                // Update out-of-stock KPI counts dynamically
                 recalcOutOfStock();
             } else {
                 lcAlert(data.message || 'Update failed.');
@@ -398,8 +409,8 @@
         document.querySelectorAll('.stock-input').forEach(inp => {
             if (parseInt(inp.value, 10) === 0) count++;
         });
-        // Update KPI card value (3rd card)
-        const cards = document.querySelectorAll('.lc-stat-value');
+        // Update KPI card value index 2 (Out of stock metric)
+        const cards = document.querySelectorAll('.lc-kpi-value');
         if (cards[2]) cards[2].textContent = count;
     }
 </script>
