@@ -36,39 +36,44 @@
         </c:if>
 
         <div class="lc-kpi-row lc-kpi-row--5">
-            <div class="lc-kpi-card">
+            <div class="lc-kpi-card lc-rise" style="--i:0;">
                 <div class="lc-stat-icon lc-kpi-icon--blue"><i class="bi bi-people-fill"></i></div>
                 <div>
                     <div class="lc-kpi-label">Total users</div>
                     <div class="lc-kpi-value">${stats.totalUsers}</div>
+                    <div class="lc-kpi-hint">All roles combined</div>
                 </div>
             </div>
-            <div class="lc-kpi-card">
+            <div class="lc-kpi-card lc-rise" style="--i:1;">
                 <div class="lc-stat-icon lc-kpi-icon--green"><i class="bi bi-person-fill"></i></div>
                 <div>
                     <div class="lc-kpi-label">Customers</div>
                     <div class="lc-kpi-value">${stats.customersCount}</div>
+                    <div class="lc-kpi-hint">Registered moviegoers</div>
                 </div>
             </div>
-            <div class="lc-kpi-card">
+            <div class="lc-kpi-card lc-rise" style="--i:2;">
                 <div class="lc-stat-icon lc-kpi-icon--violet"><i class="bi bi-person-badge-fill"></i></div>
                 <div>
                     <div class="lc-kpi-label">Branch managers</div>
                     <div class="lc-kpi-value">${stats.branchManagersCount}</div>
+                    <div class="lc-kpi-hint">Manage a cinema</div>
                 </div>
             </div>
-            <div class="lc-kpi-card">
+            <div class="lc-kpi-card lc-rise" style="--i:3;">
                 <div class="lc-stat-icon lc-kpi-icon--amber"><i class="bi bi-person-vcard-fill"></i></div>
                 <div>
                     <div class="lc-kpi-label">Branch staff</div>
                     <div class="lc-kpi-value">${stats.branchStaffCount}</div>
+                    <div class="lc-kpi-hint">Counter &amp; operations</div>
                 </div>
             </div>
-            <div class="lc-kpi-card">
+            <div class="lc-kpi-card lc-rise" style="--i:4;">
                 <div class="lc-stat-icon lc-kpi-icon--rose"><i class="bi bi-shield-fill-check"></i></div>
                 <div>
                     <div class="lc-kpi-label">Admins</div>
                     <div class="lc-kpi-value">${stats.adminsCount}</div>
+                    <div class="lc-kpi-hint">System-wide access</div>
                 </div>
             </div>
         </div>
@@ -104,7 +109,7 @@
                     <button type="button" class="lc-seg-btn ${selectedStatus == 'Inactive' ? 'active' : ''}" onclick="setStatus('Inactive')">Inactive</button>
                 </div>
                 <div class="lc-toolbar-spacer" aria-hidden="true"></div>
-                <button type="button" onclick="exportCSV()" class="btn btn-light border btn-sm">
+                <button type="button" onclick="exportCSV()" class="lc-btn-ghost">
                     <i class="bi bi-file-earmark-arrow-down me-1"></i>Export</button>
                 <a href="${pageContext.request.contextPath}/admin/users?action=add" class="st-toolbar-add">
                     <i class="bi bi-plus-lg" aria-hidden="true"></i> Add User</a>
@@ -124,8 +129,15 @@
                     <tbody>
                     <c:choose>
                         <c:when test="${empty users}">
-                            <tr><td colspan="8" class="text-center text-muted py-5">
-                                <i class="bi bi-people fs-1 d-block mb-2 opacity-50"></i>No matching users.</td></tr>
+                            <tr><td colspan="8" class="p-0">
+                                <div class="lc-empty">
+                                    <i class="bi bi-people"></i>
+                                    <div class="lc-empty-title">No matching users</div>
+                                    <div class="lc-empty-hint">No users match your current search and filters. Try clearing them, or add a new user.</div>
+                                    <a class="st-toolbar-add mt-2" href="${pageContext.request.contextPath}/admin/users?action=add">
+                                        <i class="bi bi-plus-lg"></i> Add User</a>
+                                </div>
+                            </td></tr>
                         </c:when>
                         <c:otherwise>
                             <c:forEach items="${users}" var="user">

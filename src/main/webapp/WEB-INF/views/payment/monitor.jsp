@@ -65,7 +65,7 @@
 
         <%-- ===== KPI cards ===== --%>
         <div class="lc-kpi-row">
-            <div class="lc-kpi-card">
+            <div class="lc-kpi-card lc-rise" style="--i:0;">
                 <div class="lc-stat-icon lc-kpi-icon--green"><i class="bi bi-check-circle-fill"></i></div>
                 <div>
                     <div class="lc-kpi-label">Success</div>
@@ -73,7 +73,7 @@
                     <div class="lc-kpi-hint">Confirmed: <fmt:formatNumber value="${summary.totalSuccessAmount}" pattern="#,###"/>₫</div>
                 </div>
             </div>
-            <div class="lc-kpi-card">
+            <div class="lc-kpi-card lc-rise" style="--i:1;">
                 <div class="lc-stat-icon lc-kpi-icon--amber"><i class="bi bi-hourglass-split"></i></div>
                 <div>
                     <div class="lc-kpi-label">Pending</div>
@@ -81,7 +81,7 @@
                     <div class="lc-kpi-hint">Awaiting payment</div>
                 </div>
             </div>
-            <div class="lc-kpi-card">
+            <div class="lc-kpi-card lc-rise" style="--i:2;">
                 <div class="lc-stat-icon lc-kpi-icon--rose"><i class="bi bi-x-circle-fill"></i></div>
                 <div>
                     <div class="lc-kpi-label">Failed</div>
@@ -89,7 +89,7 @@
                     <div class="lc-kpi-hint">Failed / expired</div>
                 </div>
             </div>
-            <div class="lc-kpi-card">
+            <div class="lc-kpi-card lc-rise" style="--i:3;">
                 <div class="lc-stat-icon lc-kpi-icon--blue"><i class="bi bi-graph-up-arrow"></i></div>
                 <div>
                     <div class="lc-kpi-label">Success rate</div>

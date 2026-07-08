@@ -22,10 +22,14 @@
         <div class="lc-page-head">
             <div>
                 <div class="lc-page-crumb">Dashboard / <strong>Rooms &amp; Seats</strong></div>
-                <h1 class="lc-page-title">Room Management
-                    <c:if test="${not empty sessionScope.currentBranchName}">
-                        &middot; <c:out value="${sessionScope.currentBranchName}"/></c:if></h1>
+                <h1 class="lc-page-title">Room Management</h1>
             </div>
+            <c:if test="${not empty sessionScope.currentBranchName}">
+                <span class="lc-branch-chip">
+                    <i class="bi bi-geo-alt-fill"></i>
+                    <c:out value="${sessionScope.currentBranchName}"/>
+                </span>
+            </c:if>
         </div>
 
         <div class="lc-scope mb-3">
@@ -40,11 +44,11 @@
         <c:if test="${not empty errorMsg}"><div class="alert alert-danger py-2">${errorMsg}</div></c:if>
 
         <div class="row g-3">
-            <c:forEach items="${rooms}" var="room">
+            <c:forEach items="${rooms}" var="room" varStatus="rs">
                 <c:set var="tcls" value="${room.roomType == 'VIP' ? 't-vip' : (room.roomType == 'IMAX' ? 't-imax' : 't-standard')}"/>
                 <c:set var="tbcls" value="${room.roomType == 'VIP' ? 'tb-vip' : (room.roomType == 'IMAX' ? 'tb-imax' : 'tb-standard')}"/>
                 <div class="col-sm-6 col-lg-4 col-xl-3">
-                    <div class="room-card">
+                    <div class="room-card lc-rise" style="--i:${rs.index};">
                         <div class="room-head ${room.active ? tcls : 't-off'}">
                             <div>
                                 <div class="nm"><i class="bi bi-easel2-fill"></i><c:out value="${room.name}"/></div>
@@ -88,7 +92,7 @@
 
             <%-- Add new room card --%>
             <div class="col-sm-6 col-lg-4 col-xl-3">
-                <div class="add-room-card" data-bs-toggle="modal" data-bs-target="#addRoomModal">
+                <div class="add-room-card lc-rise" style="--i:${fn:length(rooms)};" data-bs-toggle="modal" data-bs-target="#addRoomModal">
                     <i class="bi bi-plus-circle fs-1 mb-2"></i>
                     <div class="fw-semibold">Add new room</div>
                     <div class="small text-muted">Configure seats afterwards</div>

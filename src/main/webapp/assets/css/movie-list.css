@@ -3,7 +3,7 @@
    movie-list.css — PentaPlex /movies (dong bo home.css blue accent)
    ===================================================================== */
 
-body:has(.movie-list-main) {
+body.movie-list-page {
     --ml-accent: var(--primary-600);
     --ml-accent-hover: var(--primary-700);
     --ml-accent-light: var(--primary-50);
@@ -94,7 +94,6 @@ body:has(.movie-list-main) {
     letter-spacing: -0.03em;
     line-height: 1.06;
     margin: 0 0 .45rem;
-    text-wrap: balance;
 }
 .movies-page-subtitle {
     margin: 0;
@@ -108,7 +107,7 @@ body:has(.movie-list-main) {
 /* ====================================================================
    MAIN
    ==================================================================== */
-body:has(.movies-page-hero) main.movie-list-main {
+.movies-page-hero ~ main.movie-list-main {
     padding-top: clamp(1.75rem, 3vw, 2.25rem);
     padding-bottom: clamp(2.5rem, 4vw, 3.5rem);
 }

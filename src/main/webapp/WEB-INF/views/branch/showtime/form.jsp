@@ -80,7 +80,7 @@
                             </c:if>
 
                             <%-- ----- Movie & Room (UC19 Assign movies to rooms) ----- --%>
-                            <div class="card lc-elev p-4" id="showtime-form">
+                            <div class="card lc-elev p-4 lc-rise" style="--i:0;" id="showtime-form">
                                 <div class="st-section-title">Movie &amp; Room</div>
                                 <div class="row g-3">
                                     <div class="col-md-6">
@@ -110,7 +110,7 @@
                             </div>
 
                             <%-- ----- Schedule (UC20; end time auto = start + duration, SRS 3.5.2.2) ----- --%>
-                            <div class="card lc-elev p-4">
+                            <div class="card lc-elev p-4 lc-rise" style="--i:1;">
                                 <div class="st-section-title">Schedule</div>
                                 <div class="row g-3">
                                     <div class="col-md-4">
@@ -143,7 +143,7 @@
                             </div>
 
                             <%-- ----- Format & Pricing (UC39 Set ticket pricing) ----- --%>
-                            <div class="card lc-elev p-4">
+                            <div class="card lc-elev p-4 lc-rise" style="--i:2;">
                                 <div class="st-section-title">Format &amp; Pricing</div>
 
                                 <label class="form-label d-block">Format <span class="text-danger">*</span></label>

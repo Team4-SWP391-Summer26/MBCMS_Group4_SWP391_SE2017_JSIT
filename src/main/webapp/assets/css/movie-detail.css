@@ -9,9 +9,6 @@ body.movie-detail-page {
     --md-accent-light: rgba(37, 99, 235, .12);
     --md-warm: var(--gold);
     background: var(--bg);
-}
-
-html:has(.movie-detail-page) {
     scroll-behavior: smooth;
 }
 

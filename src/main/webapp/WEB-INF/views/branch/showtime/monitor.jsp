@@ -74,30 +74,33 @@
 
         <%-- Live Stats --%>
         <div class="lc-kpi-row">
-            <div class="lc-kpi-card">
+            <div class="lc-kpi-card lc-rise" style="--i:0;">
                 <div class="lc-stat-icon lc-kpi-icon--blue"><i class="bi bi-pie-chart-fill"></i></div>
                 <div>
                     <div class="lc-kpi-label">Real-time occupancy</div>
                     <div class="lc-kpi-value" id="liveOccPct">
                         <fmt:formatNumber value="${showtime.roomCapacity > 0 ? showtime.bookedSeats * 100 / showtime.roomCapacity : 0}" maxFractionDigits="0" />%
                     </div>
+                    <div class="lc-kpi-hint">Confirmed of total seats</div>
                 </div>
             </div>
-            <div class="lc-kpi-card">
+            <div class="lc-kpi-card lc-rise" style="--i:1;">
                 <div class="lc-stat-icon lc-kpi-icon--green"><i class="bi bi-ticket-perforated-fill"></i></div>
                 <div>
                     <div class="lc-kpi-label">Seats sold (hard lock)</div>
                     <div class="lc-kpi-value" id="liveSold">${showtime.bookedSeats} / ${showtime.roomCapacity}</div>
+                    <div class="lc-kpi-hint">Paid &amp; confirmed</div>
                 </div>
             </div>
-            <div class="lc-kpi-card">
+            <div class="lc-kpi-card lc-rise" style="--i:2;">
                 <div class="lc-stat-icon lc-kpi-icon--amber"><i class="bi bi-hourglass-split"></i></div>
                 <div>
                     <div class="lc-kpi-label">Selecting (soft lock)</div>
                     <div class="lc-kpi-value lc-kpi-value--amber" id="liveSoft">${fn:length(heldSeatIds)}</div>
+                    <div class="lc-kpi-hint">Customers choosing now</div>
                 </div>
             </div>
-            <div class="lc-kpi-card">
+            <div class="lc-kpi-card lc-rise" style="--i:3;">
                 <div class="lc-stat-icon lc-kpi-icon--slate"><i class="bi bi-broadcast"></i></div>
                 <div>
                     <div class="lc-kpi-label">Live connection</div>
@@ -211,7 +214,7 @@
             ws = new WebSocket(wsUrl);
 
             ws.onopen = function() {
-                statusBadge.innerHTML = '<span class="badge bg-success"><i class="bi bi-circle-fill me-1" style="font-size:.55rem; color:#fff;"></i> Live</span>';
+                statusBadge.innerHTML = '<span class="badge bg-success"><span class="lc-live-dot"></span>Live</span>';
                 addLog("System", "Live connection established successfully.");
             };
 
