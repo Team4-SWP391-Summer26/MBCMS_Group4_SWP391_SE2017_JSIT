@@ -45,10 +45,10 @@
         </div>
 
         <div class="row g-3">
-            <c:forEach items="${rooms}" var="room">
+            <c:forEach items="${rooms}" var="room" varStatus="rs">
                 <c:set var="tcls" value="${room.roomType == 'VIP' ? 't-vip' : (room.roomType == 'IMAX' ? 't-imax' : 't-standard')}"/>
                 <div class="col-sm-6 col-lg-4 col-xl-3">
-                    <div class="room-card">
+                    <div class="room-card lc-rise" style="--i:${rs.index};">
                         <div class="room-head ${room.active ? tcls : 't-off'}">
                             <div>
                                 <div class="nm"><i class="bi bi-easel2-fill"></i><c:out value="${room.name}"/></div>
@@ -97,7 +97,7 @@
             </c:forEach>
 
             <div class="col-sm-6 col-lg-4 col-xl-3">
-                <div class="add-room-card" data-bs-toggle="modal" data-bs-target="#addRoomModal">
+                <div class="add-room-card lc-rise" style="--i:${fn:length(rooms)};" data-bs-toggle="modal" data-bs-target="#addRoomModal">
                     <i class="bi bi-plus-circle fs-1 mb-2"></i>
                     <div class="fw-semibold">Add new room</div>
                     <div class="small text-muted">Configure seats afterwards</div>

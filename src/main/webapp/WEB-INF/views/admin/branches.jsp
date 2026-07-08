@@ -49,25 +49,28 @@
         </c:forEach>
 
         <div class="lc-kpi-row lc-kpi-row--3 mb-4">
-            <div class="lc-kpi-card">
+            <div class="lc-kpi-card lc-rise" style="--i:0;">
                 <div class="lc-stat-icon lc-kpi-icon--blue"><i class="bi bi-building-fill"></i></div>
                 <div>
                     <div class="lc-kpi-label">Total cinemas</div>
                     <div class="lc-kpi-value">${totalCount}</div>
+                    <div class="lc-kpi-hint">Across the network</div>
                 </div>
             </div>
-            <div class="lc-kpi-card">
+            <div class="lc-kpi-card lc-rise" style="--i:1;">
                 <div class="lc-stat-icon lc-kpi-icon--green"><i class="bi bi-check-circle-fill"></i></div>
                 <div>
                     <div class="lc-kpi-label">Active</div>
                     <div class="lc-kpi-value">${activeCount}</div>
+                    <div class="lc-kpi-hint">Open for booking</div>
                 </div>
             </div>
-            <div class="lc-kpi-card">
+            <div class="lc-kpi-card lc-rise" style="--i:2;">
                 <div class="lc-stat-icon lc-kpi-icon--amber"><i class="bi bi-x-circle-fill"></i></div>
                 <div>
                     <div class="lc-kpi-label">Inactive</div>
                     <div class="lc-kpi-value">${totalCount - activeCount}</div>
+                    <div class="lc-kpi-hint">Hidden from customers</div>
                 </div>
             </div>
         </div>
@@ -112,7 +115,7 @@
                 </c:choose>
                 <c:if test="${not b.active}"><c:set var="bannerCls" value="banner-gray"/></c:if>
 
-                <div class="col-md-6 cinema-card-col"
+                <div class="col-md-6 cinema-card-col lc-rise" style="--i:${loop.index};"
                      data-name="${b.name}"
                      data-city="${b.city}"
                      data-status="${b.active ? 'active' : 'inactive'}">
@@ -163,10 +166,12 @@
             </c:forEach>
             <c:if test="${empty branches}">
                 <div class="col-12">
-                    <div class="text-center py-5 text-muted">
-                        <i class="bi bi-building fs-1 d-block mb-2 opacity-50"></i>
-                        No cinemas found.
-                        <button class="btn btn-link p-0" data-bs-toggle="modal" data-bs-target="#addModal">Add one</button>.
+                    <div class="lc-empty">
+                        <i class="bi bi-building"></i>
+                        <div class="lc-empty-title">No cinemas yet</div>
+                        <div class="lc-empty-hint">Add your first cinema to start configuring its rooms, seats and showtimes.</div>
+                        <button type="button" class="st-toolbar-add mt-2" data-bs-toggle="modal" data-bs-target="#addModal">
+                            <i class="bi bi-plus-lg"></i> Add Cinema</button>
                     </div>
                 </div>
             </c:if>

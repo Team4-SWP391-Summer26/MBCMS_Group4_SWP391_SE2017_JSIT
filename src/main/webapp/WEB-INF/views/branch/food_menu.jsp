@@ -47,6 +47,12 @@
             <div class="lc-page-crumb">Dashboard / <strong>F&amp;B Menu</strong></div>
             <h1 class="lc-page-title">F&amp;B Menu Management</h1>
         </div>
+        <c:if test="${not empty sessionScope.currentBranchName}">
+            <span class="lc-branch-chip">
+                <i class="bi bi-geo-alt-fill"></i>
+                <c:out value="${sessionScope.currentBranchName}"/>
+            </span>
+        </c:if>
     </div>
 
     <%-- ── Scope notice ──────────────────────────────────── --%>
@@ -71,25 +77,28 @@
 
     <%-- ── KPI cards ──────────────────────────────────────── --%>
     <div class="lc-kpi-row lc-kpi-row--3">
-        <div class="lc-kpi-card">
+        <div class="lc-kpi-card lc-rise" style="--i:0;">
             <div class="lc-stat-icon lc-kpi-icon--blue"><i class="bi bi-basket-fill"></i></div>
             <div>
                 <div class="lc-kpi-label">Total items</div>
                 <div class="lc-kpi-value">${totalItems}</div>
+                <div class="lc-kpi-hint">Concessions in this branch</div>
             </div>
         </div>
-        <div class="lc-kpi-card">
+        <div class="lc-kpi-card lc-rise" style="--i:1;">
             <div class="lc-stat-icon lc-kpi-icon--green"><i class="bi bi-check-circle-fill"></i></div>
             <div>
                 <div class="lc-kpi-label">Active</div>
                 <div class="lc-kpi-value">${activeItems}</div>
+                <div class="lc-kpi-hint">Visible to customers</div>
             </div>
         </div>
-        <div class="lc-kpi-card">
+        <div class="lc-kpi-card lc-rise" style="--i:2;">
             <div class="lc-stat-icon lc-kpi-icon--rose"><i class="bi bi-exclamation-triangle-fill"></i></div>
             <div>
                 <div class="lc-kpi-label">Out of stock</div>
-                <div class="lc-kpi-value">${outOfStock}</div>
+                <div class="lc-kpi-value" id="kpiOutOfStock">${outOfStock}</div>
+                <div class="lc-kpi-hint">Needs restocking</div>
             </div>
         </div>
     </div>
@@ -152,9 +161,14 @@
                 <tbody>
                     <c:if test="${empty menuItems}">
                         <tr>
-                            <td colspan="7" class="text-center text-muted py-5">
-                                <i class="bi bi-cup-straw" style="font-size:2rem;display:block;margin-bottom:.5rem;"></i>
-                                No items yet. <a href="${pageContext.request.contextPath}/branch/food?action=add">Add your first item</a>.
+                            <td colspan="7" class="p-0">
+                                <div class="lc-empty">
+                                    <i class="bi bi-cup-straw"></i>
+                                    <div class="lc-empty-title">No menu items yet</div>
+                                    <div class="lc-empty-hint">Add snacks, drinks and combos to sell at this branch. Items you add here appear in the customer booking flow.</div>
+                                    <a class="st-toolbar-add mt-2" href="${pageContext.request.contextPath}/branch/food?action=add">
+                                        <i class="bi bi-plus-lg"></i> Add your first item</a>
+                                </div>
                             </td>
                         </tr>
                     </c:if>
@@ -409,9 +423,9 @@
         document.querySelectorAll('.stock-input').forEach(inp => {
             if (parseInt(inp.value, 10) === 0) count++;
         });
-        // Update KPI card value index 2 (Out of stock metric)
-        const cards = document.querySelectorAll('.lc-kpi-value');
-        if (cards[2]) cards[2].textContent = count;
+        // Update KPI "Out of stock" card value
+        const oos = document.getElementById('kpiOutOfStock');
+        if (oos) oos.textContent = count;
     }
 </script>
 </body>

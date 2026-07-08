@@ -41,7 +41,7 @@
 
             <div class="row g-4">
                 <div class="col-lg-8">
-                    <div class="card lc-elev p-4 mb-4">
+                    <div class="card lc-elev p-4 mb-4 lc-rise" style="--i:0;">
                         <h5 class="text-navy fw-bold mb-3">Cinema Information</h5>
                         <div class="row g-3">
                             <div class="col-md-6">
@@ -70,7 +70,7 @@
                     <input type="hidden" name="openingTime" value="${branch.openingTime}">
                     <input type="hidden" name="closingTime" value="${branch.closingTime}">
 
-                    <div class="card lc-elev p-4">
+                    <div class="card lc-elev p-4 lc-rise" style="--i:1;">
                         <h5 class="text-navy fw-bold mb-3">Cinema Status</h5>
                         <div class="form-check form-switch">
                             <input class="form-check-input" type="checkbox" name="active" role="switch"

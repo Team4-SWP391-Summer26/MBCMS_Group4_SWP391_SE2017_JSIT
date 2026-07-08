@@ -14,7 +14,7 @@
         <link href="${pageContext.request.contextPath}/assets/css/home.css?v=${applicationScope.assetVersion}" rel="stylesheet">
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css">
     </head>
-    <body>
+    <body class="home-page">
 
         <jsp:include page="common/header.jsp" />
 
@@ -30,7 +30,7 @@
                     <div class="row align-items-center g-4 g-lg-5">
                         <%-- LEFT: thông tin phim đang ở giữa --%>
                         <div class="col-lg-5 order-2 order-lg-1 hero-cf-info home-reveal" style="--i:0">
-                            <span class="eyebrow"><i class="bi bi-stars"></i> Spotlight</span>
+                            <span class="eyebrow">Spotlight</span>
                             <h1 class="cf-title" id="cfTitle"><c:out value="${cf0.title}"/></h1>
                             <div class="cf-meta" id="cfMeta">
                                 <span class="cf-rating"><i class="bi bi-star-fill"></i> <span id="cfRating">${cf0Rating}</span></span>

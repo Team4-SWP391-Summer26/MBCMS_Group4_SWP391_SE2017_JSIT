@@ -48,17 +48,17 @@
         </div>
 
         <c:if test="${not empty successMsg}">
-            <div class="alert alert-success py-2">${successMsg}</div>
+            <div class="alert alert-success py-2"><c:out value="${successMsg}"/></div>
         </c:if>
         <c:if test="${not empty errorMsg}">
-            <div class="alert alert-danger py-2">${errorMsg}</div>
+            <div class="alert alert-danger py-2"><c:out value="${errorMsg}"/></div>
         </c:if>
 
         <div class="row g-3">
             <%-- ===== LEFT: toolbar + seat map ===== --%>
             <div class="col-lg-8">
                 <%-- Toolbar --%>
-                <div class="card lc-elev p-3 mb-3 sl-toolbar">
+                <div class="card lc-elev p-3 mb-3 sl-toolbar lc-rise" style="--i:0;">
                     <div class="d-flex flex-wrap align-items-center gap-2">
                         <span class="fw-semibold me-1" style="font-size:.9rem;">Apply to selected:</span>
                         <div class="sl-tools" id="slTools">
@@ -67,25 +67,28 @@
                             <button type="button" class="sl-tool" data-tool="OFF"><span class="dot d-off"></span>Off</button>
                         </div>
                         <button type="button" class="st-toolbar-add border-0" id="applyBtn" disabled>Apply (<span id="selCount">0</span>)</button>
-                        <span class="vr mx-1"></span>
-                        <button type="button" class="btn btn-light btn-sm border" id="selectAllBtn">Select all</button>
-                        <button type="button" class="btn btn-light btn-sm border" id="clearBtn">Clear</button>
+                        <span class="st-toolbar-vrule" aria-hidden="true"></span>
+                        <button type="button" class="lc-btn-ghost" id="selectAllBtn">Select all</button>
+                        <button type="button" class="lc-btn-ghost" id="clearBtn">Clear</button>
                         <span class="text-muted ms-auto" style="font-size:.78rem;">
                             <i class="bi bi-info-circle me-1"></i>Click to multi-select, then Apply</span>
                     </div>
                 </div>
 
                 <%-- Seat map --%>
-                <div class="card lc-elev p-4">
+                <div class="card lc-elev p-4 lc-rise" style="--i:1;">
                     <div class="sl-screen-wrap mb-4">
                         <div class="sl-screen-curve"></div>
                         <div class="sl-screen-label">SCREEN</div>
                     </div>
 
                     <c:if test="${empty seatsByRow}">
-                        <div class="text-center text-muted py-5">
-                            <i class="bi bi-grid-3x3-gap fs-1 d-block mb-2 opacity-50"></i>
-                            No seats yet. Use <strong>Reset / Generate grid</strong> to create the layout.
+                        <div class="lc-empty">
+                            <i class="bi bi-grid-3x3-gap"></i>
+                            <div class="lc-empty-title">No seat layout yet</div>
+                            <div class="lc-empty-hint">Generate a seat grid to start arranging Standard, VIP and disabled seats for this room.</div>
+                            <button type="button" class="st-toolbar-add mt-2" data-bs-toggle="modal" data-bs-target="#genModal">
+                                <i class="bi bi-plus-lg"></i> Generate grid</button>
                         </div>
                     </c:if>
 
@@ -139,7 +142,7 @@
 
             <%-- ===== RIGHT: summary ===== --%>
             <div class="col-lg-4">
-                <div class="card lc-elev p-4" style="position:sticky; top:16px;">
+                <div class="card lc-elev p-4 lc-rise" style="--i:2; position:sticky; top:16px;">
                     <h6 class="text-navy fw-bold mb-3">Summary</h6>
                     <div class="sl-sum-row sl-sum-total">
                         <span>Total seats</span><span class="fw-bold fs-5" id="sumTotal">0</span>

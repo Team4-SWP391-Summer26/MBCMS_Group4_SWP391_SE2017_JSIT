@@ -55,14 +55,15 @@
         </c:forEach>
 
         <div class="lc-kpi-row lc-kpi-row--3">
-            <div class="lc-kpi-card">
+            <div class="lc-kpi-card lc-rise" style="--i:0;">
                 <div class="lc-stat-icon lc-kpi-icon--blue"><i class="bi bi-tags-fill"></i></div>
                 <div>
                     <div class="lc-kpi-label">Total genres</div>
                     <div class="lc-kpi-value">${genreTotal}</div>
+                    <div class="lc-kpi-hint">In the catalog</div>
                 </div>
             </div>
-            <div class="lc-kpi-card">
+            <div class="lc-kpi-card lc-rise" style="--i:1;">
                 <div class="lc-stat-icon lc-kpi-icon--green"><i class="bi bi-film"></i></div>
                 <div>
                     <div class="lc-kpi-label">In use</div>
@@ -70,7 +71,7 @@
                     <div class="lc-kpi-hint">Linked to movies</div>
                 </div>
             </div>
-            <div class="lc-kpi-card">
+            <div class="lc-kpi-card lc-rise" style="--i:2;">
                 <div class="lc-stat-icon lc-kpi-icon--slate"><i class="bi bi-dash-circle"></i></div>
                 <div>
                     <div class="lc-kpi-label">Unused</div>

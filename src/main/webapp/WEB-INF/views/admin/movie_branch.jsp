@@ -71,7 +71,7 @@
                 <%@ include file="/WEB-INF/views/common/csrf-hidden.jspf" %>
                 <input type="hidden" name="branchId" value="${selectedBranchId}">
 
-                <div class="card lc-elev p-4">
+                <div class="card lc-elev p-4 lc-rise" style="--i:0;">
                     <div class="d-flex flex-wrap align-items-center gap-3 mb-3 pb-3 border-bottom">
                         <span class="fw-semibold">
                             Assigned: <span id="cntAssigned">0</span><span class="text-muted" id="cntTotalWrap"></span>
@@ -85,7 +85,13 @@
 
                     <c:choose>
                         <c:when test="${empty movies}">
-                            <div class="text-muted text-center py-4">No active movies in the catalog yet.</div>
+                            <div class="lc-empty">
+                                <i class="bi bi-film"></i>
+                                <div class="lc-empty-title">No movies to assign</div>
+                                <div class="lc-empty-hint">There are no active movies in the catalog yet. Add movies first, then assign them to this branch.</div>
+                                <a class="st-toolbar-add mt-2" href="${pageContext.request.contextPath}/admin/movies?action=add">
+                                    <i class="bi bi-plus-lg"></i> Add Movie</a>
+                            </div>
                         </c:when>
                         <c:otherwise>
                             <div class="d-flex flex-column gap-2">

@@ -170,7 +170,7 @@
                 <div class="col-lg-4">
 
                     <%-- Avatar + identity card --%>
-                    <div class="lc-panel mb-3">
+                    <div class="lc-panel mb-3 lc-rise" style="--i:0;">
                         <div class="p-4 text-center">
 
                             <%-- Dynamic avatar colour based on role --%>
@@ -283,7 +283,7 @@
                 <div class="col-lg-8">
 
                     <%-- Personal Details --%>
-                    <div class="lc-panel mb-3">
+                    <div class="lc-panel mb-3 lc-rise" style="--i:1;">
                         <div class="lc-panel-header">
                             <i class="bi bi-person-lines-fill text-primary"></i> Personal Details
                         </div>
@@ -354,7 +354,7 @@
                     </div>
 
                     <%-- Password --%>
-                    <div class="lc-panel mb-3">
+                    <div class="lc-panel mb-3 lc-rise" style="--i:2;">
                         <div class="lc-panel-header">
                             <i class="bi bi-lock-fill text-primary"></i>
                             <c:choose>
@@ -376,7 +376,7 @@
                     </div>
 
                     <%-- Role selection --%>
-                    <div class="lc-panel mb-3">
+                    <div class="lc-panel mb-3 lc-rise" style="--i:3;">
                         <div class="lc-panel-header">
                             <i class="bi bi-shield-check text-primary"></i> Role &amp; Permissions
                         </div>

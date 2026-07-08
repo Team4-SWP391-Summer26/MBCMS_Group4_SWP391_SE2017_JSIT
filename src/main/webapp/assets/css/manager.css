@@ -1165,7 +1165,6 @@ button.st-toolbar-add:disabled,
     position: relative;
     min-height: var(--st-row-h);
     border-bottom: 1px solid var(--lc-border);
-    container-type: inline-size;
 }
 .st-grid-lane::before {
     content: "";
@@ -1234,12 +1233,8 @@ button.st-toolbar-add:disabled,
     opacity: .9;
     font-size: .68rem;
     line-height: 1;
-}
-@container (max-width: 108px) {
-    .st-block-meta { display: none; }
-}
-@container (max-width: 72px) {
-    .st-block-title { font-size: .65rem; }
+    overflow: hidden;
+    white-space: nowrap;
 }
 .st-std  { background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); }
 .st-vip  { background: linear-gradient(135deg, #b8860b 0%, #9a7209 100%); }
@@ -1456,37 +1451,88 @@ button.st-toolbar-add:disabled,
 
 /* ---- Filter toolbar ---- */
 .pay-toolbar { background:#fff; border:1px solid var(--lc-border); border-radius:14px; box-shadow:var(--lc-shadow); padding:1rem 1.1rem; margin-bottom:1.1rem; }
-.pay-toolbar label { font-size:.68rem; text-transform:uppercase; letter-spacing:.05em; color:var(--lc-muted); font-weight:700; margin-bottom:.3rem; display:block; }
-.pay-toolbar .form-select, .pay-toolbar .form-control { border-color:var(--lc-border); font-size:.86rem; }
-.pay-toolbar .form-select:focus, .pay-toolbar .form-control:focus { border-color:var(--lc-primary); box-shadow:0 0 0 3px rgba(37,99,235,.12); }
-.pay-toolbar .input-group-sm {
-    --pay-search-h: calc(1.5em + 0.5rem + 2px);
-    align-items: stretch;
-    flex-wrap: nowrap;
+.pay-toolbar label { font-size:.68rem; text-transform:uppercase; letter-spacing:.05em; color:var(--lc-muted); font-weight:700; margin-bottom:.35rem; display:block; }
+
+/* Grid layout: equal filter columns + one wider search cell.
+   Perfectly aligned via CSS Grid (no flexbox percentage math). */
+.pay-filter-grid {
+    display: grid;
+    gap: .85rem .8rem;
+    align-items: end;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
 }
-.pay-toolbar .input-group-sm > .form-control,
-.pay-toolbar .input-group-sm > .btn,
-.pay-toolbar .input-group-sm > a.btn {
-    height: var(--pay-search-h);
-    min-height: var(--pay-search-h);
-    box-sizing: border-box;
-    margin-top: 0;
-    margin-bottom: 0;
+@media (min-width: 768px) {
+    .pay-filter-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 }
-.pay-toolbar .input-group-sm > .btn,
-.pay-toolbar .input-group-sm > a.btn {
+@media (min-width: 1200px) {
+    .pay-filter-grid            { grid-template-columns: repeat(4, minmax(0, 1fr)) minmax(240px, 1.7fr); }
+    .pay-filter-grid.has-branch { grid-template-columns: repeat(5, minmax(0, 1fr)) minmax(240px, 1.7fr); }
+}
+.pay-filter-field { display: flex; flex-direction: column; min-width: 0; }
+/* Search spans the full width until the single-row (xl) breakpoint. */
+.pay-filter-field--search { grid-column: 1 / -1; }
+@media (min-width: 1200px) {
+    .pay-filter-field--search { grid-column: auto; }
+}
+
+/* Unified control height for EVERY control in the toolbar. */
+.pay-toolbar .form-select,
+.pay-toolbar .form-control,
+.pay-search-box {
+    height: 40px;
+    border: 1px solid var(--lc-border);
+    border-radius: 10px;
+    font-size: .86rem;
+    color: var(--text);
+    background-color: #fff;
+}
+.pay-toolbar .form-select:focus,
+.pay-toolbar .form-control:focus { border-color:var(--lc-primary); box-shadow:0 0 0 3px rgba(37,99,235,.12); }
+
+/* Search: single rounded field — leading icon + input + ghost reset. Enter submits. */
+.pay-search-box {
+    display: flex;
+    align-items: center;
+    gap: .45rem;
+    padding: 0 .35rem 0 .7rem;
+    transition: border-color .15s ease, box-shadow .15s ease;
+}
+.pay-search-box:focus-within { border-color: var(--lc-primary); box-shadow: 0 0 0 3px rgba(37,99,235,.12); }
+.pay-search-box > .bi-search { color: var(--text-subtle); font-size: .9rem; flex-shrink: 0; line-height: 1; }
+.pay-search-box input {
+    flex: 1 1 auto;
+    min-width: 0;
+    height: 100%;
+    border: 0;
+    outline: none;
+    background: transparent;
+    font-size: .86rem;
+    color: var(--text);
+    padding: 0;
+}
+.pay-search-box input::placeholder { color: var(--text-subtle); }
+.pay-search-box input::-webkit-search-cancel-button { -webkit-appearance: none; appearance: none; }
+.pay-search-btn,
+.pay-search-reset {
+    flex-shrink: 0;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    padding: 0 .65rem;
-    line-height: 1;
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    border: 0;
+    text-decoration: none;
+    cursor: pointer;
+    font-size: .85rem;
+    transition: background .15s ease, color .15s ease, transform .1s ease;
 }
-.pay-toolbar .input-group-sm > a.btn.pay-search-reset {
-    width: var(--pay-search-h);
-    min-width: var(--pay-search-h);
-    padding: 0;
-    flex-shrink: 0;
-}
+.pay-search-btn { background: var(--lc-primary); color: #fff; }
+.pay-search-btn:hover { background: var(--primary-700); color: #fff; }
+.pay-search-btn:active { transform: scale(.94); }
+.pay-search-reset { background: transparent; color: var(--text-subtle); }
+.pay-search-reset:hover { background: var(--surface-3); color: var(--navy); }
+.pay-search-reset:active { transform: scale(.94); }
 
 /* ---- Data card + table ---- */
 .pay-card { background:#fff; border:1px solid var(--lc-border); border-radius:14px; box-shadow:var(--lc-shadow); overflow:hidden; }
@@ -1522,7 +1568,7 @@ button.st-toolbar-add:disabled,
 .pay-st.s-off     { background:#EEF1F4; color:#475569; } .pay-st.s-off     .dot { background:#94a3b8; }
 
 .pay-empty { text-align:center; padding:3.5rem 1.5rem; color:var(--lc-muted); }
-.pay-empty i { font-size:2.6rem; color:#cbd5e1; display:block; margin-bottom:.6rem; }
+.pay-empty > i { font-size:2.6rem; color:#cbd5e1; display:block; margin-bottom:.6rem; }
 
 /* ---- Card footer (count + pagination) ---- */
 .pay-foot { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:.75rem; padding:.85rem 1.25rem; border-top:1px solid var(--lc-border); background:#FCFDFF; }
@@ -2014,7 +2060,7 @@ body.lc-console {
     border-radius: var(--radius-lg);
 }
 
-.lc-empty i {
+.lc-empty > i {
     display: block;
     margin-bottom: .65rem;
     color: var(--text-subtle);
@@ -2583,11 +2629,8 @@ body.lc-console {
     flex-shrink: 0;
     border: 1px solid rgba(15, 23, 42, .06);
 }
-.genre-item[data-tone="green"]  { --genre-accent: #15803d; --genre-bg: #ecfdf5; }
-.genre-item[data-tone="amber"]  { --genre-accent: #b45309; --genre-bg: #fffbeb; }
-.genre-item[data-tone="rose"]   { --genre-accent: #be123c; --genre-bg: #fff1f2; }
-.genre-item[data-tone="slate"]  { --genre-accent: #475569; --genre-bg: #f1f5f9; }
-.genre-item[data-tone="violet"] { --genre-accent: #6d28d9; --genre-bg: #f5f3ff; }
+/* Harmonised: every genre swatch uses the ONE brand accent (no rainbow tones).
+   data-tone attributes stay in markup but no longer recolour each row. */
 .genre-name {
     font-weight: 700;
     font-size: .95rem;
@@ -2700,3 +2743,165 @@ body.lc-console {
     .genre-count { grid-column: 2; justify-self: start; }
     .genre-actions { grid-column: 1 / -1; justify-self: end; }
 }
+
+/* ============================================================
+   CONSOLE POLISH LAYER (design-taste skill)
+   Motion intensity 6 (fluid CSS, spring-like cubic-bezier, staggered
+   reveals), visual density 4, single accent. Shared by every /branch/*
+   screen so the whole console feels alive and consistent.
+   prefers-reduced-motion is neutralised globally in tokens.css.
+   ============================================================ */
+
+/* ---- Staggered entrance: add class .lc-rise + style="--i:N" ---- */
+@keyframes lc-rise-in {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+.lc-rise {
+    animation: lc-rise-in .5s cubic-bezier(.16, 1, .3, 1) both;
+    animation-delay: calc(var(--i, 0) * 70ms);
+    will-change: transform, opacity;
+}
+
+/* ---- KPI cards: tabular numerals + accent rail + weighty hover ---- */
+.lc-kpi-value,
+.lc-stat-value {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum" 1, "cv11" 1;
+}
+.lc-kpi-card {
+    position: relative;
+    overflow: hidden;
+    transition: box-shadow .2s cubic-bezier(.16, 1, .3, 1),
+                transform .2s cubic-bezier(.16, 1, .3, 1),
+                border-color .2s ease;
+}
+/* Hairline top rail tinted to the card's semantic icon — subtle, not neon */
+.lc-kpi-card::after {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--primary-500), transparent 82%);
+    opacity: 0;
+    transition: opacity .2s ease;
+}
+.lc-kpi-card:not(.is-muted):hover {
+    transform: translateY(-2px);
+    border-color: var(--border-strong);
+    box-shadow: var(--shadow-md);
+}
+.lc-kpi-card:not(.is-muted):hover::after { opacity: 1; }
+
+/* ---- Composed empty state (icon disc + title + hint) ---- */
+.lc-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: .35rem;
+}
+/* Only the decorative direct-child icon becomes a disc — NEVER icons that
+   live inside a CTA button/link (e.g. the <i> in .st-toolbar-add). */
+.lc-empty > i {
+    margin-bottom: .25rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 56px;
+    height: 56px;
+    border-radius: var(--radius-pill);
+    background: var(--surface-3);
+    color: var(--text-subtle);
+    font-size: 1.6rem;
+}
+.lc-empty-title {
+    font-family: var(--font-display-console);
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--navy);
+    letter-spacing: -0.01em;
+}
+.lc-empty-hint {
+    font-size: .85rem;
+    color: var(--lc-muted);
+    max-width: 46ch;
+    line-height: 1.5;
+}
+
+/* ---- Section header helper (title left, action right) ---- */
+.lc-section-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+.lc-section-title {
+    font-family: var(--font-display-console);
+    font-weight: 700;
+    font-size: 1.02rem;
+    color: var(--navy);
+    letter-spacing: -0.01em;
+    margin: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: .5rem;
+}
+.lc-section-title .bi {
+    color: var(--primary);
+    font-size: 1rem;
+}
+.lc-link-more {
+    display: inline-flex;
+    align-items: center;
+    gap: .3rem;
+    font-size: .82rem;
+    font-weight: 600;
+    color: var(--primary);
+    text-decoration: none;
+    white-space: nowrap;
+    transition: gap .18s cubic-bezier(.16, 1, .3, 1), color .15s ease;
+}
+.lc-link-more:hover {
+    color: var(--primary-700);
+    gap: .5rem;
+}
+
+/* ---- Table row entrance + hover (server-rendered lists feel alive) ---- */
+.lc-table tbody tr {
+    transition: background .15s ease;
+}
+.lc-table tbody tr:hover td {
+    background: var(--table-row-hover);
+}
+
+/* ---- Live "breathing" status dot (real-time monitor) ---- */
+.lc-live-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: var(--radius-pill);
+    background: currentColor;
+    margin-right: .4rem;
+    vertical-align: middle;
+    animation: lc-live-pulse 1.6s cubic-bezier(.16, 1, .3, 1) infinite;
+}
+@keyframes lc-live-pulse {
+    0%   { box-shadow: 0 0 0 0 rgba(255, 255, 255, .55); opacity: 1; }
+    70%  { box-shadow: 0 0 0 6px rgba(255, 255, 255, 0); opacity: .85; }
+    100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); opacity: 1; }
+}
+
+/* ---- Admin dashboard tile grid: staggered entrance ---- */
+.lc-tile-grid > [class*="col"] {
+    animation: lc-rise-in .5s cubic-bezier(.16, 1, .3, 1) both;
+    will-change: transform, opacity;
+}
+.lc-tile-grid > [class*="col"]:nth-child(1) { animation-delay: 60ms; }
+.lc-tile-grid > [class*="col"]:nth-child(2) { animation-delay: 120ms; }
+.lc-tile-grid > [class*="col"]:nth-child(3) { animation-delay: 180ms; }
+.lc-tile-grid > [class*="col"]:nth-child(4) { animation-delay: 240ms; }
+.lc-tile-grid > [class*="col"]:nth-child(5) { animation-delay: 300ms; }
+.lc-tile-grid > [class*="col"]:nth-child(6) { animation-delay: 360ms; }
+.lc-tile-grid > [class*="col"]:nth-child(7) { animation-delay: 420ms; }
+.lc-tile-grid > [class*="col"]:nth-child(n+8) { animation-delay: 480ms; }

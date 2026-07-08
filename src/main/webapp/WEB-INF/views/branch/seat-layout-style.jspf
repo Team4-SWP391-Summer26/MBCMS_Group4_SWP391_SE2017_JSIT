@@ -44,14 +44,15 @@
         box-shadow: 0 4px 12px rgba(22,163,74,.30); transform: translateY(-1px);
     }
 
-    /* ----- Toolbar segmented tools ----- */
-    .sl-tools { display: inline-flex; background: #eef1f4; border-radius: 10px; padding: 3px; gap: 2px; }
+    /* ----- Toolbar segmented tools (height unified to 40px with the rest of the bar) ----- */
+    .sl-tools { display: inline-flex; align-items: center; height: 40px; background: #eef1f4; border-radius: 10px; padding: 3px; gap: 2px; }
     .sl-tool {
         border: 0; background: transparent; font-size: .8rem; font-weight: 600;
-        color: var(--lc-muted); padding: .32rem .7rem; border-radius: 8px; cursor: pointer;
+        color: var(--lc-muted); height: 34px; padding: 0 .7rem; border-radius: 8px; cursor: pointer;
         display: inline-flex; align-items: center; gap: .4rem; transition: all .12s ease;
     }
     .sl-tool.active { background: #fff; color: var(--lc-navy); box-shadow: 0 1px 2px rgba(15,30,54,.14); }
+    .sl-tool:active { transform: scale(.97); }
 
     /* ----- Legend / summary dots (match seat colors) ----- */
     .dot { width: 12px; height: 12px; border-radius: 3px; display: inline-block; border: 1.5px solid; }
