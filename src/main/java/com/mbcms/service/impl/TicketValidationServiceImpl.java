@@ -7,6 +7,7 @@ import com.mbcms.model.BookingTicket;
 import com.mbcms.model.ShowtimeAttendance;
 import com.mbcms.model.TicketValidationResult;
 import com.mbcms.service.TicketValidationService;
+import com.mbcms.util.DateTimeUtil;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -81,8 +82,9 @@ public class TicketValidationServiceImpl implements TicketValidationService {
                 break; // CONFIRMED -> kiem tra suat chieu
         }
 
-        // Validate entry theo suat chieu hien tai
-        LocalDateTime now = LocalDateTime.now();
+        // Validate entry theo suat chieu hien tai.
+        // Dung gio Viet Nam (start_time nhap theo gio VN) - khong phu thuoc tz server.
+        LocalDateTime now = DateTimeUtil.nowVietnam();
         LocalDateTime start = ticket.getStartTime();
         LocalDateTime end = start.plusMinutes(ticket.getDurationMin());
 

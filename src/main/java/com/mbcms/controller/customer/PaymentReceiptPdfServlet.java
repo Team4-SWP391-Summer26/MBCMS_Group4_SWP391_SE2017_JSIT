@@ -55,8 +55,15 @@ public class PaymentReceiptPdfServlet extends HttpServlet {
             return;
         }
 
-        BookingTicket ticket = bookingDao.findTicket(bookingId);
         Payment payment = paymentDao.findByBookingId(bookingId);
+        // [NGHIEP VU] Chi cho tai bien lai khi giao dich DA THANH TOAN THANH CONG.
+        if (payment == null || !Payment.STATUS_SUCCESS.equals(payment.getStatus())) {
+            resp.sendError(HttpServletResponse.SC_CONFLICT,
+                    "Receipt is only available after your payment is completed.");
+            return;
+        }
+
+        BookingTicket ticket = bookingDao.findTicket(bookingId);
         LocalDateTime paidAtVn = (payment != null && payment.getPaidAt() != null)
                 ? payment.getPaidAt().atZone(ZoneOffset.UTC).withZoneSameInstant(VN_ZONE).toLocalDateTime()
                 : null;
