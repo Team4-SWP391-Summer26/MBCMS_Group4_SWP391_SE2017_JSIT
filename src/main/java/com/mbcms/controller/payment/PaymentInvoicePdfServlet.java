@@ -62,6 +62,13 @@ public class PaymentInvoicePdfServlet extends HttpServlet {
         }
 
         Payment payment = paymentDao.findByBookingId(bookingId);
+        // [NGHIEP VU] Hoa don chi xuat cho giao dich DA HOAN TAT (payment SUCCESS).
+        // Chan xuat hoa don cho booking PENDING (chua tra) / CANCELLED / FAILED.
+        if (payment == null || !Payment.STATUS_SUCCESS.equals(payment.getStatus())) {
+            resp.sendError(HttpServletResponse.SC_CONFLICT,
+                    "Invoice is only available for a completed (paid) transaction.");
+            return;
+        }
         // Doi paid_at tu UTC (luu trong DB) sang gio Viet Nam de in dung gio tren hoa don.
         LocalDateTime paidAtVn = (payment != null && payment.getPaidAt() != null)
                 ? payment.getPaidAt().atZone(ZoneOffset.UTC).withZoneSameInstant(VN_ZONE).toLocalDateTime()

@@ -41,14 +41,24 @@ public class ValidationUtil {
     }
 
     /**
-     * Chap nhan cac dinh dang: 0981234567, +84981234567,
-     * 028 1234 5678, 028-1234-5678, 028.1234.5678
-     * Strip tat ca dau cach / gach ngang / dau cham truoc khi validate.
+     * So di dong Viet Nam: 10 so bat dau bang 0 (vd 0981234567) hoac tien to
+     * quoc te +84 (vd +84981234567). Cho phep nguoi dung go kem dau cach /
+     * gach ngang / dau cham (0981 234 567) - se strip truoc khi validate.
+     * (Chua ho tro so ban co dinh - ngoai pham vi.)
      */
     public static boolean isValidPhone(String phone) {
         if (phone == null) return false;
+        return PHONE_PATTERN.matcher(normalizePhone(phone)).matches();
+    }
+
+    /**
+     * Chuan hoa so dien thoai ve dang khong dau cach/gach/cham de LUU DB dong
+     * nhat (vd "098 123 4567" -> "0981234567"). Tra ve null neu input rong.
+     */
+    public static String normalizePhone(String phone) {
+        if (phone == null) return null;
         String normalized = phone.trim().replaceAll("[\\s\\-.]", "");
-        return PHONE_PATTERN.matcher(normalized).matches();
+        return normalized.isEmpty() ? null : normalized;
     }
 
     public static boolean isNullOrEmpty(String s) {
