@@ -16,6 +16,8 @@ public class Booking {
     public static final String STATUS_CONFIRMED = "CONFIRMED";
     public static final String STATUS_USED = "USED";
     public static final String STATUS_CANCELLED = "CANCELLED";
+    /** CONFIRMED, het suat (end_time), chua check-in — set boi scheduler. */
+    public static final String STATUS_NO_SHOW = "NO_SHOW";
 
     private long bookingId;
     private String customerUsername;

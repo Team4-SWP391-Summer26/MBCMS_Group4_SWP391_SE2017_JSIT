@@ -58,7 +58,12 @@
 }
 .hero-cf .container { position: relative; z-index: 2; }
 
-.hero-cf-info { color: #fff; }
+/* Cot chu luon nam tren poster coverflow (keo ngang khong che title) */
+.hero-cf-info {
+    color: #fff;
+    position: relative;
+    z-index: 4;
+}
 .hero-cf-info .cf-title {
     font-family: var(--font-display);
     font-size: clamp(2.05rem, 3.8vw, 3.05rem);
@@ -68,10 +73,19 @@
     margin: 0 0 1.1rem;
 }
 
+/* Clip coverflow trong cot phai — slide 3D khong tran sang cot chu */
+.hero-cf-carousel {
+    position: relative;
+    z-index: 1;
+    overflow: hidden;
+    isolation: isolate;
+    min-width: 0;
+}
 .hero-cf .movieSwiper {
     padding: 10px 0 6px;
     margin-bottom: 0;
-    overflow: visible;
+    overflow: hidden;
+    width: 100%;
 }
 .hero-cf .movieSwiper .swiper-wrapper {
     transform-style: preserve-3d;
@@ -79,7 +93,7 @@
 .hero-cf .movieSwiper .swiper-slide {
     width: 224px;
     height: auto;
-    overflow: visible;
+    overflow: hidden;
     transform-style: preserve-3d;
     -webkit-backface-visibility: hidden;
     backface-visibility: hidden;
@@ -283,9 +297,21 @@
    ==================================================================== */
 .home-main .movie-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(196px, 228px));
-    justify-content: start;
-    gap: 1.35rem 1.5rem;
+    /* Desktop: 5 cot deu — Now Showing 10 = 2 hang, Coming Soon 5 = 1 hang */
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 1.35rem 1.25rem;
+}
+
+@media (max-width: 1199.98px) {
+    .home-main .movie-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 991.98px) {
+    .home-main .movie-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
 }
 .home-main .movie-grid .empty-state {
     grid-column: 1 / -1;
@@ -546,6 +572,11 @@
 @media (max-width: 991.98px) {
     .hero-cf-info { text-align: left; }
     .hero-cf-info .cf-desc { margin-left: 0; margin-right: 0; }
+}
+
+@media (max-width: 991.98px) {
+    .hero-cf-carousel { overflow: visible; }
+    .hero-cf .movieSwiper { overflow: visible; }
 }
 
 @media (max-width: 767.98px) {

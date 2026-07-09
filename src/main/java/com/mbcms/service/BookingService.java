@@ -105,7 +105,8 @@ public interface BookingService {
      */
     int releaseExpiredLocks();
     
-    int markCompletedBookingsAsUsed();
+    /** Scheduler: CONFIRMED het suat chua check-in → NO_SHOW. */
+    int markNoShowAfterShowtimeEnded();
     
     Booking applyPromoToBooking(long bookingId, String customerUsername,
             String promoCode, BigDecimal concessionsSubtotal);

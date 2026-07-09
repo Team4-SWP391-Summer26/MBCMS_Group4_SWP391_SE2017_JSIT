@@ -98,13 +98,15 @@ public class CounterBookingServlet extends HttpServlet {
             req.setAttribute("err", err);
         }
 
-        // [Flow Step: Servlet -> Database] Query DB via DAOs to populate checkout filters (active movies & rooms)
-        List<Movie> movies = movieDAO.findActiveMovies();
+        // Only movies Admin assigned to this branch (movie_branch) — same rule as showtime form
+        List<Movie> movies = movieDAO.findActiveMoviesForBranch(branchId);
         List<Room> rooms = roomDAO.findActiveByBranch(branchId);
 
         req.setAttribute("movies", movies);
         req.setAttribute("rooms", rooms);
-        
+        req.setAttribute("vipSurchargePercent", pricingService.getVipSurchargePercent());
+        req.setAttribute("maxSeatsPerBooking", com.mbcms.util.SystemSettings.maxSeatsPerBooking());
+
         // [Flow Step: Servlet -> JSP] Forward request parameters, stats, and active lists to counter-booking.jsp view
         req.getRequestDispatcher("/WEB-INF/views/branch/booking/counter-booking.jsp").forward(req, resp);
     }
@@ -154,12 +156,21 @@ public class CounterBookingServlet extends HttpServlet {
 
             // Format showtimes safely as serializable Maps
             List<Map<String, Object>> showtimeMaps = new ArrayList<>();
-            DateTimeFormatter timeFmt = DateTimeFormatter.ofPattern("HH:mm");
             DateTimeFormatter dateFmt = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+
+            // Reject movie not assigned to this branch (tampered AJAX movieId)
+            if (movieId != null && !movieDAO.isAssignedToBranch(movieId, branchId)) {
+                mapper.writeValue(resp.getWriter(), showtimeMaps);
+                return;
+            }
 
             java.time.LocalDateTime now = java.time.LocalDateTime.now();
             for (Showtime st : showtimes) {
                 if ("SCHEDULED".equals(st.getStatus()) && st.getStartTime().isAfter(now)) {
+                    // When listing all movies, skip showtimes for unassigned titles
+                    if (movieId == null && !movieDAO.isAssignedToBranch(st.getMovieId(), branchId)) {
+                        continue;
+                    }
                     Map<String, Object> map = new HashMap<>();
                     map.put("showtimeId", st.getShowtimeId());
                     map.put("movieId", st.getMovieId());
@@ -172,8 +183,8 @@ public class CounterBookingServlet extends HttpServlet {
                     map.put("basePrice", st.getBasePrice());
                     map.put("format", st.getFormat());
                     map.put("subtitleType", st.getSubtitleType());
-                    map.put("startTime", st.getStartTime().format(timeFmt));
-                    map.put("endTime", st.getEndTime().format(timeFmt));
+                    map.put("startTime", com.mbcms.util.DateTimeUtil.formatAmPm(st.getStartTime()));
+                    map.put("endTime", com.mbcms.util.DateTimeUtil.formatAmPm(st.getEndTime()));
                     map.put("date", st.getStartTime().format(dateFmt));
                     showtimeMaps.add(map);
                 }

@@ -38,15 +38,25 @@ public class ShowtimeEditServlet extends HttpServlet {
         long branchId = (Long) req.getSession(false).getAttribute("currentBranchId");
 
         Long id = parseId(req.getParameter("id"));
-        Showtime st = (id == null) ? null
-                : new ShowtimeServiceImpl().getShowtimeForBranch(id, branchId);
-
-        // Khong ton tai / cua branch khac / da CANCELLED-ENDED / da bat dau -> ve list.
-        // Check gio o day chi de UX (khong mo form chac chan se loi); server van
-        // verify lai trong updateShowtime khi submit.
-        if (st == null || !Showtime.STATUS_SCHEDULED.equals(st.getStatus())
-                || !st.getStartTime().isAfter(com.mbcms.util.DateTimeUtil.nowVietnam())) {
+        if (id == null) {
             resp.sendRedirect(buildListRedirect(req, "notFound", null));
+            return;
+        }
+
+        Showtime st = new ShowtimeServiceImpl().getShowtimeForBranch(id, branchId);
+
+        // Tach ly do de list hien message ro (khong don het vao "not found").
+        // Server van verify lai trong updateShowtime khi submit.
+        if (st == null) {
+            resp.sendRedirect(buildListRedirect(req, "notFound", null));
+            return;
+        }
+        if (!Showtime.STATUS_SCHEDULED.equals(st.getStatus())) {
+            resp.sendRedirect(buildListRedirect(req, "notEditable", "showtime-" + id));
+            return;
+        }
+        if (!st.getStartTime().isAfter(com.mbcms.util.DateTimeUtil.nowVietnam())) {
+            resp.sendRedirect(buildListRedirect(req, "alreadyStarted", "showtime-" + id));
             return;
         }
 
@@ -112,6 +122,8 @@ public class ShowtimeEditServlet extends HttpServlet {
                 return "Invalid room.";
             case ShowtimeService.RESULT_NOT_EDITABLE:
                 return "This showtime can no longer be edited (already started, cancelled, or ended).";
+            case ShowtimeService.RESULT_HAS_BOOKINGS:
+                return "Cannot edit this showtime because it already has bookings.";
             case ShowtimeService.RESULT_NOT_FOUND:
             default:
                 return "Showtime not found.";

@@ -47,7 +47,7 @@ public class BookingHistoryServlet extends HttpServlet {
         LocalDateTime now = LocalDateTime.now();
         int year = now.getYear();
 
-        int countConfirmed = 0, countPending = 0, countUsed = 0, countCancelled = 0;
+        int countConfirmed = 0, countPending = 0, countUsed = 0, countCancelled = 0, countNoShow = 0;
         int upcoming = 0, pastVisits = 0;
         BigDecimal spentThisYear = BigDecimal.ZERO;
 
@@ -65,10 +65,12 @@ public class BookingHistoryServlet extends HttpServlet {
                 pastVisits++;
             } else if ("CANCELLED".equals(st)) {
                 countCancelled++;
+            } else if ("NO_SHOW".equals(st)) {
+                countNoShow++;
             }
 
-            // Chi tinh tien da thanh toan (CONFIRMED + USED) trong nam hien tai
-            if (("CONFIRMED".equals(st) || "USED".equals(st))
+            // Chi tinh tien da thanh toan (CONFIRMED + USED + NO_SHOW) trong nam hien tai
+            if (("CONFIRMED".equals(st) || "USED".equals(st) || "NO_SHOW".equals(st))
                     && t.getTotalAmount() != null
                     && t.getStartTime() != null
                     && t.getStartTime().getYear() == year) {
@@ -82,6 +84,7 @@ public class BookingHistoryServlet extends HttpServlet {
         req.setAttribute("countPending", countPending);
         req.setAttribute("countUsed", countUsed);
         req.setAttribute("countCancelled", countCancelled);
+        req.setAttribute("countNoShow", countNoShow);
         req.setAttribute("upcoming", upcoming);
         req.setAttribute("pastVisits", pastVisits);
         req.setAttribute("spentThisYear", spentThisYear);

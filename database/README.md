@@ -2,12 +2,16 @@
 
 This folder contains scripts to create and seed the database for the SWP391 project.
 
-## Files
+## Files (chỉ 2 file SQL)
 
 | File | Purpose |
 |---|---|
-| `CinemaDB_schema.sql` | Creates the `CinemaDB` database and 19 tables (PK/FK/UNIQUE/CHECK/index) |
-| `CinemaDB_seed.sql` | Loads sample data (movies, branches, seats, showtimes, demo bookings, etc.) |
+| `CinemaDB_schema.sql` | Tạo DB `CinemaDB` + toàn bộ bảng / PK / FK / UNIQUE / CHECK / index + `system_settings` |
+| `CinemaDB_seed.sql` | Nạp dữ liệu demo (movies, branches, seats, showtimes, bookings, settings, …) |
+
+Không còn file `patch_*.sql` / `upgrade_*.sql` / `migrations/` — mọi thứ (kể cả `system_settings` + `fn_setting_int`) nằm trong schema + seed. DB lệch schema: chạy lại **schema → seed** (drop + recreate).
+
+**Admin Settings** (`/admin/settings`): VIP surcharge %, max seats/booking, PENDING hold minutes, showtime gap — lưu trong `dbo.system_settings` (SQL dùng `dbo.fn_setting_int`).
 
 ## How to run (SSMS)
 
@@ -40,15 +44,23 @@ Hashes in the database are bcrypt work-factor 10 for the string `"password"`, co
 
 ## What the seed data includes
 
-- **8 genres, 6 movies** (4 NOW_SHOWING/UPCOMING plus multi-genre mappings), **2 branches** (HCM + HN).
+- **10 genres, 27 real movies** with local posters under `src/main/webapp/assets/img/posters/` (TMDB artwork). NOW_SHOWING includes Dune, Mai, Inside Out 2, Deadpool, Furiosa, Wicked, Despicable Me 4, Lật Mặt 6, Moana 2, Venom, Gladiator II, Twisters, Bad Boys, The Wild Robot, Beetlejuice, Em và Trịnh; plus UPCOMING (Godzilla x Kong, Kung Fu Panda 4, Quiet Place, Sonic 3, Mufasa) and ENDED (Oppenheimer, Barbie, Tro Tàn Rực Rỡ, Alien: Romulus, Joker Folie a Deux, Bố Già). Vietnamese titles keep diacritics in seed.
+- **2 branches** only: **Nguyen Hue** and **Ba Trieu** (no brand prefix; PentaPlex is UI-only).
 - **6 rooms** (3 per branch: STANDARD / VIP / IMAX), **480 seats** (80 per room = rows A–H × 10 columns; rows G–H are VIP).
-- **14 showtimes** spanning 05–07 Jun 2026.
-- **6 bookings** `BK-000001..BK-000006` covering CONFIRMED / USED / PENDING / CANCELLED, with payments across CASH / VNPAY — for revenue and status reporting tests.
-- **2 promotions, 6 food items**, food orders, notifications, and feedbacks (including guest feedback without login).
+- **~80+ showtimes** relative to `CAST(GETDATE() AS DATE)` spanning yesterday → +4 days across all rooms/movies (plus 1 CANCELLED + 1 ENDED sample).
+- **7 bookings** `BK-000001..BK-000007` covering CONFIRMED / USED / PENDING / CANCELLED / **NO_SHOW**, with payments across CASH / VNPAY.
+- **10 promotions**: global active (`WELCOME10`, `SUMMER50K`, `STUDENT15`, `WEEKEND20K`, `FLASH25`), branch-scoped (`HCMONLY10`, `HNFLASH30K`), near-limit (`NEARLYFULL`), expired (`EXPIRED5`), inactive (`PAUSED20`).
+- **6 food items per branch** (Combo Solo **65.000**; Combo for 2 **115.000**), food orders, notifications, and feedbacks.
 
 ## Design notes
 
 - SQL Server has no ENUM type — status/category fields use `VARCHAR` with `CHECK (... IN (...))` constraints.
-- Some business rules are enforced in the database via `CHECK`: `duration_min > 0`, `end_time > start_time`, `total_amount >= 0`, and `CK_employees_branch` (ADMIN → `branch_id` NULL; MANAGER/STAFF → NOT NULL).
+- Booking statuses: `PENDING` → `CONFIRMED` → `USED` (check-in) | `NO_SHOW` (scheduler after `end_time` without check-in) | `CANCELLED`.
+- Some business rules are enforced in the database via `CHECK` / `UNIQUE`:
+  - `UQ_booking_seats_showtime_seat (showtime_id, seat_id)` — DB safety net against double-booking the same seat for one showtime. App must **delete** `booking_seats` when a booking becomes `CANCELLED` (cancel / 10-min expiry) so the seat is released.
+  - `CK_bookings_math`: `total_amount = subtotal - discount_amount`
+  - Promotions: `PERCENT` ≤ 100, `used_count <= max_uses` (when `max_uses` is set)
+  - `UNIQUE (branch_id, name)` on `rooms` and `food_items`; branch name unique; branch hours `closing > opening` when both set
+  - `CK_employees_branch` (ADMIN → `branch_id` NULL; MANAGER/STAFF → NOT NULL)
 - `ON DELETE CASCADE`: `movie_genres`, `booking_seats`, `payments`, `food_orders`, `booking_food_items`, `notifications`. `ON DELETE SET NULL`: `feedbacks.customer_username` (allows guest feedback without an account).
-- No triggers, stored procedures, or views — business logic lives in Java (DAO) to keep the database simple and portable.
+- No triggers or views — business logic lives in Java (DAO). `sp_getapplock` may be used from JDBC for showtime scheduling races (not a permanent DB object).

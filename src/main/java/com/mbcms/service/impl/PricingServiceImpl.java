@@ -6,23 +6,21 @@ import java.util.List;
 
 import com.mbcms.model.Seat;
 import com.mbcms.service.PricingService;
+import com.mbcms.util.AppConfig;
 
 /**
  * Tinh gia ve theo loai ghe. Pure function - khong cham DB, de unit test.
- * Multiplier la hang so trong code (nhom chot 13/06/2026); doi gia tri tai day
- * neu nhom quyet dinh lai.
+ * VIP multiplier doc tu SystemSettings (Admin /admin/settings), fallback AppConfig.
  */
 public class PricingServiceImpl implements PricingService {
 
-    private static final BigDecimal STANDARD_MULTIPLIER = new BigDecimal("1.0");
-    private static final BigDecimal VIP_MULTIPLIER = new BigDecimal("1.2");
+    private static final BigDecimal STANDARD_MULTIPLIER = BigDecimal.ONE;
 
     @Override
     public BigDecimal calculateSeatPrice(BigDecimal basePrice, String seatType) {
         if (basePrice == null || basePrice.signum() <= 0) {
             throw new IllegalArgumentException("basePrice must be positive");
         }
-        // Gia VND khong co phan le -> lam tron ve don vi dong.
         return basePrice.multiply(multiplierOf(seatType)).setScale(0, RoundingMode.HALF_UP);
     }
 
@@ -38,15 +36,18 @@ public class PricingServiceImpl implements PricingService {
         return total;
     }
 
+    @Override
+    public int getVipSurchargePercent() {
+        return com.mbcms.util.SystemSettings.vipSurchargePercent();
+    }
+
     private BigDecimal multiplierOf(String seatType) {
         if (Seat.TYPE_STANDARD.equals(seatType)) {
             return STANDARD_MULTIPLIER;
         }
         if (Seat.TYPE_VIP.equals(seatType)) {
-            return VIP_MULTIPLIER;
+            return AppConfig.getVipMultiplier();
         }
-        // Fail fast: seatType la du lieu tu DB (CHECK constraint), gap gia tri
-        // la nghia la data/schema lech version -> bao loi ngay thay vi tinh sai gia.
         throw new IllegalArgumentException("Unknown seat type: " + seatType);
     }
 }

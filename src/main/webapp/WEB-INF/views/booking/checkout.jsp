@@ -1,6 +1,7 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
+<fmt:setLocale value="en_US"/>
 <fmt:setTimeZone value="Asia/Ho_Chi_Minh"/>
 <%--
     Review / Checkout (booking step 4/6) — REDESIGN v2.
@@ -68,7 +69,7 @@
                     <c:choose>
                         <c:when test="${not empty stStart}">
                             <i class="bi bi-calendar-event"></i>
-                            <fmt:formatDate value="${stStart}" pattern="EEE, dd MMM · HH:mm"/>
+                            <fmt:formatDate value="${stStart}" pattern="EEE, dd MMM · h:mm a"/>
                             <c:if test="${not empty booking.bookingCode}">
                                 <span class="mx-1">·</span><span class="bk-mono">${booking.bookingCode}</span>
                             </c:if>
@@ -153,7 +154,7 @@
                             <dd>
                                 <c:choose>
                                     <c:when test="${not empty stStart}">
-                                        <fmt:formatDate value="${stStart}" pattern="EEE, dd MMM yyyy · HH:mm"/>
+                                        <fmt:formatDate value="${stStart}" pattern="EEE, dd MMM yyyy · h:mm a"/>
                                     </c:when>
                                     <c:otherwise>#${showtimeId}</c:otherwise>
                                 </c:choose>
@@ -425,9 +426,10 @@
 
 <c:if test="${not empty booking}">
 <script>
-    // Countdown 10 min seat hold (client-side, from page load).
+    // Countdown seat hold (Admin Settings: pending_hold_minutes; client-side from page load).
     (function () {
-        var LIMIT_MS = 10 * 60 * 1000;
+        var HOLD_MIN = ${empty pendingHoldMinutes ? 10 : pendingHoldMinutes};
+        var LIMIT_MS = HOLD_MIN * 60 * 1000;
         var start = Date.now();
         var cd   = document.getElementById('countdown');
         var pill = document.getElementById('reserve-pill');

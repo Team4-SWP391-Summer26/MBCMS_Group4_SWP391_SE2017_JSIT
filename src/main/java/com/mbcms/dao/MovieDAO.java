@@ -43,6 +43,25 @@ public interface MovieDAO {
     /** Lay danh sach phim theo trang thai kem theo the loai. */
     List<Movie> findMoviesByStatus(String status, int limit);
 
+    /**
+     * Spotlight trang chu: phim NOW_SHOWING co suat SCHEDULED sap toi, xep theo
+     * SO SUAT sap toi giam dan (rap dau tu nhieu suat = phim hot). Kem genres.
+     */
+    List<Movie> findSpotlightMovies(int limit);
+
+    /**
+     * Now Showing tren trang chu: chi phim NOW_SHOWING dang BAN VE duoc
+     * (co it nhat 1 suat SCHEDULED start_time > now), uu tien phim moi ra rap
+     * (release_date giam dan). Kem genres.
+     */
+    List<Movie> findHomeNowShowing(int limit);
+
+    /**
+     * Coming Soon: phim UPCOMING sap chieu gan nhat truoc (release_date tang dan).
+     * Kem genres.
+     */
+    List<Movie> findUpcomingMovies(int limit);
+
     /** Lay phim NOW_SHOWING moi nhat de lam featured banner. */
     Movie findFeaturedMovie();
 

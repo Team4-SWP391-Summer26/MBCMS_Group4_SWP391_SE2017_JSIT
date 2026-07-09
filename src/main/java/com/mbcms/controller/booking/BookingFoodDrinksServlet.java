@@ -31,8 +31,8 @@ import java.util.Map;
 @WebServlet("/booking/food-drinks")
 public class BookingFoodDrinksServlet extends HttpServlet {
 
-    private static final DateTimeFormatter DT_FMT
-            = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+    private static final DateTimeFormatter DATE_FMT
+            = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
     private FoodService foodService;
     private BookingService bookingService;
@@ -115,7 +115,10 @@ public class BookingFoodDrinksServlet extends HttpServlet {
         req.setAttribute("showtimeId", showtimeId);
         req.setAttribute("showtime", showtime);
         req.setAttribute("showtimeDate", showtime.getStartTime().toLocalDate().toString());
-        req.setAttribute("startTimeStr", showtime.getStartTime().format(DT_FMT));
+        req.setAttribute("startTimeStr",
+                showtime.getStartTime().toLocalDate().format(DATE_FMT)
+                        + " · "
+                        + com.mbcms.util.DateTimeUtil.formatAmPm(showtime.getStartTime()));
         req.setAttribute("seatIds", seatIdsParam);
         req.setAttribute("seatLabels", booking != null && booking.getSeatLabels() != null
                 ? booking.getSeatLabels()

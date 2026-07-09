@@ -4,7 +4,9 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
+import java.util.Locale;
 
 /**
  * Time helpers for display.
@@ -16,11 +18,22 @@ public final class DateTimeUtil {
 
     public static final ZoneId VN_ZONE = ZoneId.of("Asia/Ho_Chi_Minh");
 
+    private static final DateTimeFormatter AM_PM =
+            DateTimeFormatter.ofPattern("h:mm a", Locale.US);
+
     private DateTimeUtil() {
     }
 
     public static LocalDateTime nowVietnam() {
         return LocalDateTime.now(VN_ZONE);
+    }
+
+    /** Customer-facing showtime label, e.g. {@code 10:00 AM} / {@code 2:30 PM}. */
+    public static String formatAmPm(LocalDateTime dateTime) {
+        if (dateTime == null) {
+            return "";
+        }
+        return dateTime.format(AM_PM);
     }
 
     public static LocalDateTime utcToVietnam(LocalDateTime utc) {

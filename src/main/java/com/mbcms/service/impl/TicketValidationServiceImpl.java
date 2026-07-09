@@ -78,6 +78,10 @@ public class TicketValidationServiceImpl implements TicketValidationService {
                 result.setStatus(TicketValidationResult.CANCELLED);
                 result.setMessage("This ticket has been cancelled and is no longer valid.");
                 return result;
+            case Booking.STATUS_NO_SHOW:
+                result.setStatus(TicketValidationResult.NO_SHOW);
+                result.setMessage("This ticket is marked NO_SHOW (showtime ended without check-in). Entry denied.");
+                return result;
             default:
                 break; // CONFIRMED -> kiem tra suat chieu
         }

@@ -22,12 +22,19 @@ public class HomeServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
-        Movie featured = movieDAO.findFeaturedMovie();
-        List<Movie> nowShowing = movieDAO.findMoviesByStatus("NOW_SHOWING", 8);
-        List<Movie> comingSoon = movieDAO.findMoviesByStatus("UPCOMING", 4);
+        // Nghiep vu Home (khong do het catalog ra trang chu):
+        // - Spotlight: toi da 5 phim NOW_SHOWING co NHIEU suat sap toi nhat (phim hot).
+        // - Now Showing: 10 phim (2 hang x 5) con ban ve duoc; View all -> /movies.
+        // - Coming Soon: 5 phim UPCOMING sap ra rap gan nhat (1 hang day).
+        List<Movie> spotlight = movieDAO.findSpotlightMovies(5);
+        List<Movie> nowShowing = movieDAO.findHomeNowShowing(10);
+        List<Movie> comingSoon = movieDAO.findUpcomingMovies(5);
         List<Genre> genres = movieDAO.findAllGenres();
 
+        Movie featured = spotlight.isEmpty() ? null : spotlight.get(0);
+
         req.setAttribute("featuredMovie", featured);
+        req.setAttribute("spotlight", spotlight);
         req.setAttribute("nowShowing", nowShowing);
         req.setAttribute("comingSoon", comingSoon);
         req.setAttribute("genres", genres);
