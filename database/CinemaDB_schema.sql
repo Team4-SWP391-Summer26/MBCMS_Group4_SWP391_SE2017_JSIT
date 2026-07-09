@@ -1,6 +1,6 @@
 -- =====================================================================
 -- CinemaDB - SQL Server DDL (schema only)
--- Project: SWP391 - Multi-Branch Cinema Management System (MBCMS)
+-- Project: SWP391 - Multi-Branch Cinema Management System (PentaPlex)
 -- Source : 01_Database/CinemaDB_final.dbml  (18 tables) + movie_branch bridge = 19 tables
 -- Target : SQL Server 2019+
 --

@@ -4,6 +4,7 @@ import com.mbcms.dao.MovieDAO;
 import com.mbcms.dao.impl.MovieDAOImpl;
 import com.mbcms.model.Movie;
 import com.mbcms.model.Showtime;
+import com.mbcms.util.DateTimeUtil;
 import com.mbcms.util.ValidationUtil;
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -90,7 +91,8 @@ final class ShowtimeFormHelper {
         } catch (DateTimeParseException e) {
             return "Invalid date or start time.";
         }
-        if (!startTime.isAfter(LocalDateTime.now())) {
+        // So voi gio Viet Nam (start_time nhap theo gio VN) - khong phu thuoc tz cua server.
+        if (!startTime.isAfter(DateTimeUtil.nowVietnam())) {
             return "Start time must be in the future.";
         }
 
@@ -130,6 +132,10 @@ final class ShowtimeFormHelper {
         }
 
         // --- Base price: 10,000 - 500,000 VND ---
+        // Chi nhan so nguyen (VND khong co don vi le); chan "10000.5", "1e5", so am...
+        if (!priceStr.matches("\\d+")) {
+            return "Base price must be a whole number in VND.";
+        }
         BigDecimal basePrice;
         try {
             basePrice = new BigDecimal(priceStr);

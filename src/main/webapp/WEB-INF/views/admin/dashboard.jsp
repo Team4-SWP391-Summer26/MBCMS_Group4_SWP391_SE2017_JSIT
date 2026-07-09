@@ -26,7 +26,7 @@
         </div>
 
         <div class="lc-kpi-row">
-            <div class="lc-kpi-card">
+            <div class="lc-kpi-card lc-rise" style="--i:0;">
                 <div class="lc-stat-icon lc-kpi-icon--blue"><i class="bi bi-building"></i></div>
                 <div>
                     <div class="lc-kpi-label">Total cinemas</div>
@@ -34,7 +34,7 @@
                     <div class="lc-kpi-hint">Branches in the network</div>
                 </div>
             </div>
-            <div class="lc-kpi-card">
+            <div class="lc-kpi-card lc-rise" style="--i:1;">
                 <div class="lc-stat-icon lc-kpi-icon--green"><i class="bi bi-check-circle-fill"></i></div>
                 <div>
                     <div class="lc-kpi-label">Active cinemas</div>
@@ -42,7 +42,7 @@
                     <div class="lc-kpi-hint">Currently operating</div>
                 </div>
             </div>
-            <div class="lc-kpi-card">
+            <div class="lc-kpi-card lc-rise" style="--i:2;">
                 <div class="lc-stat-icon lc-kpi-icon--amber"><i class="bi bi-door-open"></i></div>
                 <div>
                     <div class="lc-kpi-label">Total rooms</div>
@@ -50,7 +50,7 @@
                     <div class="lc-kpi-hint">Across all cinemas</div>
                 </div>
             </div>
-            <div class="lc-kpi-card">
+            <div class="lc-kpi-card lc-rise" style="--i:3;">
                 <div class="lc-stat-icon lc-kpi-icon--slate"><i class="bi bi-grid-3x3-gap"></i></div>
                 <div>
                     <div class="lc-kpi-label">Total seats</div>
@@ -61,7 +61,7 @@
         </div>
 
         <div class="lc-dash-sec">Manage the system</div>
-        <div class="row g-3">
+        <div class="row g-3 lc-tile-grid">
             <div class="col-md-6 col-xl-4">
                 <a class="lc-dash-tile is-live" href="${pageContext.request.contextPath}/admin/branches">
                     <span class="lc-dash-tile-ic"><i class="bi bi-building"></i></span>

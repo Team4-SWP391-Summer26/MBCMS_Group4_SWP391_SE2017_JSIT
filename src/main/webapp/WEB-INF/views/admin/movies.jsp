@@ -10,8 +10,8 @@
     <%@ include file="/WEB-INF/views/admin/_admin-assets.jspf" %>
     <style>
         .mv-card { background:#fff; border:1px solid var(--lc-border); border-radius:16px; overflow:hidden;
-            box-shadow:var(--lc-shadow); display:flex; flex-direction:column; height:100%; transition:box-shadow .15s, transform .15s; }
-        .mv-card:hover { box-shadow:0 10px 26px rgba(15,23,42,.10); transform:translateY(-2px); }
+            box-shadow:0 1px 2px rgba(15,23,42,.05); display:flex; flex-direction:column; height:100%; transition:box-shadow .15s, transform .15s; }
+        .mv-card:hover { box-shadow:0 8px 22px rgba(15,23,42,.09); transform:translateY(-2px); }
         .mv-card.is-inactive { opacity:.62; }
         .poster-art { position:relative; aspect-ratio:2/3; overflow:hidden; background:var(--lc-navy); }
         .poster-art img { width:100%; height:100%; object-fit:cover; }
@@ -35,17 +35,17 @@
         .genre-chip { font-size:.68rem; font-weight:500; background:var(--lc-light); color:var(--lc-primary);
             padding:.12rem .5rem; border-radius:999px; }
         .mv-status-form { margin-top:auto; }
-        .mv-status-select { width:100%; height:34px; border:1px solid var(--lc-border); border-radius:8px;
-            font-size:.8rem; padding:0 .5rem; color:var(--navy); background:#fff; }
+        .mv-status-select { width:100%; height:36px; border:1px solid var(--lc-border); border-radius:10px;
+            font-size:.8rem; padding:0 .6rem; color:var(--navy); background:#fff; }
         .mv-status-select:focus { outline:none; border-color:var(--lc-primary); }
         .mv-actions { display:flex; gap:.45rem; }
-        .mv-btn { flex:1; padding:.45rem; border-radius:8px; font-size:.8rem; font-weight:600; text-align:center;
+        .mv-btn { flex:1; padding:.48rem; border-radius:10px; font-size:.8rem; font-weight:600; text-align:center;
             cursor:pointer; border:1px solid var(--lc-border); background:#fff; color:var(--navy); text-decoration:none;
             display:inline-flex; align-items:center; justify-content:center; gap:.3rem; transition:.12s; }
         .mv-btn:hover { background:var(--lc-light); border-color:var(--lc-primary); color:var(--lc-primary); }
         .mv-btn-danger:hover { background:#FEE2E2; border-color:#FECACA; color:#991B1B; }
         .mv-toggle { display:flex; align-items:center; justify-content:space-between; font-size:.74rem;
-            color:var(--lc-muted); padding-top:.15rem; }
+            color:var(--lc-muted); margin-top:.15rem; padding-top:.6rem; border-top:1px solid var(--lc-border); }
     </style>
 </head>
 
@@ -89,21 +89,21 @@
         </c:forEach>
 
         <div class="lc-kpi-row mb-4">
-            <div class="lc-kpi-card">
+            <div class="lc-kpi-card lc-rise" style="--i:0;">
                 <div class="lc-stat-icon lc-kpi-icon--blue"><i class="bi bi-film"></i></div>
-                <div><div class="lc-kpi-label">Total movies</div><div class="lc-kpi-value">${movies.size()}</div></div>
+                <div><div class="lc-kpi-label">Total movies</div><div class="lc-kpi-value">${movies.size()}</div><div class="lc-kpi-hint">In the catalog</div></div>
             </div>
-            <div class="lc-kpi-card">
+            <div class="lc-kpi-card lc-rise" style="--i:1;">
                 <div class="lc-stat-icon lc-kpi-icon--green"><i class="bi bi-play-circle-fill"></i></div>
-                <div><div class="lc-kpi-label">Now showing</div><div class="lc-kpi-value">${nowShowing}</div></div>
+                <div><div class="lc-kpi-label">Now showing</div><div class="lc-kpi-value">${nowShowing}</div><div class="lc-kpi-hint">Playing in cinemas</div></div>
             </div>
-            <div class="lc-kpi-card">
+            <div class="lc-kpi-card lc-rise" style="--i:2;">
                 <div class="lc-stat-icon lc-kpi-icon--amber"><i class="bi bi-clock-fill"></i></div>
-                <div><div class="lc-kpi-label">Upcoming</div><div class="lc-kpi-value">${upcoming}</div></div>
+                <div><div class="lc-kpi-label">Upcoming</div><div class="lc-kpi-value">${upcoming}</div><div class="lc-kpi-hint">Scheduled to release</div></div>
             </div>
-            <div class="lc-kpi-card">
+            <div class="lc-kpi-card lc-rise" style="--i:3;">
                 <div class="lc-stat-icon lc-kpi-icon--slate"><i class="bi bi-eye-slash-fill"></i></div>
-                <div><div class="lc-kpi-label">Hidden</div><div class="lc-kpi-value">${hidden}</div></div>
+                <div><div class="lc-kpi-label">Hidden</div><div class="lc-kpi-value">${hidden}</div><div class="lc-kpi-hint">Not visible to customers</div></div>
             </div>
         </div>
 
@@ -130,7 +130,7 @@
             </form>
         </div>
 
-        <div class="row g-3">
+        <div class="row g-3 lc-tile-grid">
             <c:forEach items="${movies}" var="m">
                 <div class="col-6 col-sm-4 col-md-3 col-xxl-2">
                     <div class="mv-card ${m.active ? '' : 'is-inactive'}">
@@ -202,10 +202,12 @@
             </c:forEach>
             <c:if test="${empty movies}">
                 <div class="col-12">
-                    <div class="text-center py-5 text-muted">
-                        <i class="bi bi-film fs-1 d-block mb-2 opacity-50"></i>
-                        No movies found.
-                        <a href="${pageContext.request.contextPath}/admin/movies?action=add" class="text-decoration-none">Add one</a>.
+                    <div class="lc-empty">
+                        <i class="bi bi-film"></i>
+                        <div class="lc-empty-title">No movies found</div>
+                        <div class="lc-empty-hint">No movies match your filters. Adjust the search, or add a new movie to the catalog.</div>
+                        <a class="st-toolbar-add mt-2" href="${pageContext.request.contextPath}/admin/movies?action=add">
+                            <i class="bi bi-plus-lg"></i> Add Movie</a>
                     </div>
                 </div>
             </c:if>

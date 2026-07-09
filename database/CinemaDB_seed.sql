@@ -75,8 +75,8 @@ JOIN dbo.genres g ON g.name  = x.genre_name;
 -- 4. Branches
 -- ---------------------------------------------------------------------
 INSERT INTO dbo.branches (name, address, city, phone, email) VALUES
- (N'MBCMS Nguyen Hue',  N'72 Nguyen Hue, District 1',        N'Ho Chi Minh', '02838111111', 'nguyenhue@mbcms.vn'),
- (N'MBCMS Ba Trieu',    N'25 Ba Trieu, Hoan Kiem',           N'Ha Noi',      '02438222222', 'batrieu@mbcms.vn');
+ (N'PentaPlex Nguyen Hue',  N'72 Nguyen Hue, District 1',        N'Ho Chi Minh', '02838111111', 'nguyenhue@pentaplex.vn'),
+ (N'PentaPlex Ba Trieu',    N'25 Ba Trieu, Hoan Kiem',           N'Ha Noi',      '02438222222', 'batrieu@pentaplex.vn');
 
 -- ---------------------------------------------------------------------
 -- 4b. Movie-branch assignment: Admin cap moi phim active cho moi chi nhanh
@@ -131,21 +131,21 @@ SELECT r.room_id,
        DATEADD(MINUTE, mv.duration_min, CAST(s.start_time AS DATETIME2)),
        s.base_price, s.format, s.subtitle_type, 'SCHEDULED'
 FROM (VALUES
-    (N'MBCMS Nguyen Hue', N'Room 1',    N'Dune: Part Three', '2026-06-05 10:00', CAST(90000  AS DECIMAL(10,2)), '2D',   'SUB'),
-    (N'MBCMS Nguyen Hue', N'Room 1',    N'Dune: Part Three', '2026-06-05 14:00', CAST(90000  AS DECIMAL(10,2)), '2D',   'SUB'),
-    (N'MBCMS Nguyen Hue', N'IMAX Hall', N'Dune: Part Three', '2026-06-05 19:00', CAST(180000 AS DECIMAL(10,2)), 'IMAX', 'SUB'),
-    (N'MBCMS Nguyen Hue', N'Room 2',    N'Mai 2',            '2026-06-05 18:00', CAST(110000 AS DECIMAL(10,2)), '2D',   'ORIGINAL'),
-    (N'MBCMS Ba Trieu',   N'Room 1',    N'The Last Laugh',   '2026-06-06 16:00', CAST(85000  AS DECIMAL(10,2)), '2D',   'SUB'),
-    (N'MBCMS Ba Trieu',   N'Room 2',    N'Mai 2',            '2026-06-06 20:00', CAST(120000 AS DECIMAL(10,2)), '2D',   'ORIGINAL'),
+    (N'PentaPlex Nguyen Hue', N'Room 1',    N'Dune: Part Three', '2026-06-05 10:00', CAST(90000  AS DECIMAL(10,2)), '2D',   'SUB'),
+    (N'PentaPlex Nguyen Hue', N'Room 1',    N'Dune: Part Three', '2026-06-05 14:00', CAST(90000  AS DECIMAL(10,2)), '2D',   'SUB'),
+    (N'PentaPlex Nguyen Hue', N'IMAX Hall', N'Dune: Part Three', '2026-06-05 19:00', CAST(180000 AS DECIMAL(10,2)), 'IMAX', 'SUB'),
+    (N'PentaPlex Nguyen Hue', N'Room 2',    N'Mai 2',            '2026-06-05 18:00', CAST(110000 AS DECIMAL(10,2)), '2D',   'ORIGINAL'),
+    (N'PentaPlex Ba Trieu',   N'Room 1',    N'The Last Laugh',   '2026-06-06 16:00', CAST(85000  AS DECIMAL(10,2)), '2D',   'SUB'),
+    (N'PentaPlex Ba Trieu',   N'Room 2',    N'Mai 2',            '2026-06-06 20:00', CAST(120000 AS DECIMAL(10,2)), '2D',   'ORIGINAL'),
     -- extra showtimes (spread over several days, for a fuller schedule page)
-    (N'MBCMS Nguyen Hue', N'Room 1',    N'Dune: Part Three', '2026-06-05 20:00', CAST(95000  AS DECIMAL(10,2)), '2D',   'SUB'),
-    (N'MBCMS Nguyen Hue', N'Room 1',    N'The Last Laugh',   '2026-06-06 10:00', CAST(80000  AS DECIMAL(10,2)), '2D',   'SUB'),
-    (N'MBCMS Nguyen Hue', N'IMAX Hall', N'Dune: Part Three', '2026-06-06 19:00', CAST(180000 AS DECIMAL(10,2)), 'IMAX', 'SUB'),
-    (N'MBCMS Nguyen Hue', N'Room 2',    N'Mai 2',            '2026-06-06 18:00', CAST(110000 AS DECIMAL(10,2)), '2D',   'ORIGINAL'),
-    (N'MBCMS Nguyen Hue', N'Room 1',    N'The Last Laugh',   '2026-06-07 13:00', CAST(80000  AS DECIMAL(10,2)), '2D',   'SUB'),
-    (N'MBCMS Ba Trieu',   N'Room 1',    N'The Last Laugh',   '2026-06-07 16:00', CAST(85000  AS DECIMAL(10,2)), '2D',   'SUB'),
-    (N'MBCMS Ba Trieu',   N'IMAX Hall', N'Dune: Part Three', '2026-06-07 19:00', CAST(190000 AS DECIMAL(10,2)), 'IMAX', 'SUB'),
-    (N'MBCMS Ba Trieu',   N'Room 2',    N'Mai 2',            '2026-06-07 20:00', CAST(120000 AS DECIMAL(10,2)), '2D',   'ORIGINAL')
+    (N'PentaPlex Nguyen Hue', N'Room 1',    N'Dune: Part Three', '2026-06-05 20:00', CAST(95000  AS DECIMAL(10,2)), '2D',   'SUB'),
+    (N'PentaPlex Nguyen Hue', N'Room 1',    N'The Last Laugh',   '2026-06-06 10:00', CAST(80000  AS DECIMAL(10,2)), '2D',   'SUB'),
+    (N'PentaPlex Nguyen Hue', N'IMAX Hall', N'Dune: Part Three', '2026-06-06 19:00', CAST(180000 AS DECIMAL(10,2)), 'IMAX', 'SUB'),
+    (N'PentaPlex Nguyen Hue', N'Room 2',    N'Mai 2',            '2026-06-06 18:00', CAST(110000 AS DECIMAL(10,2)), '2D',   'ORIGINAL'),
+    (N'PentaPlex Nguyen Hue', N'Room 1',    N'The Last Laugh',   '2026-06-07 13:00', CAST(80000  AS DECIMAL(10,2)), '2D',   'SUB'),
+    (N'PentaPlex Ba Trieu',   N'Room 1',    N'The Last Laugh',   '2026-06-07 16:00', CAST(85000  AS DECIMAL(10,2)), '2D',   'SUB'),
+    (N'PentaPlex Ba Trieu',   N'IMAX Hall', N'Dune: Part Three', '2026-06-07 19:00', CAST(190000 AS DECIMAL(10,2)), 'IMAX', 'SUB'),
+    (N'PentaPlex Ba Trieu',   N'Room 2',    N'Mai 2',            '2026-06-07 20:00', CAST(120000 AS DECIMAL(10,2)), '2D',   'ORIGINAL')
 ) AS s(branch_name, room_name, movie_title, start_time, base_price, format, subtitle_type)
 JOIN dbo.branches b ON b.name = s.branch_name
 JOIN dbo.rooms    r ON r.branch_id = b.branch_id AND r.name = s.room_name
@@ -164,15 +164,15 @@ INSERT INTO dbo.customers (username, email, password_hash, full_name, phone, dat
 -- ---------------------------------------------------------------------
 -- 9. Employees (1 admin, 2 managers, 2 staff)
 -- ---------------------------------------------------------------------
-DECLARE @b1 BIGINT = (SELECT branch_id FROM dbo.branches WHERE name = N'MBCMS Nguyen Hue');
-DECLARE @b2 BIGINT = (SELECT branch_id FROM dbo.branches WHERE name = N'MBCMS Ba Trieu');
+DECLARE @b1 BIGINT = (SELECT branch_id FROM dbo.branches WHERE name = N'PentaPlex Nguyen Hue');
+DECLARE @b2 BIGINT = (SELECT branch_id FROM dbo.branches WHERE name = N'PentaPlex Ba Trieu');
 
 INSERT INTO dbo.employees (username, email, password_hash, full_name, phone, role, branch_id) VALUES
- ('admin',     'admin@mbcms.vn',     @PWD, N'System Admin',      '0900000000', 'ADMIN',          NULL),
- ('mgr_hcm',   'mgr.hcm@mbcms.vn',   @PWD, N'Pham Quoc Anh',     '0911111111', 'BRANCH_MANAGER',  @b1),
- ('mgr_hn',    'mgr.hn@mbcms.vn',    @PWD, N'Ho Minh Hoang',     '0911222222', 'BRANCH_MANAGER',  @b2),
- ('staff_hcm', 'staff.hcm@mbcms.vn', @PWD, N'Ngo Duc Anh',       '0922111111', 'BRANCH_STAFF',    @b1),
- ('staff_hn',  'staff.hn@mbcms.vn',  @PWD, N'Tran Thi Staff',    '0922222222', 'BRANCH_STAFF',    @b2);
+ ('admin',     'admin@pentaplex.vn',     @PWD, N'System Admin',      '0900000000', 'ADMIN',          NULL),
+ ('mgr_hcm',   'mgr.hcm@pentaplex.vn',   @PWD, N'Pham Quoc Anh',     '0911111111', 'BRANCH_MANAGER',  @b1),
+ ('mgr_hn',    'mgr.hn@pentaplex.vn',    @PWD, N'Ho Minh Hoang',     '0911222222', 'BRANCH_MANAGER',  @b2),
+ ('staff_hcm', 'staff.hcm@pentaplex.vn', @PWD, N'Ngo Duc Anh',       '0922111111', 'BRANCH_STAFF',    @b1),
+ ('staff_hn',  'staff.hn@pentaplex.vn',  @PWD, N'Tran Thi Staff',    '0922222222', 'BRANCH_STAFF',    @b2);
 
 -- ---------------------------------------------------------------------
 -- 10. Promotions
@@ -253,7 +253,7 @@ WHERE name = N'Combo for 2' AND branch_id = @demo_branch_id;
 INSERT INTO dbo.notifications (customer_username, title, content, type, reference_id) VALUES
  ('hungnt', N'Booking confirmed', N'Your booking BK-000001 is confirmed. Enjoy the movie!', 'BOOKING', @booking_id);
 
-DECLARE @branch_hcm BIGINT = (SELECT branch_id FROM dbo.branches WHERE name = N'MBCMS Nguyen Hue');
+DECLARE @branch_hcm BIGINT = (SELECT branch_id FROM dbo.branches WHERE name = N'PentaPlex Nguyen Hue');
 INSERT INTO dbo.feedbacks (customer_username, branch_id, name, email, subject, message, [status]) VALUES
  ('trangnt', @branch_hcm, N'Nguyen Thuy Trang', 'trangnt@gmail.com', N'Great experience', N'The IMAX hall sound was amazing!', 'NEW'),
  (NULL, NULL, N'Anonymous Guest', 'guest@example.com', N'Website slow', N'The booking page loads slowly on mobile.', 'NEW');
@@ -285,14 +285,14 @@ CREATE TABLE #plan (
 );
 
 INSERT INTO #plan VALUES
- ('BK-000002','trangnt', N'MBCMS Ba Trieu',   N'Room 2',    N'Mai 2',            '2026-06-06 20:00', 2, 'CONFIRMED', 'SUMMER50K', 'VNPAY',       'SUCCESS', '2026-06-04 09:15'),
- ('BK-000003','hungnt',  N'MBCMS Nguyen Hue', N'IMAX Hall', N'Dune: Part Three', '2026-06-05 19:00', 3, 'USED',      NULL,        'VNPAY',       'SUCCESS', '2026-06-03 20:05'),
- ('BK-000004','guest01', N'MBCMS Nguyen Hue', N'Room 2',    N'Mai 2',            '2026-06-05 18:00', 1, 'CONFIRMED', NULL,        'CASH',        'SUCCESS', '2026-06-05 17:40'),
+ ('BK-000002','trangnt', N'PentaPlex Ba Trieu',   N'Room 2',    N'Mai 2',            '2026-06-06 20:00', 2, 'CONFIRMED', 'SUMMER50K', 'VNPAY',       'SUCCESS', '2026-06-04 09:15'),
+ ('BK-000003','hungnt',  N'PentaPlex Nguyen Hue', N'IMAX Hall', N'Dune: Part Three', '2026-06-05 19:00', 3, 'USED',      NULL,        'VNPAY',       'SUCCESS', '2026-06-03 20:05'),
+ ('BK-000004','guest01', N'PentaPlex Nguyen Hue', N'Room 2',    N'Mai 2',            '2026-06-05 18:00', 1, 'CONFIRMED', NULL,        'CASH',        'SUCCESS', '2026-06-05 17:40'),
  -- PENDING "tuoi" (tao 3 phut truoc): hien thi giao dich dang cho thanh toan ngay
  -- sau khi seed. Sau 10 phut, BookingExpiryScheduler se cancel booking + chuyen
  -- payment nay -> FAILED (minh hoa Option A: khong giu pending xac song).
- ('BK-000005','trangnt', N'MBCMS Ba Trieu',   N'Room 1',    N'The Last Laugh',   '2026-06-06 16:00', 2, 'PENDING',   NULL,        'VNPAY',       'PENDING', DATEADD(MINUTE, -3, SYSUTCDATETIME())),
- ('BK-000006','hungnt',  N'MBCMS Nguyen Hue', N'Room 1',    N'Dune: Part Three', '2026-06-05 14:00', 2, 'CANCELLED', NULL,        'VNPAY',       'FAILED',  '2026-06-02 11:30');
+ ('BK-000005','trangnt', N'PentaPlex Ba Trieu',   N'Room 1',    N'The Last Laugh',   '2026-06-06 16:00', 2, 'PENDING',   NULL,        'VNPAY',       'PENDING', DATEADD(MINUTE, -3, SYSUTCDATETIME())),
+ ('BK-000006','hungnt',  N'PentaPlex Nguyen Hue', N'Room 1',    N'Dune: Part Three', '2026-06-05 14:00', 2, 'CANCELLED', NULL,        'VNPAY',       'FAILED',  '2026-06-02 11:30');
 
 -- 14a. bookings (resolve showtime_id + promo_id; compute discount/total)
 INSERT INTO dbo.bookings

@@ -25,6 +25,12 @@
                         <div class="lc-page-crumb">Dashboard / <strong>Promotions</strong></div>
                         <h1 class="lc-page-title">Promotion Management</h1>
                     </div>
+                    <c:if test="${not empty sessionScope.currentBranchName}">
+                        <span class="lc-branch-chip">
+                            <i class="bi bi-geo-alt-fill"></i>
+                            <c:out value="${sessionScope.currentBranchName}"/>
+                        </span>
+                    </c:if>
                 </div>
 
                 <%-- [Flow Step: JSP View] Branch scope message check --%>
@@ -49,32 +55,36 @@
 
                 <%-- [Flow Step: JSP View] Output branch performance KPI figures queried from the Database via EL (${...}) --%>
                 <div class="lc-kpi-row">
-                    <div class="lc-kpi-card">
+                    <div class="lc-kpi-card lc-rise" style="--i:0;">
                         <div class="lc-stat-icon lc-kpi-icon--blue"><i class="bi bi-tag-fill"></i></div>
                         <div>
                             <div class="lc-kpi-label">Total promotions</div>
                             <div class="lc-kpi-value">${statTotal}</div>
+                            <div class="lc-kpi-hint">Created for this branch</div>
                         </div>
                     </div>
-                    <div class="lc-kpi-card">
+                    <div class="lc-kpi-card lc-rise" style="--i:1;">
                         <div class="lc-stat-icon lc-kpi-icon--green"><i class="bi bi-check-circle-fill"></i></div>
                         <div>
                             <div class="lc-kpi-label">Active</div>
                             <div class="lc-kpi-value">${statActive}</div>
+                            <div class="lc-kpi-hint">Currently redeemable</div>
                         </div>
                     </div>
-                    <div class="lc-kpi-card">
+                    <div class="lc-kpi-card lc-rise" style="--i:2;">
                         <div class="lc-stat-icon lc-kpi-icon--amber"><i class="bi bi-ticket-perforated-fill"></i></div>
                         <div>
                             <div class="lc-kpi-label">Used this month</div>
                             <div class="lc-kpi-value">${statUsed}</div>
+                            <div class="lc-kpi-hint">Redemptions this month</div>
                         </div>
                     </div>
-                    <div class="lc-kpi-card">
+                    <div class="lc-kpi-card lc-rise" style="--i:3;">
                         <div class="lc-stat-icon lc-kpi-icon--rose"><i class="bi bi-graph-down-arrow"></i></div>
                         <div>
                             <div class="lc-kpi-label">Revenue impact</div>
                             <div class="lc-kpi-value" style="color:#B02A37;">-<fmt:formatNumber value="${statRevenue}" pattern="#,##0" />₫</div>
+                            <div class="lc-kpi-hint">Discount given out</div>
                         </div>
                     </div>
                 </div>
@@ -131,8 +141,14 @@
                                 <%-- [Flow Step: JSP View] Guard Check: If promotions list is empty, show feedback row --%>
                                 <c:if test="${empty promotions}">
                                     <tr>
-                                        <td colspan="9" class="text-center text-muted py-4">
-                                            No promotions found matching the search criteria.
+                                        <td colspan="9" class="p-0">
+                                            <div class="lc-empty">
+                                                <i class="bi bi-ticket-perforated"></i>
+                                                <div class="lc-empty-title">No promotions found</div>
+                                                <div class="lc-empty-hint">No promo codes match your filters. Adjust the search, or create a new promotion for this branch.</div>
+                                                <a class="st-toolbar-add mt-2" href="${pageContext.request.contextPath}/branch/promotions/create">
+                                                    <i class="bi bi-plus-lg"></i> Add Promotion</a>
+                                            </div>
                                         </td>
                                     </tr>
                                 </c:if>

@@ -141,8 +141,8 @@
                             </c:if>
 
                             <%-- Section: Scope & Distribution --%>
-                            <div class="card lc-elev p-4 mb-4">
-                                <h5 class="text-navy fw-bold mb-3">Scope & Distribution</h5>
+                            <div class="card lc-elev p-4 mb-4 lc-rise" style="--i:0;">
+                                <h5 class="text-navy fw-bold mb-3">Scope &amp; Distribution</h5>
                                 <div class="row g-3">
                                     <div class="col-12">
                                         <label class="form-label fw-semibold text-navy small">Cinema Branch *</label>
@@ -162,7 +162,7 @@
                             </div>
 
                             <%-- Section: Basic Information --%>
-                            <div class="card lc-elev p-4 mb-4">
+                            <div class="card lc-elev p-4 mb-4 lc-rise" style="--i:1;">
                                 <h5 class="text-navy fw-bold mb-3">Basic Information</h5>
                                 <div class="row g-3">
                                     <div class="col-md-6">
@@ -186,7 +186,7 @@
                             </div>
 
                             <%-- Section: Discount --%>
-                            <div class="card lc-elev p-4 mb-4">
+                            <div class="card lc-elev p-4 mb-4 lc-rise" style="--i:2;">
                                 <h5 class="text-navy fw-bold mb-3">Discount</h5>
                                 <label class="form-label fw-semibold text-navy small">Discount Type *</label>
                                 <div class="row g-3 mb-3">
@@ -233,7 +233,7 @@
                             </div>
 
                             <%-- Section: Validity Period --%>
-                            <div class="card lc-elev p-4 mb-4">
+                            <div class="card lc-elev p-4 mb-4 lc-rise" style="--i:3;">
                                 <h5 class="text-navy fw-bold mb-3">Validity Period</h5>
                                 <div class="row g-3">
                                     <div class="col-md-6">
@@ -251,7 +251,7 @@
                             </div>
 
                             <%-- Section: Usage Limits & Active status --%>
-                            <div class="card lc-elev p-4 mb-4">
+                            <div class="card lc-elev p-4 mb-4 lc-rise" style="--i:4;">
                                 <h5 class="text-navy fw-bold mb-3">Usage Limits</h5>
                                 <div class="d-flex align-items-center justify-content-between mb-3">
                                     <div>

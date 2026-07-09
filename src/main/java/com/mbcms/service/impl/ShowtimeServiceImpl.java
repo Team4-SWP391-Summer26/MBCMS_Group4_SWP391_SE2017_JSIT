@@ -7,8 +7,7 @@ import com.mbcms.dao.impl.ShowtimeDAOImpl;
 import com.mbcms.model.Room;
 import com.mbcms.model.Showtime;
 import com.mbcms.service.ShowtimeService;
-
-import java.time.LocalDateTime;
+import com.mbcms.util.DateTimeUtil;
 
 /**
  * Tang Service cho Showtime: chua TOAN BO business rule (verify branch, trang
@@ -80,7 +79,8 @@ public class ShowtimeServiceImpl implements ShowtimeService {
         }
         // Buoc 2.5: chi sua suat CHUA bat dau. Suat dang chieu / da chieu xong (start <= now)
         // thi khoa - khong dua vao status (status ENDED hien chua co job tu set).
-        if (!existing.getStartTime().isAfter(LocalDateTime.now())) {
+        // Dung gio Viet Nam (start_time theo gio VN) de khong phu thuoc tz server.
+        if (!existing.getStartTime().isAfter(DateTimeUtil.nowVietnam())) {
             return RESULT_NOT_EDITABLE;
         }
 
@@ -109,7 +109,7 @@ public class ShowtimeServiceImpl implements ShowtimeService {
         }
         // Buoc 2.5: chi huy suat CHUA bat dau. Suat dang chieu / da chieu xong (start <= now)
         // thi khoa - khong the huy mot suat da/dang dien ra.
-        if (!existing.getStartTime().isAfter(LocalDateTime.now())) {
+        if (!existing.getStartTime().isAfter(DateTimeUtil.nowVietnam())) {
             return RESULT_NOT_EDITABLE;
         }
         // Business rule: suat da co booking (PENDING/CONFIRMED/USED) thi khong huy

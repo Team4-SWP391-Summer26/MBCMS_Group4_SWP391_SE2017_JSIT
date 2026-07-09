@@ -14,7 +14,7 @@
     <link href="${pageContext.request.contextPath}/assets/css/movie-list.css?v=${applicationScope.assetVersion}" rel="stylesheet">
 </head>
 
-<body>
+<body class="movie-list-page">
 
     <jsp:include page="../common/header.jsp">
         <jsp:param name="activeMenu" value="movies" />

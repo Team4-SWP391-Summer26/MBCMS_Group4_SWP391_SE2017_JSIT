@@ -33,6 +33,12 @@
                         <div class="lc-page-crumb">Dashboard / <strong>Showtimes</strong></div>
                         <h1 class="lc-page-title">Showtime Management</h1>
                     </div>
+                    <c:if test="${not empty sessionScope.currentBranchName}">
+                        <span class="lc-branch-chip">
+                            <i class="bi bi-geo-alt-fill"></i>
+                            <c:out value="${sessionScope.currentBranchName}" />
+                        </span>
+                    </c:if>
                 </div>
 
                 <%-- ===== Branch scope notice ===== --%>
@@ -98,28 +104,31 @@
 
                 <%-- ===== KPI cards (tinh tu du lieu showtime cua ngay dang chon) ===== --%>
                 <div class="lc-kpi-row">
-                    <div class="lc-kpi-card">
+                    <div class="lc-kpi-card lc-rise" style="--i:0;">
                         <div class="lc-stat-icon lc-kpi-icon--blue"><i class="bi bi-collection-play"></i></div>
                         <div>
                             <div class="lc-kpi-label">Showtimes</div>
                             <div class="lc-kpi-value">${kpiCount}</div>
+                            <div class="lc-kpi-hint">Scheduled on this day</div>
                         </div>
                     </div>
-                    <div class="lc-kpi-card">
+                    <div class="lc-kpi-card lc-rise" style="--i:1;">
                         <div class="lc-stat-icon lc-kpi-icon--green"><i class="bi bi-people"></i></div>
                         <div>
                             <div class="lc-kpi-label">Seats sold</div>
                             <div class="lc-kpi-value">${kpiSeatsSold}</div>
+                            <div class="lc-kpi-hint">Tickets booked today</div>
                         </div>
                     </div>
-                    <div class="lc-kpi-card">
+                    <div class="lc-kpi-card lc-rise" style="--i:2;">
                         <div class="lc-stat-icon lc-kpi-icon--violet"><i class="bi bi-pie-chart"></i></div>
                         <div>
                             <div class="lc-kpi-label">Avg occupancy</div>
                             <div class="lc-kpi-value">${kpiOccupancy}%</div>
+                            <div class="lc-kpi-hint">Across all screenings</div>
                         </div>
                     </div>
-                    <div class="lc-kpi-card is-muted">
+                    <div class="lc-kpi-card is-muted lc-rise" style="--i:3;">
                         <div class="lc-stat-icon lc-kpi-icon--slate"><i class="bi bi-cash-stack"></i></div>
                         <div>
                             <div class="lc-kpi-label">Revenue</div>
@@ -130,7 +139,7 @@
                 </div>
 
                 <%-- ===== Schedule timeline theo phong (09:00 - 24:00) ===== --%>
-                <div class="card lc-elev p-4 mb-3" id="showtime-timeline">
+                <div class="card lc-elev p-4 mb-3 lc-rise" style="--i:4;" id="showtime-timeline">
                     <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
                         <div>
                             <h6 class="text-navy fw-bold mb-1">Schedule timeline &mdash; ${selectedDateLong}</h6>
@@ -184,7 +193,7 @@
                 </div>
 
                 <%-- ===== Showtime table ===== --%>
-                <div class="card lc-elev p-0 overflow-hidden" id="showtime-list">
+                <div class="card lc-elev p-0 overflow-hidden lc-rise" style="--i:5;" id="showtime-list">
                     <div class="table-responsive">
                         <table class="table lc-table align-middle mb-0">
                             <thead>
@@ -202,8 +211,16 @@
                             </thead>
                             <tbody>
                                 <c:if test="${empty showtimes}">
-                                    <tr><td colspan="9" class="text-center text-muted py-4">
-                                        No showtimes for this day. Click <strong>Add Showtime</strong> to schedule one.</td></tr>
+                                    <tr><td colspan="9" class="p-0">
+                                        <div class="lc-empty">
+                                            <i class="bi bi-calendar-x"></i>
+                                            <div class="lc-empty-title">No showtimes for this day</div>
+                                            <div class="lc-empty-hint">Nothing is scheduled for the selected date. Create a screening to fill the timeline.</div>
+                                            <a class="st-toolbar-add mt-2"
+                                               href="${pageContext.request.contextPath}/branch/showtimes/create?date=${selectedDate}&returnDate=${selectedDate}#showtime-form">
+                                                <i class="bi bi-plus-lg"></i> Create showtime</a>
+                                        </div>
+                                    </td></tr>
                                 </c:if>
                                 <c:forEach var="st" items="${showtimes}">
                                     <c:set var="sMin" value="${st.startTime.hour * 60 + st.startTime.minute}" />
@@ -278,7 +295,7 @@
                                         <td class="text-end pe-3">
                                             <div class="d-flex gap-1 justify-content-end">
                                                 <c:if test="${st.status != 'CANCELLED'}">
-                                                    <a class="btn btn-sm btn-outline-info" title="Monitor occupancy"
+                                                    <a class="btn btn-sm btn-outline-secondary" title="Monitor occupancy"
                                                        href="${pageContext.request.contextPath}/branch/showtimes/monitor?id=${st.showtimeId}">
                                                         <i class="bi bi-eye"></i></a>
                                                 </c:if>

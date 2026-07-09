@@ -69,7 +69,7 @@
 
                 <%-- ── Left: poster + status ──────────────────── --%>
                 <div class="col-md-4">
-                    <div class="lc-card lc-card-pad mb-4">
+                    <div class="lc-card lc-card-pad mb-4 lc-rise" style="--i:0;">
                         <div class="lc-card-title">Poster</div>
                         <div class="poster-preview mb-3" id="posterPreview">
                             <c:choose>
@@ -89,7 +89,7 @@
                         <div class="text-muted mt-1" style="font-size:.74rem;">JPG, PNG, WEBP or GIF — max 5 MB.</div>
                     </div>
 
-                    <div class="lc-card lc-card-pad">
+                    <div class="lc-card lc-card-pad lc-rise" style="--i:1;">
                         <div class="lc-card-title">Status & Visibility</div>
                         <div class="mb-3">
                             <label class="lc-form-label">Movie status <span class="req">*</span></label>
@@ -115,7 +115,7 @@
 
                 <%-- ── Right: details ─────────────────────────── --%>
                 <div class="col-md-8">
-                    <div class="lc-card lc-card-pad mb-4">
+                    <div class="lc-card lc-card-pad mb-4 lc-rise" style="--i:1;">
                         <div class="lc-card-title">Movie Details</div>
 
                         <div class="mb-3">
@@ -187,7 +187,7 @@
                         </div>
                     </div>
 
-                    <div class="lc-card lc-card-pad">
+                    <div class="lc-card lc-card-pad lc-rise" style="--i:2;">
                         <div class="lc-card-title">Genres</div>
                         <c:choose>
                             <c:when test="${empty allGenres}">

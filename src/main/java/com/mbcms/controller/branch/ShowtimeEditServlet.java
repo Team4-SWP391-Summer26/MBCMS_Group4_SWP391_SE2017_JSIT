@@ -45,7 +45,7 @@ public class ShowtimeEditServlet extends HttpServlet {
         // Check gio o day chi de UX (khong mo form chac chan se loi); server van
         // verify lai trong updateShowtime khi submit.
         if (st == null || !Showtime.STATUS_SCHEDULED.equals(st.getStatus())
-                || !st.getStartTime().isAfter(java.time.LocalDateTime.now())) {
+                || !st.getStartTime().isAfter(com.mbcms.util.DateTimeUtil.nowVietnam())) {
             resp.sendRedirect(buildListRedirect(req, "notFound", null));
             return;
         }

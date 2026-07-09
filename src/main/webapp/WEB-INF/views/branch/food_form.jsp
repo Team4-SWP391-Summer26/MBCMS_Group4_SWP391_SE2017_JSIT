@@ -85,7 +85,7 @@
                 </c:if>
 
                 <%-- Section: Basic info --%>
-                <div class="card lc-elev p-4 mb-4">
+                <div class="card lc-elev p-4 mb-4 lc-rise" style="--i:0;">
                     <h5 class="text-navy fw-bold mb-3">Basic Information</h5>
 
                     <div class="mb-3">
@@ -110,7 +110,7 @@
                 </div>
 
                 <%-- Section: Category --%>
-                <div class="card lc-elev p-4 mb-4">
+                <div class="card lc-elev p-4 mb-4 lc-rise" style="--i:1;">
                     <h5 class="text-navy fw-bold mb-3">
                         Category <span class="text-danger">*</span>
                     </h5>
@@ -152,7 +152,7 @@
                 </div>
 
                 <%-- Section: Pricing & Stock --%>
-                <div class="card lc-elev p-4 mb-4">
+                <div class="card lc-elev p-4 mb-4 lc-rise" style="--i:2;">
                     <h5 class="text-navy fw-bold mb-3">Pricing &amp; Stock</h5>
                     <div class="row g-3">
                         <div class="col-md-6">
@@ -187,7 +187,7 @@
                 </div>
 
                 <%-- Section: Image & Status --%>
-                <div class="card lc-elev p-4 mb-4">
+                <div class="card lc-elev p-4 mb-4 lc-rise" style="--i:3;">
                     <h5 class="text-navy fw-bold mb-3">Image &amp; Status</h5>
 
                     <div class="mb-3">
