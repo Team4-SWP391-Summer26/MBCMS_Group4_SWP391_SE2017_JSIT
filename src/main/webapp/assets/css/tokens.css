@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800&family=Sora:wght@500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800&display=swap');
 
 /*
    PentaPlex design tokens.
@@ -60,10 +60,11 @@
     --info-bg:      #E0F2FE;
     --info-text:    #075985;
 
-    /* Typography — Inter body; Outfit public headings; Sora console headings */
+    /* Typography — Inter body/console; Outfit public headings */
     --font-sans:             'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
     --font-display:          'Outfit', 'Inter', system-ui, sans-serif;
-    --font-display-console:  'Sora', 'Inter', system-ui, sans-serif;
+    --font-console:          var(--font-sans);
+    --font-display-console:  var(--font-sans);
     --font-mono:    ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace;
     --fs-h1: 2.5rem;
     --fs-h2: 1.85rem;

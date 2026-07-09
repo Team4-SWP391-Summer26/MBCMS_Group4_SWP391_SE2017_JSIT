@@ -19,12 +19,6 @@
         <jsp:param name="activeMenu" value="movies" />
     </jsp:include>
 
-    <%-- Deterministic demo rating/votes --%>
-    <c:set var="ratingVal" value="${7.8 + (movie.movieId % 17) / 10.0}" />
-    <c:set var="votesVal" value="${350 + (movie.movieId * 149) % 1500}" />
-    <c:set var="ratingStr"><fmt:formatNumber value="${ratingVal}" pattern="0.0" /></c:set>
-    <c:set var="votesStr"><fmt:formatNumber value="${votesVal}" pattern="#,##0" /></c:set>
-
     <%-- ===================== HERO ===================== --%>
     <section class="det-hero">
         <c:if test="${not empty movie.posterUrl}">
@@ -76,22 +70,13 @@
                             </c:forEach>
                             <span class="b-status ${movie.status == 'NOW_SHOWING' ? '' : 'upcoming'}">
                                 <span class="dot"></span>
-                                <c:out value="${movie.status == 'NOW_SHOWING' ? 'Now Showing' : 'Upcoming'}"/>
+                                <c:choose>
+                                    <c:when test="${movie.status == 'NOW_SHOWING'}">Now Showing</c:when>
+                                    <c:when test="${movie.status == 'UPCOMING'}">Upcoming</c:when>
+                                    <c:when test="${movie.status == 'ENDED'}">Ended</c:when>
+                                    <c:otherwise><c:out value="${movie.status}"/></c:otherwise>
+                                </c:choose>
                             </span>
-                        </div>
-
-                        <div class="det-rating">
-                            <span class="stars">
-                                <c:forEach var="i" begin="1" end="5">
-                                    <c:choose>
-                                        <c:when test="${ratingVal >= (i * 2)}"><i class="bi bi-star-fill"></i></c:when>
-                                        <c:when test="${ratingVal >= (i * 2 - 1)}"><i class="bi bi-star-half"></i></c:when>
-                                        <c:otherwise><i class="bi bi-star"></i></c:otherwise>
-                                    </c:choose>
-                                </c:forEach>
-                            </span>
-                            <span class="score">${ratingStr}/10</span>
-                            <span class="votes">(${votesStr})</span>
                         </div>
 
                         <div class="det-meta-grid">
@@ -103,6 +88,26 @@
                                 <span class="lbl">Language</span>
                                 <span class="val"><c:out value="${not empty movie.language ? movie.language : 'English'}"/></span>
                             </div>
+                            <c:if test="${not empty availableFormats or not empty availableSubtitleTypes}">
+                                <div class="det-meta-item det-meta-item--wide">
+                                    <span class="lbl">Screening options</span>
+                                    <div class="det-opt-chips">
+                                        <c:forEach var="fmt" items="${availableFormats}">
+                                            <span class="det-opt-chip det-opt-chip--fmt"><c:out value="${fmt}"/></span>
+                                        </c:forEach>
+                                        <c:forEach var="sub" items="${availableSubtitleTypes}">
+                                            <span class="det-opt-chip det-opt-chip--sub">
+                                                <c:choose>
+                                                    <c:when test="${sub eq 'SUB'}">Subtitled</c:when>
+                                                    <c:when test="${sub eq 'DUB'}">Dubbed</c:when>
+                                                    <c:when test="${sub eq 'ORIGINAL'}">Original audio</c:when>
+                                                    <c:otherwise><c:out value="${sub}"/></c:otherwise>
+                                                </c:choose>
+                                            </span>
+                                        </c:forEach>
+                                    </div>
+                                </div>
+                            </c:if>
                             <div class="det-meta-item det-meta-item--wide">
                                 <span class="lbl">Cast</span>
                                 <span class="val"><c:out value="${not empty movie.castList ? movie.castList : 'N/A'}"/></span>
@@ -110,11 +115,23 @@
                         </div>
 
                         <div class="det-actions">
-                            <c:if test="${showtimesAvailable}">
-                                <a href="#showtimes" class="btn btn-primary det-book">
-                                    <i class="bi bi-ticket-perforated-fill"></i> Book Tickets
-                                </a>
-                            </c:if>
+                            <c:choose>
+                                <c:when test="${showtimesAvailable}">
+                                    <a href="#showtimes" class="btn btn-primary det-book">
+                                        <i class="bi bi-ticket-perforated-fill"></i> Book Tickets
+                                    </a>
+                                </c:when>
+                                <c:when test="${movie.status == 'UPCOMING'}">
+                                    <span class="btn btn-secondary det-book disabled" aria-disabled="true">
+                                        <i class="bi bi-clock"></i> Coming soon
+                                    </span>
+                                </c:when>
+                                <c:otherwise>
+                                    <span class="btn btn-secondary det-book disabled" aria-disabled="true">
+                                        <i class="bi bi-calendar-x"></i> Not available
+                                    </span>
+                                </c:otherwise>
+                            </c:choose>
                             <button type="button" class="det-save" disabled aria-disabled="true" title="Coming soon">
                                 <i class="bi bi-bookmark"></i> Save
                             </button>
@@ -184,7 +201,21 @@
                             <c:forEach var="rg" items="${bs.roomGroups}">
                                 <div class="st-room">
                                     <div class="st-room__info">
-                                        <div class="st-room__name">${rg.roomName} &bull; ${rg.roomType} &bull; ${rg.format} ${rg.subtitleType}</div>
+                                        <div class="st-room__name">
+                                            <c:out value="${rg.roomName}"/>
+                                            <span class="st-room__type"><c:out value="${rg.roomType}"/></span>
+                                        </div>
+                                        <div class="st-room__opts">
+                                            <span class="st-opt st-opt--fmt"><c:out value="${rg.format}"/></span>
+                                            <span class="st-opt st-opt--sub">
+                                                <c:choose>
+                                                    <c:when test="${rg.subtitleType eq 'SUB'}">Subtitled</c:when>
+                                                    <c:when test="${rg.subtitleType eq 'DUB'}">Dubbed</c:when>
+                                                    <c:when test="${rg.subtitleType eq 'ORIGINAL'}">Original</c:when>
+                                                    <c:otherwise><c:out value="${rg.subtitleType}"/></c:otherwise>
+                                                </c:choose>
+                                            </span>
+                                        </div>
                                         <div class="st-room__price">From <fmt:formatNumber value="${rg.minPrice}" pattern="#,##0"/> VND</div>
                                     </div>
                                     <div class="st-slots">
@@ -197,7 +228,7 @@
                                                     </span>
                                                 </c:when>
                                                 <c:otherwise>
-                                                    <a href="${pageContext.request.contextPath}/booking/seats?showtimeId=${slot.showtimeId}" class="st-slot" data-start="${selectedDate}T${slot.time}">
+                                                    <a href="${pageContext.request.contextPath}/booking/seats?showtimeId=${slot.showtimeId}" class="st-slot" data-start="${slot.startIso}">
                                                         <span class="t">${slot.time}</span>
                                                         <span class="p"><fmt:formatNumber value="${slot.price}" pattern="#,##0"/> VND</span>
                                                     </a>
@@ -214,7 +245,7 @@
 
             <div class="st-legend">
                 <div class="item"><span class="sw"></span> Standard base price</div>
-                <div class="item"><span class="sw vip"></span> VIP +20%</div>
+                <div class="item"><span class="sw vip"></span> VIP +${vipSurchargePercent}%</div>
                 <div class="item"><span class="sw imax"></span> IMAX format</div>
             </div>
         </section>
@@ -244,9 +275,15 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Tô xám + khoá các suất đã qua giờ chiếu (so với giờ hiện tại của máy)
+        // Gray out past slots. data-start is ISO local (yyyy-MM-ddTHH:mm:ss).
         document.querySelectorAll('.st-slot[data-start]').forEach(function (el) {
-            var d = new Date(el.getAttribute('data-start'));
+            var raw = el.getAttribute('data-start');
+            if (!raw) return;
+            var d = new Date(raw);
+            if (isNaN(d.getTime())) {
+                // Fallback: treat as local wall time without Z
+                d = new Date(raw.replace(' ', 'T'));
+            }
             if (!isNaN(d.getTime()) && d.getTime() < Date.now()) {
                 el.classList.add('is-full');
                 el.removeAttribute('href');

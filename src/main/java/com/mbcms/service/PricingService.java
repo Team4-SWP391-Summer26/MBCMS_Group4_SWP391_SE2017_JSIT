@@ -8,9 +8,8 @@ import com.mbcms.model.Seat;
 /**
  * PricingService - tinh gia ve theo loai ghe (UC39 Set price). Owner: HungNT.
  *
- * Quy tac (chot 13/06/2026, SDS bang seats: "Affects price multiplier"): final
- * price = showtimes.base_price x multiplier theo seats.seat_type STANDARD x1.0
- * ; VIP x1.2
+ * final price = showtimes.base_price x multiplier theo seats.seat_type
+ * STANDARD x1.0; VIP x (1 + pricing.vipSurchargePercent/100) via AppConfig.
  */
 public interface PricingService {
 
@@ -29,4 +28,7 @@ public interface PricingService {
      * hop le
      */
     BigDecimal calculateTotal(BigDecimal basePrice, List<Seat> seats);
+
+    /** VIP surcharge percent from AppConfig (e.g. 30). */
+    int getVipSurchargePercent();
 }

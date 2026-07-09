@@ -83,6 +83,11 @@ public class ShowtimeServiceImpl implements ShowtimeService {
         if (!existing.getStartTime().isAfter(DateTimeUtil.nowVietnam())) {
             return RESULT_NOT_EDITABLE;
         }
+        // Buoc 2.6: da co booking (PENDING hop le / CONFIRMED / USED) thi khong sua
+        // gio/phong/phim/gia — cung rule voi cancel (refund out of scope).
+        if (showtimeDAO.hasActiveBookings(showtime.getShowtimeId())) {
+            return RESULT_HAS_BOOKINGS;
+        }
 
         // Buoc 3: khi edit, manager co the doi sang phong khac -> phong MOI nay
         // cung phai thuoc branch + active (check giong luc create).

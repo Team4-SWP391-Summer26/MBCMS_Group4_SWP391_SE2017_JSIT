@@ -174,16 +174,35 @@
                                             <c:set var="eMin" value="${eMin <= sMin ? 1440 : eMin}" />
                                             <c:set var="sMin" value="${sMin < 540 ? 540 : sMin}" />
                                             <c:set var="isFull" value="${st.bookedSeats >= st.roomCapacity}" />
-                                            <a class="st-block ${isFull ? 'st-full' : (st.roomType == 'IMAX' ? 'st-imax' : (st.roomType == 'VIP' ? 'st-vip' : 'st-std'))}"
-                                               style="left:${(sMin - 540) * 100 / 900}%; width:${(eMin - sMin) * 100 / 900}%;"
-                                               href="${pageContext.request.contextPath}/branch/showtimes/edit?id=${st.showtimeId}&returnDate=${selectedDate}#showtime-form"
-                                               title="${st.movieTitle} — ${fn:substring(st.startTime, 11, 16)}–${fn:substring(st.endTime, 11, 16)}">
-                                                <div class="st-block-title"><c:out value="${st.movieTitle}" /></div>
-                                                <div class="st-block-meta">
-                                                    <span class="mono">${fn:substring(st.startTime, 11, 16)}</span>
-                                                    <span><fmt:formatNumber value="${st.roomCapacity > 0 ? st.bookedSeats * 100 / st.roomCapacity : 0}" maxFractionDigits="0" />%</span>
-                                                </div>
-                                            </a>
+                                            <%-- Chi suat CHUA bat dau moi mo form edit; suat da chay -> monitor (tranh "not found" gia). --%>
+                                            <c:set var="blockStarted" value="${not st.startTime.isAfter(nowLdt)}" />
+                                            <c:set var="blockClass" value="${isFull ? 'st-full' : (st.roomType == 'IMAX' ? 'st-imax' : (st.roomType == 'VIP' ? 'st-vip' : 'st-std'))}" />
+                                            <c:choose>
+                                                <c:when test="${blockStarted}">
+                                                    <a class="st-block st-block--readonly ${blockClass}"
+                                                       style="left:${(sMin - 540) * 100 / 900}%; width:${(eMin - sMin) * 100 / 900}%;"
+                                                       href="${pageContext.request.contextPath}/branch/showtimes/monitor?id=${st.showtimeId}"
+                                                       title="${st.movieTitle} — already started/ended. Open monitor (edit disabled).">
+                                                        <div class="st-block-title"><c:out value="${st.movieTitle}" /></div>
+                                                        <div class="st-block-meta">
+                                                            <span class="mono">${fn:substring(st.startTime, 11, 16)}</span>
+                                                            <span><fmt:formatNumber value="${st.roomCapacity > 0 ? st.bookedSeats * 100 / st.roomCapacity : 0}" maxFractionDigits="0" />%</span>
+                                                        </div>
+                                                    </a>
+                                                </c:when>
+                                                <c:otherwise>
+                                                    <a class="st-block ${blockClass}"
+                                                       style="left:${(sMin - 540) * 100 / 900}%; width:${(eMin - sMin) * 100 / 900}%;"
+                                                       href="${pageContext.request.contextPath}/branch/showtimes/edit?id=${st.showtimeId}&returnDate=${selectedDate}#showtime-form"
+                                                       title="${st.movieTitle} — ${fn:substring(st.startTime, 11, 16)}–${fn:substring(st.endTime, 11, 16)} · Click to edit">
+                                                        <div class="st-block-title"><c:out value="${st.movieTitle}" /></div>
+                                                        <div class="st-block-meta">
+                                                            <span class="mono">${fn:substring(st.startTime, 11, 16)}</span>
+                                                            <span><fmt:formatNumber value="${st.roomCapacity > 0 ? st.bookedSeats * 100 / st.roomCapacity : 0}" maxFractionDigits="0" />%</span>
+                                                        </div>
+                                                    </a>
+                                                </c:otherwise>
+                                            </c:choose>
                                         </c:if>
                                     </c:forEach>
                                 </div>

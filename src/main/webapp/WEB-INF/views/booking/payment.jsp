@@ -1,6 +1,7 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
+<fmt:setLocale value="en_US"/>
 <fmt:setTimeZone value="Asia/Ho_Chi_Minh"/>
 <%--
     Payment screen (owner: HungNT). Booking step 5/6.
@@ -49,7 +50,7 @@
                     <c:choose>
                         <c:when test="${not empty stStart}">
                             <i class="bi bi-calendar-event"></i>
-                            <fmt:formatDate value="${stStart}" pattern="EEE, dd MMM · HH:mm"/>
+                            <fmt:formatDate value="${stStart}" pattern="EEE, dd MMM · h:mm a"/>
                             <span class="mx-1">·</span><span class="bk-mono">${booking.bookingCode}</span>
                         </c:when>
                         <c:otherwise>Showtime #${booking.showtimeId}</c:otherwise>
@@ -104,6 +105,9 @@
                     <c:when test="${payError eq 'signature'}">Payment verification failed (invalid signature). Your booking is still reserved — please try again.</c:when>
                     <c:when test="${payError eq 'failed'}">Payment was cancelled or failed. Your booking is still reserved — please try again.</c:when>
                     <c:when test="${payError eq 'expired'}">Your seat reservation has expired. Please book again.</c:when>
+                    <c:when test="${payError eq 'showtime'}">This showtime is no longer available (cancelled or already started). Please book another screening.</c:when>
+                    <c:when test="${payError eq 'promo'}">The promotion code has reached its usage limit. Please cancel and book again without that code, or try a different promotion.</c:when>
+                    <c:when test="${payError eq 'amount'}">Payment amount did not match. Please try again.</c:when>
                     <c:when test="${payError eq 'method'}">Invalid payment request. Please try again.</c:when>
                     <c:when test="${payError eq 'vnpay_config'}">VNPay is not configured. Add payment.vnpay.tmnCode and payment.vnpay.hashSecret to database.properties (register at sandbox.vnpayment.vn).</c:when>
                     <c:otherwise>Payment could not be completed. Please try again.</c:otherwise>
@@ -154,7 +158,7 @@
                             </div>
                             <div class="text-muted small">
                                 <c:choose>
-                                    <c:when test="${not empty stStart}"><fmt:formatDate value="${stStart}" pattern="EEE, dd MMM · HH:mm"/></c:when>
+                                    <c:when test="${not empty stStart}"><fmt:formatDate value="${stStart}" pattern="EEE, dd MMM · h:mm a"/></c:when>
                                     <c:otherwise>Showtime #${booking.showtimeId}</c:otherwise>
                                 </c:choose>
                             </div>
@@ -202,7 +206,7 @@
     // Countdown dua tren so giay con lai do server tinh tu created_at (UTC).
     (function () {
         var remaining = parseInt('${remainingSeconds}', 10);
-        if (isNaN(remaining)) remaining = 600;
+        if (isNaN(remaining)) remaining = ${empty pendingHoldMinutes ? 10 : pendingHoldMinutes} * 60;
         var cd = document.getElementById('countdown');
         var pill = document.getElementById('reserve-pill');
         function tick() {

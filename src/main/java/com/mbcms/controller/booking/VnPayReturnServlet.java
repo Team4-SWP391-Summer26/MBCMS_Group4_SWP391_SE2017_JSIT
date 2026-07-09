@@ -66,13 +66,13 @@ public class VnPayReturnServlet extends HttpServlet {
             // -> KHONG gui lai o day (tranh trung email khi F5).
             case SUCCESS, ALREADY_PAID -> forwardConfirm(req, resp, result.getBooking()); // -> confirm.jsp (ve + QR)
             case EXPIRED -> redirectPayment(resp, req, bookingId, "expired");          // het han giu ghe
+            case SHOWTIME_INVALID -> redirectPayment(resp, req, bookingId, "showtime"); // suat da huy / qua gio
+            case PROMO_EXHAUSTED -> redirectPayment(resp, req, bookingId, "promo");    // ma giam gia het luot
             case PAYMENT_FAILED -> redirectPayment(resp, req, bookingId, "failed");    // khach huy / the loi
             case INVALID_SIGNATURE -> redirectPayment(resp, req, bookingId, "signature"); // sai chu ky
             case AMOUNT_MISMATCH -> redirectPayment(resp, req, bookingId, "amount");   // lech so tien
             case INVALID_TXN_REF, BOOKING_NOT_FOUND ->
                 resp.sendRedirect(req.getContextPath() + "/customer/booking/history"); // khong xac dinh duoc booking
-            default ->
-                redirectPayment(resp, req, bookingId, "failed");
         }
     }
 

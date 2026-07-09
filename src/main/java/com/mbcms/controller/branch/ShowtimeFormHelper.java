@@ -1,7 +1,10 @@
 package com.mbcms.controller.branch;
 
+import com.mbcms.dao.BranchDAO;
 import com.mbcms.dao.MovieDAO;
+import com.mbcms.dao.impl.BranchDAOImpl;
 import com.mbcms.dao.impl.MovieDAOImpl;
+import com.mbcms.model.Branch;
 import com.mbcms.model.Movie;
 import com.mbcms.model.Showtime;
 import com.mbcms.util.DateTimeUtil;
@@ -131,6 +134,12 @@ final class ShowtimeFormHelper {
             endTime = autoEnd;
         }
 
+        // --- Gio mo/dong cua chi nhanh (neu da cau hinh): start trong khung, end khong qua closing ---
+        String hoursErr = validateWithinBranchHours(branchId, startTime, endTime);
+        if (hoursErr != null) {
+            return hoursErr;
+        }
+
         // --- Base price: 10,000 - 500,000 VND ---
         // Chi nhan so nguyen (VND khong co don vi le); chan "10000.5", "1e5", so am...
         if (!priceStr.matches("\\d+")) {
@@ -161,6 +170,33 @@ final class ShowtimeFormHelper {
         target.setBasePrice(basePrice);
         target.setFormat(format);
         target.setSubtitleType(subtitleType);
+        return null;
+    }
+
+    /**
+     * Neu chi nhanh da set opening_time + closing_time: start &gt;= open, end &lt;= close
+     * (cung ngay; suat qua dem / end sang ngay moi bi tu choi). Chua cau hinh (NULL) -> bo qua.
+     */
+    private static String validateWithinBranchHours(long branchId, LocalDateTime start, LocalDateTime end) {
+        BranchDAO branchDAO = new BranchDAOImpl();
+        Branch branch = branchDAO.findById(branchId);
+        if (branch == null) {
+            return "Invalid branch.";
+        }
+        LocalTime open = branch.getOpeningTime();
+        LocalTime close = branch.getClosingTime();
+        if (open == null || close == null) {
+            return null;
+        }
+        LocalTime startClock = start.toLocalTime();
+        if (startClock.isBefore(open) || !startClock.isBefore(close)) {
+            return "Start time must be within branch opening hours ("
+                    + open + " – " + close + ").";
+        }
+        // Suat qua dem (end sang ngay khac) khong nam trong khung gio cung ngay.
+        if (!end.toLocalDate().equals(start.toLocalDate()) || end.toLocalTime().isAfter(close)) {
+            return "Showtime must end by branch closing time (" + close + ").";
+        }
         return null;
     }
 

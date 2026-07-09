@@ -193,6 +193,7 @@
 <script>
     /* ── Constants injected from servlet ─────────────────────────────────── */
     const SHOWTIME_ID = ${showtimeId};
+    const MAX_SEATS = ${empty maxSeatsPerBooking ? 8 : maxSeatsPerBooking};
     const CTX         = '${pageContext.request.contextPath}';
     const STANDARD_PRICE = ${standardPrice};
     const VIP_PRICE      = ${vipPrice};
@@ -315,8 +316,8 @@
             setSeatState(btn, 'available');
             sendWS({ action: 'DESELECT', seatId: Number(id), showtimeId: SHOWTIME_ID });
         } else {
-            if (selectedSeats.size >= 8) {
-                lcAlert('You can select a maximum of 8 seats per booking.');
+            if (selectedSeats.size >= MAX_SEATS) {
+                lcAlert('You can select a maximum of ' + MAX_SEATS + ' seats per booking.');
                 return;
             }
             selectedSeats.set(id, { label, type });

@@ -185,7 +185,7 @@
 
             #checkinBtn {
                 border-radius: 12px;
-                font-family: 'Sora', sans-serif;
+                font-family: var(--font-sans);
                 font-weight: 700;
                 letter-spacing: 0.05em;
                 box-shadow: 0 4px 15px rgba(22, 163, 74, 0.2);
@@ -431,6 +431,7 @@
                 ALREADY_USED: { cls: 'tv-danger',  icon: 'bi-x-octagon-fill',           title: 'DENIED — ALREADY USED' },
                 NOT_PAID:     { cls: 'tv-warning', icon: 'bi-hourglass-split',          title: 'NOT PAID' },
                 CANCELLED:    { cls: 'tv-danger',  icon: 'bi-slash-circle-fill',        title: 'CANCELLED TICKET' },
+                NO_SHOW:      { cls: 'tv-muted',   icon: 'bi-person-x-fill',            title: 'NO SHOW' },
                 TOO_EARLY:    { cls: 'tv-warning', icon: 'bi-clock-history',            title: 'TOO EARLY' },
                 EXPIRED:      { cls: 'tv-muted',   icon: 'bi-calendar-x-fill',          title: 'SHOWTIME ENDED' },
                 WRONG_BRANCH: { cls: 'tv-danger',  icon: 'bi-geo-alt-fill',             title: 'WRONG BRANCH' },

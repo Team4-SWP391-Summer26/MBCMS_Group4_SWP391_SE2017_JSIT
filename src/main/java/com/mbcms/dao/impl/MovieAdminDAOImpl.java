@@ -201,6 +201,47 @@ public class MovieAdminDAOImpl extends BaseDAO implements MovieAdminDAO {
     }
 
     @Override
+    public int countBookings(long movieId) {
+        String sql = "SELECT COUNT(*) FROM dbo.bookings b "
+                + "JOIN dbo.showtimes st ON st.showtime_id = b.showtime_id "
+                + "WHERE st.movie_id = ?";
+        Connection conn = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+        try {
+            conn = getConnection();
+            ps = conn.prepareStatement(sql);
+            ps.setLong(1, movieId);
+            rs = ps.executeQuery();
+            return rs.next() ? rs.getInt(1) : 0;
+        } catch (SQLException e) {
+            throw new RuntimeException("Loi MovieAdminDAO.countBookings: " + e.getMessage(), e);
+        } finally {
+            closeAll(rs, ps, conn);
+        }
+    }
+
+    @Override
+    public boolean hasFutureScheduledShowtimes(long movieId) {
+        String sql = "SELECT 1 FROM dbo.showtimes st "
+                + "WHERE st.movie_id = ? AND st.[status] = 'SCHEDULED' AND st.end_time > GETDATE()";
+        Connection conn = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+        try {
+            conn = getConnection();
+            ps = conn.prepareStatement(sql);
+            ps.setLong(1, movieId);
+            rs = ps.executeQuery();
+            return rs.next();
+        } catch (SQLException e) {
+            throw new RuntimeException("Loi MovieAdminDAO.hasFutureScheduledShowtimes: " + e.getMessage(), e);
+        } finally {
+            closeAll(rs, ps, conn);
+        }
+    }
+
+    @Override
     public boolean updateStatus(long movieId, String status) {
         String sql = "UPDATE movies SET status = ? WHERE movie_id = ?";
         Connection conn = null;

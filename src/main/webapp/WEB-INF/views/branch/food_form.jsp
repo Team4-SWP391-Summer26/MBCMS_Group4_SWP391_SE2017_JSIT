@@ -163,7 +163,7 @@
                                 <input type="number" class="form-control"
                                        name="price" id="inputPrice"
                                        min="0" step="1000" required
-                                       placeholder="e.g. 45000"
+                                       placeholder="e.g. 65000 for Combo Solo"
                                        value="${item.price}"
                                        oninput="updatePreview()">
                                 <span class="input-group-text">VND</span>

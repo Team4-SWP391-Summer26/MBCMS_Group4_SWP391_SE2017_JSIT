@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
  *  ALREADY_USED    - ve da check-in truoc do (duplicate entry bi chan)
  *  NOT_PAID        - booking PENDING, chua thanh toan
  *  CANCELLED       - booking da huy
+ *  NO_SHOW         - het suat, khach khong check-in
  *  TOO_EARLY       - chua den gio vao rap (som hon cua so cho phep)
  *  EXPIRED         - suat chieu da ket thuc
  */
@@ -24,6 +25,7 @@ public class TicketValidationResult {
     public static final String ALREADY_USED = "ALREADY_USED";
     public static final String NOT_PAID = "NOT_PAID";
     public static final String CANCELLED = "CANCELLED";
+    public static final String NO_SHOW = "NO_SHOW";
     public static final String TOO_EARLY = "TOO_EARLY";
     public static final String EXPIRED = "EXPIRED";
 

@@ -10,11 +10,11 @@
 body.lc-console {
     background: var(--lc-bg);
     font-family: var(--font-sans);
-    font-feature-settings: "cv11", "ss01";
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
+    /* Subpixel AA on Windows — avoid antialiased/grayscale haze. */
+    -webkit-font-smoothing: auto;
+    -moz-osx-font-smoothing: auto;
 }
-/* Console headings — Sora (sharp product UI) */
+/* Console uses Inter (same as body) — sharp on Windows LCD. */
 body.lc-console h1,
 body.lc-console h2,
 body.lc-console h3,
@@ -23,10 +23,10 @@ body.lc-console h5,
 body.lc-console h6,
 body.lc-console .lc-sb-brand,
 body.lc-console .lc-display {
-    font-family: var(--font-display-console);
-    letter-spacing: -0.02em;
+    font-family: var(--font-sans);
+    letter-spacing: 0;
 }
-body.lc-console h1 { font-weight: 800; }
+body.lc-console h1 { font-weight: 700; }
 body.lc-console h2,
 body.lc-console h3 { font-weight: 700; }
 
@@ -510,11 +510,10 @@ body.lc-console h3 { font-weight: 700; }
     height: 100%;
     display: flex;
     flex-direction: column;
-    transition: box-shadow .15s ease, transform .15s ease;
+    transition: box-shadow .15s ease, border-color .15s ease;
 }
 .room-card:hover {
-    box-shadow: 0 10px 26px rgba(15, 23, 42, .08);
-    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(15, 23, 42, .08);
 }
 .room-head {
     padding: .85rem 1rem;
@@ -1218,6 +1217,16 @@ button.st-toolbar-add:disabled,
 .st-block:active {
     transform: translateY(0) scale(.99);
 }
+/* Past / in-progress blocks: still clickable (monitor) but look less "edit me" */
+.st-block--readonly {
+    cursor: default;
+    filter: saturate(.85);
+    box-shadow: 0 1px 4px rgba(15, 30, 54, .1);
+}
+.st-block--readonly:hover {
+    transform: none;
+    box-shadow: 0 2px 8px rgba(15, 30, 54, .14);
+}
 .st-block-title {
     font-weight: 700;
     font-size: .78rem;
@@ -1909,9 +1918,8 @@ body.lc-console {
    Shared admin, branch manager, and branch staff component contract.
    ===================================================================== */
 body.lc-console {
-    background:
-        radial-gradient(900px 420px at 5% -15%, rgba(37, 99, 235, .08), transparent 62%),
-        var(--lc-bg);
+    /* Solid console canvas — no ambient blue wash (was reading as foggy/blurry). */
+    background: var(--lc-bg);
     color: var(--text);
 }
 
@@ -1921,9 +1929,8 @@ body.lc-console {
 }
 
 .lc-admin-main {
-    background:
-        linear-gradient(180deg, rgba(255,255,255,.42), transparent 220px),
-        var(--lc-bg);
+    /* Flat surface; remove top white veil that desaturated all content. */
+    background: var(--lc-bg);
 }
 
 .lc-console-container {
@@ -1946,9 +1953,9 @@ body.lc-console {
 .pay-title {
     margin: 0;
     color: var(--lc-navy);
-    font-family: var(--font-display-console);
+    font-family: var(--font-sans);
     font-size: clamp(1.35rem, 2vw, 1.75rem);
-    font-weight: var(--fw-extrabold);
+    font-weight: var(--fw-bold);
     letter-spacing: 0;
 }
 
@@ -2076,10 +2083,9 @@ body.lc-console {
 .lc-sidebar {
     width: 252px;
     padding: 22px 16px;
-    background:
-        radial-gradient(320px 180px at 10% -8%, rgba(37, 99, 235, .38), transparent 72%),
-        linear-gradient(180deg, #10213C 0%, var(--navy-deep) 100%);
-    border-right: 1px solid rgba(255,255,255,.08);
+    /* Solid navy — sharp edges, no blue glow bloom over nav labels. */
+    background: linear-gradient(180deg, #12233F 0%, var(--navy) 48%, var(--navy-deep) 100%);
+    border-right: 1px solid rgba(255,255,255,.1);
 }
 
 .lc-admin-main {
@@ -2097,7 +2103,7 @@ body.lc-console {
     align-items: center;
     gap: .55rem;
     color: #fff;
-    font-family: var(--font-display-console);
+    font-family: var(--font-sans);
     letter-spacing: 0;
 }
 
@@ -2128,12 +2134,13 @@ body.lc-console {
 }
 
 .lc-sb-item.active {
-    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-700) 100%);
-    box-shadow: 0 10px 24px rgba(37, 99, 235, .28);
+    background: var(--primary);
+    box-shadow: none;
 }
 
 .lc-sb-item.disabled {
-    opacity: .72;
+    opacity: 1;
+    color: rgba(255, 255, 255, .38);
 }
 
 .lc-sb-spacer {
@@ -2282,8 +2289,7 @@ body.lc-console {
     transition: box-shadow .15s ease, transform .15s ease, border-color .15s ease;
 }
 .lc-dash-tile.is-live:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 12px 28px rgba(15, 23, 42, .08);
+    box-shadow: 0 8px 20px rgba(15, 23, 42, .08);
     border-color: #cdd9ee;
 }
 .lc-dash-tile-ic {
@@ -2318,7 +2324,7 @@ body.lc-console {
     margin-top: auto;
 }
 .lc-dash-tile.is-soon {
-    opacity: .68;
+    opacity: 1;
 }
 .lc-dash-tile.is-soon .lc-dash-tile-ic {
     background: #f1f5f9;
@@ -2745,38 +2751,29 @@ body.lc-console {
 }
 
 /* ============================================================
-   CONSOLE POLISH LAYER (design-taste skill)
-   Motion intensity 6 (fluid CSS, spring-like cubic-bezier, staggered
-   reveals), visual density 4, single accent. Shared by every /branch/*
-   screen so the whole console feels alive and consistent.
-   prefers-reduced-motion is neutralised globally in tokens.css.
+   CONSOLE POLISH LAYER
+   Keep hierarchy + hover feedback, but avoid GPU transforms that
+   force grayscale AA and make text look soft/blurry on Windows.
    ============================================================ */
 
-/* ---- Staggered entrance: add class .lc-rise + style="--i:N" ---- */
-@keyframes lc-rise-in {
-    from { opacity: 0; transform: translateY(10px); }
-    to   { opacity: 1; transform: translateY(0); }
-}
+/* .lc-rise kept as a no-op class so JSP markup does not break */
 .lc-rise {
-    animation: lc-rise-in .5s cubic-bezier(.16, 1, .3, 1) both;
-    animation-delay: calc(var(--i, 0) * 70ms);
-    will-change: transform, opacity;
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+    will-change: auto !important;
 }
 
-/* ---- KPI cards: tabular numerals + accent rail + weighty hover ---- */
+/* ---- KPI cards: tabular numerals + accent rail ---- */
 .lc-kpi-value,
 .lc-stat-value {
     font-variant-numeric: tabular-nums;
-    font-feature-settings: "tnum" 1, "cv11" 1;
 }
 .lc-kpi-card {
     position: relative;
     overflow: hidden;
-    transition: box-shadow .2s cubic-bezier(.16, 1, .3, 1),
-                transform .2s cubic-bezier(.16, 1, .3, 1),
-                border-color .2s ease;
+    transition: box-shadow .15s ease, border-color .15s ease;
 }
-/* Hairline top rail tinted to the card's semantic icon — subtle, not neon */
 .lc-kpi-card::after {
     content: "";
     position: absolute;
@@ -2784,10 +2781,10 @@ body.lc-console {
     height: 2px;
     background: linear-gradient(90deg, var(--primary-500), transparent 82%);
     opacity: 0;
-    transition: opacity .2s ease;
+    transition: opacity .15s ease;
 }
 .lc-kpi-card:not(.is-muted):hover {
-    transform: translateY(-2px);
+    /* No translateY — transform promotes a compositor layer → blurry type on Win. */
     border-color: var(--border-strong);
     box-shadow: var(--shadow-md);
 }
@@ -2815,11 +2812,11 @@ body.lc-console {
     font-size: 1.6rem;
 }
 .lc-empty-title {
-    font-family: var(--font-display-console);
+    font-family: var(--font-sans);
     font-weight: 700;
     font-size: 1rem;
     color: var(--navy);
-    letter-spacing: -0.01em;
+    letter-spacing: 0;
 }
 .lc-empty-hint {
     font-size: .85rem;
@@ -2837,11 +2834,11 @@ body.lc-console {
     margin-bottom: 1rem;
 }
 .lc-section-title {
-    font-family: var(--font-display-console);
+    font-family: var(--font-sans);
     font-weight: 700;
     font-size: 1.02rem;
     color: var(--navy);
-    letter-spacing: -0.01em;
+    letter-spacing: 0;
     margin: 0;
     display: inline-flex;
     align-items: center;
@@ -2875,7 +2872,7 @@ body.lc-console {
     background: var(--table-row-hover);
 }
 
-/* ---- Live "breathing" status dot (real-time monitor) ---- */
+/* ---- Live status dot (no opacity pulse — keeps glyphs sharp) ---- */
 .lc-live-dot {
     display: inline-block;
     width: 8px;
@@ -2884,24 +2881,284 @@ body.lc-console {
     background: currentColor;
     margin-right: .4rem;
     vertical-align: middle;
-    animation: lc-live-pulse 1.6s cubic-bezier(.16, 1, .3, 1) infinite;
-}
-@keyframes lc-live-pulse {
-    0%   { box-shadow: 0 0 0 0 rgba(255, 255, 255, .55); opacity: 1; }
-    70%  { box-shadow: 0 0 0 6px rgba(255, 255, 255, 0); opacity: .85; }
-    100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); opacity: 1; }
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, .35);
+    animation: none;
 }
 
-/* ---- Admin dashboard tile grid: staggered entrance ---- */
+/* ---- Admin dashboard tiles: no entrance animation / compositor layer ---- */
 .lc-tile-grid > [class*="col"] {
-    animation: lc-rise-in .5s cubic-bezier(.16, 1, .3, 1) both;
-    will-change: transform, opacity;
+    animation: none !important;
+    will-change: auto !important;
+    transform: none !important;
+    opacity: 1 !important;
 }
-.lc-tile-grid > [class*="col"]:nth-child(1) { animation-delay: 60ms; }
-.lc-tile-grid > [class*="col"]:nth-child(2) { animation-delay: 120ms; }
-.lc-tile-grid > [class*="col"]:nth-child(3) { animation-delay: 180ms; }
-.lc-tile-grid > [class*="col"]:nth-child(4) { animation-delay: 240ms; }
-.lc-tile-grid > [class*="col"]:nth-child(5) { animation-delay: 300ms; }
-.lc-tile-grid > [class*="col"]:nth-child(6) { animation-delay: 360ms; }
-.lc-tile-grid > [class*="col"]:nth-child(7) { animation-delay: 420ms; }
-.lc-tile-grid > [class*="col"]:nth-child(n+8) { animation-delay: 480ms; }
+
+/* ============================================================
+   CONSOLE SHARPNESS PASS
+   Root causes of "mờ" on Windows Chrome/Edge:
+   1) transform/will-change → GPU layer → grayscale AA (blurry type)
+   2) Sora display font + tight letter-spacing at small sizes
+   3) antialiased/grayscale font smoothing
+   4) micro-type + low-contrast gray
+   ============================================================ */
+
+/* 1) Font stack: Inter for console (sharp + neutral). */
+body.lc-console,
+body.lc-console h1,
+body.lc-console h2,
+body.lc-console h3,
+body.lc-console h4,
+body.lc-console h5,
+body.lc-console h6,
+body.lc-console .lc-display,
+body.lc-console .lc-sb-brand,
+body.lc-console .lc-page-title,
+body.lc-console .lc-console-title,
+body.lc-console .pay-title,
+body.lc-console .lc-section-title,
+body.lc-console .lc-empty-title,
+body.lc-console .lc-kpi-value,
+body.lc-console .lc-stat-value,
+body.lc-console .btn,
+body.lc-console .form-control,
+body.lc-console .form-select,
+body.lc-console .lc-form-control,
+body.lc-console .lc-table,
+body.lc-console .pay-table {
+    font-family: var(--font-sans) !important;
+    letter-spacing: 0 !important;
+    font-feature-settings: normal;
+    font-synthesis: none;
+}
+
+body.lc-console {
+    /* Subpixel AA — do NOT inherit tokens.css antialiased/grayscale. */
+    -webkit-font-smoothing: auto !important;
+    -moz-osx-font-smoothing: auto !important;
+    text-rendering: auto;
+    color: #0F172A;
+}
+
+body.lc-console,
+body.lc-console * {
+    /* Hard stop leftover compositor blur from polish animations. */
+    backface-visibility: visible;
+}
+
+body.lc-console *,
+body.lc-console *::before,
+body.lc-console *::after {
+    /* Prefer no forced GPU layers on static content. */
+    will-change: auto !important;
+}
+
+/* 2) Canvas + surfaces */
+body.lc-console,
+.lc-console-shell,
+.lc-admin-main {
+    background: #E8EEF5 !important;
+}
+
+.lc-sidebar {
+    background: #0B1729 !important;
+    box-shadow: 1px 0 0 #0A1422;
+}
+
+.lc-sb-subtitle,
+.lc-sb-section {
+    color: rgba(255, 255, 255, .7) !important;
+    letter-spacing: .04em !important;
+}
+.lc-sb-item {
+    color: rgba(255, 255, 255, .94) !important;
+    font-weight: 500 !important;
+    font-size: .9rem !important;
+}
+.lc-sb-item:hover {
+    background: rgba(255, 255, 255, .12) !important;
+    color: #fff !important;
+}
+.lc-sb-item.active {
+    background: #2563EB !important;
+    color: #fff !important;
+    box-shadow: none !important;
+    transform: none !important;
+}
+.lc-sb-item.disabled,
+.lc-sb-item.disabled:hover {
+    color: rgba(255, 255, 255, .42) !important;
+    background: transparent !important;
+    opacity: 1 !important;
+}
+.lc-sb-user {
+    background: rgba(255, 255, 255, .08) !important;
+    border-color: rgba(255, 255, 255, .14) !important;
+}
+.lc-sb-user-role {
+    color: rgba(255, 255, 255, .72) !important;
+}
+
+/* 3) Cards: solid white, no float transforms */
+.lc-elev,
+.lc-panel,
+.lc-toolbar,
+.pay-toolbar,
+.pay-card,
+.pay-kpi,
+.lc-kpi-card,
+.user-stat-card,
+.lc-dash-tile {
+    background: #FFFFFF !important;
+    border-color: #C9D4E3 !important;
+    box-shadow: 0 1px 0 rgba(15, 23, 42, .04) !important;
+    transform: none !important;
+}
+.lc-kpi-card:hover,
+.pay-kpi:hover,
+.user-stat-card:hover,
+.lc-dash-tile.is-live:hover,
+.lc-dash-tile:hover {
+    transform: none !important;
+    box-shadow: 0 4px 14px rgba(15, 23, 42, .09) !important;
+}
+
+.lc-kpi-card.is-muted,
+.lc-dash-tile.is-soon {
+    opacity: 1 !important;
+    background: #F8FAFC !important;
+    border-color: #D7E0EB !important;
+    box-shadow: none !important;
+}
+.lc-kpi-card.is-muted .lc-kpi-value,
+.lc-kpi-card.is-muted .lc-kpi-label,
+.lc-dash-tile.is-soon .lc-dash-tile-tt,
+.lc-dash-tile.is-soon .lc-dash-tile-ds {
+    color: #5B6B7F !important;
+}
+
+/* 4) Type hierarchy — readable sizes, dark ink */
+body.lc-console .lc-page-title,
+body.lc-console .lc-console-title,
+body.lc-console .pay-title,
+body.lc-console h1 {
+    color: #0B1729 !important;
+    font-weight: 700 !important;
+    font-size: 1.35rem !important;
+    line-height: 1.25 !important;
+}
+body.lc-console h2,
+body.lc-console h3,
+body.lc-console .lc-section-title {
+    color: #0B1729 !important;
+    font-weight: 700 !important;
+}
+body.lc-console .lc-page-crumb,
+body.lc-console .lc-page-section,
+body.lc-console .lc-console-subtitle,
+body.lc-console .lc-kpi-label,
+body.lc-console .lc-kpi-hint,
+body.lc-console .lc-dash-tile-ds,
+body.lc-console .text-muted,
+body.lc-console .pay-eyebrow,
+body.lc-console .pay-kpi .lbl,
+body.lc-console .pay-kpi .sub,
+body.lc-console .small,
+body.lc-console small {
+    color: #4B5C72 !important;
+}
+body.lc-console .lc-kpi-label,
+body.lc-console .pay-kpi .lbl,
+body.lc-console .pay-toolbar label,
+body.lc-console .lc-data-table thead th,
+body.lc-console .pay-table thead th,
+body.lc-console .lc-table th {
+    font-size: .75rem !important;
+    letter-spacing: .02em !important;
+    font-weight: 700 !important;
+}
+body.lc-console .lc-kpi-value,
+body.lc-console .pay-kpi .val {
+    color: #0B1729 !important;
+    font-weight: 700 !important;
+    letter-spacing: 0 !important;
+}
+
+/* 5) Tables */
+body.lc-console .lc-data-table thead th,
+body.lc-console .pay-table thead th,
+body.lc-console .lc-table th {
+    background: #EDF2F7 !important;
+    color: #3F4F63 !important;
+    border-bottom-color: #C9D4E3 !important;
+}
+body.lc-console .lc-data-table tbody td,
+body.lc-console .pay-table tbody td,
+body.lc-console .lc-table td {
+    border-bottom-color: #E1E8F0 !important;
+    color: #15263D !important;
+    font-size: .9rem;
+}
+body.lc-console .lc-data-table tbody tr:hover,
+body.lc-console .pay-table tbody tr:hover,
+body.lc-console .lc-table tbody tr:hover,
+body.lc-console .lc-table tbody tr:hover td {
+    background: #F3F7FB !important;
+}
+
+/* 6) Controls */
+body.lc-console .lc-page-nav a,
+body.lc-console .lc-seg-btn,
+body.lc-console .fnb-seg-btn,
+body.lc-console .pay-seg a {
+    color: #3F4F63 !important;
+    transform: none !important;
+}
+body.lc-console .lc-page-nav a:hover,
+body.lc-console .lc-seg-btn:hover,
+body.lc-console .fnb-seg-btn:hover,
+body.lc-console .pay-seg a:hover {
+    background: #fff !important;
+    color: #0B1729 !important;
+}
+body.lc-console .lc-page-nav a.active,
+body.lc-console .lc-seg-btn.active,
+body.lc-console .fnb-seg-btn.active,
+body.lc-console .pay-seg a.active {
+    background: #fff !important;
+    color: #1D4ED8 !important;
+    box-shadow: 0 1px 2px rgba(15, 30, 54, .1) !important;
+}
+
+body.lc-console .form-control,
+body.lc-console .form-select,
+body.lc-console .lc-form-control,
+body.lc-console .filter-search-input,
+body.lc-console .filter-select {
+    background: #fff !important;
+    border-color: #B8C5D6 !important;
+    color: #0B1729 !important;
+    font-size: .9rem;
+}
+body.lc-console .form-control:focus,
+body.lc-console .form-select:focus,
+body.lc-console .lc-form-control:focus {
+    border-color: #2563EB !important;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, .16) !important;
+}
+
+/* 7) Kill remaining hover/active transforms in console */
+body.lc-console .lc-dash-tile.is-live:hover,
+body.lc-console .room-card:hover,
+body.lc-console .st-block:hover,
+body.lc-console .genre-act:hover,
+body.lc-console .u-act:hover,
+body.lc-console .btn:active,
+body.lc-console .lc-btn-fill:active,
+body.lc-console .lc-picker-card:active,
+body.lc-console .lc-page-nav a:active,
+body.lc-console .lc-seg-btn:active,
+body.lc-console .fnb-seg-btn:active,
+body.lc-console .pay-search-btn:active,
+body.lc-console .pay-search-reset:active {
+    transform: none !important;
+}

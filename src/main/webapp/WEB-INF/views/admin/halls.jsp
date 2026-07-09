@@ -1,4 +1,4 @@
-﻿<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 <!DOCTYPE html>
@@ -89,8 +89,14 @@
                                     data-type="${room.roomType}"
                                     data-bs-toggle="modal" data-bs-target="#editRoomModal">
                                 <i class="bi bi-pencil me-1"></i>Edit</button>
-                            <a class="btn btn-primary btn-sm flex-fill" href="${pageContext.request.contextPath}/admin/seats?roomId=${room.roomId}">
+                            <a class="btn btn-outline-primary btn-sm flex-fill" href="${pageContext.request.contextPath}/admin/seats?roomId=${room.roomId}">
                                 <i class="bi bi-grid-3x3-gap me-1"></i>Seats</a>
+                        </div>
+                        <div class="px-3 pb-3">
+                            <a class="btn btn-primary btn-sm w-100"
+                               href="${pageContext.request.contextPath}/admin/seats?roomId=${room.roomId}#genModal"
+                               title="Open Seat Layout to regenerate grid / capacity">
+                                <i class="bi bi-arrow-repeat me-1"></i>Change layout / capacity</a>
                         </div>
                     </div>
                 </div>

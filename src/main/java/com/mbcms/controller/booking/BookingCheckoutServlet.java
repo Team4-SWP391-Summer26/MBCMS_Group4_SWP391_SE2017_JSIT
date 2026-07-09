@@ -10,6 +10,7 @@ import com.mbcms.service.FoodService;
 import com.mbcms.service.impl.BookingServiceImpl;
 import com.mbcms.service.impl.FoodServiceImpl;
 import com.mbcms.util.BookingCustomerGuard;
+import com.mbcms.util.SystemSettings;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -76,6 +77,7 @@ public class BookingCheckoutServlet extends HttpServlet {
         }
 
         HttpSession session = req.getSession();
+        req.setAttribute("pendingHoldMinutes", SystemSettings.pendingHoldMinutes());
 
         // Tạo hoặc tái sử dụng PENDING booking (tránh conflict khi F5 refresh)
         try {
@@ -121,6 +123,7 @@ public class BookingCheckoutServlet extends HttpServlet {
             return;
         }
         HttpSession session = req.getSession();
+        req.setAttribute("pendingHoldMinutes", SystemSettings.pendingHoldMinutes());
 
         String     showtimeIdParam = req.getParameter("showtimeId");
         List<Long> seatIds         = parseSeatIds(req);
@@ -361,7 +364,7 @@ public class BookingCheckoutServlet extends HttpServlet {
         String msg = root.getMessage() != null ? root.getMessage() : e.getMessage();
         if (msg != null && msg.toLowerCase().contains("branch_id")) {
             return "Promotion system is not fully configured (missing branch_id on promotions). "
-                    + "Ask admin to run database/migrations/2026-06-25_add_branch_id_to_promotions.sql.";
+                    + "Ask admin to re-run database/CinemaDB_schema.sql then CinemaDB_seed.sql.";
         }
         return "Could not apply promotion. Please try again or contact support.";
     }

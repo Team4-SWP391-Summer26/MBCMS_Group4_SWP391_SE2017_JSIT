@@ -1109,8 +1109,8 @@
                                         setSeatState(btn, 'available');
                                         sendWS({action: 'DESELECT', seatId: Number(id), showtimeId: state.showtimeId});
                                     } else {
-                                        if (state.selectedSeats.length >= 8) {
-                                            lcAlert('You can select a maximum of 8 seats per booking.');
+                                        if (state.selectedSeats.length >= Number('${empty maxSeatsPerBooking ? 8 : maxSeatsPerBooking}')) {
+                                            lcAlert('You can select a maximum of ${empty maxSeatsPerBooking ? 8 : maxSeatsPerBooking} seats per booking.');
                                             return;
                                         }
                                         state.selectedSeats.push(seat);
@@ -1287,10 +1287,11 @@
                                     const seatLabels = state.selectedSeats.map(s => s.rowLabel + s.colNumber);
                                     document.getElementById('selected-seats-display').innerText = seatLabels.join(', ');
 
-                                    // Calculate total price based on seat multipliers
+                                    // Calculate total price based on seat multipliers (VIP % from AppConfig)
+                                    const vipMult = 1 + (Number('${vipSurchargePercent}') || 30) / 100;
                                     let subtotal = 0;
                                     state.selectedSeats.forEach(s => {
-                                        const multiplier = s.seatType === 'VIP' ? 1.2 : 1.0;
+                                        const multiplier = s.seatType === 'VIP' ? vipMult : 1.0;
                                         subtotal += Math.round(state.basePrice * multiplier);
                                     });
 

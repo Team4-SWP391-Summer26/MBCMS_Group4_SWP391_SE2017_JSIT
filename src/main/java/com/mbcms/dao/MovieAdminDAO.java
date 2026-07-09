@@ -33,6 +33,12 @@ public interface MovieAdminDAO {
     /** So suat chieu dang tham chieu phim - dung chan xoa (FK showtimes khong cascade). */
     int countShowtimes(long movieId);
 
+    /** So booking (moi status) tham chieu phim qua showtimes — chan xoa. */
+    int countBookings(long movieId);
+
+    /** Co suat SCHEDULED chua ket thuc (end_time > now) — chan Inactive/ENDED. */
+    boolean hasFutureScheduledShowtimes(long movieId);
+
     /** Doi rieng trang thai chieu (UPCOMING / NOW_SHOWING / ENDED). */
     boolean updateStatus(long movieId, String status);
 

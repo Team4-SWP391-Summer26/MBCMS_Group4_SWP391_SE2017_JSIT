@@ -2,6 +2,7 @@
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
+<fmt:setLocale value="en_US"/>
 <fmt:setTimeZone value="Asia/Ho_Chi_Minh"/>
 <%--
     My Bookings (owner: HungNT). Dung view-model `tickets` (List<BookingTicket>)
@@ -63,6 +64,7 @@
         .sp-PENDING   { background:#fef3c7; color:#b45309; }
         .sp-CANCELLED { background:#fee2e2; color:#b91c1c; }
         .sp-USED      { background:#ede9fe; color:#6d28d9; }
+        .sp-NO_SHOW   { background:#f1f5f9; color:#475569; }
 
         .mb-empty { text-align:center; padding:3.5rem 1.5rem; color:var(--bk-muted); }
         .mb-divider { width:1px; background:var(--bk-border); align-self:stretch; }
@@ -140,6 +142,7 @@
             <button class="mb-tab" data-filter="PENDING">Pending (${countPending})</button>
             <button class="mb-tab" data-filter="CONFIRMED">Confirmed (${countConfirmed})</button>
             <button class="mb-tab" data-filter="USED">Used (${countUsed})</button>
+            <button class="mb-tab" data-filter="NO_SHOW">No-show (${countNoShow})</button>
             <button class="mb-tab" data-filter="CANCELLED">Cancelled (${countCancelled})</button>
         </div>
         <div class="mb-search">
@@ -202,6 +205,7 @@
                                 <c:choose>
                                     <c:when test="${t.status eq 'CONFIRMED'}"><i class="bi bi-check-circle-fill"></i> CONFIRMED</c:when>
                                     <c:when test="${t.status eq 'USED'}"><i class="bi bi-check2-all"></i> USED</c:when>
+                                    <c:when test="${t.status eq 'NO_SHOW'}"><i class="bi bi-person-x"></i> NO SHOW</c:when>
                                     <c:when test="${t.status eq 'CANCELLED'}"><i class="bi bi-x-circle"></i> CANCELLED</c:when>
                                     <c:otherwise><i class="bi bi-hourglass-split"></i> PENDING</c:otherwise>
                                 </c:choose>
@@ -213,7 +217,7 @@
                                 <div class="mb-col-label">Date &amp; Time</div>
                                 <div class="mb-col-val">
                                     <c:choose>
-                                        <c:when test="${not empty tStart}"><fmt:formatDate value="${tStart}" pattern="EEE, dd MMM yyyy"/> · <fmt:formatDate value="${tStart}" pattern="HH:mm"/></c:when>
+                                        <c:when test="${not empty tStart}"><fmt:formatDate value="${tStart}" pattern="EEE, dd MMM yyyy"/> · <fmt:formatDate value="${tStart}" pattern="h:mm a"/></c:when>
                                         <c:otherwise>—</c:otherwise>
                                     </c:choose>
                                 </div>
