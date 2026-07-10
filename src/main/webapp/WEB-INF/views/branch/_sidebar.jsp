@@ -39,8 +39,12 @@
                     <a class="lc-sb-item ${param.active == 'fnb' ? 'active' : ''}"
                         href="${pageContext.request.contextPath}/branch/food">
                         <i class="bi bi-cup-straw"></i> F&amp;B Menu</a>
+                    <a class="lc-sb-item ${param.active == 'feedbacks' ? 'active' : ''}"
+                        href="${pageContext.request.contextPath}/branch/feedbacks">
+                        <i class="bi bi-chat-square-text"></i> Feedback</a>
                     <span class="lc-sb-item disabled"><i class="bi bi-bar-chart"></i> Reports <span
                             class="lc-sb-soon">Soon</span></span>
+
 
                     <div style="flex:1;"></div>
 

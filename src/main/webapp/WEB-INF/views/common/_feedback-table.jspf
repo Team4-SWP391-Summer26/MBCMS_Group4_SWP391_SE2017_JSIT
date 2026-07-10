@@ -1,0 +1,329 @@
+<%-- _feedback-table.jspf
+     Shared fragment: renders the feedback tracking table + filter bar + pagination.
+     Required request attributes:
+       feedbacks   : List<Feedback>
+       summary     : Map<String,Integer>  (status -> count)
+       totalCount  : int
+       currentPage : int
+       totalPages  : int
+       selCategory : String (nullable)
+       selStatus   : String (nullable)
+       search      : String (nullable)
+       selFromDate : String (nullable, yyyy-MM-dd)
+       selToDate   : String (nullable, yyyy-MM-dd)
+       baseUrl     : String (the servlet URL, e.g. /branch/feedbacks or /admin/feedbacks)
+       updateUrl   : String (the POST update URL, same or with suffix)
+--%>
+<%@ taglib prefix="c"  uri="jakarta.tags.core" %>
+<%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
+
+<style>
+/* Feedback table styles */
+.fb-status-badge {
+    display: inline-block; padding: 3px 10px;
+    border-radius: 99px; font-size: .76rem; font-weight: 600; letter-spacing: .4px;
+}
+.fb-status-NEW         { background:#fff3cd; color:#856404; }
+.fb-status-IN_PROGRESS { background:#cfe2ff; color:#084298; }
+.fb-status-RESOLVED    { background:#d1e7dd; color:#0a3622; }
+.fb-status-CLOSED      { background:#e2e3e5; color:#41464b; }
+
+.fb-cat-badge {
+    display: inline-block; padding: 2px 8px;
+    border-radius: 6px; font-size: .72rem; font-weight: 700;
+}
+.fb-cat-COMPLAINT { background:#ffe0e0; color:#b91c1c; }
+.fb-cat-SUPPORT   { background:#e0edff; color:#1d4ed8; }
+.fb-cat-GENERAL   { background:#f3f4f6; color:#4b5563; }
+
+.fb-summary-card {
+    border-radius: 10px; padding: 14px 18px;
+    font-weight: 600; font-size: 1.1rem;
+    border-left: 4px solid transparent;
+}
+.fb-summary-NEW         { border-left-color: #fbbf24; background: #fffbeb; }
+.fb-summary-IN_PROGRESS { border-left-color: #3b82f6; background: #eff6ff; }
+.fb-summary-RESOLVED    { border-left-color: #22c55e; background: #f0fdf4; }
+.fb-summary-CLOSED      { border-left-color: #9ca3af; background: #f9fafb; }
+
+.fb-table th { font-size: .8rem; font-weight: 600; text-transform: uppercase;
+               letter-spacing: .5px; color: #6b7280; background: #f9fafb;
+               border-bottom: 1px solid #e5e7eb; }
+.fb-table td { vertical-align: middle; font-size: .875rem; }
+.fb-table tbody tr:hover { background: #f8faff; }
+.fb-truncate { max-width: 220px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+</style>
+
+<%-- Summary Cards --%>
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+        <div class="fb-summary-card fb-summary-NEW d-flex justify-content-between align-items-center">
+            <span class="text-muted" style="font-size:.85rem;font-weight:400">Pending</span>
+            <span class="text-warning">${summary['NEW']}</span>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="fb-summary-card fb-summary-IN_PROGRESS d-flex justify-content-between align-items-center">
+            <span class="text-muted" style="font-size:.85rem;font-weight:400">In Progress</span>
+            <span class="text-primary">${summary['IN_PROGRESS']}</span>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="fb-summary-card fb-summary-RESOLVED d-flex justify-content-between align-items-center">
+            <span class="text-muted" style="font-size:.85rem;font-weight:400">Resolved</span>
+            <span class="text-success">${summary['RESOLVED']}</span>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="fb-summary-card fb-summary-CLOSED d-flex justify-content-between align-items-center">
+            <span class="text-muted" style="font-size:.85rem;font-weight:400">Closed</span>
+            <span class="text-secondary">${summary['CLOSED']}</span>
+        </div>
+    </div>
+</div>
+
+<%-- Filter Bar --%>
+<form method="get" action="${pageContext.request.contextPath}${baseUrl}" class="row g-2 align-items-end mb-4">
+    <%-- Branch filter (Admin only) --%>
+    <c:if test="${not empty branches}">
+        <div class="col-12 col-md-2">
+            <label class="form-label mb-1 small fw-semibold">Branch</label>
+            <select name="branchId" class="form-select form-select-sm">
+                <option value="">-- All Branches --</option>
+                <c:forEach var="br" items="${branches}">
+                    <option value="${br.branchId}" <c:if test="${selBranchId == br.branchId}">selected</c:if>>
+                        ${fn:escapeXml(br.name)}
+                    </option>
+                </c:forEach>
+            </select>
+        </div>
+    </c:if>
+
+    <div class="col-6 col-md-2">
+        <label class="form-label mb-1 small fw-semibold">Category</label>
+        <select name="category" class="form-select form-select-sm">
+            <option value="">-- All --</option>
+            <option value="COMPLAINT" <c:if test="${selCategory == 'COMPLAINT'}">selected</c:if>>Complaint</option>
+            <option value="SUPPORT"   <c:if test="${selCategory == 'SUPPORT'}">selected</c:if>>Support Request</option>
+            <option value="GENERAL"   <c:if test="${selCategory == 'GENERAL'}">selected</c:if>>General Feedback</option>
+        </select>
+    </div>
+    <div class="col-6 col-md-2">
+        <label class="form-label mb-1 small fw-semibold">Status</label>
+        <select name="status" class="form-select form-select-sm">
+            <option value="">-- All --</option>
+            <option value="NEW"         <c:if test="${selStatus == 'NEW'}">selected</c:if>>Pending</option>
+            <option value="IN_PROGRESS" <c:if test="${selStatus == 'IN_PROGRESS'}">selected</c:if>>In Progress</option>
+            <option value="RESOLVED"    <c:if test="${selStatus == 'RESOLVED'}">selected</c:if>>Resolved</option>
+            <option value="CLOSED"      <c:if test="${selStatus == 'CLOSED'}">selected</c:if>>Closed</option>
+        </select>
+    </div>
+    <div class="col-6 col-md-2">
+        <label class="form-label mb-1 small fw-semibold">From Date</label>
+        <input type="date" name="fromDate" class="form-control form-control-sm"
+               value="${fn:escapeXml(selFromDate)}">
+    </div>
+    <div class="col-6 col-md-2">
+        <label class="form-label mb-1 small fw-semibold">To Date</label>
+        <input type="date" name="toDate" class="form-control form-control-sm"
+               value="${fn:escapeXml(selToDate)}">
+    </div>
+    <div class="col-12 col-md-2">
+        <label class="form-label mb-1 small fw-semibold">Search</label>
+        <input type="text" name="search" class="form-control form-control-sm"
+               placeholder="Name, email, subject..." value="${fn:escapeXml(search)}">
+    </div>
+    <div class="col-12 col-md-2 d-flex gap-2">
+        <button type="submit" class="btn btn-primary btn-sm flex-grow-1">
+            <i class="bi bi-search me-1"></i>Filter
+        </button>
+        <a href="${pageContext.request.contextPath}${baseUrl}" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-x"></i>
+        </a>
+    </div>
+</form>
+
+<%-- Result count + Export button --%>
+<div class="d-flex justify-content-between align-items-center mb-2">
+    <small class="text-muted">
+        Total: <strong>${totalCount}</strong> records
+        <c:if test="${currentPage > 1 || totalPages > 1}">
+            &ndash; Page <strong>${currentPage}</strong> of ${totalPages}
+        </c:if>
+    </small>
+    <a href="${pageContext.request.contextPath}${baseUrl}?action=export<c:if test="${selCategory != null && selCategory != ''}">&amp;category=${selCategory}</c:if><c:if test="${selStatus != null && selStatus != ''}">&amp;status=${selStatus}</c:if><c:if test="${search != null && search != ''}">&amp;search=${fn:escapeXml(search)}</c:if><c:if test="${selBranchId != null && selBranchId != ''}">&amp;branchId=${selBranchId}</c:if><c:if test="${selFromDate != null && selFromDate != ''}">&amp;fromDate=${selFromDate}</c:if><c:if test="${selToDate != null && selToDate != ''}">&amp;toDate=${selToDate}</c:if>"
+       class="btn btn-outline-success btn-sm">
+        <i class="bi bi-file-earmark-arrow-down me-1"></i>Export CSV
+    </a>
+</div>
+
+<%-- Main Table --%>
+<div class="table-responsive">
+<table class="table table-hover fb-table align-middle">
+    <thead>
+        <tr>
+            <th style="width:50px">#</th>
+            <th style="width:110px">Category</th>
+            <th>Name / Email</th>
+            <th>Subject</th>
+            <th style="width:120px">Status</th>
+            <th style="width:100px">Date</th>
+            <th style="width:50px"></th>
+        </tr>
+    </thead>
+    <tbody>
+        <c:choose>
+            <c:when test="${empty feedbacks}">
+                <tr>
+                    <td colspan="7" class="text-center text-muted py-5">
+                        <i class="bi bi-inbox fs-2 d-block mb-2"></i>
+                        No feedback records found.
+                    </td>
+                </tr>
+            </c:when>
+            <c:otherwise>
+                <c:forEach var="fb" items="${feedbacks}">
+                <tr>
+                    <td class="text-muted small">#${fb.feedbackId}</td>
+                    <td>
+                        <span class="fb-cat-badge fb-cat-${fb.category}">
+                            <c:choose>
+                                <c:when test="${fb.category == 'COMPLAINT'}">Complaint</c:when>
+                                <c:when test="${fb.category == 'SUPPORT'}">Support</c:when>
+                                <c:otherwise>General</c:otherwise>
+                            </c:choose>
+                        </span>
+                        <c:if test="${fb.subCategory != null && fb.subCategory != ''}">
+                            <br><small class="text-muted">${fb.subCategory}</small>
+                        </c:if>
+                    </td>
+                    <td>
+                        <div class="fw-semibold" style="font-size:.875rem">${fn:escapeXml(fb.name)}</div>
+                        <small class="text-muted">${fn:escapeXml(fb.email)}</small>
+                    </td>
+                    <td>
+                        <div class="fb-truncate" title="${fn:escapeXml(fb.subject)}">${fn:escapeXml(fb.subject)}</div>
+                    </td>
+                    <td>
+                        <span class="fb-status-badge fb-status-${fb.status}">
+                            <c:choose>
+                                <c:when test="${fb.status == 'NEW'}">Pending</c:when>
+                                <c:when test="${fb.status == 'IN_PROGRESS'}">In Progress</c:when>
+                                <c:when test="${fb.status == 'RESOLVED'}">Resolved</c:when>
+                                <c:when test="${fb.status == 'CLOSED'}">Closed</c:when>
+                                <c:otherwise>${fb.status}</c:otherwise>
+                            </c:choose>
+                        </span>
+                    </td>
+                    <td class="text-muted small">
+                        <c:if test="${fb.createdAt != null}">
+                            ${fn:substring(fb.createdAt.toString(), 0, 10)}
+                        </c:if>
+                    </td>
+                    <td>
+                        <button type="button"
+                                class="btn btn-sm btn-outline-secondary"
+                                title="Update Status"
+                                data-bs-toggle="modal"
+                                data-bs-target="#resolveModal"
+                                data-fbid="${fb.feedbackId}"
+                                data-status="${fb.status}"
+                                data-response="${fn:escapeXml(fb.response)}"
+                                data-subject="${fn:escapeXml(fb.subject)}">
+                            <i class="bi bi-pencil-square"></i>
+                        </button>
+                    </td>
+                </tr>
+                </c:forEach>
+            </c:otherwise>
+        </c:choose>
+    </tbody>
+</table>
+</div>
+
+<%-- Pagination --%>
+<c:if test="${totalPages > 1}">
+<nav class="mt-3">
+<ul class="pagination pagination-sm justify-content-center">
+    <li class="page-item <c:if test="${currentPage <= 1}">disabled</c:if>">
+        <a class="page-link" href="?page=${currentPage - 1}<c:if test="${selCategory != null && selCategory != ''}">&amp;category=${selCategory}</c:if><c:if test="${selStatus != null && selStatus != ''}">&amp;status=${selStatus}</c:if><c:if test="${search != null && search != ''}">&amp;search=${fn:escapeXml(search)}</c:if><c:if test="${selBranchId != null && selBranchId != ''}">&amp;branchId=${selBranchId}</c:if><c:if test="${selFromDate != null && selFromDate != ''}">&amp;fromDate=${selFromDate}</c:if><c:if test="${selToDate != null && selToDate != ''}">&amp;toDate=${selToDate}</c:if>">
+            <i class="bi bi-chevron-left"></i>
+        </a>
+    </li>
+    <c:forEach begin="1" end="${totalPages}" var="p">
+        <li class="page-item <c:if test="${p == currentPage}">active</c:if>">
+            <a class="page-link" href="?page=${p}<c:if test="${selCategory != null && selCategory != ''}">&amp;category=${selCategory}</c:if><c:if test="${selStatus != null && selStatus != ''}">&amp;status=${selStatus}</c:if><c:if test="${search != null && search != ''}">&amp;search=${fn:escapeXml(search)}</c:if><c:if test="${selBranchId != null && selBranchId != ''}">&amp;branchId=${selBranchId}</c:if><c:if test="${selFromDate != null && selFromDate != ''}">&amp;fromDate=${selFromDate}</c:if><c:if test="${selToDate != null && selToDate != ''}">&amp;toDate=${selToDate}</c:if>">${p}</a>
+        </li>
+    </c:forEach>
+    <li class="page-item <c:if test="${currentPage >= totalPages}">disabled</c:if>">
+        <a class="page-link" href="?page=${currentPage + 1}<c:if test="${selCategory != null && selCategory != ''}">&amp;category=${selCategory}</c:if><c:if test="${selStatus != null && selStatus != ''}">&amp;status=${selStatus}</c:if><c:if test="${search != null && search != ''}">&amp;search=${fn:escapeXml(search)}</c:if><c:if test="${selBranchId != null && selBranchId != ''}">&amp;branchId=${selBranchId}</c:if><c:if test="${selFromDate != null && selFromDate != ''}">&amp;fromDate=${selFromDate}</c:if><c:if test="${selToDate != null && selToDate != ''}">&amp;toDate=${selToDate}</c:if>">
+            <i class="bi bi-chevron-right"></i>
+        </a>
+    </li>
+</ul>
+</nav>
+</c:if>
+
+<%-- Resolve/Update Modal --%>
+<div class="modal fade" id="resolveModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold">Update Feedback Status</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" action="${pageContext.request.contextPath}${updateUrl}">
+                <%@ include file="/WEB-INF/views/common/csrf-hidden.jspf" %>
+                <input type="hidden" name="feedbackId" id="modalFeedbackId">
+                <div class="modal-body">
+                    <p class="text-muted small mb-3" id="modalSubjectText"></p>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">New Status</label>
+                        <select name="newStatus" id="modalStatus" class="form-select">
+                            <option value="NEW">Pending</option>
+                            <option value="IN_PROGRESS">In Progress</option>
+                            <option value="RESOLVED">Resolved</option>
+                            <option value="CLOSED">Closed</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">
+                            Response
+                            <span class="text-danger fw-normal small">(required when Resolved / Closed)</span>
+                        </label>
+                        <textarea name="response" id="modalResponse" class="form-control"
+                                  rows="4" placeholder="Enter your response to the customer..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+(function () {
+    var modal = document.getElementById('resolveModal');
+    if (!modal) return;
+    modal.addEventListener('show.bs.modal', function (event) {
+        var btn      = event.relatedTarget;
+        var fbId     = btn.getAttribute('data-fbid');
+        var status   = btn.getAttribute('data-status');
+        var response = btn.getAttribute('data-response') || '';
+        var subject  = btn.getAttribute('data-subject') || '';
+
+        modal.querySelector('#modalFeedbackId').value = fbId;
+        modal.querySelector('#modalSubjectText').textContent = 'Subject: ' + subject;
+        modal.querySelector('#modalResponse').value = response;
+
+        var sel = modal.querySelector('#modalStatus');
+        for (var i = 0; i < sel.options.length; i++) {
+            sel.options[i].selected = (sel.options[i].value === status);
+        }
+    });
+})();
+</script>

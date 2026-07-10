@@ -254,9 +254,11 @@ INSERT INTO dbo.notifications (customer_username, title, content, type, referenc
  ('hungnt', N'Booking confirmed', N'Your booking BK-000001 is confirmed. Enjoy the movie!', 'BOOKING', @booking_id);
 
 DECLARE @branch_hcm BIGINT = (SELECT branch_id FROM dbo.branches WHERE name = N'MBCMS Nguyen Hue');
-INSERT INTO dbo.feedbacks (customer_username, branch_id, name, email, subject, message, [status]) VALUES
- ('trangnt', @branch_hcm, N'Nguyen Thuy Trang', 'trangnt@gmail.com', N'Great experience', N'The IMAX hall sound was amazing!', 'NEW'),
- (NULL, NULL, N'Anonymous Guest', 'guest@example.com', N'Website slow', N'The booking page loads slowly on mobile.', 'NEW');
+INSERT INTO dbo.feedbacks (customer_username, branch_id, category, sub_category, name, email, subject, message, [status]) VALUES
+ ('trangnt', @branch_hcm, 'GENERAL', NULL, N'Nguyen Thuy Trang', 'trangnt@gmail.com', N'Great experience', N'The IMAX hall sound was amazing!', 'NEW'),
+ (NULL, NULL, 'GENERAL', NULL, N'Anonymous Guest', 'guest@example.com', N'Website slow', N'The booking page loads slowly on mobile.', 'NEW'),
+ ('hungnt', @branch_hcm, 'COMPLAINT', NULL, N'Nguyen The Hung', 'hungnt@gmail.com', N'Lỗi âm thanh phòng chiếu', N'Âm thanh bị rè ở góc trái màn hình phòng VIP.', 'NEW'),
+ ('trangnt', NULL, 'SUPPORT', 'BOOKING', N'Nguyen Thuy Trang', 'trangnt@gmail.com', N'Yêu cầu hoàn tiền vé', N'Tôi đã đặt nhầm vé suất chiếu tối nay, mong được hoàn tiền hoặc đổi suất.', 'NEW');
 
 PRINT 'Demo booking + notification + feedback seeded.';
 GO

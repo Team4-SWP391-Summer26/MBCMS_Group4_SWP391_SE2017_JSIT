@@ -9,11 +9,12 @@ import java.time.LocalDateTime;
  */
 public class Notification {
 
-    public static final String TYPE_BOOKING = "BOOKING";
-    public static final String TYPE_PAYMENT = "PAYMENT";
+    public static final String TYPE_BOOKING   = "BOOKING";
+    public static final String TYPE_PAYMENT   = "PAYMENT";
     public static final String TYPE_PROMOTION = "PROMOTION";
-    public static final String TYPE_REMINDER = "REMINDER";
-    public static final String TYPE_SYSTEM = "SYSTEM";
+    public static final String TYPE_REMINDER  = "REMINDER";
+    public static final String TYPE_SYSTEM    = "SYSTEM";
+    public static final String TYPE_FEEDBACK  = "FEEDBACK"; // khieu nai / ho tro da duoc xu ly
 
     private long notiId;
     private String customerUsername;

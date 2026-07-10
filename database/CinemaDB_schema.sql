@@ -401,7 +401,7 @@ CREATE TABLE dbo.notifications (
     CONSTRAINT PK_notifications PRIMARY KEY (noti_id),
     CONSTRAINT FK_notifications_customer FOREIGN KEY (customer_username)
         REFERENCES dbo.customers (username) ON DELETE CASCADE,
-    CONSTRAINT CK_notifications_type CHECK (type IN ('BOOKING','PAYMENT','PROMOTION','REMINDER','SYSTEM'))
+    CONSTRAINT CK_notifications_type CHECK (type IN ('BOOKING','PAYMENT','PROMOTION','REMINDER','SYSTEM','FEEDBACK'))
 );
 GO
 CREATE INDEX IX_notifications_customer ON dbo.notifications (customer_username);
@@ -410,28 +410,44 @@ CREATE INDEX IX_notifications_unread ON dbo.notifications (customer_username) WH
 GO
 
 CREATE TABLE dbo.feedbacks (
-    feedback_id       BIGINT         IDENTITY(1,1) NOT NULL,
-    customer_username VARCHAR(50)    NULL,          -- NULL for Guest submissions
-    branch_id         BIGINT         NULL,          -- NULL for system-wide complaints
-    name              NVARCHAR(100)  NOT NULL,
-    email             VARCHAR(150)   NOT NULL,
-    subject           NVARCHAR(150)  NOT NULL,
-    message           NVARCHAR(2000) NOT NULL,
-    [status]          VARCHAR(11)    NOT NULL CONSTRAINT DF_feedbacks_status DEFAULT ('NEW'),
-    response          NVARCHAR(2000) NULL,
-    created_at        DATETIME2      NOT NULL CONSTRAINT DF_feedbacks_created DEFAULT (SYSUTCDATETIME()),
-    resolved_at       DATETIME2      NULL,
+    feedback_id         BIGINT         IDENTITY(1,1) NOT NULL,
+    customer_username   VARCHAR(50)    NULL,          -- NULL for Guest submissions
+    branch_id           BIGINT         NULL,          -- NULL for system-wide complaints
+    category            VARCHAR(10)    NOT NULL CONSTRAINT DF_feedbacks_category DEFAULT ('GENERAL'),
+    sub_category        VARCHAR(10)    NULL,          -- Nullable, only for SUPPORT category
+    related_booking_id  BIGINT         NULL,          -- FK to bookings
+    related_showtime_id BIGINT         NULL,          -- FK to showtimes
+    name                NVARCHAR(100)  NOT NULL,
+    email               VARCHAR(150)   NOT NULL,
+    subject             NVARCHAR(150)  NOT NULL,
+    message             NVARCHAR(2000) NOT NULL,
+    [status]            VARCHAR(11)    NOT NULL CONSTRAINT DF_feedbacks_status DEFAULT ('NEW'),
+    response            NVARCHAR(2000) NULL,
+    handled_by          VARCHAR(50)    NULL,          -- FK to employees
+    created_at          DATETIME2      NOT NULL CONSTRAINT DF_feedbacks_created DEFAULT (SYSUTCDATETIME()),
+    resolved_at         DATETIME2      NULL,
     CONSTRAINT PK_feedbacks PRIMARY KEY (feedback_id),
     CONSTRAINT FK_feedbacks_customer FOREIGN KEY (customer_username)
         REFERENCES dbo.customers (username) ON DELETE SET NULL,
     CONSTRAINT FK_feedbacks_branch FOREIGN KEY (branch_id)
         REFERENCES dbo.branches (branch_id),
-    CONSTRAINT CK_feedbacks_status CHECK ([status] IN ('NEW','IN_PROGRESS','RESOLVED','CLOSED'))
+    CONSTRAINT FK_feedbacks_booking FOREIGN KEY (related_booking_id)
+        REFERENCES dbo.bookings (booking_id) ON DELETE SET NULL,
+    CONSTRAINT FK_feedbacks_showtime FOREIGN KEY (related_showtime_id)
+        REFERENCES dbo.showtimes (showtime_id) ON DELETE SET NULL,
+    CONSTRAINT FK_feedbacks_handler FOREIGN KEY (handled_by)
+        REFERENCES dbo.employees (username) ON DELETE SET NULL,
+    CONSTRAINT CK_feedbacks_status CHECK ([status] IN ('NEW','IN_PROGRESS','RESOLVED','CLOSED')),
+    CONSTRAINT CK_feedbacks_category CHECK (category IN ('COMPLAINT', 'SUPPORT', 'GENERAL')),
+    CONSTRAINT CK_feedbacks_sub_category CHECK (sub_category IS NULL OR sub_category IN ('BOOKING', 'ACCOUNT', 'OTHER'))
 );
 GO
 CREATE INDEX IX_feedbacks_customer ON dbo.feedbacks (customer_username);
 CREATE INDEX IX_feedbacks_branch   ON dbo.feedbacks (branch_id);
 CREATE INDEX IX_feedbacks_status   ON dbo.feedbacks ([status]);
+CREATE INDEX IX_feedbacks_category ON dbo.feedbacks (category);
+CREATE INDEX IX_feedbacks_showtime ON dbo.feedbacks (related_showtime_id) WHERE related_showtime_id IS NOT NULL;
+CREATE INDEX IX_feedbacks_created  ON dbo.feedbacks (created_at DESC);
 GO
 
 PRINT 'CinemaDB schema created: 19 tables (incl. movie_branch).';

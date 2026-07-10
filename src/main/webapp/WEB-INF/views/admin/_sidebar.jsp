@@ -61,6 +61,10 @@
                 href="${pageContext.request.contextPath}/admin/payments">
                 <i class="bi bi-credit-card"></i> Payments</a>
 
+            <a class="lc-sb-item ${param.active == 'feedbacks' ? 'active' : ''}"
+                href="${pageContext.request.contextPath}/admin/feedbacks">
+                <i class="bi bi-chat-square-text"></i> Feedbacks</a>
+
             <span class="lc-sb-item disabled">
                 <i class="bi bi-bar-chart"></i>
                 System Reports

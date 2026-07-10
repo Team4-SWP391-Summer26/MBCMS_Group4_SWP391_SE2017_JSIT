@@ -3,16 +3,28 @@ package com.mbcms.model;
 import java.time.LocalDateTime;
 
 /**
- * Feedback - map bang `feedbacks`. customerUsername nullable (Guest gui duoc);
- * branchId nullable (gop y toan he thong). status: NEW | IN_PROGRESS | RESOLVED
- * | CLOSED
+ * Feedback - map bang `feedbacks`.
+ * customerUsername nullable (Guest gui duoc); branchId nullable (gop y toan he thong).
+ * status: NEW | IN_PROGRESS | RESOLVED | CLOSED
+ * category: COMPLAINT | SUPPORT | GENERAL
  */
 public class Feedback {
 
-    public static final String STATUS_NEW = "NEW";
+    // ── Status constants ─────────────────────────────────────────────────────
+    public static final String STATUS_NEW         = "NEW";
     public static final String STATUS_IN_PROGRESS = "IN_PROGRESS";
-    public static final String STATUS_RESOLVED = "RESOLVED";
-    public static final String STATUS_CLOSED = "CLOSED";
+    public static final String STATUS_RESOLVED    = "RESOLVED";
+    public static final String STATUS_CLOSED      = "CLOSED";
+
+    // ── Category constants ───────────────────────────────────────────────────
+    public static final String CAT_COMPLAINT = "COMPLAINT";
+    public static final String CAT_SUPPORT   = "SUPPORT";
+    public static final String CAT_GENERAL   = "GENERAL";
+
+    // ── Sub-category constants (for SUPPORT) ────────────────────────────────
+    public static final String SUB_BOOKING = "BOOKING";
+    public static final String SUB_ACCOUNT = "ACCOUNT";
+    public static final String SUB_OTHER   = "OTHER";
 
     private long feedbackId;
     private String customerUsername;
@@ -25,6 +37,13 @@ public class Feedback {
     private String response;
     private LocalDateTime createdAt;
     private LocalDateTime resolvedAt;
+
+    // ── Extended fields ──────────────────────────────────────────────────────
+    private String category     = CAT_GENERAL; // default GENERAL
+    private String subCategory;                // only for SUPPORT
+    private Long   relatedBookingId;
+    private Long   relatedShowtimeId;
+    private String handledBy;                  // employee username
 
     public Feedback() {
     }
@@ -116,4 +135,20 @@ public class Feedback {
     public void setResolvedAt(LocalDateTime resolvedAt) {
         this.resolvedAt = resolvedAt;
     }
+
+    // ── Extended getters/setters ─────────────────────────────────────────────
+    public String getCategory() { return category; }
+    public void setCategory(String category) { this.category = category; }
+
+    public String getSubCategory() { return subCategory; }
+    public void setSubCategory(String subCategory) { this.subCategory = subCategory; }
+
+    public Long getRelatedBookingId() { return relatedBookingId; }
+    public void setRelatedBookingId(Long relatedBookingId) { this.relatedBookingId = relatedBookingId; }
+
+    public Long getRelatedShowtimeId() { return relatedShowtimeId; }
+    public void setRelatedShowtimeId(Long relatedShowtimeId) { this.relatedShowtimeId = relatedShowtimeId; }
+
+    public String getHandledBy() { return handledBy; }
+    public void setHandledBy(String handledBy) { this.handledBy = handledBy; }
 }

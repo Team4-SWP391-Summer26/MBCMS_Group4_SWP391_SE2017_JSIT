@@ -288,6 +288,8 @@ public class NotificationServiceImpl implements NotificationService {
                 return "bi-alarm";
             case Notification.TYPE_SYSTEM:
                 return "bi-info-circle";
+            case Notification.TYPE_FEEDBACK:
+                return "bi-chat-square-text";
             default:
                 return "bi-bell";
         }
@@ -312,6 +314,8 @@ public class NotificationServiceImpl implements NotificationService {
                         + notification.getReferenceId();
             case Notification.TYPE_PROMOTION:
                 return ctx + "/promotions/" + notification.getReferenceId();
+            case Notification.TYPE_FEEDBACK:
+                return ctx + "/customer/feedbacks";
             default:
                 return "#";
         }
@@ -323,7 +327,8 @@ public class NotificationServiceImpl implements NotificationService {
                 || Notification.TYPE_PAYMENT.equals(type)
                 || Notification.TYPE_PROMOTION.equals(type)
                 || Notification.TYPE_REMINDER.equals(type)
-                || Notification.TYPE_SYSTEM.equals(type);
+                || Notification.TYPE_SYSTEM.equals(type)
+                || Notification.TYPE_FEEDBACK.equals(type);
     }
 
     private String buildPromoContent(Promotion promotion) {

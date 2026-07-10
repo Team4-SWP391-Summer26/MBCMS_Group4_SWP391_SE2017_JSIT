@@ -146,6 +146,22 @@
                                                         </li>
                                                         <li>
                                                             <a class="dropdown-item py-2 px-3"
+                                                                href="${pageContext.request.contextPath}/customer/complaints"
+                                                                style="color:#4b5563;font-size:.9rem;
+                                           display:flex;align-items:center;gap:.5rem;">
+                                                                <i class="bi bi-exclamation-circle" style="font-size: 14px;"></i> Khiếu nại
+                                                            </a>
+                                                        </li>
+                                                        <li>
+                                                            <a class="dropdown-item py-2 px-3"
+                                                                href="${pageContext.request.contextPath}/customer/support"
+                                                                style="color:#4b5563;font-size:.9rem;
+                                           display:flex;align-items:center;gap:.5rem;">
+                                                                <i class="bi bi-headset" style="font-size: 14px;"></i> Yêu cầu hỗ trợ
+                                                            </a>
+                                                        </li>
+                                                        <li>
+                                                            <a class="dropdown-item py-2 px-3"
                                                                 href="${pageContext.request.contextPath}/auth/change-password"
                                                                 style="color:#4b5563;font-size:.9rem;
                                            display:flex;align-items:center;gap:.5rem;">
@@ -217,6 +233,26 @@
                                                                     <i class="bi bi-speedometer2"></i> Dashboard
                                                                 </a>
                                                             </li>
+                                                            <c:if test="${role == 'ADMIN' or role == 'BRANCH_MANAGER' or role == 'BRANCH_STAFF'}">
+                                                            <li>
+                                                                <c:choose>
+                                                                    <c:when test="${role == 'ADMIN'}">
+                                                                        <c:set var="fbUrl" value="/admin/feedbacks" />
+                                                                    </c:when>
+                                                                    <c:when test="${role == 'BRANCH_STAFF'}">
+                                                                        <c:set var="fbUrl" value="/staff/feedbacks" />
+                                                                    </c:when>
+                                                                    <c:otherwise>
+                                                                        <c:set var="fbUrl" value="/branch/feedbacks" />
+                                                                    </c:otherwise>
+                                                                </c:choose>
+                                                                <a class="dropdown-item py-2 px-3 d-flex align-items-center gap-2"
+                                                                    href="${pageContext.request.contextPath}${fbUrl}"
+                                                                    style="color:#4b5563;font-size:.9rem;">
+                                                                    <i class="bi bi-chat-square-text"></i> Phản hồi
+                                                                </a>
+                                                            </li>
+                                                            </c:if>
                                                             <li>
                                                                 <hr class="dropdown-divider"
                                                                     style="border-top:1px solid #e5e7eb;">

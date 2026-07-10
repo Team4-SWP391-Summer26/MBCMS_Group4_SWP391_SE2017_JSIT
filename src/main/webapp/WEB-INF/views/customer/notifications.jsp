@@ -255,13 +255,12 @@
                                 <span class="lc-badge">${unreadCount}</span>
                             </c:if>
                         </a>
-                        <span class="lc-navitem" style="color:#9aa4b2;cursor:default;">
-                            <i class="bi bi-chat-dots"></i> Feedback
-                            <span style="font-size:.62rem;background:#eef1f5;color:#9aa4b2;
-                                         padding:.05rem .4rem;border-radius:999px;margin-left:auto;">
-                                Soon
-                            </span>
-                        </span>
+                        <a class="lc-navitem" href="${pageContext.request.contextPath}/customer/complaints">
+                            <i class="bi bi-exclamation-circle"></i> Khiếu nại
+                        </a>
+                        <a class="lc-navitem" href="${pageContext.request.contextPath}/customer/support">
+                            <i class="bi bi-headset"></i> Hỗ trợ
+                        </a>
                         <hr style="margin:10px 0;border-color:#eef1f5;">
                         <form method="post" action="${pageContext.request.contextPath}/auth/logout" class="m-0">
                             <%@ include file="/WEB-INF/views/common/csrf-hidden.jspf" %>

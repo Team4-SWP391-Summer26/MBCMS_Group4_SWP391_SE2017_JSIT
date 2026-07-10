@@ -19,6 +19,9 @@
                     <a class="lc-sb-item ${param.active == 'food-orders' ? 'active' : ''}"
                         href="${pageContext.request.contextPath}/staff/food-orders">
                         <i class="bi bi-cup-straw"></i> F&B Fulfillments</a>
+                    <a class="lc-sb-item ${param.active == 'feedbacks' ? 'active' : ''}"
+                        href="${pageContext.request.contextPath}/staff/feedbacks">
+                        <i class="bi bi-chat-square-text"></i> Feedback</a>
 
                     <div style="flex:1;"></div>
 
