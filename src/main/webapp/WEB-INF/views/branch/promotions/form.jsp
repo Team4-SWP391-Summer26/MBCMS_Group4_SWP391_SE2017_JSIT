@@ -1,4 +1,4 @@
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+﻿<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
@@ -62,6 +62,21 @@
                 width: 2.8em;
                 height: 1.5em;
                 cursor: pointer;
+            }
+                    .ticket-card,
+            .ticket-card .small,
+            .ticket-card small,
+            .ticket-card h3,
+            .ticket-card h4,
+            .ticket-card div,
+            .ticket-card span,
+            .ticket-card h3.text-white,
+            .ticket-card h4.text-white {
+                color: #ffffff !important;
+                opacity: 1 !important;
+            }
+            .ticket-card .text-white-50 {
+                color: rgba(255, 255, 255, 0.75) !important;
             }
         </style>
     </head>

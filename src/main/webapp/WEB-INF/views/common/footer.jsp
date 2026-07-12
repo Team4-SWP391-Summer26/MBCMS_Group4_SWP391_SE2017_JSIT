@@ -1,4 +1,4 @@
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+﻿<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 
@@ -166,7 +166,7 @@
 
                 <span class="accept-label">We accept</span>
 
-                <img src="${pageContext.request.contextPath}/assets/img/vnpay-logo.png" alt="VNPAY" height="22" style="object-fit: contain; margin-left: 8px; vertical-align: middle; border-radius: 2px;">
+                <img src="${pageContext.request.contextPath}/assets/img/vnpay-logo.png" alt="VNPAY" height="28" style="object-fit: contain; margin-left: 8px; vertical-align: middle; border-radius: 2px;">
 
                 <div class="language-select" role="button" tabindex="0" aria-label="Language">
 

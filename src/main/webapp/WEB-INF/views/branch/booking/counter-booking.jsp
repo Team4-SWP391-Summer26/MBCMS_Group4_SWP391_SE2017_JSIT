@@ -621,7 +621,7 @@
                                             <div class="form-check flex-fill p-3 payment-method-card" style="cursor: pointer;" onclick="document.getElementById('pay-vnpay').click();">
                                                 <input class="form-check-input ms-0 me-2" type="radio" name="paymentMethodRadio" id="pay-vnpay" value="VNPAY" style="cursor: pointer;">
                                                 <label class="form-check-label fw-bold text-navy" for="pay-vnpay" style="cursor: pointer;">
-                                                    <img src="${pageContext.request.contextPath}/assets/img/vnpay-logo.png" alt="VNPAY" height="20" style="object-fit: contain; vertical-align: middle; margin-top: -3px;">
+                                                    <img src="${pageContext.request.contextPath}/assets/img/vnpay-logo.png" alt="VNPAY" height="32" style="object-fit: contain; vertical-align: middle; margin-top: -3px;">
                                                 </label>
                                             </div>
                                         </div>

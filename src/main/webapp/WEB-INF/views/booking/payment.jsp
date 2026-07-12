@@ -126,7 +126,7 @@
                 <h6 class="fw-bold mb-3 bk-panel-title">Payment Method</h6>
 
                 <div class="pm active is-static mb-3">
-                    <span class="pm-logo" style="background: transparent; padding: 0; width: auto; height: 32px;"><img src="${pageContext.request.contextPath}/assets/img/vnpay-logo.png" alt="VNPAY" height="32" style="object-fit: contain;"></span>
+                    <span class="pm-logo" style="background: transparent; padding: 0; width: auto; height: 40px;"><img src="${pageContext.request.contextPath}/assets/img/vnpay-logo.png" alt="VNPAY" height="40" style="object-fit: contain;"></span>
                     <span>
                         <span class="pm-title">VNPay</span>
                         <div class="pm-desc">Redirect to VNPay Sandbox — QR code / internet banking</div>
