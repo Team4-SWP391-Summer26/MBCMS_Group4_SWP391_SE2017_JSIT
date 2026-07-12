@@ -9,48 +9,7 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>Promotion Console - Admin</title>
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
-        <link href="${pageContext.request.contextPath}/assets/css/manager.css?v=${applicationScope.assetVersion}" rel="stylesheet">
-        <style>
-            .badge-code {
-                background-color: #1e293b;
-                color: var(--lc-bg);
-                font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-                font-weight: 700;
-                padding: 0.35em 0.65em;
-                border-radius: 6px;
-                letter-spacing: 0.05em;
-            }
-            .filter-tab {
-                cursor: pointer;
-                padding: 0.4rem 0.8rem;
-                font-size: 0.85rem;
-                font-weight: 600;
-                color: var(--lc-muted);
-                border-radius: 6px;
-                text-decoration: none;
-                transition: all 0.15s ease;
-            }
-            .filter-tab:hover {
-                background: #f1f5f9;
-                color: var(--navy);
-            }
-            .filter-tab.active {
-                background: var(--lc-primary);
-                color: #fff;
-            }
-            .pill-global {
-                background-color: #f0fdf4;
-                color: var(--success);
-                border: 1px solid #bbf7d0;
-            }
-            .pill-branch {
-                background-color: var(--lc-light);
-                color: var(--lc-primary);
-                border: 1px solid #bfdbfe;
-            }
-        </style>
+        <%@ include file="/WEB-INF/views/admin/_admin-assets.jspf" %>
     </head>
     <body class="lc-console">
 
@@ -59,20 +18,18 @@
         </jsp:include>
 
         <main class="lc-admin-main">
-            <div class="container-fluid px-4 py-4" style="max-width: 1240px;">
+            <div class="lc-page">
 
-                <%-- ===== Page header ===== --%>
-                <div class="mb-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <div class="lc-page-head">
                     <div>
-                        <div class="text-muted small mb-1">Admin Console / Promotions</div>
-                        <h4 class="text-navy fw-bold mb-0">System Promotion Management</h4>
+                        <div class="lc-page-crumb">Admin / <strong>Promotions</strong></div>
+                        <h1 class="lc-page-title">System Promotion Management</h1>
                     </div>
-                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-3 py-2 fw-semibold">
-                        <i class="bi bi-shield-lock-fill me-1"></i>System Admin Scope
+                    <span class="lc-admin-scope">
+                        <i class="bi bi-shield-lock-fill"></i> System admin scope
                     </span>
                 </div>
 
-                <%-- ===== Feedback alerts ===== --%>
                 <c:if test="${not empty successMsg}">
                     <div class="alert alert-success py-2 alert-dismissible fade show" role="alert">
                         <i class="bi bi-check-circle-fill me-1"></i> ${successMsg}
@@ -86,117 +43,82 @@
                     </div>
                 </c:if>
 
-                <%-- ===== KPI statistics cards ===== --%>
-                <div class="row g-3 mb-4">
-                    <div class="col-sm-6 col-xl-3">
-                        <div class="card lc-elev p-3 h-100">
-                            <div class="d-flex align-items-center gap-3">
-                                <div class="lc-stat-icon" style="background:#E7F0FF; color:#0D6EFD;">
-                                    <i class="bi bi-tag-fill"></i></div>
-                                <div>
-                                    <div class="text-muted small fw-semibold">Total promotions</div>
-                                    <div class="text-navy lc-stat-value" style="font-size:1.6rem;">${statTotal}</div>
-                                </div>
-                            </div>
+                <div class="lc-kpi-row">
+                    <div class="lc-kpi-card lc-rise" style="--i:0;">
+                        <div class="lc-stat-icon lc-kpi-icon--blue"><i class="bi bi-tag-fill"></i></div>
+                        <div>
+                            <div class="lc-kpi-label">Total promotions</div>
+                            <div class="lc-kpi-value">${statTotal}</div>
+                            <div class="lc-kpi-hint">System-wide &amp; branch</div>
                         </div>
                     </div>
-                    <div class="col-sm-6 col-xl-3">
-                        <div class="card lc-elev p-3 h-100">
-                            <div class="d-flex align-items-center gap-3">
-                                <div class="lc-stat-icon" style="background:#E8F5EE; color:#198754;">
-                                    <i class="bi bi-check-circle-fill"></i></div>
-                                <div>
-                                    <div class="text-muted small fw-semibold">Active</div>
-                                    <div class="text-navy lc-stat-value" style="font-size:1.6rem;">${statActive}</div>
-                                </div>
-                            </div>
+                    <div class="lc-kpi-card lc-rise" style="--i:1;">
+                        <div class="lc-stat-icon lc-kpi-icon--green"><i class="bi bi-check-circle-fill"></i></div>
+                        <div>
+                            <div class="lc-kpi-label">Active</div>
+                            <div class="lc-kpi-value">${statActive}</div>
+                            <div class="lc-kpi-hint">Currently redeemable</div>
                         </div>
                     </div>
-                    <div class="col-sm-6 col-xl-3">
-                        <div class="card lc-elev p-3 h-100">
-                            <div class="d-flex align-items-center gap-3">
-                                <div class="lc-stat-icon" style="background:#FFF4D6; color:#B58105;">
-                                    <i class="bi bi-ticket-perforated-fill"></i></div>
-                                <div>
-                                    <div class="text-muted small fw-semibold">Used this month</div>
-                                    <div class="text-navy lc-stat-value" style="font-size:1.6rem;">${statUsed}</div>
-                                </div>
-                            </div>
+                    <div class="lc-kpi-card lc-rise" style="--i:2;">
+                        <div class="lc-stat-icon lc-kpi-icon--amber"><i class="bi bi-ticket-perforated-fill"></i></div>
+                        <div>
+                            <div class="lc-kpi-label">Used this month</div>
+                            <div class="lc-kpi-value">${statUsed}</div>
+                            <div class="lc-kpi-hint">Redemptions this month</div>
                         </div>
                     </div>
-                    <div class="col-sm-6 col-xl-3">
-                        <div class="card lc-elev p-3 h-100">
-                            <div class="d-flex align-items-center gap-3">
-                                <div class="lc-stat-icon" style="background:#FBE4E6; color:#B02A37;">
-                                    <i class="bi bi-graph-down-arrow"></i></div>
-                                <div>
-                                    <div class="text-muted small fw-semibold">Revenue impact</div>
-                                    <div class="text-navy lc-stat-value" style="font-size:1.6rem; color:#B02A37;">
-                                        -<fmt:formatNumber value="${statRevenue}" pattern="#,##0" />₫
-                                    </div>
-                                </div>
-                            </div>
+                    <div class="lc-kpi-card lc-rise" style="--i:3;">
+                        <div class="lc-stat-icon lc-kpi-icon--rose"><i class="bi bi-graph-down-arrow"></i></div>
+                        <div>
+                            <div class="lc-kpi-label">Revenue impact</div>
+                            <div class="lc-kpi-value" style="color:#B02A37;">-<fmt:formatNumber value="${statRevenue}" pattern="#,##0" />₫</div>
+                            <div class="lc-kpi-hint">Discount given out</div>
                         </div>
                     </div>
                 </div>
 
-                <%-- ===== Filters & Toolbar ===== --%>
-                <div class="card lc-elev p-3 mb-4">
-                    <form method="get" action="${pageContext.request.contextPath}/admin/promotions" id="filterForm">
-                        <div class="row g-3 align-items-center">
-                            <%-- Search --%>
-                            <div class="col-lg-3 col-md-6 col-sm-12">
-                                <div class="input-group input-group-sm">
-                                    <span class="input-group-text bg-white border-end-0 text-muted"><i class="bi bi-search"></i></span>
-                                    <input type="text" class="form-control border-start-0" name="search"
-                                           placeholder="Search by code or name..." value="${fn:escapeXml(filterSearch)}">
-                                </div>
-                            </div>
-
-                            <%-- Branch dropdown --%>
-                            <div class="col-lg-2 col-md-6 col-sm-12">
-                                <select class="form-select form-select-sm" name="branchId" onchange="this.form.submit()">
-                                    <option value="">All Branches / Global</option>
-                                    <option value="-1" ${filterBranchId == '-1' ? 'selected' : ''}>Global (All Branches)</option>
-                                    <c:forEach var="b" items="${branches}">
-                                        <option value="${b.branchId}" ${filterBranchId == b.branchId ? 'selected' : ''}>
-                                            <c:out value="${b.name}" />
-                                        </option>
-                                    </c:forEach>
-                                </select>
-                            </div>
-
-                            <%-- Discount Type dropdown --%>
-                            <div class="col-lg-2 col-md-6 col-sm-12">
-                                <select class="form-select form-select-sm" name="type" onchange="this.form.submit()">
-                                    <option value="">All Types</option>
-                                    <option value="PERCENT" ${filterType == 'PERCENT' ? 'selected' : ''}>Percentage</option>
-                                    <option value="FIXED_AMOUNT" ${filterType == 'FIXED_AMOUNT' ? 'selected' : ''}>Fixed amount</option>
-                                </select>
-                            </div>
-
-                            <%-- Status tabs --%>
-                            <div class="col-lg-3 col-md-6 col-sm-12">
-                                <div class="d-flex gap-1 bg-light p-1 rounded" style="width: fit-content;">
-                                    <input type="hidden" name="status" id="statusField" value="${fn:escapeXml(filterStatus)}">
-                                    <a class="filter-tab ${empty filterStatus ? 'active' : ''}" onclick="setStatusFilter('')">All</a>
-                                    <a class="filter-tab ${filterStatus == 'Active' ? 'active' : ''}" onclick="setStatusFilter('Active')">Active</a>
-                                    <a class="filter-tab ${filterStatus == 'Inactive' ? 'active' : ''}" onclick="setStatusFilter('Inactive')">Inactive</a>
-                                    <a class="filter-tab ${filterStatus == 'Expired' ? 'active' : ''}" onclick="setStatusFilter('Expired')">Expired</a>
-                                </div>
-                            </div>
-
-                            <%-- Add button --%>
-                            <div class="col-lg-2 col-md-12 col-sm-12 text-lg-end text-start">
-                                <a class="btn btn-primary btn-sm" href="${pageContext.request.contextPath}/admin/promotions/create">
-                                    <i class="bi bi-plus-lg me-1"></i>Add Promotion
-                                </a>
-                            </div>
+                <div class="st-toolbar st-toolbar--single lc-toolbar mb-4">
+                    <form method="get" action="${pageContext.request.contextPath}/admin/promotions" id="filterForm" class="st-toolbar-track w-100">
+                        <div class="lc-toolbar-search">
+                            <i class="bi bi-search" aria-hidden="true"></i>
+                            <input type="search" name="search" placeholder="Search by code or name..."
+                                   value="${fn:escapeXml(filterSearch)}" aria-label="Search promotions">
                         </div>
+                        <div class="st-toolbar-vrule" aria-hidden="true"></div>
+                        <select class="st-toolbar-select" name="branchId" onchange="this.form.submit()" aria-label="Filter by branch">
+                            <option value="">All branches / global</option>
+                            <option value="-1" ${filterBranchId == '-1' ? 'selected' : ''}>Global (all branches)</option>
+                            <c:forEach var="b" items="${branches}">
+                                <option value="${b.branchId}" ${filterBranchId == b.branchId ? 'selected' : ''}>
+                                    <c:out value="${b.name}" />
+                                </option>
+                            </c:forEach>
+                        </select>
+                        <div class="st-toolbar-vrule" aria-hidden="true"></div>
+                        <select class="st-toolbar-select" name="type" onchange="this.form.submit()" aria-label="Discount type">
+                            <option value="">All types</option>
+                            <option value="PERCENT" ${filterType == 'PERCENT' ? 'selected' : ''}>Percentage</option>
+                            <option value="FIXED_AMOUNT" ${filterType == 'FIXED_AMOUNT' ? 'selected' : ''}>Fixed amount</option>
+                        </select>
+                        <div class="st-toolbar-vrule" aria-hidden="true"></div>
+                        <input type="hidden" name="status" id="statusField" value="${fn:escapeXml(filterStatus)}">
+                        <div class="lc-seg" role="tablist" aria-label="Filter by status">
+                            <button type="button" class="lc-seg-btn ${empty filterStatus ? 'active' : ''}"
+                                    onclick="setStatusFilter('')"><i class="bi bi-grid-3x3-gap-fill"></i> All</button>
+                            <button type="button" class="lc-seg-btn ${filterStatus == 'Active' ? 'active' : ''}"
+                                    onclick="setStatusFilter('Active')"><i class="bi bi-check-circle"></i> Active</button>
+                            <button type="button" class="lc-seg-btn ${filterStatus == 'Inactive' ? 'active' : ''}"
+                                    onclick="setStatusFilter('Inactive')"><i class="bi bi-pause-circle"></i> Inactive</button>
+                            <button type="button" class="lc-seg-btn ${filterStatus == 'Expired' ? 'active' : ''}"
+                                    onclick="setStatusFilter('Expired')"><i class="bi bi-clock-history"></i> Expired</button>
+                        </div>
+                        <div class="lc-toolbar-spacer" aria-hidden="true"></div>
+                        <a class="st-toolbar-add" href="${pageContext.request.contextPath}/admin/promotions/create">
+                            <i class="bi bi-plus-lg" aria-hidden="true"></i> Add Promotion</a>
                     </form>
                 </div>
 
-                <%-- ===== Promotions Table ===== --%>
                 <div class="card lc-elev p-0 overflow-hidden">
                     <div class="table-responsive">
                         <table class="table lc-table align-middle mb-0">
@@ -204,7 +126,7 @@
                                 <tr>
                                     <th class="ps-3">Code</th>
                                     <th>Name</th>
-                                    <th>Branch Scope</th>
+                                    <th>Branch scope</th>
                                     <th>Type</th>
                                     <th>Value</th>
                                     <th>Min order</th>
@@ -217,15 +139,19 @@
                             <tbody>
                                 <c:if test="${empty promotions}">
                                     <tr>
-                                        <td colspan="10" class="text-center text-muted py-4">
-                                            No promotions found matching the search criteria.
+                                        <td colspan="10" class="p-0">
+                                            <div class="lc-empty">
+                                                <i class="bi bi-ticket-perforated"></i>
+                                                <div class="lc-empty-title">No promotions found</div>
+                                                <div class="lc-empty-hint">No promo codes match your filters. Adjust the search, or create a new system or branch promotion.</div>
+                                                <a class="st-toolbar-add mt-2" href="${pageContext.request.contextPath}/admin/promotions/create">
+                                                    <i class="bi bi-plus-lg"></i> Add Promotion</a>
+                                            </div>
                                         </td>
                                     </tr>
                                 </c:if>
                                 <c:forEach var="p" items="${promotions}">
                                     <c:set var="pct" value="${p.maxUses != null && p.maxUses > 0 ? (p.usedCount * 100 / p.maxUses) : 0}" />
-                                    
-                                    <%-- Map branchName --%>
                                     <c:set var="branchName" value="Global (System-wide)" />
                                     <c:set var="isGlobal" value="true" />
                                     <c:if test="${not empty p.branchId}">
@@ -236,14 +162,9 @@
                                             </c:if>
                                         </c:forEach>
                                     </c:if>
-
                                     <tr>
-                                        <td class="ps-3">
-                                            <span class="badge-code"><c:out value="${p.code}" /></span>
-                                        </td>
-                                        <td>
-                                            <div class="text-navy fw-semibold"><c:out value="${p.name}" /></div>
-                                        </td>
+                                        <td class="ps-3"><span class="badge-code"><c:out value="${p.code}" /></span></td>
+                                        <td><div class="text-navy fw-semibold"><c:out value="${p.name}" /></div></td>
                                         <td>
                                             <span class="badge ${isGlobal ? 'pill-global' : 'pill-branch'} fw-bold px-2 py-1" style="font-size: 0.75rem;">
                                                 <i class="bi ${isGlobal ? 'bi-globe' : 'bi-building'} me-1"></i><c:out value="${branchName}" />
@@ -251,12 +172,8 @@
                                         </td>
                                         <td>
                                             <c:choose>
-                                                <c:when test="${p.discountType == 'PERCENT'}">
-                                                    <span class="pill pill-blue">Percentage</span>
-                                                </c:when>
-                                                <c:otherwise>
-                                                    <span class="pill pill-purple">Fixed amount</span>
-                                                </c:otherwise>
+                                                <c:when test="${p.discountType == 'PERCENT'}"><span class="pill pill-blue">Percentage</span></c:when>
+                                                <c:otherwise><span class="pill pill-purple">Fixed amount</span></c:otherwise>
                                             </c:choose>
                                         </td>
                                         <td class="fw-bold text-navy">
@@ -274,9 +191,7 @@
                                                 <c:when test="${p.minOrderAmount != null && p.minOrderAmount > 0}">
                                                     <fmt:formatNumber value="${p.minOrderAmount}" pattern="#,##0" />₫
                                                 </c:when>
-                                                <c:otherwise>
-                                                    &mdash;
-                                                </c:otherwise>
+                                                <c:otherwise>&mdash;</c:otherwise>
                                             </c:choose>
                                         </td>
                                         <td class="small text-navy fw-semibold mono">
@@ -297,15 +212,9 @@
                                         </td>
                                         <td>
                                             <c:choose>
-                                                <c:when test="${p.status == 'Active'}">
-                                                    <span class="pill pill-green">Active</span>
-                                                </c:when>
-                                                <c:when test="${p.status == 'Expired'}">
-                                                    <span class="pill pill-red">Expired</span>
-                                                </c:when>
-                                                <c:otherwise>
-                                                    <span class="pill pill-gray">Inactive</span>
-                                                </c:otherwise>
+                                                <c:when test="${p.status == 'Active'}"><span class="pill pill-green">Active</span></c:when>
+                                                <c:when test="${p.status == 'Expired'}"><span class="pill pill-red">Expired</span></c:when>
+                                                <c:otherwise><span class="pill pill-gray">Inactive</span></c:otherwise>
                                             </c:choose>
                                         </td>
                                         <td class="text-end pe-3">
@@ -342,7 +251,7 @@
             </div>
         </main>
 
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+        <%@ include file="/WEB-INF/views/admin/_admin-scripts.jspf" %>
         <script>
             function setStatusFilter(status) {
                 document.getElementById('statusField').value = status;

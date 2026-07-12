@@ -45,7 +45,6 @@
                     <span class="lc-sb-item disabled"><i class="bi bi-bar-chart"></i> Reports <span
                             class="lc-sb-soon">Soon</span></span>
 
-
                     <div style="flex:1;"></div>
 
                     <div class="d-flex align-items-center gap-2 p-2 mt-3 lc-sb-user">

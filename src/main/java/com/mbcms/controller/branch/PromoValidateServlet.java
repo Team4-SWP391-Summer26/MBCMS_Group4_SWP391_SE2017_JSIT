@@ -30,6 +30,16 @@ public class PromoValidateServlet extends HttpServlet {
             throws ServletException, IOException {
 
         resp.setContentType("application/json;charset=UTF-8");
+        
+        // [Security Check] Enforce active HTTP session for AJAX request validation
+        jakarta.servlet.http.HttpSession session = req.getSession(false);
+        if (session == null || session.getAttribute("currentBranchId") == null) {
+            resp.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized access.");
+            return;
+        }
+        long branchId = (Long) session.getAttribute("currentBranchId");
+        
+        // [Flow Step: JSP -> Servlet] Parse AJAX query parameters: code and subtotal
         String code = req.getParameter("code");
         String subtotalStr = req.getParameter("subtotal");
 
@@ -37,7 +47,7 @@ public class PromoValidateServlet extends HttpServlet {
 
         if (code == null || code.trim().isEmpty() || subtotalStr == null || subtotalStr.trim().isEmpty()) {
             result.put("valid", false);
-            result.put("message", "Mã và tổng tiền tạm tính không được để trống");
+            result.put("message", "Promo code and subtotal are required.");
             mapper.writeValue(resp.getWriter(), result);
             return;
         }
@@ -47,43 +57,46 @@ public class PromoValidateServlet extends HttpServlet {
             subtotal = new BigDecimal(subtotalStr.trim());
         } catch (NumberFormatException e) {
             result.put("valid", false);
-            result.put("message", "Tổng tiền tạm tính không đúng định dạng số");
+            result.put("message", "Subtotal must be a valid number.");
             mapper.writeValue(resp.getWriter(), result);
             return;
         }
 
-        jakarta.servlet.http.HttpSession session = req.getSession(false);
-        Long branchId = session != null ? (Long) session.getAttribute("currentBranchId") : null;
-
         try {
+            // [Flow Step: Servlet -> Database] Fetch matching promotion details by unique code from Database
             Promotion promo = promotionDAO.findByCode(code.trim().toUpperCase());
+            
+            // Validate all coupon conditions sequentially (Security & Logic checks)
             if (promo == null) {
                 result.put("valid", false);
-                result.put("message", "Mã khuyến mãi không tồn tại.");
-            } else if (promo.getBranchId() != null && (branchId == null || !promo.getBranchId().equals(branchId))) {
+                result.put("message", "Promo code does not exist.");
+            } else if (promo.getBranchId() != null && !promo.getBranchId().equals(branchId)) {
                 result.put("valid", false);
-                result.put("message", "Mã khuyến mãi không áp dụng cho chi nhánh này.");
+                result.put("message", "Promo code is not available for this branch.");
             } else if (!promo.isActive() || !"Active".equals(promo.getStatus())) {
                 result.put("valid", false);
-                result.put("message", "Mã khuyến mãi hiện không kích hoạt hoặc đã hết hạn.");
+                result.put("message", "Promo code is inactive or expired.");
             } else if (promo.getMaxUses() != null && promo.getUsedCount() >= promo.getMaxUses()) {
                 result.put("valid", false);
-                result.put("message", "Mã khuyến mãi đã hết lượt sử dụng.");
+                result.put("message", "Promo code has reached its usage limit.");
             } else if (promo.getMinOrderAmount() != null && subtotal.compareTo(promo.getMinOrderAmount()) < 0) {
                 result.put("valid", false);
-                result.put("message", "Đơn hàng chưa đạt giá trị tối thiểu để áp dụng mã này (Tối thiểu: " + promo.getMinOrderAmount() + " VND).");
+                result.put("message", "Order subtotal has not reached the minimum required for this promo code (Minimum: " + promo.getMinOrderAmount() + " VND).");
             } else {
-                // Tinh toan chiet khau
+                // Calculate discount amount based on promo configuration type
                 BigDecimal discount = BigDecimal.ZERO;
                 if (Promotion.TYPE_PERCENT.equals(promo.getDiscountType())) {
+                    // Percentage based: subtotal * value / 100
                     discount = subtotal.multiply(promo.getDiscountValue())
                             .divide(BigDecimal.valueOf(100), 0, java.math.RoundingMode.HALF_UP);
                 } else if (Promotion.TYPE_FIXED_AMOUNT.equals(promo.getDiscountType())) {
+                    // Fixed amount discount
                     discount = promo.getDiscountValue();
                 }
 
+                // Cap discount at total subtotal value (avoid negative billing)
                 if (discount.compareTo(subtotal) > 0) {
-                    discount = subtotal; // giam toi da bang subtotal
+                    discount = subtotal;
                 }
 
                 BigDecimal total = subtotal.subtract(discount);
@@ -92,13 +105,14 @@ public class PromoValidateServlet extends HttpServlet {
                 result.put("promoId", promo.getPromoId());
                 result.put("discountAmount", discount);
                 result.put("totalAmount", total);
-                result.put("message", "Áp dụng thành công: " + promo.getName());
+                result.put("message", "Applied successfully: " + promo.getName());
             }
         } catch (Exception e) {
             result.put("valid", false);
-            result.put("message", "Lỗi xử lý khuyến mãi: " + e.getMessage());
+            result.put("message", "Promo processing error: " + e.getMessage());
         }
 
+        // [Flow Step: Servlet -> JSP] Return calculation check results as a JSON payload to AJAX success handler
         mapper.writeValue(resp.getWriter(), result);
     }
 }

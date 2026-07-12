@@ -1,9 +1,11 @@
-# Example Google SMTP configuration
+# Copy file nay thanh src/main/resources/email.properties neu muon gui email that.
+# Neu chua test OTP/email, co the chua can tao file nay; app se canh bao va bo qua gui email.
+#
+# Gmail SMTP example. Dung Gmail App Password, KHONG dung mat khau dang nhap Gmail.
 mail.smtp.host=smtp.gmail.com
 mail.smtp.port=587
 mail.smtp.auth=true
 mail.smtp.starttls.enable=true
 
-# Replace with your actual Gmail account and Gmail App Password
-mail.sender.email=your-gmail@gmail.com
-mail.sender.password=your-app-password
+mail.sender.email=YOUR_GMAIL_ADDRESS
+mail.sender.password=YOUR_GMAIL_APP_PASSWORD

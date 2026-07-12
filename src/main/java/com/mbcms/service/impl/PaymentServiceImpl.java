@@ -4,10 +4,12 @@ import com.mbcms.dao.BookingDAO;
 import com.mbcms.dao.NotificationDAO;
 import com.mbcms.dao.PaymentDAO;
 import com.mbcms.dao.PromotionDAO;
+import com.mbcms.dao.ShowtimeDAO;
 import com.mbcms.dao.impl.BookingDAOImpl;
 import com.mbcms.dao.impl.NotificationDAOImpl;
 import com.mbcms.dao.impl.PaymentDAOImpl;
 import com.mbcms.dao.impl.PromotionDAOImpl;
+import com.mbcms.dao.impl.ShowtimeDAOImpl;
 import com.mbcms.model.Booking;
 import com.mbcms.model.Customer;
 import com.mbcms.model.Notification;
@@ -15,9 +17,11 @@ import com.mbcms.model.Payment;
 import com.mbcms.model.PaymentRecord;
 import com.mbcms.model.PaymentSearchCriteria;
 import com.mbcms.model.PaymentSummary;
+import com.mbcms.model.Showtime;
 import com.mbcms.service.NotificationService;
 import com.mbcms.service.PaymentService;
 import com.mbcms.util.DBUtil;
+import com.mbcms.util.DateTimeUtil;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -36,6 +40,7 @@ public class PaymentServiceImpl implements PaymentService {
     private final BookingDAO bookingDao = new BookingDAOImpl();
     private final NotificationDAO notificationDao = new NotificationDAOImpl();
     private final PromotionDAO promotionDao = new PromotionDAOImpl();
+    private final ShowtimeDAO showtimeDao = new ShowtimeDAOImpl();
     private final NotificationService notificationService = new NotificationServiceImpl();
 
     @Override
@@ -61,6 +66,8 @@ public class PaymentServiceImpl implements PaymentService {
         if (bookingDao.isPendingHoldExpired(bookingId)) {
             throw new IllegalStateException("Your seat hold has expired. Please book again.");
         }
+        // Suat phai con SCHEDULED va chua bat dau (manager co the huy sau khi hold).
+        assertShowtimePayable(b.getShowtimeId());
         return b;
     }
 
@@ -101,6 +108,13 @@ public class PaymentServiceImpl implements PaymentService {
             return Result.EXPIRED; // CANCELLED / USED -> khong confirm
         }
 
+        // Re-check showtime luc confirm (co the bi huy trong cua so hold 10 phut).
+        Showtime st = showtimeDao.findById(b.getShowtimeId());
+        if (st == null || !Showtime.STATUS_SCHEDULED.equals(st.getStatus())
+                || !st.getStartTime().isAfter(DateTimeUtil.nowVietnam())) {
+            return Result.SHOWTIME_INVALID;
+        }
+
         // Dam bao co payment PENDING (phong truong hop vao callback truc tiep).
         Payment existing = paymentDao.findByBookingId(bookingId);
         if (existing == null) {
@@ -120,14 +134,18 @@ public class PaymentServiceImpl implements PaymentService {
             }
 
             // 2) payments: PENDING -> SUCCESS + transaction_ref + paid_at
-            paymentDao.markSuccess(conn, bookingId, transactionRef);
+            int pay = paymentDao.markSuccess(conn, bookingId, transactionRef);
+            if (pay == 0) {
+                conn.rollback();
+                return Result.EXPIRED;
+            }
 
-            // 3) promo used_count++ neu booking co ma (cung transaction, khong vuot max_uses)
+            // 3) promo used_count++ — het luot thi ROLLBACK (khop counter cash), khong confirm gia giam.
             if (b.getPromoId() != null) {
                 int promoUpdated = promotionDao.incrementUsedCount(conn, b.getPromoId());
                 if (promoUpdated == 0) {
-                    System.err.println("WARN: Promo usage limit reached for promo_id="
-                            + b.getPromoId() + " — booking still confirmed (VNPay paid).");
+                    conn.rollback();
+                    return Result.PROMO_EXHAUSTED;
                 }
             }
 
@@ -148,7 +166,7 @@ public class PaymentServiceImpl implements PaymentService {
 
         } catch (SQLException e) {
             rollbackQuietly(conn); // loi giua chung -> huy ca 5 buoc (atomic)
-            throw new RuntimeException("markPaymentSuccess lỗi: " + e.getMessage(), e);
+            throw new RuntimeException("markPaymentSuccess error: " + e.getMessage(), e);
         } finally {
             restoreAndClose(conn);
         }
@@ -170,6 +188,19 @@ public class PaymentServiceImpl implements PaymentService {
     @Override
     public PaymentSummary getPaymentSummary(Long branchId) {
         return paymentDao.summarize(branchId);
+    }
+
+    /** Suat con SCHEDULED va chua bat dau (gio VN) moi cho thanh toan. */
+    private void assertShowtimePayable(long showtimeId) {
+        Showtime st = showtimeDao.findById(showtimeId);
+        if (st == null || !Showtime.STATUS_SCHEDULED.equals(st.getStatus())) {
+            throw new IllegalStateException(
+                    "This showtime is no longer available. Please book another screening.");
+        }
+        if (!st.getStartTime().isAfter(DateTimeUtil.nowVietnam())) {
+            throw new IllegalStateException(
+                    "This showtime has already started. Please book another screening.");
+        }
     }
 
     // Chuan hoa + whitelist phuong thuc: chi chap nhan VNPAY (he thong khong dung tien mat online).

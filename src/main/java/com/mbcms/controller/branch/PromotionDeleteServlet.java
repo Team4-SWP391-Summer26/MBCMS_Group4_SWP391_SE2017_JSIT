@@ -17,6 +17,15 @@ public class PromotionDeleteServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
+        
+        // [Security Check] Verify active HTTP session
+        jakarta.servlet.http.HttpSession session = req.getSession(false);
+        if (session == null || session.getAttribute("currentBranchId") == null) {
+            resp.sendRedirect(req.getContextPath() + "/auth/login");
+            return;
+        }
+
+        // [Flow Step: JSP -> Servlet] Post request received to soft-delete a promotion with parameter 'id'
         String idStr = req.getParameter("id");
         if (idStr == null || idStr.trim().isEmpty()) {
             resp.sendRedirect(req.getContextPath() + "/branch/promotions?error=1");
@@ -26,20 +35,25 @@ public class PromotionDeleteServlet extends HttpServlet {
         try {
             long id = Long.parseLong(idStr.trim());
             PromotionDAO promotionDAO = new PromotionDAOImpl();
+            
+            // [Flow Step: Servlet -> Database] Query DB via PromotionDAO to load the promotion details
             Promotion p = promotionDAO.findById(id);
             if (p == null) {
                 resp.sendRedirect(req.getContextPath() + "/branch/promotions?error=1");
                 return;
             }
 
-            Long sessionBranchId = (Long) req.getSession(false).getAttribute("currentBranchId");
+            // Verify branch boundary permission (Security check)
+            Long sessionBranchId = (Long) session.getAttribute("currentBranchId");
             if (sessionBranchId == null || !sessionBranchId.equals(p.getBranchId())) {
                 resp.sendRedirect(req.getContextPath() + "/branch/promotions?error=1");
                 return;
             }
 
+            // [Flow Step: Servlet -> Database] Execute soft-deletion update in the DB via PromotionDAO.delete()
             boolean success = promotionDAO.delete(id);
             if (success) {
+                // [Flow Step: Servlet -> Browser] Redirection back to promotions list with success code
                 resp.sendRedirect(req.getContextPath() + "/branch/promotions?deleted=1");
             } else {
                 resp.sendRedirect(req.getContextPath() + "/branch/promotions?error=1");

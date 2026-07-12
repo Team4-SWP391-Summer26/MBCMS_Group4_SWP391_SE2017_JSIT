@@ -1,6 +1,8 @@
 ﻿<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
+<fmt:setLocale value="en_US"/>
+<fmt:setTimeZone value="Asia/Ho_Chi_Minh"/>
 <%--
     Payment screen (owner: HungNT). Booking step 5/6.
     Thanh toan online: VNPay Sandbox -> POST /booking/payment/gateway.
@@ -14,50 +16,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <link href="${pageContext.request.contextPath}/assets/css/main.css?v=${applicationScope.assetVersion}" rel="stylesheet">
-    <style>
-        /* --bk-* tokens come from tokens.css */
-        body { background: var(--bk-bg); }
-        .bk-wrap { max-width: 1080px; }
-        .bk-ctx { background:#fff; border-bottom:1px solid var(--bk-border); }
-        .bk-poster { width:46px; height:60px; border-radius:8px; object-fit:cover;
-            background:linear-gradient(135deg,#1e293b,var(--navy)); display:flex;
-            align-items:center; justify-content:center; color:var(--gold); font-weight:800; }
-        .bk-reserve { background:#FFF8E1; border:1px solid #FFE082; color:#7a5a00;
-            border-radius:999px; padding:.3rem .8rem; font-size:.82rem; font-weight:600;
-            display:inline-flex; align-items:center; gap:.4rem; }
-        .bk-reserve.danger { background:#fee2e2; border-color:#fca5a5; color:#b91c1c; }
-
-        .bk-steps { display:flex; align-items:center; }
-        .bk-step { display:flex; align-items:center; gap:.5rem; font-size:.9rem; font-weight:600; color:var(--text-subtle); white-space:nowrap; }
-        .bk-step .bk-dot { width:26px; height:26px; border-radius:999px; display:flex; align-items:center;
-            justify-content:center; font-size:.78rem; background:var(--border); color:var(--text-muted); flex-shrink:0; }
-        .bk-step.done  { color:var(--success); }
-        .bk-step.done  .bk-dot { background:var(--success); color:#fff; }
-        .bk-step.active { color:var(--bk-primary); }
-        .bk-step.active .bk-dot { background:var(--bk-primary); color:#fff; }
-        .bk-line { flex:1; height:2px; background:var(--border); margin:0 .5rem; min-width:14px; }
-        .bk-line.done { background:var(--success); }
-
-        .bk-card { background:#fff; border:1px solid var(--bk-border); border-radius:14px;
-            box-shadow:0 4px 12px rgba(15,23,42,.05); }
-        .bk-summary { position:sticky; top:18px; }
-
-        .pm { border:1.6px solid var(--bk-border); border-radius:12px; padding:.9rem 1rem; cursor:pointer;
-            display:flex; align-items:center; gap:.9rem; transition:border-color .12s, background .12s; background:#fff; }
-        .pm:hover { border-color:#9bbcf7; }
-        .pm.active { border-color:var(--bk-primary); background:var(--bk-light); }
-        .pm input { width:18px; height:18px; flex-shrink:0; }
-        .pm-logo { width:46px; height:30px; border-radius:6px; display:flex; align-items:center;
-            justify-content:center; font-weight:800; font-size:.7rem; color:#fff; flex-shrink:0; }
-        .pm-vnpay { background:#0d4a9c; }
-        .pm-title { font-weight:700; color:var(--bk-navy); }
-        .pm-desc { font-size:.8rem; color:var(--bk-muted); }
-
-        .bk-info { background:var(--bk-light); border:1px solid #cfe0fb; color:#1e40af;
-            border-radius:10px; padding:.6rem .85rem; font-size:.82rem; display:flex; gap:.5rem; align-items:flex-start; }
-        .mono { font-family:ui-monospace,Menlo,Consolas,monospace; }
-        .sum-line { display:flex; justify-content:space-between; align-items:center; padding:.35rem 0; font-size:.92rem; }
-    </style>
+    <link href="${pageContext.request.contextPath}/assets/css/booking.css?v=${applicationScope.assetVersion}" rel="stylesheet">
 </head>
 <body class="bk-page">
 
@@ -70,8 +29,7 @@
         com.mbcms.model.Booking _bk = (com.mbcms.model.Booking) request.getAttribute("booking");
         if (_bk != null && _bk.getShowtimeStartTime() != null) {
             pageContext.setAttribute("stStart",
-                java.util.Date.from(_bk.getShowtimeStartTime()
-                    .atZone(java.time.ZoneId.systemDefault()).toInstant()));
+                com.mbcms.util.DateTimeUtil.vietnamLocalToDate(_bk.getShowtimeStartTime()));
         }
     %>
 </c:if>
@@ -85,15 +43,15 @@
                 <c:otherwise><div class="bk-poster"><i class="bi bi-film"></i></div></c:otherwise>
             </c:choose>
             <div class="flex-grow-1">
-                <div class="fw-bold" style="color:var(--bk-navy);">
+                <div class="fw-bold bk-context-title">
                     ${not empty booking.movieTitle ? booking.movieTitle : 'Booking '.concat(booking.bookingCode)}
                 </div>
                 <div class="text-muted small">
                     <c:choose>
                         <c:when test="${not empty stStart}">
                             <i class="bi bi-calendar-event"></i>
-                            <fmt:formatDate value="${stStart}" pattern="EEE, dd MMM · HH:mm"/>
-                            <span class="mx-1">·</span><span class="mono">${booking.bookingCode}</span>
+                            <fmt:formatDate value="${stStart}" pattern="EEE, dd MMM · h:mm a"/>
+                            <span class="mx-1">·</span><span class="bk-mono">${booking.bookingCode}</span>
                         </c:when>
                         <c:otherwise>Showtime #${booking.showtimeId}</c:otherwise>
                     </c:choose>
@@ -101,7 +59,7 @@
             </div>
             <div class="text-end">
                 <div class="text-muted small">Seats</div>
-                <div class="fw-bold mono" style="color:var(--bk-navy);">
+                <div class="fw-bold bk-mono bk-context-title">
                     <c:choose>
                         <c:when test="${not empty booking.seatLabels}">
                             <c:forEach var="lbl" items="${booking.seatLabels}" varStatus="s">${lbl}<c:if test="${not s.last}">, </c:if></c:forEach>
@@ -134,19 +92,22 @@
         <div class="bk-step"><span class="bk-dot">6</span>Confirm</div>
     </div>
 
-    <h3 class="fw-bold mb-1" style="color:var(--bk-navy);">
+    <h3 class="fw-bold mb-1 bk-title">
         <i class="bi bi-shield-lock-fill text-success"></i> Complete Your Payment</h3>
     <p class="text-muted mb-4">Your booking is reserved while you complete the payment.</p>
 
     <%-- ===== Error from gateway callback ===== --%>
     <c:if test="${not empty payError}">
-        <div class="alert alert-danger d-flex align-items-center gap-2" role="alert">
+        <div class="lc-alert is-error mb-3" role="alert">
             <i class="bi bi-exclamation-triangle-fill"></i>
             <span>
                 <c:choose>
                     <c:when test="${payError eq 'signature'}">Payment verification failed (invalid signature). Your booking is still reserved — please try again.</c:when>
                     <c:when test="${payError eq 'failed'}">Payment was cancelled or failed. Your booking is still reserved — please try again.</c:when>
                     <c:when test="${payError eq 'expired'}">Your seat reservation has expired. Please book again.</c:when>
+                    <c:when test="${payError eq 'showtime'}">This showtime is no longer available (cancelled or already started). Please book another screening.</c:when>
+                    <c:when test="${payError eq 'promo'}">The promotion code has reached its usage limit. Please cancel and book again without that code, or try a different promotion.</c:when>
+                    <c:when test="${payError eq 'amount'}">Payment amount did not match. Please try again.</c:when>
                     <c:when test="${payError eq 'method'}">Invalid payment request. Please try again.</c:when>
                     <c:when test="${payError eq 'vnpay_config'}">VNPay is not configured. Add payment.vnpay.tmnCode and payment.vnpay.hashSecret to database.properties (register at sandbox.vnpayment.vn).</c:when>
                     <c:otherwise>Payment could not be completed. Please try again.</c:otherwise>
@@ -162,10 +123,10 @@
 
         <div class="row g-4">
             <div class="col-lg-7">
-                <h6 class="fw-bold mb-3" style="color:var(--bk-navy);">Payment Method</h6>
+                <h6 class="fw-bold mb-3 bk-panel-title">Payment Method</h6>
 
-                <div class="pm active mb-3" style="cursor:default;">
-                    <span class="pm-logo pm-vnpay">VNPAY</span>
+                <div class="pm active is-static mb-3">
+                    <span class="pm-logo" style="background: transparent; padding: 0; width: auto; height: 40px;"><img src="${pageContext.request.contextPath}/assets/img/vnpay-logo.png" alt="VNPAY" height="40" style="object-fit: contain;"></span>
                     <span>
                         <span class="pm-title">VNPay</span>
                         <div class="pm-desc">Redirect to VNPay Sandbox — QR code / internet banking</div>
@@ -175,7 +136,7 @@
 
                 <div class="bk-info mb-3">
                     <i class="bi bi-info-circle-fill"></i>
-                    <span>Transaction Reference: <strong class="mono">${booking.bookingCode}</strong>
+                    <span>Transaction Reference: <strong class="bk-mono">${booking.bookingCode}</strong>
                         — keep this code for your records.</span>
                 </div>
             </div>
@@ -183,8 +144,8 @@
             <%-- ===== Right: order summary ===== --%>
             <div class="col-lg-5">
                 <div class="bk-card p-4 bk-summary">
-                    <h6 class="fw-bold mb-3" style="color:var(--bk-navy);">Order Summary</h6>
-                    <div class="d-flex gap-3 mb-3 pb-3" style="border-bottom:1px solid var(--bk-border);">
+                    <h6 class="fw-bold mb-3 bk-panel-title">Order Summary</h6>
+                    <div class="d-flex gap-3 mb-3 pb-3 bk-summary-divider">
                         <c:choose>
                             <c:when test="${not empty booking.posterUrl}">
                                 <img class="bk-poster" src="<c:url value='${booking.posterUrl}'/>" alt="${booking.movieTitle}">
@@ -192,17 +153,17 @@
                             <c:otherwise><div class="bk-poster"><i class="bi bi-film"></i></div></c:otherwise>
                         </c:choose>
                         <div>
-                            <div class="fw-bold" style="color:var(--bk-navy);">
+                            <div class="fw-bold bk-context-title">
                                 ${not empty booking.movieTitle ? booking.movieTitle : 'Booking '.concat(booking.bookingCode)}
                             </div>
                             <div class="text-muted small">
                                 <c:choose>
-                                    <c:when test="${not empty stStart}"><fmt:formatDate value="${stStart}" pattern="EEE, dd MMM · HH:mm"/></c:when>
+                                    <c:when test="${not empty stStart}"><fmt:formatDate value="${stStart}" pattern="EEE, dd MMM · h:mm a"/></c:when>
                                     <c:otherwise>Showtime #${booking.showtimeId}</c:otherwise>
                                 </c:choose>
                             </div>
                             <div class="small mt-1">Seats:
-                                <strong class="mono">
+                                <strong class="bk-mono">
                                     <c:choose>
                                         <c:when test="${not empty booking.seatLabels}">
                                             <c:forEach var="lbl" items="${booking.seatLabels}" varStatus="s">${lbl}<c:if test="${not s.last}">, </c:if></c:forEach>
@@ -220,9 +181,9 @@
                         <div class="sum-line"><span class="text-muted">Discount</span>
                             <span class="text-success">−<fmt:formatNumber value="${booking.discountAmount}" pattern="#,###"/>₫</span></div>
                     </c:if>
-                    <div class="sum-line pt-2" style="border-top:1px solid var(--bk-border);">
-                        <span class="fw-bold" style="color:var(--bk-navy);">Total</span>
-                        <span class="fw-bold fs-5" style="color:var(--bk-primary);">
+                    <div class="sum-line bk-sum-total">
+                        <span class="fw-bold bk-total-label">Total</span>
+                        <span class="fw-bold fs-5 bk-total-price">
                             <fmt:formatNumber value="${booking.totalAmount}" pattern="#,###"/>₫</span>
                     </div>
 
@@ -245,7 +206,7 @@
     // Countdown dua tren so giay con lai do server tinh tu created_at (UTC).
     (function () {
         var remaining = parseInt('${remainingSeconds}', 10);
-        if (isNaN(remaining)) remaining = 600;
+        if (isNaN(remaining)) remaining = ${empty pendingHoldMinutes ? 10 : pendingHoldMinutes} * 60;
         var cd = document.getElementById('countdown');
         var pill = document.getElementById('reserve-pill');
         function tick() {
@@ -253,7 +214,7 @@
                 cd.textContent = 'Expired';
                 pill.classList.add('danger');
                 clearInterval(timer);
-                alert('Your seat reservation has expired. Please book again.');
+                lcAlert('Your seat reservation has expired. Please book again.');
                 window.location.href = '${pageContext.request.contextPath}/customer/booking/history?expired=1';
                 return;
             }

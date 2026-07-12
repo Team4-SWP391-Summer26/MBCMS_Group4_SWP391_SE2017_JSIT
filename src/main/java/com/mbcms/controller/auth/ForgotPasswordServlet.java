@@ -28,19 +28,23 @@ public class ForgotPasswordServlet extends HttpServlet {
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
 
-        // If a user is already logged in, redirect them to the home page
+        // [Security Check] If a user is already logged in, redirect them to the home page
         HttpSession session = req.getSession(false);
         if (session != null && session.getAttribute("currentUser") != null) {
             resp.sendRedirect(req.getContextPath() + "/home");
             return;
         }
 
-        // Forward request to the JSP view
+        // [Flow Step: Servlet -> JSP] Forward request to forgot-password.jsp for email entry view (Step 1)
         req.getRequestDispatcher("/WEB-INF/views/auth/forgot-password.jsp").forward(req, resp);
     }
 
     /**
      * Process submissions from all 3 steps of the wizard.
+     * Actions:
+     * - "send-code": Trigger email checking, generate OTP and dispatch email (Step 1)
+     * - "verify-code": Validate user OTP submission against stored DB hash (Step 2)
+     * - "reset-password": Update credentials with the new password (Step 3)
      */
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp)
@@ -52,7 +56,7 @@ public class ForgotPasswordServlet extends HttpServlet {
             return;
         }
 
-        // Action dispatcher depending on wizard step
+        // Action dispatcher depending on wizard step parameter
         switch (action) {
             case "send-code":
                 handleSendCode(req, resp);
@@ -76,6 +80,7 @@ public class ForgotPasswordServlet extends HttpServlet {
     private void handleSendCode(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
 
+        // [Flow Step: JSP -> Servlet] Form step 1 submitted: fetch requested customer email address
         String email = req.getParameter("email");
         if (email != null) {
             email = email.trim();
@@ -89,7 +94,7 @@ public class ForgotPasswordServlet extends HttpServlet {
             return;
         }
 
-        // Retrieve active customer by email address
+        // [Flow Step: Servlet -> Service -> Database] Fetch active customer entity matching email from DB
         Customer customer = authService.getActiveCustomerByEmail(email);
         if (customer == null) {
             // Precondition: User account with the submitted email exists and is active.
@@ -122,7 +127,7 @@ public class ForgotPasswordServlet extends HttpServlet {
         // Hash the plaintext OTP code using BCrypt before storing it in DB
         String hashedOtp = BCrypt.hashpw(otpCode, BCrypt.gensalt(10));
 
-        // Store the OTP hash in customers.reset_token in database
+        // [Flow Step: Servlet -> Service -> Database] Persist hashed OTP into reset_token in Database via authService
         boolean updated = authService.setResetToken(customer.getUsername(), hashedOtp);
         if (!updated) {
             req.setAttribute("errorMsg", "An error occurred while preparing your request. Please try again.");
@@ -131,7 +136,7 @@ public class ForgotPasswordServlet extends HttpServlet {
             return;
         }
 
-        // Send the plaintext OTP via email (Plaintext OTP is only sent via email and never stored)
+        // [Flow Step: Service] Asynchronously dispatch plaintext OTP code to customer email address
         boolean emailSent = EmailUtil.sendOTPEmail(email, otpCode);
         if (!emailSent) {
             // If email fails to send, rollback reset token database field for security
@@ -152,6 +157,8 @@ public class ForgotPasswordServlet extends HttpServlet {
         req.setAttribute("successMsg", "A 6-digit verification code has been sent to your email.");
         req.setAttribute("email", email);
         req.setAttribute("step", "verify"); // Set current wizard step to 2
+        
+        // [Flow Step: Servlet -> JSP] Forward request properties to forgot-password.jsp in verification entry view
         req.getRequestDispatcher("/WEB-INF/views/auth/forgot-password.jsp").forward(req, resp);
     }
 
@@ -162,6 +169,7 @@ public class ForgotPasswordServlet extends HttpServlet {
     private void handleVerifyCode(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
 
+        // [Flow Step: JSP -> Servlet] Form step 2 submitted: fetch verification code
         String email = req.getParameter("email");
         String code = req.getParameter("code");
 
@@ -209,14 +217,14 @@ public class ForgotPasswordServlet extends HttpServlet {
             return;
         }
 
-        // Retrieve customer details from database to compare OTP
+        // [Flow Step: Servlet -> Service -> Database] Fetch active customer from DB to verify hashed reset token
         Customer customer = authService.getActiveCustomerByEmail(email);
         if (customer == null || customer.getResetToken() == null) {
             resp.sendRedirect(req.getContextPath() + "/auth/forgot-password");
             return;
         }
 
-        // Compare the plaintext OTP entered by user against the stored BCrypt hash value
+        // [Flow Step: Servlet -> Database] BCrypt verify customer code against DB hash
         if (BCrypt.checkpw(code, customer.getResetToken())) {
             // OTP is valid
             session.setAttribute("forgot_otp_verified", true);
@@ -225,6 +233,8 @@ public class ForgotPasswordServlet extends HttpServlet {
             req.setAttribute("email", email);
             req.setAttribute("code", code);
             req.setAttribute("step", "reset"); // Move wizard to Step 3
+            
+            // [Flow Step: Servlet -> JSP] Forward parameters to forgot-password.jsp in reset pass entry view
             req.getRequestDispatcher("/WEB-INF/views/auth/forgot-password.jsp").forward(req, resp);
         } else {
             // Increment failed attempt counter
@@ -270,6 +280,7 @@ public class ForgotPasswordServlet extends HttpServlet {
     private void handleResetPassword(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
 
+        // [Flow Step: JSP -> Servlet] Form step 3 submitted: fetch new password inputs
         String email = req.getParameter("email");
         String code = req.getParameter("code");
         String password = req.getParameter("password");
@@ -326,7 +337,7 @@ public class ForgotPasswordServlet extends HttpServlet {
         // Hash the new password using BCrypt (work factor 10)
         String newPasswordHash = BCrypt.hashpw(password, BCrypt.gensalt(10));
 
-        // Update database with the new password hash and clear the reset token in a combined process
+        // [Flow Step: Servlet -> Service -> Database] Commit the new hashed password and clear the reset token in the Database via authService
         boolean success = authService.resetPasswordAndClearToken(username, newPasswordHash);
         if (success) {
             // Clean up all password recovery session variables
@@ -338,7 +349,7 @@ public class ForgotPasswordServlet extends HttpServlet {
             session.removeAttribute("forgot_otp_verified");
             session.removeAttribute("forgot_verified_code");
 
-            // Redirect user to the login screen with a success flag parameter
+            // [Flow Step: Servlet -> Browser] Perform Post-Redirect-Get redirect back to the login view with a success parameter
             resp.sendRedirect(req.getContextPath() + "/auth/login?resetSuccess=true");
         } else {
             req.setAttribute("errorMsg", "Failed to update your password. Please try again.");

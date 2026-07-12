@@ -95,7 +95,8 @@ public class ProfileServlet extends HttpServlet {
 
         // --- Apply changes (username/email stay read-only) ---
         customer.setFullName(fullName);
-        customer.setPhone(ValidationUtil.isNullOrEmpty(phone) ? null : phone);
+        // Luu so dien thoai da CHUAN HOA (bo dau cach/gach/cham) -> du lieu dong nhat.
+        customer.setPhone(ValidationUtil.normalizePhone(phone));
         customer.setDateOfBirth(dob);
         customer.setAddress(ValidationUtil.isNullOrEmpty(address) ? null : address);
 

@@ -24,8 +24,17 @@ public class PromotionEditServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
+        
+        // [Security Check] Verify active HTTP session
+        jakarta.servlet.http.HttpSession session = req.getSession(false);
+        if (session == null || session.getAttribute("currentBranchId") == null) {
+            resp.sendRedirect(req.getContextPath() + "/auth/login");
+            return;
+        }
+
         ConsoleSupport.ensureBranchName(req);
 
+        // [Flow Step: JSP -> Servlet] GET request targeting promotion edit action with parameter 'id'
         String idStr = req.getParameter("id");
         if (idStr == null || idStr.trim().isEmpty()) {
             resp.sendRedirect(req.getContextPath() + "/branch/promotions?error=1");
@@ -35,18 +44,22 @@ public class PromotionEditServlet extends HttpServlet {
         try {
             long id = Long.parseLong(idStr.trim());
             PromotionDAO promotionDAO = new PromotionDAOImpl();
+            
+            // [Flow Step: Servlet -> Database] Fetch existing promotion from DB
             Promotion p = promotionDAO.findById(id);
             if (p == null) {
                 resp.sendRedirect(req.getContextPath() + "/branch/promotions?error=1");
                 return;
             }
 
-            Long sessionBranchId = (Long) req.getSession(false).getAttribute("currentBranchId");
+            // Verify branch boundary permission (Security check)
+            Long sessionBranchId = (Long) session.getAttribute("currentBranchId");
             if (sessionBranchId == null || !sessionBranchId.equals(p.getBranchId())) {
-                resp.sendRedirect(req.getContextPath() + "/branch/promotions?error=1");
+                resp.sendError(HttpServletResponse.SC_FORBIDDEN, "You do not have permission to edit this promotion.");
                 return;
             }
 
+            // [Flow Step: Servlet -> JSP] Bind properties and forward to form.jsp in Edit mode (isEdit=true)
             req.setAttribute("isEdit", true);
             req.setAttribute("promo", p);
 
@@ -66,8 +79,17 @@ public class PromotionEditServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
+        
+        // [Security Check] Verify active HTTP session
+        jakarta.servlet.http.HttpSession session = req.getSession(false);
+        if (session == null || session.getAttribute("currentBranchId") == null) {
+            resp.sendRedirect(req.getContextPath() + "/auth/login");
+            return;
+        }
+
         ConsoleSupport.ensureBranchName(req);
 
+        // [Flow Step: JSP -> Servlet] Parsed edit form submit data
         String idStr = req.getParameter("promoId");
         if (idStr == null || idStr.trim().isEmpty()) {
             resp.sendRedirect(req.getContextPath() + "/branch/promotions?error=1");
@@ -83,13 +105,16 @@ public class PromotionEditServlet extends HttpServlet {
         }
 
         PromotionDAO promotionDAO = new PromotionDAOImpl();
+        
+        // [Flow Step: Servlet -> Database] Query DB via DAO to obtain original promotion entity details
         Promotion existing = promotionDAO.findById(id);
         if (existing == null) {
             resp.sendRedirect(req.getContextPath() + "/branch/promotions?error=1");
             return;
         }
 
-        Long sessionBranchId = (Long) req.getSession(false).getAttribute("currentBranchId");
+        // Verify branch boundary permission (Security check)
+        Long sessionBranchId = (Long) session.getAttribute("currentBranchId");
         if (sessionBranchId == null || !sessionBranchId.equals(existing.getBranchId())) {
             resp.sendRedirect(req.getContextPath() + "/branch/promotions?error=1");
             return;
@@ -111,20 +136,26 @@ public class PromotionEditServlet extends HttpServlet {
         p.setName(name != null ? name.trim() : "");
         p.setDiscountType(discountType);
         p.setActive(active);
-        p.setUsedCount(existing.getUsedCount()); // keep existing usage count
-        p.setBranchId(existing.getBranchId()); // preserve branchId on update!
+        p.setUsedCount(existing.getUsedCount()); // Keep existing usage count
+        p.setBranchId(existing.getBranchId()); // Preserve branchId on update!
 
         String errorMsg = null;
 
-        // Validation logic
+        // ── Validation Phase ──────────────────────────────────────────────────
+        // Rule 1: Code validation (must be alphanumeric, max 20 chars)
         if (p.getCode().isEmpty() || p.getCode().length() > 20 || !p.getCode().matches("^[a-zA-Z0-9]+$")) {
             errorMsg = "Code is required, alphanumeric only, and maximum 20 characters.";
-        } else if (p.getName().isEmpty() || p.getName().length() > 150) {
+        } 
+        // Rule 2: Name validation (max 150 chars)
+        else if (p.getName().isEmpty() || p.getName().length() > 150) {
             errorMsg = "Name is required and maximum 150 characters.";
-        } else if (!"PERCENT".equals(discountType) && !"FIXED_AMOUNT".equals(discountType)) {
+        } 
+        // Rule 3: Discount type validation
+        else if (!"PERCENT".equals(discountType) && !"FIXED_AMOUNT".equals(discountType)) {
             errorMsg = "Invalid discount type.";
-        } else {
-            // Validate discount value
+        } 
+        // Rule 4: Discount value validation
+        else {
             try {
                 BigDecimal discountValue = new BigDecimal(discountValueStr.trim());
                 if (discountValue.compareTo(BigDecimal.ZERO) <= 0) {
@@ -139,7 +170,7 @@ public class PromotionEditServlet extends HttpServlet {
             }
         }
 
-        // Validate min order amount
+        // Rule 5: Minimum order threshold validation
         if (errorMsg == null) {
             try {
                 BigDecimal minOrder = (minOrderAmountStr == null || minOrderAmountStr.trim().isEmpty())
@@ -155,11 +186,11 @@ public class PromotionEditServlet extends HttpServlet {
             }
         }
 
-        // Validate max uses
+        // Rule 6: Max usage count validation
         if (errorMsg == null) {
             try {
                 if (maxUsesStr == null || maxUsesStr.trim().isEmpty()) {
-                    p.setMaxUses(null);
+                    p.setMaxUses(null); // Null value indicates infinite usage availability
                 } else {
                     int maxUses = Integer.parseInt(maxUsesStr.trim());
                     if (maxUses <= 0) {
@@ -173,7 +204,7 @@ public class PromotionEditServlet extends HttpServlet {
             }
         }
 
-        // Validate dates
+        // Rule 7: Validity date period checks
         if (errorMsg == null) {
             try {
                 if (startDateStr == null || startDateStr.trim().isEmpty()
@@ -194,16 +225,16 @@ public class PromotionEditServlet extends HttpServlet {
             }
         }
 
-        // Check code uniqueness excluding this ID
+        // Rule 8: Uniqueness of code check in Database (excluding current edit ID)
         if (errorMsg == null && promotionDAO.existsByCodeExcludeId(p.getCode(), p.getPromoId())) {
             errorMsg = "Promotion code already exists.";
         }
 
+        // [Form Feedback Handler] If validation failed, re-render form with inputs preserved (UX friendly)
         if (errorMsg != null) {
             req.setAttribute("errorMsg", errorMsg);
             req.setAttribute("isEdit", true);
             req.setAttribute("promo", p);
-            // Put raw string values back to restore input states
             req.setAttribute("rawDiscountValue", discountValueStr);
             req.setAttribute("rawMinOrderAmount", minOrderAmountStr);
             req.setAttribute("rawMaxUses", maxUsesStr);
@@ -213,9 +244,10 @@ public class PromotionEditServlet extends HttpServlet {
             return;
         }
 
-        // Update and redirect
+        // [Database Persist] Update the promotion records in DB via PromotionDAO
         boolean success = promotionDAO.update(p);
         if (success) {
+            // PRG Pattern: Redirect browser to GET promotion list showing success parameter
             resp.sendRedirect(req.getContextPath() + "/branch/promotions?updated=1");
         } else {
             resp.sendRedirect(req.getContextPath() + "/branch/promotions?error=1");

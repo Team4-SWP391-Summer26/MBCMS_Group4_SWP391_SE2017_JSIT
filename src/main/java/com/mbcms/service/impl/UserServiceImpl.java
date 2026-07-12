@@ -45,18 +45,18 @@ public class UserServiceImpl implements UserService {
         validateUserCommon(user);
 
         if (rawPassword == null || rawPassword.trim().isEmpty()) {
-            throw new IllegalArgumentException("Mật khẩu không được để trống khi thêm mới.");
+            throw new IllegalArgumentException("Password is required when adding a new user.");
         }
         if (rawPassword.length() < 6) {
-            throw new IllegalArgumentException("Mật khẩu phải có ít nhất 6 ký tự.");
+            throw new IllegalArgumentException("Password must be at least 6 characters.");
         }
 
         // Check duplicates
         if (userDAO.existsByUsername(user.getUsername())) {
-            throw new IllegalArgumentException("Tên đăng nhập đã tồn tại trong hệ thống.");
+            throw new IllegalArgumentException("Username already exists.");
         }
         if (userDAO.existsByEmail(user.getEmail())) {
-            throw new IllegalArgumentException("Email đã đăng ký tài khoản khác.");
+            throw new IllegalArgumentException("Email is already registered to another account.");
         }
 
         String passwordHash = BCrypt.hashpw(rawPassword, BCrypt.gensalt(10));
@@ -73,12 +73,12 @@ public class UserServiceImpl implements UserService {
     @Override
     public boolean editUser(UserDTO user, String rawPassword, String currentUserSessionUsername) {
         if (user == null || user.getUsername() == null || user.getUsername().trim().isEmpty()) {
-            throw new IllegalArgumentException("Tên đăng nhập không hợp lệ.");
+            throw new IllegalArgumentException("Invalid username.");
         }
 
         UserDTO existing = userDAO.findByUsername(user.getUsername());
         if (existing == null) {
-            throw new IllegalArgumentException("Người dùng không tồn tại.");
+            throw new IllegalArgumentException("User does not exist.");
         }
 
         // Backend enforcement: username is readonly on edit. Ensure we do not overwrite or change it
@@ -89,7 +89,7 @@ public class UserServiceImpl implements UserService {
 
         // Check email uniqueness if email is changing
         if (!existing.getEmail().equalsIgnoreCase(user.getEmail()) && userDAO.existsByEmail(user.getEmail())) {
-            throw new IllegalArgumentException("Email đã đăng ký tài khoản khác.");
+            throw new IllegalArgumentException("Email is already registered to another account.");
         }
 
         // Self-modification checks
@@ -97,18 +97,18 @@ public class UserServiceImpl implements UserService {
         if (isSelf) {
             // Cannot deactivate oneself
             if (!user.isActive()) {
-                throw new IllegalArgumentException("Bạn không thể vô hiệu hóa tài khoản của chính mình.");
+                throw new IllegalArgumentException("You cannot deactivate your own account.");
             }
             // Cannot change role of oneself
             if (!existing.getRole().equalsIgnoreCase(user.getRole())) {
-                throw new IllegalArgumentException("Bạn không thể thay đổi vai trò của chính mình.");
+                throw new IllegalArgumentException("You cannot change your own role.");
             }
         }
 
         String passwordHash = null;
         if (rawPassword != null && !rawPassword.trim().isEmpty()) {
             if (rawPassword.length() < 6) {
-                throw new IllegalArgumentException("Mật khẩu mới phải có ít nhất 6 ký tự.");
+                throw new IllegalArgumentException("New password must be at least 6 characters.");
             }
             passwordHash = BCrypt.hashpw(rawPassword, BCrypt.gensalt(10));
         }
@@ -122,7 +122,7 @@ public class UserServiceImpl implements UserService {
 
             if (oldIsCustomer != newIsCustomer) {
                 if (oldIsCustomer && userDAO.hasRelatedTransactions(existing.getUsername(), "CUSTOMER")) {
-                    throw new IllegalArgumentException("Không thể thay đổi vai trò vì khách hàng đã có lịch sử đặt vé hoặc phản hồi.");
+                    throw new IllegalArgumentException("Cannot change this role because the customer has booking or feedback history.");
                 }
             }
 
@@ -135,7 +135,7 @@ public class UserServiceImpl implements UserService {
                     // Wait, we can fetch it or just request the password hash
                     // Since existing is an employee, we can check how to copy it.
                     // But in our UserDTO we didn't store passwordHash, so let's query the employee password hash
-                    throw new IllegalArgumentException("Cần nhập mật khẩu mới khi chuyển đổi vai trò người dùng.");
+                    throw new IllegalArgumentException("A new password is required when changing a user's role.");
                 }
                 
                 boolean inserted = userDAO.insertCustomer(user, passwordHash);
@@ -147,7 +147,7 @@ public class UserServiceImpl implements UserService {
             } else {
                 // Move from customer to employee
                 if (passwordHash == null) {
-                    throw new IllegalArgumentException("Cần nhập mật khẩu mới khi chuyển đổi vai trò người dùng.");
+                    throw new IllegalArgumentException("A new password is required when changing a user's role.");
                 }
                 
                 boolean inserted = userDAO.insertEmployee(user, passwordHash);
@@ -170,15 +170,15 @@ public class UserServiceImpl implements UserService {
     @Override
     public boolean toggleStatus(String username, boolean active, String currentUserSessionUsername) {
         if (username == null || username.trim().isEmpty()) {
-            throw new IllegalArgumentException("Tên đăng nhập không hợp lệ.");
+            throw new IllegalArgumentException("Invalid username.");
         }
         UserDTO existing = userDAO.findByUsername(username.trim());
         if (existing == null) {
-            throw new IllegalArgumentException("Người dùng không tồn tại.");
+            throw new IllegalArgumentException("User does not exist.");
         }
 
         if (existing.getUsername().equalsIgnoreCase(currentUserSessionUsername)) {
-            throw new IllegalArgumentException("Bạn không thể thay đổi trạng thái của chính mình.");
+            throw new IllegalArgumentException("You cannot change your own status.");
         }
 
         return userDAO.updateActiveStatus(existing.getUsername(), existing.getRole(), active);
@@ -187,20 +187,20 @@ public class UserServiceImpl implements UserService {
     @Override
     public boolean deleteUser(String username, String currentUserSessionUsername) {
         if (username == null || username.trim().isEmpty()) {
-            throw new IllegalArgumentException("Tên đăng nhập không hợp lệ.");
+            throw new IllegalArgumentException("Invalid username.");
         }
         UserDTO existing = userDAO.findByUsername(username.trim());
         if (existing == null) {
-            throw new IllegalArgumentException("Người dùng không tồn tại.");
+            throw new IllegalArgumentException("User does not exist.");
         }
 
         if (existing.getUsername().equalsIgnoreCase(currentUserSessionUsername)) {
-            throw new IllegalArgumentException("Bạn không thể xóa tài khoản của chính mình.");
+            throw new IllegalArgumentException("You cannot delete your own account.");
         }
 
         // Check transaction check for customer deletion
         if ("CUSTOMER".equalsIgnoreCase(existing.getRole()) && userDAO.hasRelatedTransactions(existing.getUsername(), "CUSTOMER")) {
-            throw new IllegalArgumentException("Không thể xóa khách hàng này vì đã có lịch sử đặt vé hoặc phản hồi.");
+            throw new IllegalArgumentException("Cannot delete this customer because they have booking or feedback history.");
         }
 
         if ("CUSTOMER".equalsIgnoreCase(existing.getRole())) {
@@ -215,7 +215,7 @@ public class UserServiceImpl implements UserService {
         // Mock method as shown in Mockup 2
         UserDTO existing = userDAO.findByUsername(username);
         if (existing == null) {
-            throw new IllegalArgumentException("Người dùng không tồn tại.");
+            throw new IllegalArgumentException("User does not exist.");
         }
         // Simulation only
         return true;
@@ -223,33 +223,33 @@ public class UserServiceImpl implements UserService {
 
     private void validateUserCommon(UserDTO u) {
         if (u == null) {
-            throw new IllegalArgumentException("Thông tin người dùng không được trống.");
+            throw new IllegalArgumentException("User information is required.");
         }
         if (u.getUsername() == null || u.getUsername().trim().isEmpty()) {
-            throw new IllegalArgumentException("Tên đăng nhập không được để trống.");
+            throw new IllegalArgumentException("Username is required.");
         }
         if (u.getFullName() == null || u.getFullName().trim().isEmpty()) {
-            throw new IllegalArgumentException("Họ và tên không được để trống.");
+            throw new IllegalArgumentException("Full name is required.");
         }
         if (u.getEmail() == null || u.getEmail().trim().isEmpty()) {
-            throw new IllegalArgumentException("Email không được để trống.");
+            throw new IllegalArgumentException("Email is required.");
         }
         if (!EMAIL_PATTERN.matcher(u.getEmail().trim()).matches()) {
-            throw new IllegalArgumentException("Email không đúng định dạng.");
+            throw new IllegalArgumentException("Invalid email format.");
         }
         if (u.getRole() == null || u.getRole().trim().isEmpty()) {
-            throw new IllegalArgumentException("Vai trò không được để trống.");
+            throw new IllegalArgumentException("Role is required.");
         }
 
         String role = u.getRole().trim().toUpperCase();
         if (!"CUSTOMER".equals(role) && !"ADMIN".equals(role) && !"BRANCH_MANAGER".equals(role) && !"BRANCH_STAFF".equals(role)) {
-            throw new IllegalArgumentException("Vai trò không hợp lệ.");
+            throw new IllegalArgumentException("Invalid role.");
         }
 
         // BranchId check
         if ("BRANCH_MANAGER".equals(role) || "BRANCH_STAFF".equals(role)) {
             if (u.getBranchId() == null || u.getBranchId() <= 0) {
-                throw new IllegalArgumentException("Vui lòng chọn chi nhánh gán cho Quản lý / Nhân viên.");
+                throw new IllegalArgumentException("Please select an assigned branch for managers or staff.");
             }
         } else {
             // ADMIN or CUSTOMER must not have a branchId

@@ -1,4 +1,4 @@
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+﻿<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 <!DOCTYPE html>
@@ -7,24 +7,11 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Counter Booking - PentaPlex Staff</title>
-        <!-- Bootstrap 5 CSS -->
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-        <!-- Bootstrap Icons -->
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
-        <!-- Theme CSS (Inherits branch manager's style) -->
-        <link href="${pageContext.request.contextPath}/assets/css/manager.css?v=${applicationScope.assetVersion}" rel="stylesheet">
+        <%@ include file="/WEB-INF/views/branch/_branch-assets.jspf" %>
 
         <style>
-            /* Modern Web Design Enhancements & Aesthetics */
-            .wizard-steps-container {
-                background: #ffffff;
-                border-radius: 12px;
-                padding: 1.5rem 1rem;
-                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
-                margin-bottom: 2rem;
-            }
-
-            .wizard-steps {
+            /* Counter booking wizard — page-specific */
+            .lc-wizard .wizard-steps {
                 display: flex;
                 justify-content: space-between;
                 position: relative;
@@ -157,43 +144,63 @@
             .seat-VIP.seat-available:hover { background:#fde68a; }
             .seat-VIP.seat-booked { background:#fde8d8; border-color:#fb923c; color:#9a3412; }
 
-            /* ===== Legend ===== */
-            .legend-item { display:flex; align-items:center; gap:7px; font-size:.8rem; color:#475569; }
-            .legend-box { width:20px; height:18px; border-radius:5px; border:1.6px solid; flex-shrink:0; }
+            /* ── Global Styles & Overrides ──────────────────────── */
+            body {
+                background-color: #F8FAFC !important;
+            }
+            .lc-elev {
+                background: rgba(255, 255, 255, 0.9) !important;
+                backdrop-filter: blur(12px);
+                border: 1px solid rgba(226, 232, 240, 0.8) !important;
+                border-radius: 16px !important;
+                box-shadow: 0 8px 30px rgba(15, 23, 42, 0.03), 0 1px 3px rgba(15, 23, 42, 0.01) !important;
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            }
 
             .showtime-card {
                 border: 2px solid var(--lc-border);
-                border-radius: 12px;
+                border-radius: var(--radius-lg);
                 cursor: pointer;
-                transition: all 0.2s ease;
+                transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
                 background: #ffffff;
+            }
+            .showtime-card:hover {
+                border-color: var(--lc-primary);
+                box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.08);
+                transform: translateY(-2px);
+            }
+            .showtime-card.selected {
+                border-color: var(--lc-primary);
+                background: var(--primary-50) !important;
+                box-shadow: 0 10px 25px -5px rgba(37, 99, 235, 0.15);
+                transform: translateY(-2px);
             }
 
             /* F&B Custom Card Styles */
             .food-card {
                 display: flex;
                 flex-direction: column;
-                border: 1px solid var(--bk-border);
-                border-radius: 16px;
+                border: 1px solid var(--lc-border);
+                border-radius: var(--radius-lg);
                 overflow: hidden;
                 transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
                 background: #fff;
                 position: relative;
-                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -1px rgba(0, 0, 0, 0.01);
+                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
                 height: 100%;
             }
             .food-card:hover {
                 border-color: rgba(37, 99, 235, 0.2) !important;
-                box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 10px 10px -5px rgba(0, 0, 0, 0.02);
+                box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05);
                 transform: translateY(-6px);
             }
             .food-card.added {
                 border-color: var(--lc-primary) !important;
-                border-width: 1.5px !important;
-                box-shadow: 0 10px 25px -5px rgba(37, 99, 235, 0.15), 0 8px 10px -6px rgba(37, 99, 235, 0.1);
+                border-width: 2px !important;
+                box-shadow: 0 10px 25px -5px rgba(37, 99, 235, 0.15);
             }
 
-            .drink-red { --item-theme: #dc2626; --item-bg: rgba(22, 163, 74, 0.08); --item-gradient: linear-gradient(135deg, rgba(220, 38, 38, 0.1) 0%, rgba(220, 38, 38, 0.01) 100%); }
+            .drink-red { --item-theme: #dc2626; --item-bg: rgba(220, 38, 38, 0.08); --item-gradient: linear-gradient(135deg, rgba(220, 38, 38, 0.1) 0%, rgba(220, 38, 38, 0.01) 100%); }
             .drink-cyan { --item-theme: #0284c7; --item-bg: rgba(2, 132, 199, 0.08); --item-gradient: linear-gradient(135deg, rgba(2, 132, 199, 0.1) 0%, rgba(2, 132, 199, 0.01) 100%); }
             .snack-orange { --item-theme: #ea580c; --item-bg: rgba(234, 88, 12, 0.08); --item-gradient: linear-gradient(135deg, rgba(234, 88, 12, 0.1) 0%, rgba(234, 88, 12, 0.01) 100%); }
             .snack-yellow { --item-theme: #ca8a04; --item-bg: rgba(202, 138, 4, 0.08); --item-gradient: linear-gradient(135deg, rgba(202, 138, 4, 0.1) 0%, rgba(202, 138, 4, 0.01) 100%); }
@@ -254,18 +261,6 @@
                 margin-bottom: 1rem;
             }
 
-            .showtime-card:hover {
-                border-color: var(--lc-primary);
-                box-shadow: var(--lc-shadow);
-                transform: translateY(-2px);
-            }
-
-            .showtime-card.selected {
-                border-color: var(--lc-primary);
-                background: var(--lc-light);
-                box-shadow: var(--lc-shadow);
-            }
-
             .wizard-panel {
                 display: none;
             }
@@ -273,6 +268,63 @@
             .wizard-panel.active {
                 display: block;
             }
+
+            /* Custom Select & Date styling */
+            .form-select, .form-control {
+                border-color: var(--lc-border);
+                border-radius: var(--radius-md);
+            }
+            .form-select:focus, .form-control:focus {
+                border-color: var(--lc-primary);
+                box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+            }
+
+            /* Overriding btn-primary-lc with premium styles */
+            .btn-primary-lc {
+                background-color: var(--lc-primary) !important;
+                border-color: var(--lc-primary) !important;
+                color: #fff !important;
+                border-radius: var(--radius-lg);
+                font-family: var(--font-display);
+                font-weight: 700;
+                letter-spacing: 0.02em;
+                box-shadow: 0 4px 12px rgba(37,99,235,0.18);
+                transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            }
+            .btn-primary-lc:hover:not(:disabled) {
+                transform: translateY(-1px);
+                box-shadow: 0 6px 16px rgba(37,99,235,0.28);
+            }
+            .btn-primary-lc:active:not(:disabled) {
+                transform: translateY(0);
+            }
+            .btn-primary-lc:disabled {
+                opacity: 0.65;
+                cursor: not-allowed;
+            }
+
+            /* Payment Method Card Selectors */
+            .payment-method-card {
+                cursor: pointer;
+                transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+                border: 2px solid var(--lc-border) !important;
+                border-radius: var(--radius-lg) !important;
+            }
+            .payment-method-card:hover {
+                border-color: var(--lc-primary) !important;
+                background-color: var(--lc-light) !important;
+            }
+            .payment-method-card.active {
+                border-color: var(--lc-primary) !important;
+                background-color: var(--primary-50) !important;
+                box-shadow: 0 6px 15px rgba(37, 99, 235, 0.08);
+            }
+
+            /* ===== Legend ===== */
+            .legend-item { display:flex; align-items:center; gap:7px; font-size:.8rem; color:#475569; }
+            .legend-box { width:20px; height:18px; border-radius:5px; border:1.6px solid; flex-shrink:0; }
+
+
         </style>
     </head>
     <body class="lc-console">
@@ -282,7 +334,7 @@
         </jsp:include>
 
         <main class="lc-admin-main">
-            <div class="container-fluid px-4 py-4" style="max-width: 1200px;">
+            <div class="lc-page">
 
                 <c:if test="${not empty err}">
                     <div class="alert alert-danger alert-dismissible fade show" role="alert">
@@ -295,20 +347,19 @@
                     </div>
                 </c:if>
 
-                <%-- ===== Page Header ===== --%>
-                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+                <div class="lc-page-head">
                     <div>
-                        <div class="text-muted small mb-1">Counter Operations</div>
-                        <h4 class="text-navy fw-bold mb-0">Counter Ticket Booking</h4>
+                        <div class="lc-page-section">Counter Operations</div>
+                        <h1 class="lc-page-title">Counter Ticket Booking</h1>
                     </div>
-                    <div class="lc-sb-user d-flex align-items-center gap-2 px-3 py-1 text-navy border rounded" style="background:#fff;">
-                        <i class="bi bi-geo-alt-fill text-primary"></i>
-                        <span>Branch: <strong><c:out value="${sessionScope.currentBranchName}" /></strong></span>
+                    <div class="lc-branch-chip">
+                        <i class="bi bi-geo-alt-fill" aria-hidden="true"></i>
+                        <span><c:out value="${sessionScope.currentBranchName}" /></span>
                     </div>
                 </div>
 
                 <%-- ===== Step Indicator Wizard ===== --%>
-                <div class="wizard-steps-container">
+                <div class="lc-wizard wizard-steps-container">
                     <div class="wizard-steps">
                         <div class="wizard-step active" id="step-ind-1">
                             <div class="step-num">1</div>
@@ -561,16 +612,16 @@
                                     <div class="mb-4 text-start">
                                         <label class="form-label fw-semibold text-navy">Payment Method</label>
                                         <div class="d-flex gap-3">
-                                            <div class="form-check flex-fill p-3 border rounded bg-white" style="cursor: pointer;">
+                                            <div class="form-check flex-fill p-3 payment-method-card active" style="cursor: pointer;" onclick="document.getElementById('pay-cash').click();">
                                                 <input class="form-check-input ms-0 me-2" type="radio" name="paymentMethodRadio" id="pay-cash" value="CASH" checked style="cursor: pointer;">
                                                 <label class="form-check-label fw-bold text-navy" for="pay-cash" style="cursor: pointer;">
                                                     <i class="bi bi-cash-stack text-success me-1"></i> Cash
                                                 </label>
                                             </div>
-                                            <div class="form-check flex-fill p-3 border rounded bg-white" style="cursor: pointer;">
+                                            <div class="form-check flex-fill p-3 payment-method-card" style="cursor: pointer;" onclick="document.getElementById('pay-vnpay').click();">
                                                 <input class="form-check-input ms-0 me-2" type="radio" name="paymentMethodRadio" id="pay-vnpay" value="VNPAY" style="cursor: pointer;">
                                                 <label class="form-check-label fw-bold text-navy" for="pay-vnpay" style="cursor: pointer;">
-                                                    <span class="text-primary me-1 fw-bold" style="font-style: italic; letter-spacing: -1px;">VNPAY</span>
+                                                    <img src="${pageContext.request.contextPath}/assets/img/vnpay-logo.png" alt="VNPAY" height="32" style="object-fit: contain; vertical-align: middle; margin-top: -3px;">
                                                 </label>
                                             </div>
                                         </div>
@@ -671,13 +722,14 @@
 
         <!-- Wizard Core Logic -->
         <script>
+                                // [Flow Step: JavaScript] Context path helper to match servlet mapping URLs dynamically
                                 const contextPath = '${pageContext.request.contextPath}';
                                 const CURRENT_USER = '${sessionScope.username}';
 
                                 let ws = null;
                                 let wsRetryDelay = 2000;
 
-                                // Wizard State
+                                // [Flow Step: JavaScript] Client-side state machine tracker to maintain selections across wizard steps
                                 let state = {
                                     currentStep: 1,
                                     showtimeId: null,
@@ -701,14 +753,14 @@
                                     foodSubtotalAmount: 0
                                 };
 
-                                // DOM Elements
+                                // DOM Input elements bindings for filtering & event actions
                                 const dateFilter = document.getElementById('date-filter');
                                 const movieSearch = document.getElementById('movie-search');
                                 const roomFilter = document.getElementById('room-filter');
                                 const showtimesContainer = document.getElementById('showtimes-container');
                                 const btnToStep2 = document.getElementById('btn-to-step2');
 
-                                // Pre-fill today's date in local YYYY-MM-DD
+                                // Pre-fill today's date in local YYYY-MM-DD format as a baseline filter
                                 const todayStr = new Date().toISOString().split('T')[0];
                                 dateFilter.value = todayStr;
 
@@ -723,18 +775,18 @@
 
                                 // Init Step 1 on Load
                                 document.addEventListener('DOMContentLoaded', () => {
-                                    // Event Listeners for Filters
+                                    // Register Event Listeners for Filters to reload showtimes asynchronously
                                     dateFilter.addEventListener('change', loadShowtimes);
                                     movieSearch.addEventListener('input', loadShowtimes);
                                     roomFilter.addEventListener('change', loadShowtimes);
 
-                                    // Check if redirected on successful payment return
+                                    // [Flow Step: JSP -> JS] Check if user was redirected from VNPay gateway return mapping
                                     const successParam = '${success}';
                                     if (successParam === '1') {
                                         state.bookingCode = '${successBookingCode}';
                                         state.bookingId = '${successBookingId}';
 
-                                        // Fetch booking detail to populate Step 6 UI
+                                        // [Flow Step: JS -> Servlet] Fetch details of the newly paid ticket using AJAX
                                         fetch(contextPath + '/staff/booking?action=getBookingDetail&bookingId=' + state.bookingId)
                                                 .then(res => res.json())
                                                 .then(ticket => {
@@ -762,7 +814,7 @@
                                                     document.getElementById('final-time').innerText = showtimeDateStr;
                                                     document.getElementById('final-seats').innerText = (ticket.seatLabels || []).join(', ');
 
-                                                    // Fetch concessions for this booking
+                                                    // Fetch concessions for this booking to show on the receipt screen
                                                     fetch(contextPath + '/staff/booking?action=getBookingFoodItems&bookingId=' + state.bookingId)
                                                             .then(r => r.json())
                                                             .then(foodItems => {
@@ -778,6 +830,7 @@
                                                                 } else {
                                                                     finalConRow.classList.add('d-none');
                                                                 }
+                                                                // Automatically fast-forward to Step 6 showing success details
                                                                 goToStep(6);
                                                             })
                                                             .catch(e => {
@@ -931,6 +984,7 @@
 
                                                 const seatsByRow = data.seatsByRow;
                                                 const bookedSeatIds = new Set(data.bookedSeatIds);
+                                                const heldSeatIds = new Set(data.heldSeatIds || []);
 
                                                 for (const rowLabel in seatsByRow) {
                                                     const rowDiv = document.createElement('div');
@@ -947,11 +1001,15 @@
                                                     seatsByRow[rowLabel].forEach(seat => {
                                                         const seatDiv = document.createElement('button');
                                                         const isBooked = bookedSeatIds.has(seat.seatId);
+                                                        const isHeld = heldSeatIds.has(seat.seatId);
                                                         const isVip = seat.seatType === 'VIP';
 
                                                         seatDiv.className = 'seat-btn seat-' + seat.seatType;
                                                         if (isBooked) {
                                                             seatDiv.classList.add('seat-booked');
+                                                            seatDiv.disabled = true;
+                                                        } else if (isHeld) {
+                                                            seatDiv.classList.add('seat-soft-locked');
                                                             seatDiv.disabled = true;
                                                         } else if (!seat.active) {
                                                             seatDiv.classList.add('seat-maintenance');
@@ -960,18 +1018,19 @@
                                                             seatDiv.classList.add('seat-available');
                                                         }
 
-                                                        if (!seat.active && !isBooked) {
+                                                        if (!seat.active && !isBooked && !isHeld) {
                                                             seatDiv.innerHTML = '<i class="bi bi-x-lg"></i>';
                                                         }
 
-                                                        seatDiv.title = seat.rowLabel + seat.colNumber + ' (' + seat.seatType + ') – ' + (isBooked ? 'BOOKED' : (!seat.active ? 'MAINTENANCE' : 'AVAILABLE'));
+                                                        seatDiv.title = seat.rowLabel + seat.colNumber + ' (' + seat.seatType + ') – '
+                                                            + (isBooked ? 'BOOKED' : (isHeld ? 'HELD' : (!seat.active ? 'MAINTENANCE' : 'AVAILABLE')));
 
                                                         seatDiv.setAttribute('data-seat-id', seat.seatId);
                                                         seatDiv.setAttribute('data-seat-type', seat.seatType);
                                                         seatDiv.setAttribute('data-seat-label', seat.rowLabel + seat.colNumber);
                                                         seatDiv.setAttribute('data-col', seat.colNumber);
 
-                                                        if (!isBooked && seat.active) {
+                                                        if (!isBooked && !isHeld && seat.active) {
                                                             seatDiv.addEventListener('click', () => toggleSeat(seatDiv, seat));
                                                         }
                                                         rowDiv.appendChild(seatDiv);
@@ -1050,8 +1109,8 @@
                                         setSeatState(btn, 'available');
                                         sendWS({action: 'DESELECT', seatId: Number(id), showtimeId: state.showtimeId});
                                     } else {
-                                        if (state.selectedSeats.length >= 8) {
-                                            alert('Tối đa 8 ghế mỗi lần đặt.');
+                                        if (state.selectedSeats.length >= Number('${empty maxSeatsPerBooking ? 8 : maxSeatsPerBooking}')) {
+                                            lcAlert('You can select a maximum of ${empty maxSeatsPerBooking ? 8 : maxSeatsPerBooking} seats per booking.');
                                             return;
                                         }
                                         state.selectedSeats.push(seat);
@@ -1077,116 +1136,144 @@
                                     }
                                 }
 
-                                function connectWS(showtimeId) {
-                                    closeWS();
-                                    const WS_URL = (location.protocol === 'https:' ? 'wss' : 'ws')
-                                            + '://' + location.host
-                                            + contextPath + '/ws/seats/' + showtimeId;
+                                /**
+                                 * [Flow Step: WebSocket] Connects to the seat mapping websocket channel to receive real-time state broadcast updates
+                                 */
+                                 function connectWS(showtimeId) {
+                                     closeWS(); // Ensure no multiple WebSocket instances are active concurrently
+                                     
+                                     // Build localized WS / WSS protocol URL relative to context path
+                                     const WS_URL = (location.protocol === 'https:' ? 'wss' : 'ws')
+                                             + '://' + location.host
+                                             + contextPath + '/ws/seats/' + showtimeId;
 
-                                    ws = new WebSocket(WS_URL);
+                                     ws = new WebSocket(WS_URL);
 
-                                    ws.onopen = function () {
-                                        setWsBadge('Realtime Connected', 'bg-success');
-                                        wsRetryDelay = 2000;
-                                    };
+                                     // Connection success hook
+                                     ws.onopen = function () {
+                                         setWsBadge('Realtime Connected', 'bg-success');
+                                         wsRetryDelay = 2000; // Reset exponential retry delay on successful link establishment
+                                     };
 
-                                    ws.onmessage = function (event) {
-                                        let msg;
-                                        try {
-                                            msg = JSON.parse(event.data);
-                                        } catch (e) {
-                                            return;
-                                        }
+                                     // [Flow Step: WebSocket -> Client] Receive real-time seat lock state broadcasts
+                                     ws.onmessage = function (event) {
+                                         let msg;
+                                         try {
+                                             msg = JSON.parse(event.data);
+                                         } catch (e) {
+                                             return;
+                                         }
 
-                                        const seatIdStr = String(msg.seatId);
-                                        const seatDiv = document.querySelector('[data-seat-id="' + msg.seatId + '"]');
-                                        if (!seatDiv)
-                                            return;
+                                         const seatIdStr = String(msg.seatId);
+                                         const seatDiv = document.querySelector('[data-seat-id="' + msg.seatId + '"]');
+                                         if (!seatDiv)
+                                             return;
 
-                                        const isMySelection = state.selectedSeats.some(s => String(s.seatId) === seatIdStr);
+                                         // Enforce client-side check if the broadcasted seat ID matches staff's current selections
+                                         const isMySelection = state.selectedSeats.some(s => String(s.seatId) === seatIdStr);
 
-                                        switch (msg.action) {
-                                            case 'SELECT':
-                                                if (isMySelection)
-                                                    return;
-                                                setSeatState(seatDiv, 'soft-locked');
-                                                break;
-                                            case 'DESELECT':
-                                                if (isMySelection)
-                                                    return;
-                                                setSeatState(seatDiv, 'available');
-                                                flashRefreshBadge();
-                                                break;
-                                            case 'HARD_LOCK':
-                                                if (isMySelection) {
-                                                    if (msg.username !== CURRENT_USER) {
-                                                        const index = state.selectedSeats.findIndex(s => String(s.seatId) === seatIdStr);
-                                                        if (index > -1) {
-                                                            state.selectedSeats.splice(index, 1);
-                                                            updateSeatsSummary();
-                                                        }
-                                                        alert('Seat ' + seatDiv.getAttribute('data-seat-label') + ' was just selected by someone else. Please choose another seat.');
-                                                    }
-                                                }
-                                                setSeatState(seatDiv, 'booked');
-                                                flashRefreshBadge();
-                                                break;
-                                            case 'HARD_RELEASE':
-                                                if (isMySelection)
-                                                    return;
-                                                setSeatState(seatDiv, 'available');
-                                                flashRefreshBadge();
-                                                break;
-                                        }
-                                    };
+                                         switch (msg.action) {
+                                             case 'SELECT':
+                                                 if (isMySelection)
+                                                     return;
+                                                 setSeatState(seatDiv, 'soft-locked'); // Mark seat as soft-locked (amber) in DOM
+                                                 break;
+                                             case 'DESELECT':
+                                                 if (isMySelection)
+                                                     return;
+                                                 setSeatState(seatDiv, 'available'); // Mark seat as free (blue)
+                                                 flashRefreshBadge();
+                                                 break;
+                                             case 'HELD_LOCK':
+                                                 // Another transaction has locked this seat for payment processing (temporary lock)
+                                                 if (isMySelection) {
+                                                     const index = state.selectedSeats.findIndex(s => String(s.seatId) === seatIdStr);
+                                                     if (index > -1) {
+                                                         state.selectedSeats.splice(index, 1);
+                                                         updateSeatsSummary();
+                                                     }
+                                                     lcAlert('Seat ' + seatDiv.getAttribute('data-seat-label')
+                                                         + ' is being held for payment. Please choose another seat.');
+                                                 }
+                                                 setSeatState(seatDiv, 'soft-locked');
+                                                 flashRefreshBadge();
+                                                 break;
+                                             case 'HARD_LOCK':
+                                                 // Seat purchased and finalized in database (hard lock)
+                                                 if (isMySelection) {
+                                                     if (msg.username !== CURRENT_USER) {
+                                                         const index = state.selectedSeats.findIndex(s => String(s.seatId) === seatIdStr);
+                                                         if (index > -1) {
+                                                             state.selectedSeats.splice(index, 1);
+                                                             updateSeatsSummary();
+                                                         }
+                                                         lcAlert('Seat ' + seatDiv.getAttribute('data-seat-label') + ' was just selected by someone else. Please choose another seat.');
+                                                     }
+                                                 }
+                                                 setSeatState(seatDiv, 'booked'); // Red booked seat style in DOM
+                                                 flashRefreshBadge();
+                                                 break;
+                                             case 'HARD_RELEASE':
+                                                 if (isMySelection)
+                                                     return;
+                                                 setSeatState(seatDiv, 'available');
+                                                 flashRefreshBadge();
+                                                 break;
+                                         }
+                                     };
 
-                                    ws.onclose = function () {
-                                        setWsBadge('Disconnected – retrying…', 'bg-warning text-dark');
-                                        setTimeout(() => {
-                                            if (state.currentStep >= 2 && state.showtimeId === showtimeId) {
-                                                connectWS(showtimeId);
-                                            }
-                                        }, Math.min(wsRetryDelay, 30000));
-                                        wsRetryDelay *= 2;
-                                    };
+                                     // Connection lost hook
+                                     ws.onclose = function () {
+                                         setWsBadge('Disconnected – retrying…', 'bg-warning text-dark');
+                                         // Exponential backoff logic for auto-reconnection
+                                         setTimeout(() => {
+                                             if (state.currentStep >= 2 && state.showtimeId === showtimeId) {
+                                                 connectWS(showtimeId);
+                                             }
+                                         }, Math.min(wsRetryDelay, 30000));
+                                         wsRetryDelay *= 2;
+                                     };
 
-                                    ws.onerror = function () {
-                                        ws.close();
-                                    };
-                                }
+                                     ws.onerror = function () {
+                                         ws.close();
+                                     };
+                                 }
 
-                                function closeWS() {
-                                    if (ws) {
-                                        ws.onclose = null;
-                                        ws.close();
-                                        ws = null;
-                                    }
-                                    setWsBadge('Disconnected', 'bg-secondary');
-                                }
+                                 function closeWS() {
+                                     if (ws) {
+                                         ws.onclose = null;
+                                         ws.close();
+                                         ws = null;
+                                     }
+                                     setWsBadge('Disconnected', 'bg-secondary');
+                                 }
 
-                                function setWsBadge(text, cls) {
-                                    const b = document.getElementById('wsBadge');
-                                    if (b) {
-                                        b.textContent = text;
-                                        b.className = 'badge ' + cls;
-                                    }
-                                }
+                                 function setWsBadge(text, cls) {
+                                     const b = document.getElementById('wsBadge');
+                                     if (b) {
+                                         b.textContent = text;
+                                         b.className = 'badge ' + cls;
+                                     }
+                                 }
 
-                                function flashRefreshBadge() {
-                                    const b = document.getElementById('refreshBadge');
-                                    if (b) {
-                                        b.style.opacity = '1';
-                                        setTimeout(() => {
-                                            b.style.opacity = '0';
-                                        }, 2000);
-                                    }
-                                }
+                                 function flashRefreshBadge() {
+                                     const b = document.getElementById('refreshBadge');
+                                     if (b) {
+                                         b.style.opacity = '1';
+                                         setTimeout(() => {
+                                             b.style.opacity = '0';
+                                         }, 2000);
+                                     }
+                                 }
 
-                                function sendWS(payload) {
-                                    if (ws && ws.readyState === WebSocket.OPEN) {
-                                        ws.send(JSON.stringify(payload));
-                                    }
-                                }
+                                 /**
+                                  * [Flow Step: WebSocket -> Server] Emit current staff actions (SELECT / DESELECT) to keep all clients synced
+                                  */
+                                 function sendWS(payload) {
+                                     if (ws && ws.readyState === WebSocket.OPEN) {
+                                         ws.send(JSON.stringify(payload));
+                                     }
+                                 }
 
                                 function updateSeatsSummary() {
                                     if (state.selectedSeats.length === 0) {
@@ -1200,10 +1287,11 @@
                                     const seatLabels = state.selectedSeats.map(s => s.rowLabel + s.colNumber);
                                     document.getElementById('selected-seats-display').innerText = seatLabels.join(', ');
 
-                                    // Calculate total price based on seat multipliers
+                                    // Calculate total price based on seat multipliers (VIP % from AppConfig)
+                                    const vipMult = 1 + (Number('${vipSurchargePercent}') || 30) / 100;
                                     let subtotal = 0;
                                     state.selectedSeats.forEach(s => {
-                                        const multiplier = s.seatType === 'VIP' ? 1.2 : 1.0;
+                                        const multiplier = s.seatType === 'VIP' ? vipMult : 1.0;
                                         subtotal += Math.round(state.basePrice * multiplier);
                                     });
 
@@ -1312,7 +1400,7 @@
                                                 '        </div>' +
                                                 '        <div class="d-flex justify-content-between align-items-center mt-3">' +
                                                 '            <div class="fw-bold text-primary" style="font-size:1.05rem;">' +
-                                                                formatNumber(item.price) + 'đ' +
+                                                                formatNumber(item.price) + ' VND' +
                                                 '            </div>' +
                                                 '            <div>' +
                                                 '                <button type="button" id="staff_add_btn_' + item.foodId + '" class="btn btn-outline-primary btn-sm px-3 fw-bold ' + (isAdded ? 'd-none' : '') + '" onclick="updateFoodQty(' + item.foodId + ', 1)" style="border-radius: 20px;">' +
@@ -1438,7 +1526,7 @@
                                             .catch(err => {
                                                 console.error(err);
                                                 btnApplyPromo.disabled = false;
-                                                alert('Error applying promotion');
+                                                lcAlert('Error applying promotion');
                                             });
                                 });
 
@@ -1537,35 +1625,41 @@
                                 });
 
                                 function updatePaymentMethodUI() {
-                                    const selectedMethod = document.querySelector('input[name="paymentMethodRadio"]:checked').value;
-                                    const cashSection = document.getElementById('cash-payment-section');
-                                    const vnpaySection = document.getElementById('vnpay-payment-section');
-                                    const btnConfirm = document.getElementById('btn-confirm-booking');
+                                     const selectedMethod = document.querySelector('input[name="paymentMethodRadio"]:checked').value;
+                                     const cashSection = document.getElementById('cash-payment-section');
+                                     const vnpaySection = document.getElementById('vnpay-payment-section');
+                                     const btnConfirm = document.getElementById('btn-confirm-booking');
 
-                                    if (selectedMethod === 'VNPAY') {
-                                        cashSection.classList.add('d-none');
-                                        vnpaySection.classList.remove('d-none');
+                                     // Dynamic visual feedback for payment selector cards
+                                     const payCashCard = document.getElementById('pay-cash').closest('.payment-method-card');
+                                     const payVnpayCard = document.getElementById('pay-vnpay').closest('.payment-method-card');
+                                     if (payCashCard) payCashCard.classList.toggle('active', selectedMethod === 'CASH');
+                                     if (payVnpayCard) payVnpayCard.classList.toggle('active', selectedMethod === 'VNPAY');
 
-                                        // Update button
-                                        btnConfirm.disabled = false;
-                                        btnConfirm.className = "btn btn-primary px-5 fw-bold fs-6";
-                                        btnConfirm.innerHTML = `<i class="bi bi-qr-code-scan me-2"></i>GENERATE VNPAY PAYMENT REQUEST`;
-                                    } else {
-                                        cashSection.classList.remove('d-none');
-                                        vnpaySection.classList.add('d-none');
+                                     if (selectedMethod === 'VNPAY') {
+                                         cashSection.classList.add('d-none');
+                                         vnpaySection.classList.remove('d-none');
 
-                                        // Trigger cash received input event validation to set correct enabled state
-                                        const received = parseFloat(cashReceivedInput.value) || 0;
-                                        const due = state.totalAmount;
-                                        if (received < due) {
-                                            btnConfirm.disabled = true;
-                                        } else {
-                                            btnConfirm.disabled = false;
-                                        }
-                                        btnConfirm.className = "btn btn-success px-5 fw-bold fs-6";
-                                        btnConfirm.innerHTML = `<i class="bi bi-cash-stack me-2"></i>CONFIRM CASH PAYMENT`;
-                                    }
-                                }
+                                         // Update button
+                                         btnConfirm.disabled = false;
+                                         btnConfirm.className = "btn btn-primary-lc px-5 fw-bold fs-6";
+                                         btnConfirm.innerHTML = `<i class="bi bi-qr-code-scan me-2"></i>GENERATE VNPAY PAYMENT REQUEST`;
+                                     } else {
+                                         cashSection.classList.remove('d-none');
+                                         vnpaySection.classList.add('d-none');
+
+                                         // Trigger cash received input event validation to set correct enabled state
+                                         const received = parseFloat(cashReceivedInput.value) || 0;
+                                         const due = state.totalAmount;
+                                         if (received < due) {
+                                             btnConfirm.disabled = true;
+                                         } else {
+                                             btnConfirm.disabled = false;
+                                         }
+                                         btnConfirm.className = "btn btn-success px-5 fw-bold fs-6";
+                                         btnConfirm.innerHTML = `<i class="bi bi-cash-stack me-2"></i>CONFIRM CASH PAYMENT`;
+                                     }
+                                 }
 
                                 btnConfirmBooking.addEventListener('click', () => {
                                     btnConfirmBooking.disabled = true;
@@ -1651,7 +1745,7 @@
                                                         btnConfirmBooking.className = "btn btn-success px-5 fw-bold fs-6";
                                                         btnConfirmBooking.innerHTML = `<i class="bi bi-cash-stack me-2"></i>CONFIRM CASH PAYMENT`;
                                                     }
-                                                    alert('Booking failed: ' + data.message);
+                                                    lcAlert('Booking failed: ' + data.message);
                                                 }
                                             })
                                             .catch(err => {
@@ -1664,7 +1758,7 @@
                                                     btnConfirmBooking.className = "btn btn-success px-5 fw-bold fs-6";
                                                     btnConfirmBooking.innerHTML = `<i class="bi bi-cash-stack me-2"></i>CONFIRM CASH PAYMENT`;
                                                 }
-                                                alert('A network error occurred while processing booking.');
+                                                lcAlert('A network error occurred while processing booking.');
                                             });
                                 });
 

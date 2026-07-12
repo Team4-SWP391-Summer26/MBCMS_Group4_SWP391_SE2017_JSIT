@@ -2,6 +2,8 @@
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
+<fmt:setLocale value="en_US"/>
+<fmt:setTimeZone value="Asia/Ho_Chi_Minh"/>
 <%--
     My Bookings (owner: HungNT). Dung view-model `tickets` (List<BookingTicket>)
     + so lieu (upcoming / pastVisits / spentThisYear / dem theo status).
@@ -62,6 +64,7 @@
         .sp-PENDING   { background:#fef3c7; color:#b45309; }
         .sp-CANCELLED { background:#fee2e2; color:#b91c1c; }
         .sp-USED      { background:#ede9fe; color:#6d28d9; }
+        .sp-NO_SHOW   { background:#f1f5f9; color:#475569; }
 
         .mb-empty { text-align:center; padding:3.5rem 1.5rem; color:var(--bk-muted); }
         .mb-divider { width:1px; background:var(--bk-border); align-self:stretch; }
@@ -83,6 +86,31 @@
         <a href="${pageContext.request.contextPath}/movies?status=NOW_SHOWING"
            class="ms-auto btn btn-primary fw-semibold"><i class="bi bi-plus-lg"></i> Book a Ticket</a>
     </div>
+
+    <c:if test="${param.cancelled == '1'}">
+        <div class="alert alert-success border-0 mb-3" style="border-radius: 10px;">
+            <i class="bi bi-check-circle-fill"></i>
+            Booking cancelled. Your seats have been released.
+        </div>
+    </c:if>
+    <c:if test="${param.expired == '1'}">
+        <div class="alert alert-warning border-0 mb-3" style="border-radius: 10px;">
+            <i class="bi bi-clock-history"></i>
+            Your seat reservation expired. Please make a new booking.
+        </div>
+    </c:if>
+    <c:if test="${param.cancelErr == 'NOT_CANCELLABLE'}">
+        <div class="alert alert-warning border-0 mb-3" style="border-radius: 10px;">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            This booking could not be cancelled because it is no longer pending.
+        </div>
+    </c:if>
+    <c:if test="${param.cancelErr == 'SYSTEM'}">
+        <div class="alert alert-danger border-0 mb-3" style="border-radius: 10px;">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            Could not cancel the booking due to a system error. Please try again.
+        </div>
+    </c:if>
 
     <%-- ===== Stats ===== --%>
     <div class="row g-3 mb-4">
@@ -114,6 +142,7 @@
             <button class="mb-tab" data-filter="PENDING">Pending (${countPending})</button>
             <button class="mb-tab" data-filter="CONFIRMED">Confirmed (${countConfirmed})</button>
             <button class="mb-tab" data-filter="USED">Used (${countUsed})</button>
+            <button class="mb-tab" data-filter="NO_SHOW">No-show (${countNoShow})</button>
             <button class="mb-tab" data-filter="CANCELLED">Cancelled (${countCancelled})</button>
         </div>
         <div class="mb-search">
@@ -140,8 +169,7 @@
                         (com.mbcms.model.BookingTicket) pageContext.getAttribute("t");
                     if (_t != null && _t.getStartTime() != null) {
                         pageContext.setAttribute("tStart",
-                            java.util.Date.from(_t.getStartTime()
-                                .atZone(java.time.ZoneId.systemDefault()).toInstant()));
+                            com.mbcms.util.DateTimeUtil.vietnamLocalToDate(_t.getStartTime()));
                     } else {
                         pageContext.setAttribute("tStart", null);
                     }
@@ -177,6 +205,7 @@
                                 <c:choose>
                                     <c:when test="${t.status eq 'CONFIRMED'}"><i class="bi bi-check-circle-fill"></i> CONFIRMED</c:when>
                                     <c:when test="${t.status eq 'USED'}"><i class="bi bi-check2-all"></i> USED</c:when>
+                                    <c:when test="${t.status eq 'NO_SHOW'}"><i class="bi bi-person-x"></i> NO SHOW</c:when>
                                     <c:when test="${t.status eq 'CANCELLED'}"><i class="bi bi-x-circle"></i> CANCELLED</c:when>
                                     <c:otherwise><i class="bi bi-hourglass-split"></i> PENDING</c:otherwise>
                                 </c:choose>
@@ -188,7 +217,7 @@
                                 <div class="mb-col-label">Date &amp; Time</div>
                                 <div class="mb-col-val">
                                     <c:choose>
-                                        <c:when test="${not empty tStart}"><fmt:formatDate value="${tStart}" pattern="EEE, dd MMM yyyy"/> · <fmt:formatDate value="${tStart}" pattern="HH:mm"/></c:when>
+                                        <c:when test="${not empty tStart}"><fmt:formatDate value="${tStart}" pattern="EEE, dd MMM yyyy"/> · <fmt:formatDate value="${tStart}" pattern="h:mm a"/></c:when>
                                         <c:otherwise>—</c:otherwise>
                                     </c:choose>
                                 </div>

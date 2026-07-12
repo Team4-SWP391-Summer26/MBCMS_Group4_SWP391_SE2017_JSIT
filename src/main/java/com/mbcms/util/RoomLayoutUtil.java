@@ -19,21 +19,21 @@ public final class RoomLayoutUtil {
 
     public static void validateCapacity(int capacity) {
         if (capacity <= 0) {
-            throw new IllegalArgumentException("Sức chứa tối đa phải lớn hơn 0.");
+            throw new IllegalArgumentException("Capacity must be greater than 0.");
         }
         if (capacity > MAX_CAPACITY) {
             throw new IllegalArgumentException(
-                    "Sức chứa tối đa " + MAX_CAPACITY + " ghế (tối đa " + MAX_ROWS + " hàng × "
-                            + DEFAULT_COLS + " cột). Dùng Seat Layout để cấu hình lưới lớn hơn.");
+                    "Maximum capacity is " + MAX_CAPACITY + " seats (up to " + MAX_ROWS + " rows x "
+                            + DEFAULT_COLS + " columns). Use Seat Layout to configure a larger grid.");
         }
     }
 
     public static void validateGrid(int rowsCount, int colsCount) {
         if (rowsCount <= 0 || rowsCount > MAX_ROWS) {
-            throw new IllegalArgumentException("Số hàng ghế phải từ 1 đến " + MAX_ROWS + " (A–Z).");
+            throw new IllegalArgumentException("Seat rows must be from 1 to " + MAX_ROWS + " (A-Z).");
         }
         if (colsCount <= 0 || colsCount > MAX_COLS) {
-            throw new IllegalArgumentException("Số cột ghế phải từ 1 đến " + MAX_COLS + ".");
+            throw new IllegalArgumentException("Seat columns must be from 1 to " + MAX_COLS + ".");
         }
     }
 
@@ -43,7 +43,7 @@ public final class RoomLayoutUtil {
         int cols = DEFAULT_COLS;
         int rows = (capacity + cols - 1) / cols;
         if (rows > MAX_ROWS) {
-            throw new IllegalArgumentException("Sức chứa vượt quá " + MAX_ROWS + " hàng với lưới mặc định.");
+            throw new IllegalArgumentException("Capacity exceeds " + MAX_ROWS + " rows with the default grid.");
         }
         return generateGrid(room.getRoomId(), room.getRoomType(), rows, cols, capacity, null);
     }

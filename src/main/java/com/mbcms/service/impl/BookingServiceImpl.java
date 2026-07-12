@@ -21,7 +21,10 @@ import com.mbcms.model.Showtime;
 import com.mbcms.service.BookingService;
 import com.mbcms.service.FoodService;
 import com.mbcms.service.NotificationService;
+import com.mbcms.service.PricingService;
 import com.mbcms.service.impl.FoodServiceImpl;
+import com.mbcms.util.DateTimeUtil;
+import com.mbcms.util.SystemSettings;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -32,13 +35,11 @@ import java.util.*;
 /**
  * BookingServiceImpl – xử lý toàn bộ booking flow.
  *
- * JSP tính status inline: !active→MAINTENANCE, inBooked→BOOKED, else→AVAILABLE.
+ * JSP tính status: !active→MAINTENANCE, inHeld→HELD, inBooked→BOOKED, else→AVAILABLE.
  *
- * Price logic: STANDARD : basePrice × 1.00 VIP : basePrice × 1.30
+ * Price: STANDARD / VIP via {@link PricingService} (Admin Settings VIP percent).
  */
 public class BookingServiceImpl implements BookingService {
-
-    private static final double VIP_SURCHARGE = 0.30;
 
     public BookingServiceImpl() {
         this.bookingDao = new BookingDAOImpl();
@@ -47,6 +48,7 @@ public class BookingServiceImpl implements BookingService {
         this.promoDao = new PromotionDAOImpl();
         this.notificationService = new NotificationServiceImpl();
         this.foodService = new FoodServiceImpl();
+        this.pricingService = new PricingServiceImpl();
     }
 
     /** Constructor for unit tests (inject mocks). */
@@ -57,12 +59,19 @@ public class BookingServiceImpl implements BookingService {
 
     BookingServiceImpl(BookingDAO bookingDao, SeatDAO seatDao, ShowtimeDAO showtimeDao,
             PromotionDAO promoDao, NotificationService notificationService, FoodService foodService) {
+        this(bookingDao, seatDao, showtimeDao, promoDao, notificationService, foodService, new PricingServiceImpl());
+    }
+
+    BookingServiceImpl(BookingDAO bookingDao, SeatDAO seatDao, ShowtimeDAO showtimeDao,
+            PromotionDAO promoDao, NotificationService notificationService, FoodService foodService,
+            PricingService pricingService) {
         this.bookingDao = bookingDao;
         this.seatDao = seatDao;
         this.showtimeDao = showtimeDao;
         this.promoDao = promoDao;
         this.notificationService = notificationService;
         this.foodService = foodService;
+        this.pricingService = pricingService;
     }
 
     private final BookingDAO bookingDao;
@@ -71,6 +80,7 @@ public class BookingServiceImpl implements BookingService {
     private final PromotionDAO promoDao;
     private final NotificationService notificationService;
     private final FoodService foodService;
+    private final PricingService pricingService;
 
     // ── validatePromoCode ─────────────────────────────────────────────────
     @Override
@@ -81,11 +91,11 @@ public class BookingServiceImpl implements BookingService {
 
         Promotion p = promoDao.findByCode(code.trim().toUpperCase());
         if (p == null) {
-            return null;
+            throw new IllegalArgumentException("Promotion code not found");
         }
 
         LocalDateTime now = LocalDateTime.now(ZoneOffset.UTC);
-        if (!p.isActive() || !"Active".equals(p.getStatus())) {
+        if (!p.isActive()) {
             throw new IllegalArgumentException("This promo code has been deactivated.");
         }
         if (p.getValidFrom() != null && now.isBefore(p.getValidFrom())) {
@@ -115,8 +125,9 @@ public class BookingServiceImpl implements BookingService {
         if (seatIds == null || seatIds.isEmpty()) {
             throw new IllegalArgumentException("Please select at least one seat.");
         }
-        if (seatIds.size() > 8) {
-            throw new IllegalArgumentException("Maximum 8 seats per booking.");
+        int maxSeats = SystemSettings.maxSeatsPerBooking();
+        if (seatIds.size() > maxSeats) {
+            throw new IllegalArgumentException("Maximum " + maxSeats + " seats per booking.");
         }
 
         // Lấy showtime
@@ -147,22 +158,26 @@ public class BookingServiceImpl implements BookingService {
         // Get branchId from showtime's room
         Room room = new RoomDAOImpl().findById(st.getRoomId());
         Long branchId = room != null ? room.getBranchId() : null;
+
+        Promotion promo = validatePromoCode(promoCode, ticketsSubtotal, totalConcessions, branchId);
+        BigDecimal discount = promo != null ? calcDiscount(promo, ticketsSubtotal) : BigDecimal.ZERO;
         
         
         // Tạo Booking model
         Booking booking = new Booking();
         booking.setCustomerUsername(customerUsername);
         booking.setShowtimeId(showtimeId);
-        booking.setPromoId(null);
+        booking.setPromoId(promo != null ? promo.getPromoId() : null);
         booking.setSubtotal(ticketsSubtotal.add(totalConcessions));
-        booking.setDiscountAmount(BigDecimal.ZERO);
-        booking.setTotalAmount(ticketsSubtotal.add(totalConcessions));
+        booking.setDiscountAmount(discount);
+        booking.setTotalAmount(ticketsSubtotal.subtract(discount).max(BigDecimal.ZERO).add(totalConcessions));
         booking.setNotes(notes);
         // createBooking() xử lý UPDLOCK + INSERT atomic bên trong
         Booking result = bookingDao.createBooking(booking, seatIds);
         
-        if (result != null && promoCode != null && !promoCode.trim().isEmpty()) {
-            result = applyPromoToBooking(result.getBookingId(), customerUsername, promoCode, concessionsSubtotal);
+        if (result != null) {
+            com.mbcms.ws.SeatWebSocketServer.notifyHeldLock(
+                    showtimeId, seatIds, customerUsername);
         }
         
         // Bo sung thong tin hien thi cho context bar checkout (ten phim + gio chieu + poster)
@@ -200,7 +215,7 @@ public class BookingServiceImpl implements BookingService {
                     System.err.println("WARN: Promo usage limit reached for promo_id=" + confirmed.getPromoId());
                 }
             } catch (Exception e) {
-                System.err.println("WARN: Không tăng được promo used_count: " + e.getMessage());
+                System.err.println("WARN: Could not increment promo used_count: " + e.getMessage());
             }
         }
 
@@ -274,6 +289,18 @@ public class BookingServiceImpl implements BookingService {
 
         Room room = new RoomDAOImpl().findById(st.getRoomId());
         Long branchId = room != null ? room.getBranchId() : null;
+
+        String incoming = promoCode != null ? promoCode.trim() : "";
+        if (!incoming.isEmpty()) {
+            String currentCode = resolveAppliedPromoCode(b);
+            if (currentCode != null) {
+                if (currentCode.equalsIgnoreCase(incoming)) {
+                    throw new IllegalArgumentException("This promotion is already applied.");
+                }
+                throw new IllegalArgumentException(
+                        "Only one promotion can be applied. Remove the current code first.");
+            }
+        }
 
         // validatePromoCode throws IllegalArgumentException nếu promo không hợp
         // lệ — để nguyên propagate lên, KHÔNG đụng tới booking/seat đang giữ.
@@ -379,10 +406,12 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public Booking createCounterBooking(Booking booking, List<Long> seatIds, String promoCode, BigDecimal concessionsSubtotal) {
         if (seatIds == null || seatIds.isEmpty()) {
-            throw new IllegalArgumentException("Vui lòng chọn ít nhất 1 ghế.");
+            throw new IllegalArgumentException("Please select at least 1 seat.");
         }
-        if (seatIds.size() > 8) {
-            throw new IllegalArgumentException("Tối đa 8 ghế mỗi lần đặt.");
+        int maxSeats = SystemSettings.maxSeatsPerBooking();
+        if (seatIds.size() > maxSeats) {
+            throw new IllegalArgumentException(
+                    "You can select a maximum of " + maxSeats + " seats per booking.");
         }
 
         Showtime st = showtimeDao.findById(booking.getShowtimeId());
@@ -398,11 +427,11 @@ public class BookingServiceImpl implements BookingService {
         for (Long seatId : seatIds) {
             Seat seat = counterSeatMap.get(seatId);
             if (seat == null || seat.getRoomId() != st.getRoomId()) {
-                throw new IllegalArgumentException("Ghế không hợp lệ cho suất chiếu này.");
+                throw new IllegalArgumentException("Invalid seat for this showtime.");
             }
             if (!seat.isActive()) {
                 throw new IllegalArgumentException(
-                        "Ghế " + seat.getRowLabel() + seat.getColNumber() + " không khả dụng.");
+                        "Seat " + seat.getRowLabel() + seat.getColNumber() + " is unavailable.");
             }
         }
 
@@ -442,8 +471,8 @@ public class BookingServiceImpl implements BookingService {
     }
     
     @Override
-    public int markCompletedBookingsAsUsed() {
-        return bookingDao.markCompletedBookingsAsUsed();
+    public int markNoShowAfterShowtimeEnded() {
+        return bookingDao.markNoShowAfterShowtimeEnded();
     }
     // ── Private helpers ───────────────────────────────────────────────────
     private void validateShowtimeForBooking(Showtime st) {
@@ -453,7 +482,7 @@ public class BookingServiceImpl implements BookingService {
         if (!"SCHEDULED".equals(st.getStatus())) {
             throw new IllegalArgumentException("This showtime is no longer available.");
         }
-        if (st.getStartTime().isBefore(LocalDateTime.now(ZoneOffset.UTC))) {
+        if (st.getStartTime().isBefore(DateTimeUtil.nowVietnam())) {
             throw new IllegalArgumentException("Cannot book a showtime in the past.");
         }
     }
@@ -464,13 +493,8 @@ public class BookingServiceImpl implements BookingService {
         BigDecimal total = BigDecimal.ZERO;
         for (Long id : selectedIds) {
             Seat seat = seatMap.get(id);
-            BigDecimal price = basePrice;
-            if (seat != null) {
-                if ("VIP".equals(seat.getSeatType())) {
-                    price = basePrice.multiply(BigDecimal.valueOf(1 + VIP_SURCHARGE));
-                }
-            }
-            total = total.add(price.setScale(0, RoundingMode.HALF_UP));
+            String seatType = seat != null ? seat.getSeatType() : Seat.TYPE_STANDARD;
+            total = total.add(pricingService.calculateSeatPrice(basePrice, seatType));
         }
         return total;
     }
@@ -486,5 +510,18 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public int cancelBooking(long bookingId, String customerUsername) {
         return bookingDao.cancelBooking(bookingId, customerUsername);
+    }
+
+    @Override
+    public String resolveAppliedPromoCode(Booking booking) {
+        if (booking == null || booking.getPromoId() == null) {
+            return null;
+        }
+        BigDecimal discount = booking.getDiscountAmount();
+        if (discount == null || discount.compareTo(BigDecimal.ZERO) <= 0) {
+            return null;
+        }
+        Promotion promo = promoDao.findById(booking.getPromoId());
+        return promo != null ? promo.getCode() : null;
     }
 }

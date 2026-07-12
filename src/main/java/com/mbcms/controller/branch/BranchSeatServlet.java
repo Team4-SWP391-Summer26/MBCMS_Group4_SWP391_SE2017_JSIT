@@ -2,8 +2,10 @@ package com.mbcms.controller.branch;
 
 import com.mbcms.model.Room;
 import com.mbcms.model.Seat;
+import com.mbcms.service.PricingService;
 import com.mbcms.service.RoomService;
 import com.mbcms.service.SeatService;
+import com.mbcms.service.impl.PricingServiceImpl;
 import com.mbcms.service.impl.RoomServiceImpl;
 import com.mbcms.service.impl.SeatServiceImpl;
 import jakarta.servlet.ServletException;
@@ -27,6 +29,7 @@ public class BranchSeatServlet extends HttpServlet {
 
     private final SeatService seatService = new SeatServiceImpl();
     private final RoomService roomService = new RoomServiceImpl();
+    private final PricingService pricingService = new PricingServiceImpl();
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
@@ -39,19 +42,19 @@ public class BranchSeatServlet extends HttpServlet {
         Long branchId = (session != null) ? (Long) session.getAttribute("currentBranchId") : null;
 
         if (branchId == null) {
-            resp.sendError(HttpServletResponse.SC_FORBIDDEN, "Bạn không có quyền truy cập.");
+            resp.sendError(HttpServletResponse.SC_FORBIDDEN, "You do not have permission to access this page.");
             return;
         }
 
         Long roomId = parseLong(req.getParameter("roomId"));
         if (roomId == null) {
-            resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Thiếu tham số roomId.");
+            resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Missing roomId parameter.");
             return;
         }
 
         Room room = roomService.getRoomById(roomId);
         if (room == null || room.getBranchId() != branchId) {
-            resp.sendError(HttpServletResponse.SC_FORBIDDEN, "Bạn không có quyền quản lý phòng chiếu này.");
+            resp.sendError(HttpServletResponse.SC_FORBIDDEN, "You do not have permission to manage this hall.");
             return;
         }
 
@@ -66,7 +69,8 @@ public class BranchSeatServlet extends HttpServlet {
         req.setAttribute("room", room);
         req.setAttribute("seatsByRow", seatsByRow);
         req.setAttribute("roomId", roomId);
-        
+        req.setAttribute("vipSurchargePercent", pricingService.getVipSurchargePercent());
+
         req.setAttribute("successMsg", req.getParameter("successMsg"));
         req.setAttribute("errorMsg", req.getParameter("errorMsg"));
 
@@ -84,13 +88,13 @@ public class BranchSeatServlet extends HttpServlet {
         Long branchId = (session != null) ? (Long) session.getAttribute("currentBranchId") : null;
 
         if (branchId == null) {
-            resp.sendError(HttpServletResponse.SC_FORBIDDEN, "Bạn không có quyền truy cập.");
+            resp.sendError(HttpServletResponse.SC_FORBIDDEN, "You do not have permission to access this page.");
             return;
         }
 
         String action = req.getParameter("action");
         if (action == null) {
-            resp.sendRedirect(req.getContextPath() + "/branch/seats?errorMsg=Hành động không hợp lệ.");
+            resp.sendRedirect(req.getContextPath() + "/branch/seats?errorMsg=Invalid action.");
             return;
         }
 
@@ -100,9 +104,9 @@ public class BranchSeatServlet extends HttpServlet {
         // chi nhanh cua manager dang dang nhap -> chong sua roomId sang phong rap khac.
         if (room == null || room.getBranchId() != branchId) {
             if ("updateSeat".equals(action)) {
-                sendErrorJSON(resp, "Không có quyền quản lý phòng chiếu này.");
+                sendErrorJSON(resp, "You do not have permission to manage this hall.");
             } else {
-                resp.sendRedirect(req.getContextPath() + "/branch/halls?errorMsg=Không có quyền quản lý phòng chiếu này.");
+                resp.sendRedirect(req.getContextPath() + "/branch/halls?errorMsg=You do not have permission to manage this hall.");
             }
             return;
         }
@@ -113,7 +117,7 @@ public class BranchSeatServlet extends HttpServlet {
             } else if ("updateSeat".equals(action)) {
                 handleUpdateSeatAJAX(req, resp);
             } else {
-                resp.sendRedirect(req.getContextPath() + "/branch/seats?roomId=" + roomId + "&errorMsg=Hành động không xác định.");
+                resp.sendRedirect(req.getContextPath() + "/branch/seats?roomId=" + roomId + "&errorMsg=Unknown action.");
             }
         } catch (IllegalArgumentException e) {
             if ("updateSeat".equals(action)) {
@@ -122,11 +126,11 @@ public class BranchSeatServlet extends HttpServlet {
                 resp.sendRedirect(req.getContextPath() + "/branch/seats?roomId=" + roomId + "&errorMsg=" + java.net.URLEncoder.encode(e.getMessage(), "UTF-8"));
             }
         } catch (Exception e) {
-            getServletContext().log("Lỗi trong BranchSeatServlet: ", e);
+            getServletContext().log("Error in BranchSeatServlet: ", e);
             if ("updateSeat".equals(action)) {
-                sendErrorJSON(resp, "Lỗi hệ thống.");
+                sendErrorJSON(resp, "System error.");
             } else {
-                resp.sendRedirect(req.getContextPath() + "/branch/seats?roomId=" + roomId + "&errorMsg=Đã xảy ra lỗi hệ thống.");
+                resp.sendRedirect(req.getContextPath() + "/branch/seats?roomId=" + roomId + "&errorMsg=A system error occurred.");
             }
         }
     }
@@ -138,9 +142,9 @@ public class BranchSeatServlet extends HttpServlet {
 
         boolean success = seatService.regenerateLayout(roomId, rowsCount, colsCount, defaultType);
         if (success) {
-            resp.sendRedirect(req.getContextPath() + "/branch/seats?roomId=" + roomId + "&successMsg=" + java.net.URLEncoder.encode("Thiết lập lại sơ đồ ghế thành công!", "UTF-8"));
+            resp.sendRedirect(req.getContextPath() + "/branch/seats?roomId=" + roomId + "&successMsg=" + java.net.URLEncoder.encode("Seat layout reset successfully!", "UTF-8"));
         } else {
-            resp.sendRedirect(req.getContextPath() + "/branch/seats?roomId=" + roomId + "&errorMsg=" + java.net.URLEncoder.encode("Thiết lập sơ đồ ghế thất bại.", "UTF-8"));
+            resp.sendRedirect(req.getContextPath() + "/branch/seats?roomId=" + roomId + "&errorMsg=" + java.net.URLEncoder.encode("Failed to reset seat layout.", "UTF-8"));
         }
     }
 
@@ -169,7 +173,7 @@ public class BranchSeatServlet extends HttpServlet {
         if (success) {
             out.print("{\"success\":true}");
         } else {
-            out.print("{\"success\":false,\"message\":\"Cập nhật thất bại.\"}");
+            out.print("{\"success\":false,\"message\":\"Update failed.\"}");
         }
         out.flush();
     }

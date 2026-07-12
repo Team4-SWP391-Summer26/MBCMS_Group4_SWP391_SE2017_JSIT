@@ -6,7 +6,10 @@ import com.mbcms.model.Showtime;
 import com.mbcms.dao.ShowtimeDAO;
 import com.mbcms.dao.impl.ShowtimeDAOImpl;
 import com.mbcms.service.GuestMovieService;
+import com.mbcms.service.PricingService;
 import com.mbcms.service.impl.GuestMovieServiceImpl;
+import com.mbcms.service.impl.PricingServiceImpl;
+import com.mbcms.util.DateTimeUtil;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -16,13 +19,16 @@ import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * MovieDetailServlet - owner: AnhND.
@@ -33,8 +39,11 @@ import java.util.Map;
 @WebServlet("/movies/detail")
 public class MovieDetailServlet extends HttpServlet {
 
+    private static final DateTimeFormatter ISO_LOCAL = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
+
     private final GuestMovieService guestMovieService = new GuestMovieServiceImpl();
     private final ShowtimeDAO showtimeDAO = new ShowtimeDAOImpl();
+    private final PricingService pricingService = new PricingServiceImpl();
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
@@ -52,8 +61,7 @@ public class MovieDetailServlet extends HttpServlet {
             return;
         }
 
-        // Parse date and branchId
-        LocalDate selectedDate = null;
+        LocalDate selectedDate;
         String dateParam = req.getParameter("date");
         if (dateParam != null && !dateParam.trim().isEmpty()) {
             try {
@@ -73,32 +81,34 @@ public class MovieDetailServlet extends HttpServlet {
             } catch (NumberFormatException ignored) {}
         }
 
-        // Fetch active branches for the dropdown filter
         List<Branch> branches = guestMovieService.getBranches();
 
-        // Get showtimes grouped by branch and room for the selected date
+        boolean showtimesAvailable = "NOW_SHOWING".equals(movie.getStatus());
+
         List<BranchShowtimes> branchShowtimesList = new ArrayList<>();
-        List<Branch> branchesToQuery = new ArrayList<>();
-        if (selectedBranchId != null) {
+        Set<String> availableFormats = new LinkedHashSet<>();
+        Set<String> availableSubtitleTypes = new LinkedHashSet<>();
+
+        if (showtimesAvailable) {
+            // Always scan all branches for hero chips (format / Sub-Dub summary)
             for (Branch b : branches) {
-                if (b.getBranchId() == selectedBranchId) {
-                    branchesToQuery.add(b);
-                    break;
+                boolean includeInList = selectedBranchId == null || b.getBranchId() == selectedBranchId;
+                List<Showtime> sts = showtimeDAO.findByBranch(b.getBranchId(), movieId, null, selectedDate);
+                sts.removeIf(st -> !Showtime.STATUS_SCHEDULED.equals(st.getStatus()));
+
+                for (Showtime st : sts) {
+                    if (st.getFormat() != null && !st.getFormat().isBlank()) {
+                        availableFormats.add(st.getFormat());
+                    }
+                    if (st.getSubtitleType() != null && !st.getSubtitleType().isBlank()) {
+                        availableSubtitleTypes.add(st.getSubtitleType());
+                    }
                 }
-            }
-        } else {
-            branchesToQuery.addAll(branches);
-        }
 
-        DateTimeFormatter timeFmt = DateTimeFormatter.ofPattern("HH:mm");
+                if (!includeInList || sts.isEmpty()) {
+                    continue;
+                }
 
-        for (Branch b : branchesToQuery) {
-            List<Showtime> sts = showtimeDAO.findByBranch(b.getBranchId(), movieId, null, selectedDate);
-            // Lọc các suất chiếu SCHEDULED
-            sts.removeIf(st -> !Showtime.STATUS_SCHEDULED.equals(st.getStatus()));
-            
-            if (!sts.isEmpty()) {
-                // Nhóm theo phòng (roomId + format + subtitleType)
                 Map<String, List<Showtime>> roomGroupsMap = new LinkedHashMap<>();
                 for (Showtime st : sts) {
                     String groupKey = st.getRoomId() + "_" + st.getFormat() + "_" + st.getSubtitleType();
@@ -113,11 +123,16 @@ public class MovieDetailServlet extends HttpServlet {
                     List<ShowtimeSlot> slots = new ArrayList<>();
                     for (Showtime st : groupSts) {
                         boolean isFull = st.getBookedSeats() >= st.getRoomCapacity();
-                        slots.add(new ShowtimeSlot(st.getShowtimeId(), st.getStartTime().format(timeFmt), st.getBasePrice(), isFull));
+                        LocalDateTime start = st.getStartTime();
+                        slots.add(new ShowtimeSlot(
+                                st.getShowtimeId(),
+                                DateTimeUtil.formatAmPm(start),
+                                start != null ? start.format(ISO_LOCAL) : "",
+                                st.getBasePrice(),
+                                isFull));
                     }
 
-                    // Sắp xếp các slot theo thời gian chiếu tăng dần
-                    slots.sort(Comparator.comparing(ShowtimeSlot::getTime));
+                    slots.sort(Comparator.comparing(ShowtimeSlot::getStartIso));
 
                     roomGroups.add(new RoomGroup(
                             first.getRoomName(),
@@ -131,9 +146,29 @@ public class MovieDetailServlet extends HttpServlet {
 
                 branchShowtimesList.add(new BranchShowtimes(b, roomGroups));
             }
+
+            // Fallback: next 7 days if selected date has no slots
+            if (availableSubtitleTypes.isEmpty()) {
+                for (Branch b : branches) {
+                    for (int i = 1; i < 7; i++) {
+                        LocalDate d = LocalDate.now().plusDays(i);
+                        List<Showtime> sts = showtimeDAO.findByBranch(b.getBranchId(), movieId, null, d);
+                        for (Showtime st : sts) {
+                            if (!Showtime.STATUS_SCHEDULED.equals(st.getStatus())) {
+                                continue;
+                            }
+                            if (st.getFormat() != null && !st.getFormat().isBlank()) {
+                                availableFormats.add(st.getFormat());
+                            }
+                            if (st.getSubtitleType() != null && !st.getSubtitleType().isBlank()) {
+                                availableSubtitleTypes.add(st.getSubtitleType());
+                            }
+                        }
+                    }
+                }
+            }
         }
 
-        // Tạo danh sách 7 ngày tiếp theo
         List<DateTab> dateTabs = new ArrayList<>();
         DateTimeFormatter dayFmt = DateTimeFormatter.ofPattern("EEE", Locale.ENGLISH);
         DateTimeFormatter dateLabelFmt = DateTimeFormatter.ofPattern("dd/MM");
@@ -148,6 +183,10 @@ public class MovieDetailServlet extends HttpServlet {
         req.setAttribute("selectedDate", selectedDate.toString());
         req.setAttribute("selectedBranchId", selectedBranchId == null ? "all" : selectedBranchId);
         req.setAttribute("branchShowtimesList", branchShowtimesList);
+        req.setAttribute("showtimesAvailable", showtimesAvailable);
+        req.setAttribute("availableFormats", availableFormats);
+        req.setAttribute("availableSubtitleTypes", availableSubtitleTypes);
+        req.setAttribute("vipSurchargePercent", pricingService.getVipSurchargePercent());
 
         req.getRequestDispatcher("/WEB-INF/views/movie/detail.jsp").forward(req, resp);
     }
@@ -162,8 +201,6 @@ public class MovieDetailServlet extends HttpServlet {
             return null;
         }
     }
-
-    // --- Inner classes phục vụ việc gom nhóm hiển thị dữ liệu ở View ---
 
     public static class DateTab {
         private final LocalDate date;
@@ -206,7 +243,8 @@ public class MovieDetailServlet extends HttpServlet {
         private final java.math.BigDecimal minPrice;
         private final List<ShowtimeSlot> slots;
 
-        public RoomGroup(String roomName, String roomType, String format, String subtitleType, java.math.BigDecimal minPrice, List<ShowtimeSlot> slots) {
+        public RoomGroup(String roomName, String roomType, String format, String subtitleType,
+                java.math.BigDecimal minPrice, List<ShowtimeSlot> slots) {
             this.roomName = roomName;
             this.roomType = roomType;
             this.format = format;
@@ -226,18 +264,22 @@ public class MovieDetailServlet extends HttpServlet {
     public static class ShowtimeSlot {
         private final long showtimeId;
         private final String time;
+        private final String startIso;
         private final java.math.BigDecimal price;
         private final boolean full;
 
-        public ShowtimeSlot(long showtimeId, String time, java.math.BigDecimal price, boolean full) {
+        public ShowtimeSlot(long showtimeId, String time, String startIso,
+                java.math.BigDecimal price, boolean full) {
             this.showtimeId = showtimeId;
             this.time = time;
+            this.startIso = startIso;
             this.price = price;
             this.full = full;
         }
 
         public long getShowtimeId() { return showtimeId; }
         public String getTime() { return time; }
+        public String getStartIso() { return startIso; }
         public java.math.BigDecimal getPrice() { return price; }
         public boolean isFull() { return full; }
         public boolean getFull() { return full; }

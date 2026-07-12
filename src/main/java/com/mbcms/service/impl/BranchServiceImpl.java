@@ -40,13 +40,13 @@ public class BranchServiceImpl implements BranchService {
         List<Branch> all = branchDAO.findAll(true);
         for (Branch b : all) {
             if (b.getName().equalsIgnoreCase(branch.getName().trim())) {
-                throw new IllegalArgumentException("Tên chi nhánh đã tồn tại trong hệ thống.");
+                throw new IllegalArgumentException("Branch name already exists.");
             }
         }
 
         branch.setName(branch.getName().trim());
         branch.setAddress(branch.getAddress().trim());
-        branch.setCity(branch.getCity().trim());
+        // city already normalized in validateBranch
         if (branch.getPhone() != null) {
             branch.setPhone(branch.getPhone().trim());
         }
@@ -71,19 +71,19 @@ public class BranchServiceImpl implements BranchService {
 
         Branch existing = branchDAO.findById(branch.getBranchId());
         if (existing == null) {
-            throw new IllegalArgumentException("Chi nhánh không tồn tại.");
+            throw new IllegalArgumentException("Branch does not exist.");
         }
 
         List<Branch> all = branchDAO.findAll(true);
         for (Branch b : all) {
             if (b.getBranchId() != branch.getBranchId() && b.getName().equalsIgnoreCase(branch.getName().trim())) {
-                throw new IllegalArgumentException("Tên chi nhánh đã tồn tại trong hệ thống.");
+                throw new IllegalArgumentException("Branch name already exists.");
             }
         }
 
         existing.setName(branch.getName().trim());
         existing.setAddress(branch.getAddress().trim());
-        existing.setCity(branch.getCity().trim());
+        existing.setCity(branch.getCity()); // normalized in validateBranch
         existing.setPhone(branch.getPhone() != null ? branch.getPhone().trim() : null);
         existing.setEmail(branch.getEmail() != null ? branch.getEmail().trim() : null);
         existing.setActive(branch.isActive());
@@ -100,7 +100,7 @@ public class BranchServiceImpl implements BranchService {
 
         Branch existing = branchDAO.findById(branch.getBranchId());
         if (existing == null) {
-            throw new IllegalArgumentException("Chi nhánh không tồn tại.");
+            throw new IllegalArgumentException("Branch does not exist.");
         }
 
         if (!active && existing.isActive()) {
@@ -109,7 +109,7 @@ public class BranchServiceImpl implements BranchService {
 
         existing.setName(branch.getName().trim());
         existing.setAddress(branch.getAddress().trim());
-        existing.setCity(branch.getCity().trim());
+        existing.setCity(branch.getCity()); // normalized in validateBranch
         existing.setPhone(branch.getPhone() != null ? branch.getPhone().trim() : null);
         existing.setEmail(branch.getEmail() != null ? branch.getEmail().trim() : null);
         existing.setOpeningTime(openingTime);
@@ -141,38 +141,44 @@ public class BranchServiceImpl implements BranchService {
     private void ensureCanDeactivate(long branchId) {
         if (branchDAO.hasFutureShowtimes(branchId)) {
             throw new IllegalArgumentException(
-                    "Không thể vô hiệu hóa chi nhánh vì còn suất chiếu trong tương lai.");
+                    "Cannot deactivate this branch because it still has future showtimes.");
         }
         if (branchDAO.hasActiveFutureBookings(branchId)) {
             throw new IllegalArgumentException(
-                    "Không thể vô hiệu hóa chi nhánh vì còn vé đặt hiệu lực cho suất chiếu tương lai.");
+                    "Cannot deactivate this branch because it still has active bookings for future showtimes.");
         }
     }
 
     private void validateHours(LocalTime openingTime, LocalTime closingTime) {
         if (openingTime == null || closingTime == null) {
-            throw new IllegalArgumentException("Giờ hoạt động không được để trống.");
+            throw new IllegalArgumentException("Operating hours are required.");
         }
         if (!closingTime.isAfter(openingTime)) {
-            throw new IllegalArgumentException("Giờ đóng cửa phải sau giờ mở cửa.");
+            throw new IllegalArgumentException("Closing time must be after opening time.");
         }
     }
 
     private void validateBranch(Branch b) {
         if (b == null) {
-            throw new IllegalArgumentException("Thông tin chi nhánh trống.");
+            throw new IllegalArgumentException("Branch information is empty.");
         }
         if (ValidationUtil.isNullOrEmpty(b.getName())) {
-            throw new IllegalArgumentException("Tên chi nhánh không được để trống.");
+            throw new IllegalArgumentException("Branch name is required.");
         }
         if (ValidationUtil.isNullOrEmpty(b.getAddress())) {
-            throw new IllegalArgumentException("Địa chỉ không được để trống.");
+            throw new IllegalArgumentException("Address is required.");
         }
         if (ValidationUtil.isNullOrEmpty(b.getCity())) {
-            throw new IllegalArgumentException("Thành phố không được để trống.");
+            throw new IllegalArgumentException("City is required.");
         }
+        String city = ValidationUtil.normalizeVnCity(b.getCity());
+        if (city == null) {
+            throw new IllegalArgumentException(
+                    "City must be a supported Vietnamese city (e.g. Ha Noi, TP. Ho Chi Minh, Da Nang).");
+        }
+        b.setCity(city);
         if (!ValidationUtil.isNullOrEmpty(b.getEmail()) && !ValidationUtil.isValidEmail(b.getEmail())) {
-            throw new IllegalArgumentException("Email không đúng định dạng.");
+            throw new IllegalArgumentException("Invalid email format.");
         }
         // Phone validation relaxed: accept any non-empty string
         // (format varies: spaces, dashes, dots)

@@ -46,7 +46,7 @@ public class VnPayIpnServlet extends HttpServlet {
             case SUCCESS, ALREADY_PAID -> "RspCode=00&Message=Confirm Success";
             case INVALID_SIGNATURE -> "RspCode=97&Message=Invalid Checksum";
             case BOOKING_NOT_FOUND, INVALID_TXN_REF -> "RspCode=01&Message=Order not found";
-            case EXPIRED -> "RspCode=02&Message=Order expired";
+            case EXPIRED, SHOWTIME_INVALID, PROMO_EXHAUSTED -> "RspCode=02&Message=Order expired";
             case PAYMENT_FAILED -> "RspCode=99&Message=Payment failed";
             case AMOUNT_MISMATCH -> "RspCode=04&Message=Invalid amount";
         };

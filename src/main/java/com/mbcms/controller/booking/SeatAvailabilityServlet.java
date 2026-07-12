@@ -2,9 +2,12 @@ package com.mbcms.controller.booking;
 
 import com.mbcms.model.Seat;
 import com.mbcms.model.Showtime;
+import com.mbcms.service.PricingService;
 import com.mbcms.service.SeatAvailabilityService;
+import com.mbcms.service.impl.PricingServiceImpl;
 import com.mbcms.service.impl.SeatAvailabilityServiceImpl;
 import com.mbcms.util.BookingCustomerGuard;
+import com.mbcms.util.SystemSettings;
 import com.mbcms.model.Customer;
 
 import jakarta.servlet.ServletException;
@@ -26,10 +29,11 @@ import java.util.Set;
 @WebServlet("/booking/seats")
 public class SeatAvailabilityServlet extends HttpServlet {
 
-    private static final DateTimeFormatter DT_FMT
-            = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+    private static final DateTimeFormatter DATE_FMT
+            = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
     private final SeatAvailabilityService seatService = new SeatAvailabilityServiceImpl();
+    private final PricingService pricingService = new PricingServiceImpl();
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
@@ -57,14 +61,25 @@ public class SeatAvailabilityServlet extends HttpServlet {
 
             Map<String, List<Seat>> seatsByRow = seatService.getSeatsByRow(showtimeId);
             Set<Long> bookedSeatIds = seatService.getBookedSeatIds(showtimeId);
+            Set<Long> heldSeatIds = seatService.getHeldSeatIds(showtimeId);
             int availableCount = seatService.countAvailable(showtimeId);
 
             req.setAttribute("showtime", showtime);
             req.setAttribute("seatsByRow", seatsByRow);
             req.setAttribute("bookedSeatIds", bookedSeatIds);
+            req.setAttribute("heldSeatIds", heldSeatIds);
             req.setAttribute("availableCount", availableCount);
             req.setAttribute("showtimeId", showtimeId);
-            req.setAttribute("startTimeStr", showtime.getStartTime().format(DT_FMT));
+            req.setAttribute("showtimeDate", showtime.getStartTime().toLocalDate().toString());
+            req.setAttribute("startTimeStr",
+                    showtime.getStartTime().toLocalDate().format(DATE_FMT)
+                            + " · "
+                            + com.mbcms.util.DateTimeUtil.formatAmPm(showtime.getStartTime()));
+            req.setAttribute("standardPrice",
+                    pricingService.calculateSeatPrice(showtime.getBasePrice(), Seat.TYPE_STANDARD));
+            req.setAttribute("vipPrice",
+                    pricingService.calculateSeatPrice(showtime.getBasePrice(), Seat.TYPE_VIP));
+            req.setAttribute("maxSeatsPerBooking", SystemSettings.maxSeatsPerBooking());
 
             req.getRequestDispatcher("/WEB-INF/views/booking/seats.jsp").forward(req, resp);
 

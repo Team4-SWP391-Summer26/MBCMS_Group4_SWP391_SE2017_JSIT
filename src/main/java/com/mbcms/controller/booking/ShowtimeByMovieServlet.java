@@ -10,6 +10,7 @@ import com.mbcms.service.GuestMovieService;
 import com.mbcms.service.impl.CinemaBrowseServiceImpl;
 import com.mbcms.service.impl.GuestMovieServiceImpl;
 import com.mbcms.util.BookingCustomerGuard;
+import com.mbcms.util.DateTimeUtil;
 import com.mbcms.model.Customer;
 
 import jakarta.servlet.ServletException;
@@ -65,6 +66,10 @@ public class ShowtimeByMovieServlet extends HttpServlet {
             resp.sendError(HttpServletResponse.SC_NOT_FOUND, "Movie not found: " + movieId);
             return;
         }
+        if (!"NOW_SHOWING".equals(movie.getStatus())) {
+            resp.sendRedirect(req.getContextPath() + "/movies/detail?id=" + movieId);
+            return;
+        }
 
         // Selected date (default today)
         LocalDate selectedDate;
@@ -97,9 +102,7 @@ public class ShowtimeByMovieServlet extends HttpServlet {
             branchesToQuery.addAll(allBranches);
         }
 
-        // Build branch-showtime groups
-        DateTimeFormatter timeFmt = DateTimeFormatter.ofPattern("HH:mm");
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = DateTimeUtil.nowVietnam();
         List<BranchShowtimes> branchShowtimesList = new ArrayList<>();
 
         for (Branch branch : branchesToQuery) {
@@ -121,7 +124,7 @@ public class ShowtimeByMovieServlet extends HttpServlet {
             for (List<Showtime> group : roomMap.values()) {
                 group.sort(Comparator.comparing(Showtime::getStartTime));
                 Showtime first = group.get(0);
-                List<SlotPage> pages = toPages(group, timeFmt);
+                List<SlotPage> pages = toPages(group);
                 roomGroups.add(new RoomGroup(
                         first.getRoomName(), first.getRoomType(),
                         first.getFormat(), first.getSubtitleType(),
@@ -152,12 +155,12 @@ public class ShowtimeByMovieServlet extends HttpServlet {
     }
 
     /** Split a room's showtime list into pages of SLOTS_PER_PAGE. */
-    private List<SlotPage> toPages(List<Showtime> sorted, DateTimeFormatter timeFmt) {
+    private List<SlotPage> toPages(List<Showtime> sorted) {
         List<SlotPage> pages = new ArrayList<>();
         List<ShowtimeSlot> current = new ArrayList<>();
         for (Showtime st : sorted) {
             boolean full = st.getBookedSeats() >= st.getRoomCapacity();
-            current.add(new ShowtimeSlot(st.getShowtimeId(), st.getStartTime().format(timeFmt),
+            current.add(new ShowtimeSlot(st.getShowtimeId(), DateTimeUtil.formatAmPm(st.getStartTime()),
                     st.getBasePrice(), full));
             if (current.size() == SLOTS_PER_PAGE) {
                 pages.add(new SlotPage(new ArrayList<>(current)));

@@ -8,33 +8,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>${isEdit ? 'Edit' : 'Add'} Movie – PentaPlex</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
-    <link href="${pageContext.request.contextPath}/assets/css/manager.css?v=${applicationScope.assetVersion}" rel="stylesheet">
+    <%@ include file="/WEB-INF/views/admin/_admin-assets.jspf" %>
     <style>
-        .lc-card { background:#fff; border:1px solid var(--lc-border); border-radius:16px;
-            box-shadow:var(--lc-shadow); padding:1.4rem 1.5rem; }
-        .lc-card-title { font-size:.8rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em;
-            color:var(--lc-muted); margin-bottom:1rem; }
-        .lc-form-label { font-size:.8rem; font-weight:600; color:#374151; margin-bottom:.3rem; display:block; }
-        .lc-form-control { border:1px solid var(--lc-border); border-radius:8px; padding:.5rem .75rem;
-            font-size:.88rem; width:100%; background:#fff; color:var(--navy); }
-        .lc-form-control:focus { outline:none; border-color:var(--lc-primary); box-shadow:0 0 0 3px rgba(37,99,235,.1); }
-        textarea.lc-form-control { resize:vertical; min-height:96px; }
         .req { color:var(--danger); }
-
-        .lc-alert { border-radius:10px; font-size:.88rem; padding:.7rem 1rem; display:flex;
-            align-items:center; gap:.6rem; border:none; margin-bottom:1.25rem; background:#FEE2E2; color:#991B1B; }
-
-        /* Poster preview */
         .poster-preview { aspect-ratio:2/3; border-radius:12px; overflow:hidden; background:var(--lc-navy);
             border:1px solid var(--lc-border); display:flex; align-items:center; justify-content:center;
             color:rgba(255,255,255,.5); position:relative; }
         .poster-preview img { width:100%; height:100%; object-fit:cover; }
         .poster-placeholder { text-align:center; font-size:.82rem; padding:1rem; }
         .poster-placeholder i { font-size:2rem; display:block; margin-bottom:.4rem; }
-
-        /* Genre checkboxes */
         .genre-grid { display:flex; flex-wrap:wrap; gap:.5rem; }
         .genre-pill { position:relative; }
         .genre-pill input { position:absolute; opacity:0; pointer-events:none; }
@@ -42,16 +24,8 @@
             border-radius:999px; font-size:.82rem; cursor:pointer; color:#374151; background:#fff; transition:.12s; user-select:none; }
         .genre-pill input:checked + label { background:var(--lc-primary); border-color:var(--lc-primary); color:#fff; }
         .genre-pill label:hover { border-color:var(--lc-primary); }
-
         .form-switch-wrap { display:flex; align-items:center; justify-content:space-between;
             background:var(--lc-light); border:1px solid var(--lc-border); border-radius:10px; padding:.75rem 1rem; }
-
-        .lc-btn-save { background:var(--lc-primary); color:#fff; border:none; border-radius:9px;
-            padding:.6rem 1.4rem; font-size:.9rem; font-weight:600; }
-        .lc-btn-save:hover { background:var(--lc-primary-700); }
-        .lc-btn-cancel { background:#fff; color:#374151; border:1px solid var(--lc-border); border-radius:9px;
-            padding:.6rem 1.4rem; font-size:.9rem; font-weight:600; text-decoration:none; }
-        .lc-btn-cancel:hover { background:var(--lc-light); }
     </style>
 </head>
 
@@ -62,13 +36,23 @@
 </jsp:include>
 
 <main class="lc-admin-main">
-    <div class="container-fluid px-4 py-4" style="max-width:1080px;">
+    <div class="lc-page">
 
-        <div class="text-muted small mb-1">
-            <a href="${pageContext.request.contextPath}/admin/movies" class="text-decoration-none text-muted">Movies</a>
-            / <span class="fw-semibold">${isEdit ? 'Edit' : 'Add new'}</span>
+        <div class="lc-form-actions">
+            <div>
+                <div class="lc-page-crumb">
+                    <a href="${pageContext.request.contextPath}/admin/movies" class="text-decoration-none text-muted">Admin / Movies</a>
+                    / <strong>${isEdit ? 'Edit' : 'Add new'}</strong>
+                </div>
+                <h1 class="lc-page-title mb-0">${isEdit ? 'Edit Movie' : 'Add New Movie'}</h1>
+            </div>
+            <div class="lc-form-actions-end">
+                <a href="${pageContext.request.contextPath}/admin/movies" class="lc-btn-ghost">Cancel</a>
+                <button type="submit" form="movieForm" class="st-toolbar-add border-0">
+                    <i class="bi bi-check-lg" aria-hidden="true"></i>${isEdit ? 'Save Changes' : 'Add Movie'}
+                </button>
+            </div>
         </div>
-        <h4 class="fw-bold text-navy mb-4">${isEdit ? 'Edit Movie' : 'Add New Movie'}</h4>
 
         <%-- multipart: _csrf di qua query string de CsrfFilter doc duoc truoc khi parse body --%>
         <form method="post" enctype="multipart/form-data"
@@ -85,7 +69,7 @@
 
                 <%-- ── Left: poster + status ──────────────────── --%>
                 <div class="col-md-4">
-                    <div class="lc-card mb-4">
+                    <div class="lc-card lc-card-pad mb-4 lc-rise" style="--i:0;">
                         <div class="lc-card-title">Poster</div>
                         <div class="poster-preview mb-3" id="posterPreview">
                             <c:choose>
@@ -105,14 +89,14 @@
                         <div class="text-muted mt-1" style="font-size:.74rem;">JPG, PNG, WEBP or GIF — max 5 MB.</div>
                     </div>
 
-                    <div class="lc-card">
+                    <div class="lc-card lc-card-pad lc-rise" style="--i:1;">
                         <div class="lc-card-title">Status & Visibility</div>
                         <div class="mb-3">
                             <label class="lc-form-label">Movie status <span class="req">*</span></label>
                             <select name="status" class="lc-form-control" required>
-                                <option value="UPCOMING"    ${isEdit and movie.status == 'UPCOMING' ? 'selected' : ''}>Upcoming (Sắp chiếu)</option>
-                                <option value="NOW_SHOWING" ${isEdit and movie.status == 'NOW_SHOWING' ? 'selected' : ''}>Now Showing (Đang chiếu)</option>
-                                <option value="ENDED"       ${isEdit and movie.status == 'ENDED' ? 'selected' : ''}>Ended (Đã kết thúc)</option>
+                                <option value="UPCOMING"    ${isEdit and movie.status == 'UPCOMING' ? 'selected' : ''}>Upcoming</option>
+                                <option value="NOW_SHOWING" ${isEdit and movie.status == 'NOW_SHOWING' ? 'selected' : ''}>Now Showing</option>
+                                <option value="ENDED"       ${isEdit and movie.status == 'ENDED' ? 'selected' : ''}>Ended</option>
                             </select>
                         </div>
                         <input type="hidden" name="active" id="activeHidden" value="${isEdit ? movie.active : 'true'}">
@@ -131,7 +115,7 @@
 
                 <%-- ── Right: details ─────────────────────────── --%>
                 <div class="col-md-8">
-                    <div class="lc-card mb-4">
+                    <div class="lc-card lc-card-pad mb-4 lc-rise" style="--i:1;">
                         <div class="lc-card-title">Movie Details</div>
 
                         <div class="mb-3">
@@ -203,7 +187,7 @@
                         </div>
                     </div>
 
-                    <div class="lc-card">
+                    <div class="lc-card lc-card-pad lc-rise" style="--i:2;">
                         <div class="lc-card-title">Genres</div>
                         <c:choose>
                             <c:when test="${empty allGenres}">
@@ -227,19 +211,12 @@
                     </div>
                 </div>
             </div>
-
-            <div class="d-flex gap-2 mt-4">
-                <button type="submit" class="lc-btn-save">
-                    <i class="bi bi-check-lg me-1"></i>${isEdit ? 'Save Changes' : 'Add Movie'}
-                </button>
-                <a href="${pageContext.request.contextPath}/admin/movies" class="lc-btn-cancel">Cancel</a>
-            </div>
         </form>
 
     </div>
 </main>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<%@ include file="/WEB-INF/views/admin/_admin-scripts.jspf" %>
 <script>
     // active toggle -> hidden field
     const toggle = document.getElementById('activeToggle');

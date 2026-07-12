@@ -10,6 +10,7 @@ import com.mbcms.service.FoodService;
 import com.mbcms.service.impl.BookingServiceImpl;
 import com.mbcms.service.impl.FoodServiceImpl;
 import com.mbcms.util.BookingCustomerGuard;
+import com.mbcms.util.SystemSettings;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -76,6 +77,7 @@ public class BookingCheckoutServlet extends HttpServlet {
         }
 
         HttpSession session = req.getSession();
+        req.setAttribute("pendingHoldMinutes", SystemSettings.pendingHoldMinutes());
 
         // Tạo hoặc tái sử dụng PENDING booking (tránh conflict khi F5 refresh)
         try {
@@ -89,7 +91,7 @@ public class BookingCheckoutServlet extends HttpServlet {
             req.setAttribute("booking",    booking);
             req.setAttribute("showtimeId", showtimeId);
             req.setAttribute("seatIds",    seatIds);
-            req.setAttribute("promoCode",  req.getParameter("promoCode"));
+            attachPromoAttributes(req, booking);
             req.getRequestDispatcher("/WEB-INF/views/booking/checkout.jsp").forward(req, resp);
 
         } catch (SeatUnavailableException e) {
@@ -121,12 +123,14 @@ public class BookingCheckoutServlet extends HttpServlet {
             return;
         }
         HttpSession session = req.getSession();
+        req.setAttribute("pendingHoldMinutes", SystemSettings.pendingHoldMinutes());
 
         String     showtimeIdParam = req.getParameter("showtimeId");
         List<Long> seatIds         = parseSeatIds(req);
         String     promoCode       = req.getParameter("promoCode");
         String     notes           = req.getParameter("notes");
         boolean    applyPromo      = "true".equals(req.getParameter("applyPromo"));
+        boolean    removePromo     = "true".equals(req.getParameter("removePromo"));
 
         // bookingId được truyền qua hidden field từ checkout.jsp
         String bookingIdParam = req.getParameter("bookingId");
@@ -150,12 +154,13 @@ public class BookingCheckoutServlet extends HttpServlet {
 
         // "Áp dụng mã KM" → cập nhật promo trực tiếp trên pending booking hiện
         // có (KHÔNG huỷ + tạo lại), nhờ vậy ghế đang giữ không bị mất/re-lock.
-        if (applyPromo) {
+        if (applyPromo || removePromo) {
             Long bookingIdToUpdate = parseBookingId(bookingIdParam, session);
+            BigDecimal foodSubtotal = getFoodSubtotal(session);
 
             req.setAttribute("showtimeId", showtimeId);
             req.setAttribute("seatIds",    seatIds);
-            req.setAttribute("promoCode",  promoCode);
+            req.setAttribute("foodSubtotal", foodSubtotal);
 
             if (bookingIdToUpdate == null) {
                 req.setAttribute("checkoutError", "Invalid booking session. Please select seats again.");
@@ -165,32 +170,59 @@ public class BookingCheckoutServlet extends HttpServlet {
             }
 
             try {
-                BigDecimal foodSubtotal = getFoodSubtotal(session);
-                Booking booking = bookingService.applyPromoToBooking(
-                        bookingIdToUpdate, customer.getUsername(), promoCode, foodSubtotal);
+                Booking booking;
+                if (removePromo) {
+                    booking = bookingService.applyPromoToBooking(
+                            bookingIdToUpdate, customer.getUsername(), null, foodSubtotal);
+                    req.setAttribute("promoMessage", "Promotion removed.");
+                } else {
+                    if (promoCode == null || promoCode.trim().isEmpty()) {
+                        req.setAttribute("promoError", "Please enter a promotion code.");
+                        booking = bookingService.getBookingDetail(bookingIdToUpdate, customer.getUsername());
+                        processFoodOrder(booking, session, req);
+                        attachPromoAttributes(req, booking);
+                        req.getRequestDispatcher("/WEB-INF/views/booking/checkout.jsp").forward(req, resp);
+                        return;
+                    }
+                    booking = bookingService.applyPromoToBooking(
+                            bookingIdToUpdate, customer.getUsername(), promoCode, foodSubtotal);
+                    req.setAttribute("promoMessage", "Promotion applied successfully.");
+                }
                 processFoodOrder(booking, session, req);
                 req.setAttribute("booking", booking);
+                attachPromoAttributes(req, booking);
 
             } catch (IllegalArgumentException e) {
-                // Promo không hợp lệ (hết hạn, sai min order, v.v.)
-                // → giữ nguyên booking/ghế, chỉ hiển thị lỗi, giá vẫn là giá gốc
-                // (không có promo) vì applyPromoToBooking chưa kịp update gì.
-                req.setAttribute("checkoutError", e.getMessage());
+                req.setAttribute("promoError", e.getMessage());
+                req.setAttribute("promoInput", promoCode != null ? promoCode.trim() : "");
                 try {
                     Booking current = bookingService.getBookingDetail(bookingIdToUpdate, customer.getUsername());
                     req.setAttribute("booking", current);
+                    processFoodOrder(current, session, req);
+                    attachPromoAttributes(req, current);
                 } catch (Exception inner) {
-                    req.setAttribute("checkoutError", "System error: " + inner.getMessage());
+                    req.setAttribute("promoError", friendlyPromoError(inner));
                 }
 
             } catch (IllegalStateException e) {
-                // Booking hết hạn / không còn PENDING → phải book lại từ đầu.
                 resp.sendRedirect(req.getContextPath()
                         + "/booking/seats?showtimeId=" + showtimeId + "&seatConflict=1");
                 return;
 
             } catch (SecurityException e) {
-                req.setAttribute("checkoutError", "You are not allowed to update this booking.");
+                req.setAttribute("promoError", "You are not allowed to update this booking.");
+
+            } catch (RuntimeException e) {
+                req.setAttribute("promoError", friendlyPromoError(e));
+                req.setAttribute("promoInput", promoCode != null ? promoCode.trim() : "");
+                try {
+                    Booking current = bookingService.getBookingDetail(bookingIdToUpdate, customer.getUsername());
+                    req.setAttribute("booking", current);
+                    processFoodOrder(current, session, req);
+                    attachPromoAttributes(req, current);
+                } catch (Exception ignored) {
+                    req.setAttribute("seatLabels", seatDao.findLabelsBySeatIds(seatIds));
+                }
             }
 
             req.getRequestDispatcher("/WEB-INF/views/booking/checkout.jsp").forward(req, resp);
@@ -317,5 +349,23 @@ public class BookingCheckoutServlet extends HttpServlet {
         if (selectedFood != null && !selectedFood.isEmpty()) {
             req.setAttribute("concessions", foodService.getFoodItemsByBookingId(booking.getBookingId()));
         }
+    }
+
+    private void attachPromoAttributes(HttpServletRequest req, Booking booking) {
+        req.setAttribute("appliedPromoCode", bookingService.resolveAppliedPromoCode(booking));
+    }
+
+    /** Map DB/runtime failures to a checkout-safe message (avoid raw SQLException in UI). */
+    private String friendlyPromoError(Throwable e) {
+        Throwable root = e;
+        while (root.getCause() != null) {
+            root = root.getCause();
+        }
+        String msg = root.getMessage() != null ? root.getMessage() : e.getMessage();
+        if (msg != null && msg.toLowerCase().contains("branch_id")) {
+            return "Promotion system is not fully configured (missing branch_id on promotions). "
+                    + "Ask admin to re-run database/CinemaDB_schema.sql then CinemaDB_seed.sql.";
+        }
+        return "Could not apply promotion. Please try again or contact support.";
     }
 }

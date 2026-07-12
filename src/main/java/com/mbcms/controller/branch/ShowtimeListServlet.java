@@ -7,6 +7,7 @@ import com.mbcms.dao.impl.MovieDAOImpl;
 import com.mbcms.dao.impl.RoomDAOImpl;
 import com.mbcms.dao.impl.ShowtimeDAOImpl;
 import com.mbcms.model.Showtime;
+import com.mbcms.util.DateTimeUtil;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -53,7 +54,8 @@ public class ShowtimeListServlet extends HttpServlet {
         Long movieId = parseLongOrNull(req.getParameter("movieId"));
         Long roomId = parseLongOrNull(req.getParameter("roomId"));
         LocalDate date = parseDateOrNull(req.getParameter("date"));
-        LocalDate selectedDate = (date != null) ? date : LocalDate.now();
+        LocalDate todayVn = DateTimeUtil.nowVietnam().toLocalDate();
+        LocalDate selectedDate = (date != null) ? date : todayVn;
 
         ShowtimeDAO showtimeDAO = new ShowtimeDAOImpl();
         MovieDAO movieDAO = new MovieDAOImpl();
@@ -78,12 +80,12 @@ public class ShowtimeListServlet extends HttpServlet {
         }
         int occupancyPct = (totalCapacity > 0) ? (seatsSold * 100 / totalCapacity) : 0;
 
-        // --- Date pills: 7 ngay tu hom nay ---
+        // --- Date pills: 7 ngay tu hom nay (gio Vietnam) ---
         List<Map<String, String>> datePills = new ArrayList<>();
         DateTimeFormatter dayFmt = DateTimeFormatter.ofPattern("EEE", Locale.ENGLISH);
         DateTimeFormatter dmFmt = DateTimeFormatter.ofPattern("dd/MM");
         for (int i = 0; i < 7; i++) {
-            LocalDate d = LocalDate.now().plusDays(i);
+            LocalDate d = todayVn.plusDays(i);
             Map<String, String> pill = new HashMap<>();
             pill.put("iso", d.toString());
             pill.put("day", d.format(dayFmt));
@@ -94,8 +96,9 @@ public class ShowtimeListServlet extends HttpServlet {
         req.setAttribute("showtimes", tableShowtimes);
         req.setAttribute("dayShowtimes", dayShowtimes);
         // "now" de JSP tinh status dong (suat SCHEDULED qua gio = Ended/Now showing)
-        // va an nut Edit/Cancel voi suat da bat dau. Tranh phu thuoc job set ENDED.
-        req.setAttribute("nowLdt", LocalDateTime.now());
+        // va an nut Edit/Cancel voi suat da bat dau. Dung gio VN (cung moc form/DAO).
+        LocalDateTime nowVn = DateTimeUtil.nowVietnam();
+        req.setAttribute("nowLdt", nowVn);
         // Dropdown filter chi liet ke phim da cap cho chi nhanh nay (movie_branch).
         req.setAttribute("movies", movieDAO.findActiveMoviesForBranch(branchId));
         req.setAttribute("rooms", roomDAO.findActiveByBranch(branchId));
@@ -116,8 +119,16 @@ public class ShowtimeListServlet extends HttpServlet {
             req.setAttribute("successMsg", "Updated successfully.");        // MSG03
         } else if ("1".equals(req.getParameter("cancelled"))) {
             req.setAttribute("successMsg", "Showtime cancelled successfully.");
+        } else if ("1".equals(req.getParameter("alreadyStarted"))) {
+            req.setAttribute("errorMsg",
+                    "Cannot edit this showtime because it has already started. "
+                            + "Use the eye (Monitor) button to view occupancy, or pick an upcoming screening.");
+        } else if ("1".equals(req.getParameter("notEditable"))) {
+            req.setAttribute("errorMsg",
+                    "Cannot edit this showtime because it is cancelled or already ended.");
         } else if ("1".equals(req.getParameter("notFound"))) {
-            req.setAttribute("errorMsg", "Showtime not found.");
+            req.setAttribute("errorMsg",
+                    "Showtime not found (removed, or not assigned to this cinema).");
         } else if (req.getParameter("cancelErr") != null) {
             switch (req.getParameter("cancelErr")) {
                 case "HAS_BOOKINGS":

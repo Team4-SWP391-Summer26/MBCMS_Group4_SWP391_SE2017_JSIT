@@ -38,15 +38,25 @@ public class ShowtimeEditServlet extends HttpServlet {
         long branchId = (Long) req.getSession(false).getAttribute("currentBranchId");
 
         Long id = parseId(req.getParameter("id"));
-        Showtime st = (id == null) ? null
-                : new ShowtimeServiceImpl().getShowtimeForBranch(id, branchId);
+        if (id == null) {
+            resp.sendRedirect(buildListRedirect(req, "notFound", null));
+            return;
+        }
 
-        // Khong ton tai / cua branch khac / da CANCELLED-ENDED / da bat dau -> ve list.
-        // Check gio o day chi de UX (khong mo form chac chan se loi); server van
-        // verify lai trong updateShowtime khi submit.
-        if (st == null || !Showtime.STATUS_SCHEDULED.equals(st.getStatus())
-                || !st.getStartTime().isAfter(java.time.LocalDateTime.now())) {
-            resp.sendRedirect(req.getContextPath() + "/branch/showtimes?notFound=1");
+        Showtime st = new ShowtimeServiceImpl().getShowtimeForBranch(id, branchId);
+
+        // Tach ly do de list hien message ro (khong don het vao "not found").
+        // Server van verify lai trong updateShowtime khi submit.
+        if (st == null) {
+            resp.sendRedirect(buildListRedirect(req, "notFound", null));
+            return;
+        }
+        if (!Showtime.STATUS_SCHEDULED.equals(st.getStatus())) {
+            resp.sendRedirect(buildListRedirect(req, "notEditable", "showtime-" + id));
+            return;
+        }
+        if (!st.getStartTime().isAfter(com.mbcms.util.DateTimeUtil.nowVietnam())) {
+            resp.sendRedirect(buildListRedirect(req, "alreadyStarted", "showtime-" + id));
             return;
         }
 
@@ -63,7 +73,7 @@ public class ShowtimeEditServlet extends HttpServlet {
 
         Long id = parseId(req.getParameter("id"));
         if (id == null) {
-            resp.sendRedirect(req.getContextPath() + "/branch/showtimes?notFound=1");
+            resp.sendRedirect(buildListRedirect(req, "notFound", null));
             return;
         }
 
@@ -71,7 +81,7 @@ public class ShowtimeEditServlet extends HttpServlet {
             String error = handleUpdate(req, id, branchId);
             if (error == null) {
                 // PRG: list.jsp hien toast MSG03 "Updated successfully."
-                resp.sendRedirect(req.getContextPath() + "/branch/showtimes?updated=1");
+                resp.sendRedirect(buildListRedirect(req, "updated", "showtime-" + id));
                 return;
             }
             req.setAttribute("errorMsg", error);
@@ -112,6 +122,8 @@ public class ShowtimeEditServlet extends HttpServlet {
                 return "Invalid room.";
             case ShowtimeService.RESULT_NOT_EDITABLE:
                 return "This showtime can no longer be edited (already started, cancelled, or ended).";
+            case ShowtimeService.RESULT_HAS_BOOKINGS:
+                return "Cannot edit this showtime because it already has bookings.";
             case ShowtimeService.RESULT_NOT_FOUND:
             default:
                 return "Showtime not found.";
@@ -136,5 +148,29 @@ public class ShowtimeEditServlet extends HttpServlet {
         } catch (NumberFormatException e) {
             return null;
         }
+    }
+
+    private String buildListRedirect(HttpServletRequest req, String flag, String fragment) {
+        StringBuilder url = new StringBuilder(req.getContextPath()).append("/branch/showtimes?");
+        String date = firstNonBlank(req.getParameter("returnDate"), req.getParameter("date"));
+        if (isIsoDate(date)) {
+            url.append("date=").append(date).append("&");
+        }
+        url.append(flag).append("=1");
+        if (fragment != null && !fragment.trim().isEmpty()) {
+            url.append("#").append(fragment);
+        }
+        return url.toString();
+    }
+
+    private String firstNonBlank(String first, String second) {
+        if (first != null && !first.trim().isEmpty()) {
+            return first.trim();
+        }
+        return second == null ? null : second.trim();
+    }
+
+    private boolean isIsoDate(String value) {
+        return value != null && value.matches("\\d{4}-\\d{2}-\\d{2}");
     }
 }

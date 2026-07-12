@@ -1,5 +1,6 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
     <%@ taglib prefix="c" uri="jakarta.tags.core" %>
+        <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 
         <aside class="lc-sidebar">
             <div class="px-2 pb-3 mb-2" style="border-bottom:1px solid rgba(255,255,255,.08);">
@@ -50,12 +51,6 @@
                 Genres
             </a>
 
-            <a class="lc-sb-item ${param.active == 'movie-branches' ? 'active' : ''}"
-                href="${pageContext.request.contextPath}/admin/movie-branches">
-                <i class="bi bi-diagram-3"></i>
-                Movie Assignment
-            </a>
-
             <div class="lc-sb-section">Finance</div>
             <a class="lc-sb-item ${param.active == 'payments' ? 'active' : ''}"
                 href="${pageContext.request.contextPath}/admin/payments">
@@ -77,21 +72,19 @@
                 <span class="lc-sb-soon">Soon</span>
             </span>
 
-            <span class="lc-sb-item disabled">
+            <a class="lc-sb-item ${param.active == 'settings' ? 'active' : ''}"
+                href="${pageContext.request.contextPath}/admin/settings">
                 <i class="bi bi-gear"></i>
                 Settings
-                <span class="lc-sb-soon">Soon</span>
-            </span>
+            </a>
 
             <div style="flex:1"></div>
 
             <div class="d-flex align-items-center gap-2 p-2 mt-3 lc-sb-user">
-                <div class="lc-sb-avatar">
-                    SA
-                </div>
+                <div class="lc-sb-avatar">${fn:toUpperCase(fn:substring(sessionScope.currentUser.fullName, 0, 1))}</div>
                 <div style="min-width:0; flex:1;">
                     <div style="font-size:.85rem;font-weight:600;" class="text-truncate text-white">
-                        System Admin
+                        <c:out value="${sessionScope.currentUser.fullName}"/>
                     </div>
                     <div style="font-size:.72rem;color:rgba(255,255,255,.55);">
                         System-wide access

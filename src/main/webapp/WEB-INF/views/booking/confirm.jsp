@@ -1,6 +1,8 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
+<fmt:setLocale value="en_US"/>
+<fmt:setTimeZone value="Asia/Ho_Chi_Minh"/>
 <%--
     Booking confirmation - e-ticket (owner: HungNT). Booking step 5/5.
     Dung view-model `ticket` (BookingTicket) co day du movie/showtime/room/seat labels.
@@ -15,77 +17,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <link href="${pageContext.request.contextPath}/assets/css/main.css?v=${applicationScope.assetVersion}" rel="stylesheet">
-    <style>
-        /* ===== Booking shared stepper (inline, khong phu thuoc cache main.css) ===== */
-        /* --bk-* tokens come from tokens.css */
-        body.bk-page { background: var(--bk-bg); }
-        .bk-wrap { max-width: 1080px; }
-        .bk-steps { display:flex; align-items:center; }
-        .bk-step { display:flex; align-items:center; gap:.5rem; font-size:.9rem; font-weight:600; color:var(--text-subtle); white-space:nowrap; }
-        .bk-step .bk-dot { width:26px; height:26px; border-radius:999px; display:flex; align-items:center;
-            justify-content:center; font-size:.78rem; background:var(--border); color:var(--text-muted); flex-shrink:0; }
-        .bk-step.done { color:var(--success); } .bk-step.done .bk-dot { background:var(--success); color:#fff; }
-        .bk-step.active { color:var(--bk-primary); } .bk-step.active .bk-dot { background:var(--bk-primary); color:#fff; }
-        .bk-line { flex:1; height:2px; background:var(--border); margin:0 .5rem; min-width:12px; }
-        .bk-line.done { background:var(--success); }
-        @media (max-width:640px){ .bk-step span:not(.bk-dot){ display:none; } }
-
-        /* ===== Success header ===== */
-        .cf-hero { text-align:center; padding: 1.5rem 0 .5rem; }
-        .cf-check { width:64px; height:64px; border-radius:50%; background:#dcfce7; color:var(--success);
-            display:inline-flex; align-items:center; justify-content:center; font-size:2rem; margin-bottom:.6rem;
-            animation:popIn .4s cubic-bezier(.34,1.56,.64,1) both; }
-        @keyframes popIn { from{opacity:0; transform:scale(.5);} to{opacity:1; transform:scale(1);} }
-        .cf-hero h2 { font-weight:800; color:#15803d; font-size:1.7rem; margin:0; }
-        .cf-hero p  { color:var(--text-muted); margin:.25rem 0 0; }
-
-        /* ===== E-ticket ===== */
-        .ticket { max-width:620px; margin:1rem auto 0; background:#fff; border-radius:18px;
-            box-shadow:0 10px 40px rgba(15,30,54,.12); overflow:hidden; }
-        .ticket-top { background:linear-gradient(135deg,#1e3a8a 0%,var(--primary) 100%); color:#fff; padding:22px 26px;
-            display:flex; gap:16px; align-items:flex-start; }
-        .ticket-poster { width:54px; height:74px; border-radius:8px; object-fit:cover; flex-shrink:0;
-            background:linear-gradient(135deg,var(--navy),#1e293b); display:flex; align-items:center; justify-content:center;
-            color:var(--gold); font-size:1.5rem; }
-        .ticket-kicker { font-size:.7rem; letter-spacing:.16em; color:var(--primary-200); text-transform:uppercase; font-weight:700; }
-        .ticket-title { font-weight:800; font-size:1.35rem; line-height:1.2; margin:.15rem 0 .4rem; }
-        .ticket-badge { display:inline-block; font-size:.7rem; font-weight:700; padding:2px 8px; border-radius:6px;
-            background:rgba(255,255,255,.18); color:#fff; margin:0 4px 4px 0; }
-        .ticket-badge.rated { background:var(--gold); color:var(--text); }
-        .ticket-status { margin-left:auto; background:#dcfce7; color:#15803d; font-size:.72rem; font-weight:700;
-            padding:5px 12px; border-radius:999px; white-space:nowrap; display:inline-flex; align-items:center; gap:5px; }
-
-        .ticket-perf { position:relative; height:0; border-top:2px dashed var(--border); margin:0 26px; }
-        .ticket-perf::before, .ticket-perf::after { content:''; position:absolute; top:-12px; width:24px; height:24px;
-            background:var(--bk-bg); border-radius:50%; }
-        .ticket-perf::before { left:-38px; } .ticket-perf::after { right:-38px; }
-
-        .ticket-body { padding:22px 26px; display:flex; gap:20px; flex-wrap:wrap; }
-        .ticket-grid { flex:1; min-width:240px; display:grid; grid-template-columns:1fr 1fr; gap:14px 18px; }
-        .tk-item .tk-label { font-size:.7rem; color:var(--text-subtle); text-transform:uppercase; letter-spacing:.05em; margin-bottom:2px; }
-        .tk-item .tk-value { font-weight:700; color:var(--bk-navy); font-size:.96rem; }
-        .tk-seat { display:inline-block; background:var(--primary-50); color:var(--bk-primary); border:1px solid var(--primary-200);
-            border-radius:7px; padding:2px 9px; font-weight:700; font-size:.84rem; margin:2px 4px 0 0; font-family:ui-monospace,Menlo,Consolas,monospace; }
-        .ticket-qr { text-align:center; flex-shrink:0; }
-        .ticket-qr .qr-box { display:inline-block; padding:8px; background:#fff; border:1px solid var(--border); border-radius:10px; }
-        .ticket-qr .qr-box img { display:block; width:150px; height:150px; }
-        .ticket-qr .qr-hint { font-size:.72rem; color:var(--text-subtle); margin-top:6px; max-width:150px; }
-
-        .ticket-foot { border-top:1px solid #f1f5f9; padding:16px 26px; display:flex; flex-wrap:wrap; gap:14px;
-            justify-content:space-between; align-items:flex-end; }
-        .ft-label { font-size:.7rem; color:var(--text-subtle); text-transform:uppercase; letter-spacing:.05em; }
-        .ft-code { font-family:ui-monospace,Menlo,Consolas,monospace; font-weight:800; color:var(--bk-navy); font-size:1rem; letter-spacing:.04em; }
-        .ft-total { font-weight:800; color:var(--bk-primary); font-size:1.25rem; }
-
-        .cf-actions { display:flex; gap:12px; justify-content:center; flex-wrap:wrap; margin:1.5rem 0 .5rem; }
-        .cf-note { max-width:620px; margin:1rem auto 0; background:var(--primary-50); border:1px solid #cfe0fb; color:#1e40af;
-            border-radius:10px; padding:.7rem 1rem; font-size:.84rem; display:flex; gap:.5rem; align-items:flex-start; }
-
-        /* Error card */
-        .cf-error { max-width:480px; margin:2rem auto; background:#fff; border-radius:16px; overflow:hidden;
-            box-shadow:0 4px 24px rgba(0,0,0,.08); }
-        .cf-error-top { background:linear-gradient(135deg,#7f1d1d,#b91c1c); color:#fff; text-align:center; padding:2rem 1.5rem; }
-    </style>
+    <link href="${pageContext.request.contextPath}/assets/css/booking.css?v=${applicationScope.assetVersion}" rel="stylesheet">
 </head>
 <body class="bk-page">
 
@@ -118,8 +50,7 @@
             (com.mbcms.model.BookingTicket) request.getAttribute("ticket");
         if (_t != null && _t.getStartTime() != null) {
             pageContext.setAttribute("startDate",
-                java.util.Date.from(_t.getStartTime()
-                    .atZone(java.time.ZoneId.systemDefault()).toInstant()));
+                com.mbcms.util.DateTimeUtil.vietnamLocalToDate(_t.getStartTime()));
         }
     %>
 
@@ -188,7 +119,7 @@
                     <div class="tk-label">Time</div>
                     <div class="tk-value">
                         <c:choose>
-                            <c:when test="${not empty startDate}"><fmt:formatDate value="${startDate}" pattern="HH:mm"/></c:when>
+                            <c:when test="${not empty startDate}"><fmt:formatDate value="${startDate}" pattern="h:mm a"/></c:when>
                             <c:otherwise>—</c:otherwise>
                         </c:choose>
                     </div>
@@ -201,7 +132,7 @@
                     <div class="tk-label">Room</div>
                     <div class="tk-value">${not empty ticket.roomName ? ticket.roomName : '—'}</div>
                 </div>
-                <div class="tk-item" style="grid-column:1 / -1;">
+                <div class="tk-item is-wide">
                     <div class="tk-label">Seats</div>
                     <div class="tk-value">
                         <c:choose>
@@ -235,7 +166,7 @@
             <c:if test="${not empty ticket.customerFullName}">
                 <div>
                     <div class="ft-label">Customer</div>
-                    <div class="fw-semibold" style="color:var(--bk-navy);">${ticket.customerFullName}</div>
+                    <div class="fw-semibold ft-customer">${ticket.customerFullName}</div>
                 </div>
             </c:if>
             <div class="text-end">
@@ -265,13 +196,13 @@
 <c:otherwise>
     <div class="cf-error">
         <div class="cf-error-top">
-            <div style="font-size:2.5rem;"><i class="bi bi-exclamation-triangle-fill"></i></div>
-            <h2 class="fw-bold mt-2 mb-1" style="font-size:1.3rem;">Booking Not Found</h2>
-            <p class="mb-0" style="color:#fca5a5; font-size:.9rem;">We couldn't retrieve your booking details.</p>
+            <div class="cf-error-icon"><i class="bi bi-exclamation-triangle-fill"></i></div>
+            <h2 class="fw-bold mt-2 mb-1 cf-error-title">Booking Not Found</h2>
+            <p class="mb-0 cf-error-copy">We couldn't retrieve your booking details.</p>
         </div>
         <div class="p-4 text-center">
             <c:if test="${not empty errorMessage}">
-                <p class="text-muted mb-4" style="font-size:.9rem;">${errorMessage}</p>
+                <p class="text-muted mb-4 cf-error-detail">${errorMessage}</p>
             </c:if>
             <div class="d-flex gap-2 justify-content-center flex-wrap">
                 <a href="${pageContext.request.contextPath}/home" class="btn btn-primary">Back to Home</a>

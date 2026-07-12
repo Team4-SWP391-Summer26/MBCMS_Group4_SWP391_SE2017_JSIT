@@ -45,13 +45,14 @@ public class BranchFoodServlet extends HttpServlet {
 
         ConsoleSupport.ensureBranchName(req);
 
+        // [Security Check] Load currentBranchId from session context. Reject if null
         long branchId = currentBranchId(req, resp);
         if (branchId < 0) return;
 
         String action = req.getParameter("action");
 
         if ("add".equals(action)) {
-            // Empty item for form
+            // [Flow Step: Servlet -> JSP] Forward blank FoodItem template object to food_form.jsp view in Add mode
             req.setAttribute("item", new FoodItem());
             req.setAttribute("isAdd", true);
             forward(req, resp, FORM_VIEW);
@@ -62,11 +63,13 @@ public class BranchFoodServlet extends HttpServlet {
             long foodId = parseLong(req.getParameter("foodId"), -1);
             if (foodId < 0) { redirect(req, resp, "/branch/food?error=invalid"); return; }
 
+            // [Flow Step: Servlet -> Service -> Database] Load target food item details from Database
             FoodItem item = foodService.getFoodItemById(foodId);
             if (item == null || !Long.valueOf(branchId).equals(item.getBranchId())) {
                 redirect(req, resp, "/branch/food?error=notfound");
                 return;
             }
+            // [Flow Step: Servlet -> JSP] Forward pre-populated FoodItem details to food_form.jsp view in Edit mode
             req.setAttribute("item", item);
             req.setAttribute("isAdd", false);
             forward(req, resp, FORM_VIEW);
@@ -83,6 +86,7 @@ public class BranchFoodServlet extends HttpServlet {
     protected void doPost(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
 
+        // [Security Check] Load currentBranchId from session context
         long branchId = currentBranchId(req, resp);
         if (branchId < 0) return;
 
@@ -116,7 +120,11 @@ public class BranchFoodServlet extends HttpServlet {
             throws IOException {
         try {
             FoodItem item = buildItemFromRequest(req);
+            
+            // [Flow Step: Servlet -> Service -> Database] Process food item registration in DB via FoodService
             foodService.addItem(item, branchId);
+            
+            // [Flow Step: Servlet -> Browser] Perform redirect post-insert
             redirect(req, resp, "/branch/food?added=1");
         } catch (IllegalArgumentException e) {
             redirect(req, resp, "/branch/food?action=add&error=" +
@@ -135,7 +143,11 @@ public class BranchFoodServlet extends HttpServlet {
         try {
             FoodItem item = buildItemFromRequest(req);
             item.setFoodId(foodId);
+            
+            // [Flow Step: Servlet -> Service -> Database] Update food item properties in DB via FoodService
             foodService.editItem(item, branchId);
+            
+            // [Flow Step: Servlet -> Browser] Perform redirect post-update
             redirect(req, resp, "/branch/food?updated=1");
         } catch (IllegalArgumentException e) {
             redirect(req, resp, "/branch/food?action=edit&foodId=" + foodId + "&error=" +
@@ -152,7 +164,10 @@ public class BranchFoodServlet extends HttpServlet {
         if (foodId < 0) { redirect(req, resp, "/branch/food?error=invalid"); return; }
 
         try {
+            // [Flow Step: Servlet -> Service -> Database] Perform soft deletion / status update in DB via FoodService
             foodService.removeItem(foodId, branchId);
+            
+            // [Flow Step: Servlet -> Browser] Redirect after deletion
             redirect(req, resp, "/branch/food?deleted=1");
         } catch (IllegalArgumentException e) {
             redirect(req, resp, "/branch/food?error=" +
@@ -171,7 +186,10 @@ public class BranchFoodServlet extends HttpServlet {
         if (foodId < 0) { redirect(req, resp, "/branch/food?error=invalid"); return; }
 
         try {
+            // [Flow Step: Servlet -> Service -> Database] Toggle active boolean flag of food item in DB via FoodService
             foodService.toggleStatus(foodId, active, branchId);
+            
+            // [Flow Step: Servlet -> Browser] Redirect after toggle operation
             redirect(req, resp, "/branch/food?toggled=1");
         } catch (IllegalArgumentException e) {
             redirect(req, resp, "/branch/food?error=" +
@@ -189,6 +207,7 @@ public class BranchFoodServlet extends HttpServlet {
             throws IOException {
         resp.setContentType("application/json;charset=UTF-8");
 
+        // [Flow Step: JSP -> Servlet] AJAX call parameters received: foodId and stock count
         long foodId = parseLong(req.getParameter("foodId"), -1);
         int  stock  = (int) parseLong(req.getParameter("stock"), -1);
 
@@ -198,6 +217,7 @@ public class BranchFoodServlet extends HttpServlet {
         }
 
         try {
+            // [Flow Step: Servlet -> Service -> Database] Perform stock amount database updates via FoodService
             boolean ok = foodService.updateStock(foodId, stock, branchId);
             if (ok) {
                 resp.getWriter().write("{\"success\":true}");
@@ -218,6 +238,7 @@ public class BranchFoodServlet extends HttpServlet {
     private void showList(HttpServletRequest req, HttpServletResponse resp, long branchId)
             throws ServletException, IOException {
 
+        // [Flow Step: Servlet -> Service -> Database] Load branch food items list from Database
         List<FoodItem> items = foodService.getMenuByBranch(branchId);
 
         // KPI stats

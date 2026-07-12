@@ -29,8 +29,8 @@ public class AdminGenreServlet extends HttpServlet {
             req.setAttribute("errorMsg", req.getParameter("errorMsg"));
             req.getRequestDispatcher("/WEB-INF/views/admin/genres.jsp").forward(req, resp);
         } catch (Exception e) {
-            getServletContext().log("Lỗi doGet AdminGenreServlet: ", e);
-            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Lỗi khi tải thể loại.");
+            getServletContext().log("Error in AdminGenreServlet#doGet: ", e);
+            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Error loading genres.");
         }
     }
 
@@ -39,33 +39,33 @@ public class AdminGenreServlet extends HttpServlet {
             throws ServletException, IOException {
         String action = req.getParameter("action");
         if (action == null) {
-            resp.sendRedirect(req.getContextPath() + "/admin/genres?errorMsg=" + enc("Hành động không hợp lệ."));
+            resp.sendRedirect(req.getContextPath() + "/admin/genres?errorMsg=" + enc("Invalid action."));
             return;
         }
         try {
             switch (action) {
                 case "add":
                     genreService.create(req.getParameter("name"));
-                    redirect(req, resp, "successMsg", "Thêm thể loại thành công!");
+                    redirect(req, resp, "successMsg", "Genre added successfully!");
                     break;
                 case "edit":
                     genreService.rename(Integer.parseInt(req.getParameter("genreId")), req.getParameter("name"));
-                    redirect(req, resp, "successMsg", "Cập nhật thể loại thành công!");
+                    redirect(req, resp, "successMsg", "Genre updated successfully!");
                     break;
                 case "delete":
                     genreService.delete(Integer.parseInt(req.getParameter("genreId")));
-                    redirect(req, resp, "successMsg", "Đã xóa thể loại!");
+                    redirect(req, resp, "successMsg", "Genre deleted!");
                     break;
                 default:
-                    redirect(req, resp, "errorMsg", "Hành động không xác định.");
+                    redirect(req, resp, "errorMsg", "Unknown action.");
             }
         } catch (NumberFormatException e) {
-            redirect(req, resp, "errorMsg", "Tham số không hợp lệ.");
+            redirect(req, resp, "errorMsg", "Invalid parameter.");
         } catch (IllegalArgumentException e) {
             redirect(req, resp, "errorMsg", e.getMessage());
         } catch (Exception e) {
-            getServletContext().log("Lỗi trong AdminGenreServlet: ", e);
-            redirect(req, resp, "errorMsg", "Đã xảy ra lỗi hệ thống.");
+            getServletContext().log("Error in AdminGenreServlet: ", e);
+            redirect(req, resp, "errorMsg", "A system error occurred.");
         }
     }
 

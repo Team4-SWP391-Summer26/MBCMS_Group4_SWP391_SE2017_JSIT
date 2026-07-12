@@ -26,7 +26,7 @@ public class BranchHallServlet extends HttpServlet {
         Long branchId = (session != null) ? (Long) session.getAttribute("currentBranchId") : null;
 
         if (branchId == null) {
-            resp.sendError(HttpServletResponse.SC_FORBIDDEN, "Bạn không có quyền quản lý chi nhánh này.");
+            resp.sendError(HttpServletResponse.SC_FORBIDDEN, "You do not have permission to manage this branch.");
             return;
         }
 
@@ -47,13 +47,13 @@ public class BranchHallServlet extends HttpServlet {
         Long branchId = (session != null) ? (Long) session.getAttribute("currentBranchId") : null;
 
         if (branchId == null) {
-            resp.sendError(HttpServletResponse.SC_FORBIDDEN, "Bạn không có quyền quản lý chi nhánh.");
+            resp.sendError(HttpServletResponse.SC_FORBIDDEN, "You do not have permission to manage this branch.");
             return;
         }
 
         String action = req.getParameter("action");
         if (action == null) {
-            resp.sendRedirect(req.getContextPath() + "/branch/halls?errorMsg=Hành động không hợp lệ.");
+            resp.sendRedirect(req.getContextPath() + "/branch/halls?errorMsg=Invalid action.");
             return;
         }
 
@@ -72,13 +72,13 @@ public class BranchHallServlet extends HttpServlet {
                     handleDelete(req, resp, branchId);
                     break;
                 default:
-                    resp.sendRedirect(req.getContextPath() + "/branch/halls?errorMsg=Hành động không xác định.");
+                    resp.sendRedirect(req.getContextPath() + "/branch/halls?errorMsg=Unknown action.");
             }
         } catch (IllegalArgumentException e) {
             resp.sendRedirect(req.getContextPath() + "/branch/halls?errorMsg=" + java.net.URLEncoder.encode(e.getMessage(), "UTF-8"));
         } catch (Exception e) {
-            getServletContext().log("Lỗi trong BranchHallServlet: ", e);
-            resp.sendRedirect(req.getContextPath() + "/branch/halls?errorMsg=Đã xảy ra lỗi hệ thống.");
+            getServletContext().log("Error in BranchHallServlet: ", e);
+            resp.sendRedirect(req.getContextPath() + "/branch/halls?errorMsg=A system error occurred.");
         }
     }
 
@@ -95,9 +95,9 @@ public class BranchHallServlet extends HttpServlet {
 
         boolean success = roomService.addRoom(r);
         if (success) {
-            resp.sendRedirect(req.getContextPath() + "/branch/halls?successMsg=" + java.net.URLEncoder.encode("Thêm phòng chiếu mới thành công!", "UTF-8"));
+            resp.sendRedirect(req.getContextPath() + "/branch/halls?successMsg=" + java.net.URLEncoder.encode("Hall added successfully!", "UTF-8"));
         } else {
-            resp.sendRedirect(req.getContextPath() + "/branch/halls?errorMsg=" + java.net.URLEncoder.encode("Thêm phòng chiếu thất bại.", "UTF-8"));
+            resp.sendRedirect(req.getContextPath() + "/branch/halls?errorMsg=" + java.net.URLEncoder.encode("Failed to add hall.", "UTF-8"));
         }
     }
 
@@ -109,7 +109,7 @@ public class BranchHallServlet extends HttpServlet {
         // Verify ownership
         Room room = roomService.getRoomById(roomId);
         if (room == null || room.getBranchId() != branchId) {
-            throw new IllegalArgumentException("Không có quyền chỉnh sửa phòng chiếu này.");
+            throw new IllegalArgumentException("You do not have permission to edit this hall.");
         }
 
         room.setName(name);
@@ -117,9 +117,9 @@ public class BranchHallServlet extends HttpServlet {
 
         boolean success = roomService.updateRoom(room);
         if (success) {
-            resp.sendRedirect(req.getContextPath() + "/branch/halls?successMsg=" + java.net.URLEncoder.encode("Cập nhật phòng chiếu thành công!", "UTF-8"));
+            resp.sendRedirect(req.getContextPath() + "/branch/halls?successMsg=" + java.net.URLEncoder.encode("Hall updated successfully!", "UTF-8"));
         } else {
-            resp.sendRedirect(req.getContextPath() + "/branch/halls?errorMsg=" + java.net.URLEncoder.encode("Cập nhật phòng chiếu thất bại.", "UTF-8"));
+            resp.sendRedirect(req.getContextPath() + "/branch/halls?errorMsg=" + java.net.URLEncoder.encode("Failed to update hall.", "UTF-8"));
         }
     }
 
@@ -130,15 +130,15 @@ public class BranchHallServlet extends HttpServlet {
         // Verify ownership
         Room room = roomService.getRoomById(roomId);
         if (room == null || room.getBranchId() != branchId) {
-            throw new IllegalArgumentException("Không có quyền chỉnh sửa phòng chiếu này.");
+            throw new IllegalArgumentException("You do not have permission to edit this hall.");
         }
 
         boolean success = roomService.toggleRoomStatus(roomId, active);
-        String msg = active ? "Kích hoạt phòng chiếu thành công!" : "Vô hiệu hóa phòng chiếu thành công!";
+        String msg = active ? "Hall activated successfully!" : "Hall deactivated successfully!";
         if (success) {
             resp.sendRedirect(req.getContextPath() + "/branch/halls?successMsg=" + java.net.URLEncoder.encode(msg, "UTF-8"));
         } else {
-            resp.sendRedirect(req.getContextPath() + "/branch/halls?errorMsg=" + java.net.URLEncoder.encode("Thay đổi trạng thái thất bại.", "UTF-8"));
+            resp.sendRedirect(req.getContextPath() + "/branch/halls?errorMsg=" + java.net.URLEncoder.encode("Failed to change status.", "UTF-8"));
         }
     }
 
@@ -148,14 +148,14 @@ public class BranchHallServlet extends HttpServlet {
         // Verify ownership
         Room room = roomService.getRoomById(roomId);
         if (room == null || room.getBranchId() != branchId) {
-            throw new IllegalArgumentException("Không có quyền xóa phòng chiếu này.");
+            throw new IllegalArgumentException("You do not have permission to delete this hall.");
         }
 
         boolean success = roomService.deleteRoom(roomId);
         if (success) {
-            resp.sendRedirect(req.getContextPath() + "/branch/halls?successMsg=" + java.net.URLEncoder.encode("Xóa phòng chiếu thành công!", "UTF-8"));
+            resp.sendRedirect(req.getContextPath() + "/branch/halls?successMsg=" + java.net.URLEncoder.encode("Hall deleted successfully!", "UTF-8"));
         } else {
-            resp.sendRedirect(req.getContextPath() + "/branch/halls?errorMsg=" + java.net.URLEncoder.encode("Xóa phòng chiếu thất bại.", "UTF-8"));
+            resp.sendRedirect(req.getContextPath() + "/branch/halls?errorMsg=" + java.net.URLEncoder.encode("Failed to delete hall.", "UTF-8"));
         }
     }
 }

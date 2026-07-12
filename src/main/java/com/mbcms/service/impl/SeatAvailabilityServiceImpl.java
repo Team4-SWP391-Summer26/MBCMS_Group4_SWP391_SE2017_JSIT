@@ -37,6 +37,11 @@ public class SeatAvailabilityServiceImpl implements SeatAvailabilityService {
     }
 
     @Override
+    public Set<Long> getHeldSeatIds(long showtimeId) {
+        return seatDAO.findHeldSeatIds(showtimeId);
+    }
+
+    @Override
     public Map<String, List<Seat>> getSeatsByRow(long showtimeId) {
         List<Seat> seats = getSeats(showtimeId);
         Map<String, List<Seat>> byRow = new LinkedHashMap<>();
@@ -50,10 +55,10 @@ public class SeatAvailabilityServiceImpl implements SeatAvailabilityService {
     @Override
     public int countAvailable(long showtimeId) {
         List<Seat> seats = getSeats(showtimeId);
-        Set<Long> booked = getBookedSeatIds(showtimeId);
+        Set<Long> occupied = seatDAO.findOccupiedSeatIds(showtimeId);
         int count = 0;
         for (Seat seat : seats) {
-            if (seat.isActive() && !booked.contains(seat.getSeatId())) {
+            if (seat.isActive() && !occupied.contains(seat.getSeatId())) {
                 count++;
             }
         }
@@ -62,10 +67,10 @@ public class SeatAvailabilityServiceImpl implements SeatAvailabilityService {
 
     @Override
     public boolean isSeatAvailable(long showtimeId, long seatId) {
-        Set<Long> booked = getBookedSeatIds(showtimeId);
+        Set<Long> occupied = seatDAO.findOccupiedSeatIds(showtimeId);
         for (Seat seat : getSeats(showtimeId)) {
             if (seat.getSeatId() == seatId) {
-                return seat.isActive() && !booked.contains(seatId);
+                return seat.isActive() && !occupied.contains(seatId);
             }
         }
         return false;

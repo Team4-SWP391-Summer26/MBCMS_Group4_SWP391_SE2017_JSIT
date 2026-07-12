@@ -11,166 +11,39 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <link href="${pageContext.request.contextPath}/assets/css/main.css?v=${applicationScope.assetVersion}" rel="stylesheet">
-    <style>
-        html { scroll-behavior: smooth; }
-        body { background: var(--bg); }
-        .det-wrap { max-width: 1100px; }
-
-        /* ===================== HERO (mảng nền bao quanh phía trên) ===================== */
-        .det-hero { position: relative; overflow: hidden; background: var(--navy); color: #fff; }
-        .det-hero__bg {
-            position: absolute; inset: 0; background-size: cover; background-position: center;
-            filter: blur(26px); transform: scale(1.2); opacity: .4;
-        }
-        .det-hero__veil {
-            position: absolute; inset: 0;
-            background:
-                linear-gradient(180deg, rgba(15,30,54,.66) 0%, rgba(15,30,54,.92) 75%, var(--navy) 100%),
-                radial-gradient(820px 420px at 12% -10%, rgba(37,99,235,.32), transparent 60%);
-        }
-        .det-hero__inner { position: relative; z-index: 2; padding: 1.5rem 0 2.75rem; }
-
-        .det-bc { font-size: .85rem; color: rgba(255,255,255,.6); margin-bottom: 1.6rem; }
-        .det-bc a { color: rgba(255,255,255,.82); text-decoration: none; }
-        .det-bc a:hover { color: #fff; text-decoration: underline; }
-
-        .det-top { display: flex; gap: 2rem; flex-wrap: wrap; align-items: flex-start; }
-        .det-poster-col { width: 240px; flex-shrink: 0; }
-        .det-poster { border-radius: 14px; overflow: hidden; box-shadow: 0 24px 60px rgba(0,0,0,.55); border: 1px solid rgba(255,255,255,.12); }
-        /* Khoá kích thước poster: rộng 240, cao theo tỉ lệ 2/3 -> hết bị kéo dài */
-        .det-poster .poster-art { position: relative; aspect-ratio: 2 / 3; width: 100%; border-radius: 14px; overflow: hidden; }
-        .det-poster .poster-art img { width: 100%; height: 100%; object-fit: cover; display: block; }
-        .det-trailer {
-            margin-top: .85rem; width: 100%; display: inline-flex; align-items: center; justify-content: center; gap: .5rem;
-            border: 1px solid rgba(255,255,255,.3); color: #fff; background: rgba(255,255,255,.08); border-radius: 10px;
-            padding: .55rem; font-weight: 600; font-size: .9rem; text-decoration: none; transition: .15s;
-        }
-        .det-trailer:hover { background: rgba(255,255,255,.18); }
-
-        .det-info { flex: 1; min-width: 300px; }
-        .det-title { font-size: clamp(1.9rem, 3.6vw, 2.8rem); font-weight: 800; color: #fff; letter-spacing: -.02em; margin: 0 0 1rem; text-shadow: 0 2px 16px rgba(0,0,0,.4); }
-
-        .det-badges { display: flex; flex-wrap: wrap; align-items: center; gap: .45rem; margin-bottom: 1rem; }
-        .det-age { font-size: .72rem; font-weight: 800; padding: .24rem .55rem; border-radius: 6px; color: #fff; }
-        .age-P { background: var(--primary); }
-        .age-K { background: var(--success); }
-        .age-T13, .age-C13 { background: #eab308; color: #1e293b; }
-        .age-T16, .age-C16 { background: #f97316; }
-        .age-T18, .age-C18 { background: var(--danger); }
-        .b-soft { font-size: .74rem; font-weight: 600; color: rgba(255,255,255,.85); background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.16); padding: .22rem .6rem; border-radius: 6px; }
-        .b-genre { font-size: .74rem; font-weight: 600; color: #fff; background: rgba(37,99,235,.4); border: 1px solid rgba(255,255,255,.18); padding: .22rem .6rem; border-radius: 6px; }
-        .b-status { font-size: .78rem; font-weight: 600; color: #4ade80; display: inline-flex; align-items: center; gap: .35rem; margin-left: .15rem; }
-        .b-status .dot { width: 7px; height: 7px; border-radius: 50%; background: #4ade80; }
-        .b-status.upcoming { color: #60a5fa; }
-        .b-status.upcoming .dot { background: #60a5fa; }
-
-        .det-rating { display: flex; align-items: center; gap: .5rem; margin-bottom: 1.15rem; }
-        .det-rating .stars { color: var(--gold); font-size: 1rem; display: inline-flex; gap: 1px; }
-        .det-rating .score { font-weight: 800; color: #fff; }
-        .det-rating .votes { color: rgba(255,255,255,.6); font-size: .85rem; }
-
-        .det-credits { font-size: .9rem; color: rgba(255,255,255,.82); margin-bottom: 1.5rem; line-height: 1.8; }
-        .det-credits .lbl { font-weight: 700; color: #fff; }
-
-        .det-actions { display: flex; flex-wrap: wrap; gap: .6rem; }
-        .det-book { border-radius: 10px; padding: .65rem 1.6rem; font-weight: 600; display: inline-flex; align-items: center; gap: .5rem; }
-        .det-save {
-            border-radius: 10px; padding: .65rem 1.3rem; font-weight: 600; background: rgba(255,255,255,.1); color: #fff;
-            border: 1px solid rgba(255,255,255,.3); display: inline-flex; align-items: center; gap: .5rem; cursor: pointer; transition: .15s;
-        }
-        .det-save:hover { background: rgba(255,255,255,.2); }
-
-        /* ===================== Light sections ===================== */
-        .det-h2 { font-size: 1.3rem; font-weight: 800; color: var(--text); margin: 0 0 .9rem; }
-        .det-syn p { color: var(--text-muted); line-height: 1.8; max-width: 780px; margin: 0; }
-
-        #showtimes { scroll-margin-top: 1rem; }
-        .det-showtimes { margin-top: 2.75rem; }
-        .st-head { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.25rem; }
-        .st-select { width: 210px; max-width: 100%; height: 40px; border-radius: 8px; border: 1px solid var(--border-strong); font-size: .88rem; color: var(--text); }
-
-        .st-dates { display: flex; gap: .5rem; overflow-x: auto; padding-bottom: .4rem; margin-bottom: 1.5rem; }
-        .st-date {
-            flex: 0 0 auto; min-width: 62px; padding: .45rem .65rem; border-radius: 10px;
-            border: 1px solid var(--border); background: #fff; text-align: center; cursor: pointer; line-height: 1.25; transition: .15s;
-        }
-        .st-date .d { display: block; font-size: .64rem; font-weight: 700; text-transform: uppercase; color: var(--text-subtle); }
-        .st-date .n { display: block; font-size: .84rem; font-weight: 800; color: var(--text); }
-        .st-date:hover:not(.active) { border-color: var(--primary); }
-        .st-date.active { background: var(--navy); border-color: var(--navy); }
-        .st-date.active .d, .st-date.active .n { color: #fff; }
-
-        .st-branch { background: #fff; border: 1px solid var(--border); border-radius: 14px; box-shadow: var(--shadow-sm); padding: 1.25rem 1.4rem; margin-bottom: 1rem; }
-        .st-branch:last-of-type { margin-bottom: 0; }
-        .st-branch__top { display: flex; justify-content: space-between; align-items: flex-start; gap: .5rem; margin-bottom: 1rem; }
-        .st-branch__name { font-size: 1rem; font-weight: 700; color: var(--text); margin: 0; display: flex; align-items: center; gap: .45rem; }
-        .st-branch__name i { color: var(--primary); }
-        .st-branch__addr { font-size: .8rem; color: var(--text-muted); margin: .15rem 0 0 1.45rem; }
-        .st-map { font-size: .8rem; color: var(--primary); font-weight: 600; text-decoration: none; white-space: nowrap; display: inline-flex; align-items: center; gap: .25rem; }
-        .st-map:hover { text-decoration: underline; }
-
-        .st-room { display: flex; align-items: center; gap: 1.25rem; padding: .85rem 0; border-top: 1px solid var(--surface-2); flex-wrap: wrap; }
-        .st-room:first-of-type { border-top: none; padding-top: .15rem; }
-        .st-room__info { width: 215px; flex-shrink: 0; }
-        .st-room__name { font-size: .88rem; font-weight: 700; color: var(--text); }
-        .st-room__price { font-size: .76rem; color: var(--text-muted); margin-top: .1rem; }
-        .st-slots { display: flex; flex-wrap: wrap; gap: .55rem; }
-        .st-slot {
-            display: inline-flex; flex-direction: column; align-items: center; justify-content: center;
-            min-width: 78px; padding: .4rem .65rem; border-radius: 9px; border: 1px solid var(--primary);
-            background: #fff; color: var(--primary); text-decoration: none; transition: .15s;
-        }
-        .st-slot .t { font-size: .92rem; font-weight: 800; line-height: 1; }
-        .st-slot .p { font-size: .64rem; font-weight: 500; margin-top: .2rem; color: var(--text-muted); }
-        .st-slot:hover:not(.is-full) { background: var(--primary); color: #fff; transform: translateY(-1px); }
-        .st-slot:hover:not(.is-full) .p { color: rgba(255, 255, 255, .85); }
-        .st-slot.is-full { border-color: var(--border-strong); color: var(--text-subtle); background: var(--surface-2); cursor: not-allowed; pointer-events: none; }
-        .st-slot.is-full .p { color: var(--text-subtle); }
-
-        .st-empty { text-align: center; padding: 3rem 1rem; color: var(--text-muted); background: #fff; border: 1px solid var(--border); border-radius: 14px; }
-        .st-empty i { font-size: 2.5rem; color: var(--border-strong); display: block; margin-bottom: .6rem; }
-
-        .st-legend { display: flex; flex-wrap: wrap; gap: 1.25rem; margin-top: 1.35rem; font-size: .8rem; color: var(--text-muted); }
-        .st-legend .item { display: flex; align-items: center; gap: .4rem; }
-        .st-legend .sw { width: 14px; height: 14px; border-radius: 4px; border: 1.5px solid var(--border-strong); background: #fff; }
-        .st-legend .sw.vip { border-color: #f59e0b; }
-        .st-legend .sw.imax { border-color: #c084fc; }
-
-        @media (max-width: 575px) {
-            .det-poster-col { width: 100%; max-width: 240px; margin: 0 auto; }
-            .st-room__info { width: 100%; }
-        }
-    </style>
+    <link href="${pageContext.request.contextPath}/assets/css/movie-detail.css?v=${applicationScope.assetVersion}" rel="stylesheet">
 </head>
-<body>
+<body class="movie-detail-page">
 
     <jsp:include page="../common/header.jsp">
         <jsp:param name="activeMenu" value="movies" />
     </jsp:include>
 
-    <%-- Deterministic demo rating/votes --%>
-    <c:set var="ratingVal" value="${7.8 + (movie.movieId % 17) / 10.0}" />
-    <c:set var="votesVal" value="${350 + (movie.movieId * 149) % 1500}" />
-    <c:set var="ratingStr"><fmt:formatNumber value="${ratingVal}" pattern="0.0" /></c:set>
-    <c:set var="votesStr"><fmt:formatNumber value="${votesVal}" pattern="#,##0" /></c:set>
-
     <%-- ===================== HERO ===================== --%>
     <section class="det-hero">
         <c:if test="${not empty movie.posterUrl}">
-            <div class="det-hero__bg" style="background-image:url('<c:url value="${movie.posterUrl}"/>');"></div>
+            <div class="det-hero__bg" aria-hidden="true">
+                <img class="det-hero__bg-img det-hero__bg-img--ambient"
+                     src="<c:url value='${movie.posterUrl}'/>" alt="">
+                <img class="det-hero__bg-img det-hero__bg-img--texture"
+                     src="<c:url value='${movie.posterUrl}'/>" alt="" aria-hidden="true">
+            </div>
         </c:if>
         <div class="det-hero__veil"></div>
+        <div class="det-hero__grain" aria-hidden="true"></div>
 
         <div class="det-hero__inner">
-            <div class="container det-wrap">
-                <div class="det-bc">
-                    <a href="${pageContext.request.contextPath}/home">Home</a> /
-                    <a href="${pageContext.request.contextPath}/movies?status=NOW_SHOWING">Movies</a> /
-                    <span><c:out value="${movie.title}"/></span>
-                </div>
+            <div class="container public-shell det-wrap">
+                <nav class="det-bc md-reveal" style="--i:0" aria-label="Breadcrumb">
+                    <a href="${pageContext.request.contextPath}/home">Home</a>
+                    <span class="sep" aria-hidden="true">/</span>
+                    <a href="${pageContext.request.contextPath}/movies?status=NOW_SHOWING">Movies</a>
+                    <span class="sep" aria-hidden="true">/</span>
+                    <span class="current"><c:out value="${movie.title}"/></span>
+                </nav>
 
                 <div class="det-top">
-                    <div class="det-poster-col">
+                    <div class="det-poster-col md-reveal" style="--i:1">
                         <div class="det-poster">
                             <jsp:include page="../common/_poster.jsp">
                                 <jsp:param name="movieId" value="${movie.movieId}" />
@@ -179,13 +52,13 @@
                             </jsp:include>
                         </div>
                         <c:if test="${not empty movie.trailerUrl}">
-                            <a href="${movie.trailerUrl}" target="_blank" class="det-trailer">
-                                <i class="bi bi-play-fill"></i> Watch Trailer
+                            <a href="${movie.trailerUrl}" target="_blank" rel="noopener noreferrer" class="det-trailer">
+                                <i class="bi bi-play-fill"></i> Trailer
                             </a>
                         </c:if>
                     </div>
 
-                    <div class="det-info">
+                    <div class="det-info md-reveal" style="--i:2">
                         <h1 class="det-title"><c:out value="${movie.title}"/></h1>
 
                         <div class="det-badges">
@@ -197,37 +70,69 @@
                             </c:forEach>
                             <span class="b-status ${movie.status == 'NOW_SHOWING' ? '' : 'upcoming'}">
                                 <span class="dot"></span>
-                                <c:out value="${movie.status == 'NOW_SHOWING' ? 'Now Showing' : 'Upcoming'}"/>
+                                <c:choose>
+                                    <c:when test="${movie.status == 'NOW_SHOWING'}">Now Showing</c:when>
+                                    <c:when test="${movie.status == 'UPCOMING'}">Upcoming</c:when>
+                                    <c:when test="${movie.status == 'ENDED'}">Ended</c:when>
+                                    <c:otherwise><c:out value="${movie.status}"/></c:otherwise>
+                                </c:choose>
                             </span>
                         </div>
 
-                        <div class="det-rating">
-                            <span class="stars">
-                                <c:forEach var="i" begin="1" end="5">
-                                    <c:choose>
-                                        <c:when test="${ratingVal >= (i * 2)}"><i class="bi bi-star-fill"></i></c:when>
-                                        <c:when test="${ratingVal >= (i * 2 - 1)}"><i class="bi bi-star-half"></i></c:when>
-                                        <c:otherwise><i class="bi bi-star"></i></c:otherwise>
-                                    </c:choose>
-                                </c:forEach>
-                            </span>
-                            <span class="score">${ratingStr}/10</span>
-                            <span class="votes">(${votesStr})</span>
-                        </div>
-
-                        <div class="det-credits">
-                            <div class="row g-1">
-                                <div class="col-12"><span class="lbl">Director:</span> <c:out value="${not empty movie.director ? movie.director : 'N/A'}"/></div>
-                                <div class="col-12"><span class="lbl">Cast:</span> <c:out value="${not empty movie.castList ? movie.castList : 'N/A'}"/></div>
-                                <div class="col-12"><span class="lbl">Language:</span> <c:out value="${not empty movie.language ? movie.language : 'English'}"/></div>
+                        <div class="det-meta-grid">
+                            <div class="det-meta-item">
+                                <span class="lbl">Director</span>
+                                <span class="val"><c:out value="${not empty movie.director ? movie.director : 'N/A'}"/></span>
+                            </div>
+                            <div class="det-meta-item">
+                                <span class="lbl">Language</span>
+                                <span class="val"><c:out value="${not empty movie.language ? movie.language : 'English'}"/></span>
+                            </div>
+                            <c:if test="${not empty availableFormats or not empty availableSubtitleTypes}">
+                                <div class="det-meta-item det-meta-item--wide">
+                                    <span class="lbl">Screening options</span>
+                                    <div class="det-opt-chips">
+                                        <c:forEach var="fmt" items="${availableFormats}">
+                                            <span class="det-opt-chip det-opt-chip--fmt"><c:out value="${fmt}"/></span>
+                                        </c:forEach>
+                                        <c:forEach var="sub" items="${availableSubtitleTypes}">
+                                            <span class="det-opt-chip det-opt-chip--sub">
+                                                <c:choose>
+                                                    <c:when test="${sub eq 'SUB'}">Subtitled</c:when>
+                                                    <c:when test="${sub eq 'DUB'}">Dubbed</c:when>
+                                                    <c:when test="${sub eq 'ORIGINAL'}">Original audio</c:when>
+                                                    <c:otherwise><c:out value="${sub}"/></c:otherwise>
+                                                </c:choose>
+                                            </span>
+                                        </c:forEach>
+                                    </div>
+                                </div>
+                            </c:if>
+                            <div class="det-meta-item det-meta-item--wide">
+                                <span class="lbl">Cast</span>
+                                <span class="val"><c:out value="${not empty movie.castList ? movie.castList : 'N/A'}"/></span>
                             </div>
                         </div>
 
                         <div class="det-actions">
-                            <a href="#showtimes" class="btn btn-primary det-book">
-                                <i class="bi bi-ticket-perforated-fill"></i> Book Tickets
-                            </a>
-                            <button type="button" class="det-save">
+                            <c:choose>
+                                <c:when test="${showtimesAvailable}">
+                                    <a href="#showtimes" class="btn btn-primary det-book">
+                                        <i class="bi bi-ticket-perforated-fill"></i> Book Tickets
+                                    </a>
+                                </c:when>
+                                <c:when test="${movie.status == 'UPCOMING'}">
+                                    <span class="btn btn-secondary det-book disabled" aria-disabled="true">
+                                        <i class="bi bi-clock"></i> Coming soon
+                                    </span>
+                                </c:when>
+                                <c:otherwise>
+                                    <span class="btn btn-secondary det-book disabled" aria-disabled="true">
+                                        <i class="bi bi-calendar-x"></i> Not available
+                                    </span>
+                                </c:otherwise>
+                            </c:choose>
+                            <button type="button" class="det-save" disabled aria-disabled="true" title="Coming soon">
                                 <i class="bi bi-bookmark"></i> Save
                             </button>
                         </div>
@@ -238,16 +143,23 @@
     </section>
 
     <%-- ===================== Light content ===================== --%>
-    <main class="container det-wrap py-4 py-lg-5">
+    <main class="container public-shell det-wrap movie-detail-main">
 
-        <section class="det-syn">
+        <section class="det-syn md-reveal" style="--i:3">
+            <span class="det-kicker"><i class="bi bi-card-text"></i> Story</span>
             <h2 class="det-h2">Synopsis</h2>
             <p><c:out value="${movie.description}"/></p>
         </section>
 
-        <section class="det-showtimes" id="showtimes">
+        <c:choose>
+            <c:when test="${showtimesAvailable}">
+        <section class="det-showtimes md-reveal" style="--i:4" id="showtimes">
             <div class="st-head">
-                <h2 class="det-h2 mb-0">Available Showtimes</h2>
+                <div class="st-head__copy">
+                    <span class="det-kicker"><i class="bi bi-calendar-week"></i> Schedule</span>
+                    <h2 class="det-h2 mb-0">Available Showtimes</h2>
+                    <p class="st-sub">Pick a date and cinema branch to start booking.</p>
+                </div>
                 <select class="form-select st-select" onchange="selectBranch(this.value)">
                     <option value="all">All Cinemas</option>
                     <c:forEach var="b" items="${branches}">
@@ -289,8 +201,22 @@
                             <c:forEach var="rg" items="${bs.roomGroups}">
                                 <div class="st-room">
                                     <div class="st-room__info">
-                                        <div class="st-room__name">${rg.roomName} &bull; ${rg.roomType} &bull; ${rg.format} ${rg.subtitleType}</div>
-                                        <div class="st-room__price">From <fmt:formatNumber value="${rg.minPrice}" pattern="#,##0"/>đ</div>
+                                        <div class="st-room__name">
+                                            <c:out value="${rg.roomName}"/>
+                                            <span class="st-room__type"><c:out value="${rg.roomType}"/></span>
+                                        </div>
+                                        <div class="st-room__opts">
+                                            <span class="st-opt st-opt--fmt"><c:out value="${rg.format}"/></span>
+                                            <span class="st-opt st-opt--sub">
+                                                <c:choose>
+                                                    <c:when test="${rg.subtitleType eq 'SUB'}">Subtitled</c:when>
+                                                    <c:when test="${rg.subtitleType eq 'DUB'}">Dubbed</c:when>
+                                                    <c:when test="${rg.subtitleType eq 'ORIGINAL'}">Original</c:when>
+                                                    <c:otherwise><c:out value="${rg.subtitleType}"/></c:otherwise>
+                                                </c:choose>
+                                            </span>
+                                        </div>
+                                        <div class="st-room__price">From <fmt:formatNumber value="${rg.minPrice}" pattern="#,##0"/> VND</div>
                                     </div>
                                     <div class="st-slots">
                                         <c:forEach var="slot" items="${rg.slots}">
@@ -302,9 +228,9 @@
                                                     </span>
                                                 </c:when>
                                                 <c:otherwise>
-                                                    <a href="${pageContext.request.contextPath}/booking/seats?showtimeId=${slot.showtimeId}" class="st-slot" data-start="${selectedDate}T${slot.time}">
+                                                    <a href="${pageContext.request.contextPath}/booking/seats?showtimeId=${slot.showtimeId}" class="st-slot" data-start="${slot.startIso}">
                                                         <span class="t">${slot.time}</span>
-                                                        <span class="p"><fmt:formatNumber value="${slot.price}" pattern="#,##0"/>đ</span>
+                                                        <span class="p"><fmt:formatNumber value="${slot.price}" pattern="#,##0"/> VND</span>
                                                     </a>
                                                 </c:otherwise>
                                             </c:choose>
@@ -318,11 +244,30 @@
             </c:choose>
 
             <div class="st-legend">
-                <div class="item"><span class="sw"></span> Standard 80,000đ</div>
-                <div class="item"><span class="sw vip"></span> VIP 140,000đ</div>
-                <div class="item"><span class="sw imax"></span> IMAX 100,000đ</div>
+                <div class="item"><span class="sw"></span> Standard base price</div>
+                <div class="item"><span class="sw vip"></span> VIP +${vipSurchargePercent}%</div>
+                <div class="item"><span class="sw imax"></span> IMAX format</div>
             </div>
         </section>
+            </c:when>
+            <c:otherwise>
+        <section class="det-showtimes md-reveal" style="--i:4" id="showtimes">
+            <div class="st-empty">
+                <i class="bi bi-calendar-x"></i>
+                <c:choose>
+                    <c:when test="${movie.status == 'UPCOMING'}">
+                        <h5 class="fw-bold">Coming soon</h5>
+                        <p class="small mb-0">Showtimes will be available when this movie is released.</p>
+                    </c:when>
+                    <c:otherwise>
+                        <h5 class="fw-bold">Showtimes unavailable</h5>
+                        <p class="small mb-0">This movie is no longer showing in cinemas.</p>
+                    </c:otherwise>
+                </c:choose>
+            </div>
+        </section>
+            </c:otherwise>
+        </c:choose>
 
     </main>
 
@@ -330,9 +275,15 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Tô xám + khoá các suất đã qua giờ chiếu (so với giờ hiện tại của máy)
+        // Gray out past slots. data-start is ISO local (yyyy-MM-ddTHH:mm:ss).
         document.querySelectorAll('.st-slot[data-start]').forEach(function (el) {
-            var d = new Date(el.getAttribute('data-start'));
+            var raw = el.getAttribute('data-start');
+            if (!raw) return;
+            var d = new Date(raw);
+            if (isNaN(d.getTime())) {
+                // Fallback: treat as local wall time without Z
+                d = new Date(raw.replace(' ', 'T'));
+            }
             if (!isNaN(d.getTime()) && d.getTime() < Date.now()) {
                 el.classList.add('is-full');
                 el.removeAttribute('href');

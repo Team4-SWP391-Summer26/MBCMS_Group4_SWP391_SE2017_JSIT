@@ -14,9 +14,7 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>Dashboard - PentaPlex Manager</title>
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
-        <link href="${pageContext.request.contextPath}/assets/css/manager.css?v=${applicationScope.assetVersion}" rel="stylesheet">
+        <%@ include file="/WEB-INF/views/branch/_branch-assets.jspf" %>
     </head>
 
     <body class="lc-console">
@@ -26,17 +24,17 @@
         </jsp:include>
 
         <main class="lc-admin-main">
-            <div class="container-fluid px-4 py-4" style="max-width: 1200px;">
+            <div class="lc-page">
 
-                <%-- ===== Page header ===== --%>
-                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+                <div class="lc-page-head">
                     <div>
-                        <div class="text-muted small mb-1">Dashboard</div>
-                        <h4 class="text-navy fw-bold mb-0">
-                            Branch Dashboard &middot; <c:out value="${sessionScope.currentBranchName}" /></h4>
+                        <div class="lc-page-crumb">Dashboard</div>
+                        <h1 class="lc-page-title">Branch Dashboard</h1>
                     </div>
-                    <a class="btn btn-primary" href="${pageContext.request.contextPath}/branch/showtimes/create">
-                        <i class="bi bi-plus-lg me-1"></i>New Showtime</a>
+                    <span class="lc-branch-chip">
+                        <i class="bi bi-geo-alt-fill"></i>
+                        <c:out value="${sessionScope.currentBranchName}" />
+                    </span>
                 </div>
 
                 <%-- ===== Branch scope notice (BranchFilter) ===== --%>
@@ -47,53 +45,46 @@
                 </div>
 
                 <%-- ===== KPI cards ===== --%>
-                <div class="row g-3 mb-4">
-                    <div class="col-sm-6 col-xl-3">
-                        <div class="card lc-elev p-4 h-100">
-                            <div class="d-flex align-items-center gap-3 mb-3">
-                                <div class="lc-stat-icon"><i class="bi bi-calendar3"></i></div>
-                                <div class="text-muted small fw-semibold">TODAY'S SHOWTIMES</div>
-                            </div>
-                            <div class="text-navy lc-stat-value">${kpiTodayCount}</div>
+                <div class="lc-kpi-row">
+                    <div class="lc-kpi-card lc-rise" style="--i:0;">
+                        <div class="lc-stat-icon lc-kpi-icon--blue"><i class="bi bi-calendar3"></i></div>
+                        <div>
+                            <div class="lc-kpi-label">Today's showtimes</div>
+                            <div class="lc-kpi-value">${kpiTodayCount}</div>
+                            <div class="lc-kpi-hint">Screenings scheduled today</div>
                         </div>
                     </div>
-                    <div class="col-sm-6 col-xl-3">
-                        <div class="card lc-elev p-4 h-100">
-                            <div class="d-flex align-items-center gap-3 mb-3">
-                                <div class="lc-stat-icon"><i class="bi bi-ticket-perforated"></i></div>
-                                <div class="text-muted small fw-semibold">SEATS SOLD TODAY</div>
-                            </div>
-                            <div class="text-navy lc-stat-value">${kpiSeatsSold}</div>
+                    <div class="lc-kpi-card lc-rise" style="--i:1;">
+                        <div class="lc-stat-icon lc-kpi-icon--green"><i class="bi bi-ticket-perforated"></i></div>
+                        <div>
+                            <div class="lc-kpi-label">Seats sold today</div>
+                            <div class="lc-kpi-value">${kpiSeatsSold}</div>
+                            <div class="lc-kpi-hint">Confirmed bookings so far</div>
                         </div>
                     </div>
-                    <div class="col-sm-6 col-xl-3">
-                        <div class="card lc-elev p-4 h-100">
-                            <div class="d-flex align-items-center gap-3 mb-3">
-                                <div class="lc-stat-icon"><i class="bi bi-calendar-week"></i></div>
-                                <div class="text-muted small fw-semibold">SCHEDULED NEXT 7 DAYS</div>
-                            </div>
-                            <div class="text-navy lc-stat-value">${kpiWeekCount}</div>
+                    <div class="lc-kpi-card lc-rise" style="--i:2;">
+                        <div class="lc-stat-icon lc-kpi-icon--amber"><i class="bi bi-calendar-week"></i></div>
+                        <div>
+                            <div class="lc-kpi-label">Scheduled next 7 days</div>
+                            <div class="lc-kpi-value">${kpiWeekCount}</div>
+                            <div class="lc-kpi-hint">Upcoming week pipeline</div>
                         </div>
                     </div>
-                    <%-- Revenue thuoc module Reports (AnhND) - giu cho theo prototype, khong fake --%>
-                    <div class="col-sm-6 col-xl-3">
-                        <div class="card lc-elev p-4 h-100" style="opacity:.65;">
-                            <div class="d-flex align-items-center gap-3 mb-3">
-                                <div class="lc-stat-icon" style="background:#EEF1F4; color:var(--text-subtle);">
-                                    <i class="bi bi-cash-stack"></i></div>
-                                <div class="text-muted small fw-semibold">TODAY'S REVENUE</div>
-                            </div>
-                            <div class="text-muted lc-stat-value">&mdash;</div>
-                            <div class="text-muted small mt-1">Reports module &middot; coming soon</div>
+                    <div class="lc-kpi-card is-muted lc-rise" style="--i:3;">
+                        <div class="lc-stat-icon lc-kpi-icon--slate"><i class="bi bi-cash-stack"></i></div>
+                        <div>
+                            <div class="lc-kpi-label">Today's revenue</div>
+                            <div class="lc-kpi-value">&mdash;</div>
+                            <div class="lc-kpi-hint">Reports module &middot; coming soon</div>
                         </div>
                     </div>
                 </div>
 
                 <%-- ===== Today's Showtimes (du lieu that tu showtimes) ===== --%>
-                <div class="card lc-elev p-4">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h6 class="text-navy fw-bold mb-0">Today's Showtimes</h6>
-                        <a class="small text-decoration-none" href="${pageContext.request.contextPath}/branch/showtimes">
+                <div class="card lc-elev p-4 lc-rise" style="--i:4;">
+                    <div class="lc-section-head">
+                        <h2 class="lc-section-title"><i class="bi bi-calendar3"></i> Today's Showtimes</h2>
+                        <a class="lc-link-more" href="${pageContext.request.contextPath}/branch/showtimes">
                             Manage showtimes <i class="bi bi-arrow-right"></i></a>
                     </div>
                     <div class="table-responsive">
@@ -112,8 +103,15 @@
                             </thead>
                             <tbody>
                                 <c:if test="${empty todayShowtimes}">
-                                    <tr><td colspan="8" class="text-center text-muted py-4">
-                                            No showtimes scheduled for today.</td></tr>
+                                    <tr><td colspan="8" class="p-0">
+                                        <div class="lc-empty">
+                                            <i class="bi bi-calendar-x"></i>
+                                            <div class="lc-empty-title">No showtimes today</div>
+                                            <div class="lc-empty-hint">Nothing is scheduled for this branch today. Add screenings from the showtimes planner.</div>
+                                            <a class="st-toolbar-add mt-2" href="${pageContext.request.contextPath}/branch/showtimes">
+                                                <i class="bi bi-plus-lg"></i> Plan showtimes</a>
+                                        </div>
+                                    </td></tr>
                                         </c:if>
                                         <c:forEach var="st" items="${todayShowtimes}">
                                     <tr>
@@ -141,7 +139,7 @@
                                         </td>
                                         <td class="text-end">
                                             <c:if test="${st.status != 'CANCELLED'}">
-                                                <a class="btn btn-sm btn-outline-info py-0 px-2" style="font-size: .75rem;" title="Monitor occupancy"
+                                                <a class="btn btn-sm btn-outline-secondary py-0 px-2" style="font-size: .75rem;" title="Monitor occupancy"
                                                    href="${pageContext.request.contextPath}/branch/showtimes/monitor?id=${st.showtimeId}">
                                                     <i class="bi bi-eye"></i> Monitor</a>
                                             </c:if>
@@ -156,6 +154,6 @@
             </div>
         </main>
 
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+        <%@ include file="/WEB-INF/views/branch/_branch-scripts.jspf" %>
     </body>
 </html>

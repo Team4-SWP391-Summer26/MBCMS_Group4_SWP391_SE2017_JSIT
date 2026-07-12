@@ -1,10 +1,18 @@
-﻿<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
+<fmt:setLocale value="en_US"/>
+<fmt:setTimeZone value="Asia/Ho_Chi_Minh"/>
 <%--
-    Review / Checkout (booking step 3) - owner: HungNT.
-    Giao dien dong nhat voi seats / payment / confirm (--bk-* + stepper chung trong main.css).
-    GIU NGUYEN cac form name/action + JS (promo, notes, cancel modal, countdown).
+    Review / Checkout (booking step 4/6) — REDESIGN v2.
+    Owner: HungNT.
+
+    Layout: Bootstrap row/col (same as seats + fnb).
+    Left col-lg-8:  one card, internally divided (details / concessions / promo / notes).
+    Right col-lg-4: sticky summary panel (fnb-summary pattern).
+
+    GIU NGUYEN: form names, actions, hidden inputs, promo logic, cancel modal, countdown JS.
+    THEM MOI: optional notes field (name="notes", textarea, form="checkoutForm").
 --%>
 <!DOCTYPE html>
 <html lang="en">
@@ -15,73 +23,34 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <link href="${pageContext.request.contextPath}/assets/css/main.css?v=${applicationScope.assetVersion}" rel="stylesheet">
-    <style>
-        /* ===== Booking shared design (inline de khong phu thuoc cache main.css) ===== */
-        /* --bk-* tokens come from tokens.css */
-        body.bk-page { background: var(--bk-bg); }
-        .bk-wrap { max-width: 1080px; }
-        .bk-card { background:#fff; border:1px solid var(--bk-border); border-radius:14px;
-            box-shadow:0 4px 12px rgba(15,23,42,.05); }
-        .bk-summary { position:sticky; top:18px; }
-        .bk-mono { font-family:ui-monospace,Menlo,Consolas,monospace; }
-
-        .bk-ctx { background:#fff; border-bottom:1px solid var(--bk-border); }
-        .bk-poster { width:46px; height:60px; border-radius:8px; flex-shrink:0; object-fit:cover;
-            background:linear-gradient(135deg,#1e293b,var(--navy)); display:flex;
-            align-items:center; justify-content:center; color:var(--gold); font-weight:800; font-size:1.2rem; }
-        .bk-reserve { background:#FFF8E1; border:1px solid #FFE082; color:#7a5a00; border-radius:999px;
-            padding:.3rem .8rem; font-size:.82rem; font-weight:600; display:inline-flex; align-items:center; gap:.4rem; white-space:nowrap; }
-        .bk-reserve.danger { background:#fee2e2; border-color:#fca5a5; color:#b91c1c; }
-
-        .bk-steps { display:flex; align-items:center; }
-        .bk-step { display:flex; align-items:center; gap:.55rem; font-size:.88rem; font-weight:600; color:var(--text-subtle); white-space:nowrap; }
-        .bk-step .bk-dot { width:30px; height:30px; border-radius:999px; display:flex; align-items:center;
-            justify-content:center; font-size:.82rem; font-weight:700; background:var(--border); color:var(--text-muted); flex-shrink:0; transition:all .2s ease; }
-        .bk-step.done { color:var(--text); } .bk-step.done .bk-dot { background:var(--success); color:#fff; }
-        .bk-step.active { color:var(--bk-primary); } .bk-step.active .bk-dot { background:var(--bk-primary); color:#fff; box-shadow:0 0 0 4px rgba(37,99,235,.18); }
-        .bk-line { flex:1; height:3px; border-radius:999px; background:var(--border); margin:0 .5rem; min-width:14px; }
-        .bk-line.done { background:var(--success); }
-        @media (max-width:640px) { .bk-step span:not(.bk-dot) { display:none; } }
-
-        .bk-sum-line { display:flex; justify-content:space-between; align-items:center; padding:.35rem 0; font-size:.92rem; }
-        .bk-sum-total { padding-top:.6rem; margin-top:.2rem; border-top:1px solid var(--bk-border); }
-        .bk-seat-tag { display:inline-block; background:var(--bk-light); color:var(--bk-primary);
-            border:1px solid var(--primary-200); border-radius:7px; padding:3px 10px; font-size:.82rem; font-weight:700;
-            margin:2px 4px 2px 0; font-family:ui-monospace,Menlo,Consolas,monospace; }
-        .bk-page .btn-primary { background:var(--bk-primary); border-color:var(--bk-primary); }
-        .bk-page .btn-primary:hover { background:var(--primary-700); border-color:var(--primary-700); }
-
-        /* Cancel modal (page-specific) */
-        .modal-overlay {
-            position: fixed; inset: 0; background: rgba(15,23,42,.55); z-index: 1055;
-            display: flex; align-items: center; justify-content: center; padding: 16px;
-            animation: fadeInModal .2s;
-        }
-        .modal-box {
-            background: #fff; border-radius: 14px; padding: 28px; max-width: 420px; width: 100%;
-            box-shadow: 0 20px 60px rgba(0,0,0,.3);
-        }
-        @keyframes fadeInModal { from { opacity: 0; } to { opacity: 1; } }
-    </style>
+    <link href="${pageContext.request.contextPath}/assets/css/booking.css?v=${applicationScope.assetVersion}" rel="stylesheet">
 </head>
 <body class="bk-page">
 <jsp:include page="../common/header.jsp" />
 
-<%-- ===== Context bar ===== --%>
-<%-- Convert showtimeStartTime (LocalDateTime) -> Date de format bang JSTL --%>
+<%-- ===== Convert showtimeStartTime → Date for JSTL fmt ===== --%>
 <c:if test="${not empty booking.showtimeStartTime}">
     <%
         com.mbcms.model.Booking _bk = (com.mbcms.model.Booking) request.getAttribute("booking");
         if (_bk != null && _bk.getShowtimeStartTime() != null) {
             pageContext.setAttribute("stStart",
-                java.util.Date.from(_bk.getShowtimeStartTime()
-                    .atZone(java.time.ZoneId.systemDefault()).toInstant()));
+                com.mbcms.util.DateTimeUtil.vietnamLocalToDate(_bk.getShowtimeStartTime()));
         }
     %>
 </c:if>
+<c:set var="seatIdsParam" value=""/>
+<c:forEach var="sid" items="${seatIds}" varStatus="ss">
+    <c:set var="seatIdsParam" value="${seatIdsParam}${sid}${!ss.last ? ',' : ''}"/>
+</c:forEach>
+
+<%-- ===== Context bar ===== --%>
 <div class="bk-ctx mt-3">
     <div class="container bk-wrap py-2">
         <div class="d-flex align-items-center gap-3 flex-wrap">
+            <a href="${pageContext.request.contextPath}/booking/food-drinks?showtimeId=${showtimeId}&amp;seatIds=${seatIdsParam}"
+               class="btn btn-sm btn-outline-secondary" title="Back to Food &amp; Drinks">
+                <i class="bi bi-arrow-left"></i>
+            </a>
             <c:choose>
                 <c:when test="${not empty booking.posterUrl}">
                     <img class="bk-poster" src="<c:url value='${booking.posterUrl}'/>" alt="${booking.movieTitle}">
@@ -89,7 +58,7 @@
                 <c:otherwise><div class="bk-poster"><i class="bi bi-film"></i></div></c:otherwise>
             </c:choose>
             <div class="flex-grow-1">
-                <div class="fw-bold" style="color:var(--bk-navy);">
+                <div class="fw-bold bk-context-title">
                     <c:choose>
                         <c:when test="${not empty booking.movieTitle}">${booking.movieTitle}</c:when>
                         <c:when test="${not empty booking}">Booking ${booking.bookingCode}</c:when>
@@ -100,7 +69,7 @@
                     <c:choose>
                         <c:when test="${not empty stStart}">
                             <i class="bi bi-calendar-event"></i>
-                            <fmt:formatDate value="${stStart}" pattern="EEE, dd MMM · HH:mm"/>
+                            <fmt:formatDate value="${stStart}" pattern="EEE, dd MMM · h:mm a"/>
                             <c:if test="${not empty booking.bookingCode}">
                                 <span class="mx-1">·</span><span class="bk-mono">${booking.bookingCode}</span>
                             </c:if>
@@ -111,7 +80,7 @@
             </div>
             <div class="text-end">
                 <div class="text-muted small">Seats</div>
-                <div class="fw-bold bk-mono" style="color:var(--bk-navy);">
+                <div class="fw-bold bk-mono bk-context-title">
                     <c:choose>
                         <c:when test="${not empty booking.seatLabels}">
                             <c:forEach var="lbl" items="${booking.seatLabels}" varStatus="s">${lbl}<c:if test="${not s.last}">, </c:if></c:forEach>
@@ -149,167 +118,271 @@
         <div class="bk-step"><span class="bk-dot">6</span>Confirm</div>
     </div>
 
-    <h3 class="fw-bold mb-1" style="color:var(--bk-navy);">Review your order</h3>
-    <p class="text-muted mb-4">Double-check everything before you pay.</p>
-
-    <%-- ===== Messages ===== --%>
+    <%-- ===== Global errors ===== --%>
     <c:if test="${not empty checkoutError}">
-        <div class="alert alert-danger d-flex align-items-center gap-2"><i class="bi bi-exclamation-triangle-fill"></i><span>${checkoutError}</span></div>
+        <div class="lc-alert is-error rv-alert" role="alert">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            <span>${checkoutError}</span>
+        </div>
     </c:if>
     <c:if test="${not empty pricingError}">
-        <div class="alert alert-danger d-flex align-items-center gap-2"><i class="bi bi-exclamation-triangle-fill"></i><span>${pricingError}</span></div>
-    </c:if>
-    <c:if test="${not empty promoMessage}">
-        <div class="alert alert-success d-flex align-items-center gap-2"><i class="bi bi-check-circle-fill"></i><span>${promoMessage}</span></div>
+        <div class="lc-alert is-error rv-alert" role="alert">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            <span>${pricingError}</span>
+        </div>
     </c:if>
 
     <div class="row g-4">
 
-        <%-- ===== Left: booking details + promo ===== --%>
+        <%-- ====== Left col: details card ====== --%>
         <div class="col-lg-7">
-            <div class="bk-card p-4 mb-4">
-                <h6 class="fw-bold mb-3" style="color:var(--bk-navy);">Booking details</h6>
-                <c:if test="${not empty booking.movieTitle}">
-                    <div class="bk-sum-line"><span class="text-muted">Movie</span>
-                        <span class="fw-semibold text-end">${booking.movieTitle}</span></div>
-                </c:if>
-                <c:if test="${not empty stStart}">
-                    <div class="bk-sum-line"><span class="text-muted">Showtime</span>
-                        <span class="fw-semibold"><fmt:formatDate value="${stStart}" pattern="EEE, dd MMM yyyy · HH:mm"/></span></div>
-                </c:if>
-                <c:if test="${empty stStart}">
-                    <div class="bk-sum-line"><span class="text-muted">Showtime</span>
-                        <span class="fw-semibold">#${showtimeId}</span></div>
-                </c:if>
-                <c:if test="${not empty booking}">
-                    <div class="bk-sum-line"><span class="text-muted">Booking code</span>
-                        <span class="fw-semibold bk-mono">${booking.bookingCode}</span></div>
-                    <div class="bk-sum-line"><span class="text-muted">Status</span>
-                        <span><span class="badge bg-warning text-dark">PENDING · seats held</span></span></div>
-                </c:if>
-                <div class="bk-sum-line align-items-start"><span class="text-muted">Seats</span>
-                    <span class="text-end">
-                        <c:choose>
-                            <c:when test="${not empty booking.seatLabels}">
-                                <c:forEach var="lbl" items="${booking.seatLabels}"><span class="bk-seat-tag">${lbl}</span></c:forEach>
-                            </c:when>
-                            <c:when test="${not empty seatLabels}">
-                                <c:forEach var="lbl" items="${seatLabels}"><span class="bk-seat-tag">${lbl}</span></c:forEach>
-                            </c:when>
-                        </c:choose>
-                    </span>
-                </div>
-            </div>
+            <div class="rv-card">
 
-            <div class="bk-card p-4">
-                <h6 class="fw-bold mb-3" style="color:var(--bk-navy);">Promotion code</h6>
-                <form method="post" action="${pageContext.request.contextPath}/booking/checkout">
-            <%@ include file="/WEB-INF/views/common/csrf-hidden.jspf" %>
-                    <input type="hidden" name="showtimeId" value="${showtimeId}">
-                    <input type="hidden" name="applyPromo" value="true">
-                    <input type="hidden" name="bookingId"  value="${booking.bookingId}">
-                    <c:forEach var="sid" items="${seatIds}">
-                        <input type="hidden" name="seatIds" value="${sid}">
-                    </c:forEach>
-                    <div class="d-flex gap-2">
-                        <input class="form-control" type="text" name="promoCode"
-                               value="${promoCode}" placeholder="Enter code (e.g. SAVE10)">
-                        <button class="btn btn-outline-primary" type="submit">Apply</button>
-                    </div>
-                    <c:if test="${not empty promoCode}">
-                        <span class="badge bg-success-subtle text-success mt-2"><i class="bi bi-tag-fill"></i> ${promoCode}</span>
-                    </c:if>
-                </form>
-            </div>
-        </div>
+                <%-- Section 1: Booking Details --%>
+                <div class="rv-section">
+                    <h2 class="rv-section-title"><i class="bi bi-ticket-perforated"></i> Booking Details</h2>
 
-        <%-- ===== Right: order summary ===== --%>
-        <div class="col-lg-5">
-            <div class="bk-card p-4 bk-summary">
-                <h6 class="fw-bold mb-3" style="color:var(--bk-navy);">Order summary</h6>
-
-                <c:choose>
-                    <c:when test="${not empty booking}">
-                        <div class="bk-sum-line">
-                            <span class="text-muted">Tickets Subtotal</span>
-                            <span><fmt:formatNumber value="${booking.subtotal - foodSubtotal}" pattern="#,###"/>₫</span>
-                        </div>
-                        <c:if test="${foodSubtotal > 0}">
-                            <div class="bk-sum-line">
-                                <span class="text-muted">Concessions Subtotal</span>
-                                <span><fmt:formatNumber value="${foodSubtotal}" pattern="#,###"/>₫</span>
+                    <dl class="rv-dl">
+                        <c:if test="${not empty booking.movieTitle}">
+                            <div class="rv-dl-row">
+                                <dt><i class="bi bi-film"></i> Movie</dt>
+                                <dd>${booking.movieTitle}</dd>
                             </div>
                         </c:if>
-                        
-                        <c:if test="${not empty concessions}">
-                            <div class="my-3 pt-3 border-top border-light">
-                                <div class="text-muted small mb-2">Selected Concessions</div>
-                                <c:forEach var="entry" items="${concessions}">
-                                    <div class="d-flex justify-content-between align-items-center mb-1 small text-dark">
-                                        <span>${entry.key.name} <strong class="text-primary">x${entry.value}</strong></span>
-                                        <span><fmt:formatNumber value="${entry.key.price * entry.value}" pattern="#,###"/>₫</span>
+                        <div class="rv-dl-row">
+                            <dt><i class="bi bi-clock"></i> Showtime</dt>
+                            <dd>
+                                <c:choose>
+                                    <c:when test="${not empty stStart}">
+                                        <fmt:formatDate value="${stStart}" pattern="EEE, dd MMM yyyy · h:mm a"/>
+                                    </c:when>
+                                    <c:otherwise>#${showtimeId}</c:otherwise>
+                                </c:choose>
+                            </dd>
+                        </div>
+                        <c:if test="${not empty booking}">
+                            <div class="rv-dl-row">
+                                <dt><i class="bi bi-upc-scan"></i> Booking code</dt>
+                                <dd><span class="bk-mono">${booking.bookingCode}</span></dd>
+                            </div>
+                            <div class="rv-dl-row">
+                                <dt><i class="bi bi-broadcast"></i> Status</dt>
+                                <dd>
+                                    <span class="bk-review-status">
+                                        <span class="bk-review-status-dot" aria-hidden="true"></span>
+                                        Pending · seats held
+                                    </span>
+                                </dd>
+                            </div>
+                        </c:if>
+                        <div class="rv-dl-row">
+                            <dt><i class="bi bi-grid-3x3"></i> Seats</dt>
+                            <dd>
+                                <div class="bk-review-seats">
+                                    <c:choose>
+                                        <c:when test="${not empty booking.seatLabels}">
+                                            <c:forEach var="lbl" items="${booking.seatLabels}">
+                                                <span class="bk-review-seat">${lbl}</span>
+                                            </c:forEach>
+                                        </c:when>
+                                        <c:when test="${not empty seatLabels}">
+                                            <c:forEach var="lbl" items="${seatLabels}">
+                                                <span class="bk-review-seat">${lbl}</span>
+                                            </c:forEach>
+                                        </c:when>
+                                        <c:otherwise><span class="text-muted">—</span></c:otherwise>
+                                    </c:choose>
+                                </div>
+                            </dd>
+                        </div>
+                    </dl>
+                </div>
+
+                <%-- Section 2: Concessions (only if present) --%>
+                <c:if test="${not empty concessions}">
+                    <div class="rv-section">
+                        <h2 class="rv-section-title"><i class="bi bi-cup-hot"></i> Concessions</h2>
+                        <div class="rv-concessions-list">
+                            <c:forEach var="entry" items="${concessions}">
+                                <div class="rv-concession-row">
+                                    <div class="rv-concession-info">
+                                        <span class="rv-concession-name">${entry.key.name}</span>
+                                        <span class="rv-concession-qty">x${entry.value}</span>
                                     </div>
-                                </c:forEach>
-                            </div>
-                        </c:if>
-
-                        <c:if test="${booking.discountAmount > 0}">
-                            <div class="bk-sum-line text-success"><span>Discount
-                                <c:if test="${not empty promoCode}"><span class="badge bg-success-subtle text-success ms-1">${promoCode}</span></c:if>
-                                </span>
-                                <span>−<fmt:formatNumber value="${booking.discountAmount}" pattern="#,###"/>₫</span></div>
-                        </c:if>
-                        <div class="bk-sum-line bk-sum-total">
-                            <span class="fw-bold" style="color:var(--bk-navy);">Total</span>
-                            <span class="fw-bold fs-5" style="color:var(--bk-primary);">
-                                <fmt:formatNumber value="${booking.totalAmount}" pattern="#,###"/>₫</span>
+                                    <span class="rv-concession-price"><fmt:formatNumber value="${entry.key.price * entry.value}" pattern="#,###"/>₫</span>
+                                </div>
+                            </c:forEach>
                         </div>
-                    </c:when>
-                    <c:otherwise>
-                        <p class="text-muted small mb-0">Price will appear once your seats are held.</p>
-                    </c:otherwise>
-                </c:choose>
+                    </div>
+                </c:if>
 
-                <%-- Confirm: tao chuyen sang buoc Payment --%>
-                <form method="post" action="${pageContext.request.contextPath}/booking/checkout" class="mt-3">
-            <%@ include file="/WEB-INF/views/common/csrf-hidden.jspf" %>
-                    <input type="hidden" name="showtimeId" value="${showtimeId}">
-                    <input type="hidden" name="promoCode"  value="${promoCode}">
-                    <input type="hidden" name="bookingId"  value="${booking.bookingId}">
-                    <c:forEach var="sid" items="${seatIds}">
-                        <input type="hidden" name="seatIds" value="${sid}">
-                    </c:forEach>
-                    <textarea name="notes" placeholder="Notes (optional)" class="form-control mb-3"
-                              rows="2" style="resize:vertical; font-size:.88rem;"></textarea>
-                    <button class="btn btn-primary w-100 py-2 fw-semibold" type="submit">
-                        Proceed to Payment <i class="bi bi-arrow-right"></i>
-                    </button>
-                </form>
-                <div class="text-center text-muted small mt-2">
-                    <i class="bi bi-shield-lock"></i> Secure checkout
+                <%-- Section 3: Promotion code --%>
+                <div class="rv-section">
+                    <h2 class="rv-section-title"><i class="bi bi-tag"></i> Promotion Code</h2>
+
+                    <c:choose>
+                        <c:when test="${not empty appliedPromoCode}">
+                            <div class="bk-review-promo-applied">
+                                <span class="bk-review-promo-code">${appliedPromoCode}</span>
+                                <form method="post" action="${pageContext.request.contextPath}/booking/checkout" class="bk-promo-remove-form">
+                                    <%@ include file="/WEB-INF/views/common/csrf-hidden.jspf" %>
+                                    <input type="hidden" name="showtimeId" value="${showtimeId}">
+                                    <input type="hidden" name="removePromo" value="true">
+                                    <input type="hidden" name="bookingId" value="${booking.bookingId}">
+                                    <c:forEach var="sid" items="${seatIds}">
+                                        <input type="hidden" name="seatIds" value="${sid}">
+                                    </c:forEach>
+                                    <button type="submit" class="bk-review-promo-remove" title="Remove promotion" aria-label="Remove promotion">
+                                        <i class="bi bi-x-lg"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </c:when>
+                        <c:otherwise>
+                            <form method="post" action="${pageContext.request.contextPath}/booking/checkout" class="bk-review-promo-form">
+                                <%@ include file="/WEB-INF/views/common/csrf-hidden.jspf" %>
+                                <input type="hidden" name="showtimeId" value="${showtimeId}">
+                                <input type="hidden" name="applyPromo" value="true">
+                                <input type="hidden" name="bookingId" value="${booking.bookingId}">
+                                <c:forEach var="sid" items="${seatIds}">
+                                    <input type="hidden" name="seatIds" value="${sid}">
+                                </c:forEach>
+                                <div class="bk-review-promo-field">
+                                    <input id="promoCode" class="bk-review-promo-input<c:if test='${not empty promoError}'> is-invalid</c:if>"
+                                           type="text" name="promoCode" value="${promoInput}"
+                                           placeholder="Enter code" autocomplete="off" spellcheck="false"
+                                           aria-describedby="${not empty promoError ? 'promoError' : ''}">
+                                    <button class="bk-review-promo-btn" type="submit">Apply</button>
+                                </div>
+                            </form>
+                        </c:otherwise>
+                    </c:choose>
+                    <c:if test="${not empty promoError}">
+                        <p id="promoError" class="bk-review-field-error" role="alert">
+                            <i class="bi bi-exclamation-circle"></i> ${promoError}
+                        </p>
+                    </c:if>
+                    <c:if test="${empty appliedPromoCode && empty promoError}">
+                        <p class="rv-promo-hint">Have a promo code? Enter it above to get a discount.</p>
+                    </c:if>
                 </div>
 
-                <c:if test="${not empty booking}">
-                    <button type="button" class="btn btn-outline-danger w-100 mt-2" onclick="openCancelModal()">
-                        <i class="bi bi-x-lg"></i> Cancel booking
-                    </button>
-                </c:if>
+            </div><%-- /.rv-card --%>
+        </div>
+
+        <%-- ====== Right col: Order summary (sticky, fnb-summary pattern) ====== --%>
+        <div class="col-lg-5">
+            <div class="fnb-summary">
+                <div class="fnb-summary-body">
+                    <h2 class="fnb-summary-title"><i class="bi bi-receipt me-2"></i>Order Summary</h2>
+
+                    <c:choose>
+                        <c:when test="${not empty booking}">
+                            <div class="rv-summary-lines">
+                                <div class="fnb-summary-item">
+                                    <span class="fnb-summary-item-name">Tickets <span class="fnb-summary-item-qty">x${booking.seatLabels != null ? booking.seatLabels.size() : seatIds.size()}</span></span>
+                                    <span class="fnb-summary-item-price"><fmt:formatNumber value="${booking.subtotal - foodSubtotal}" pattern="#,###"/>₫</span>
+                                </div>
+                                <c:if test="${foodSubtotal > 0}">
+                                    <div class="fnb-summary-item">
+                                        <span class="fnb-summary-item-name">Concessions</span>
+                                        <span class="fnb-summary-item-price"><fmt:formatNumber value="${foodSubtotal}" pattern="#,###"/>₫</span>
+                                    </div>
+                                </c:if>
+                                <c:if test="${booking.discountAmount > 0}">
+                                    <div class="fnb-summary-item rv-discount-line">
+                                        <span class="fnb-summary-item-name">
+                                            Discount
+                                            <c:if test="${not empty appliedPromoCode}">
+                                                <span class="rv-promo-badge">${appliedPromoCode}</span>
+                                            </c:if>
+                                        </span>
+                                        <span class="fnb-summary-item-price rv-discount-amount">−<fmt:formatNumber value="${booking.discountAmount}" pattern="#,###"/>₫</span>
+                                    </div>
+                                </c:if>
+                            </div>
+
+                            <hr class="fnb-summary-divider">
+
+                            <div class="fnb-summary-total">
+                                <span>Total</span>
+                                <span class="fnb-summary-total-amount"><fmt:formatNumber value="${booking.totalAmount}" pattern="#,###"/>₫</span>
+                            </div>
+                        </c:when>
+                        <c:otherwise>
+                            <div class="fnb-summary-empty">
+                                <i class="bi bi-receipt-cutoff"></i>
+                                <div>Price will appear once<br>your seats are held.</div>
+                            </div>
+                        </c:otherwise>
+                    </c:choose>
+
+                    <%-- Notes (optional) --%>
+                    <hr class="fnb-summary-divider">
+                    <div class="rv-notes-block">
+                        <label class="rv-notes-label" for="bookingNotes">
+                            <i class="bi bi-chat-square-text"></i> Notes
+                            <span class="rv-optional-tag">optional</span>
+                        </label>
+                        <textarea
+                            id="bookingNotes"
+                            class="rv-notes-textarea"
+                            name="notes"
+                            form="checkoutForm"
+                            rows="2"
+                            maxlength="500"
+                            placeholder="Special requests, accessibility needs..."
+                            aria-describedby="notesHint">${not empty booking.notes ? booking.notes : ''}</textarea>
+                        <div class="rv-notes-footer">
+                            <span id="notesHint" class="rv-notes-hint">
+                                <i class="bi bi-info-circle"></i> Shared with staff
+                            </span>
+                            <span class="rv-notes-counter" id="notesCounter">0 / 500</span>
+                        </div>
+                    </div>
+
+                    <%-- Proceed to Payment form --%>
+                    <form id="checkoutForm" method="post" action="${pageContext.request.contextPath}/booking/checkout">
+                        <%@ include file="/WEB-INF/views/common/csrf-hidden.jspf" %>
+                        <input type="hidden" name="showtimeId" value="${showtimeId}">
+                        <input type="hidden" name="bookingId"  value="${booking.bookingId}">
+                        <c:forEach var="sid" items="${seatIds}">
+                            <input type="hidden" name="seatIds" value="${sid}">
+                        </c:forEach>
+                        <button class="fnb-summary-cta" type="submit">
+                            <span>Proceed to Payment</span>
+                            <i class="bi bi-arrow-right" aria-hidden="true"></i>
+                        </button>
+                    </form>
+                    <p class="rv-secure-note">
+                        <i class="bi bi-shield-lock" aria-hidden="true"></i> Secure checkout · 256-bit encryption
+                    </p>
+
+                    <%-- Cancel booking (secondary destructive, below primary CTA) --%>
+                    <c:if test="${not empty booking}">
+                        <button type="button" class="fnb-summary-cta fnb-summary-cta--cancel" onclick="openCancelModal()">
+                            <span>Cancel this booking</span>
+                            <i class="bi bi-x-circle" aria-hidden="true"></i>
+                        </button>
+                    </c:if>
+                </div>
             </div>
         </div>
-    </div>
+
+    </div><%-- /.row --%>
 
     <%-- ===== Cancel modal ===== --%>
-    <div id="cancel-modal" class="modal-overlay" style="display:none;" onclick="closeCancelModal(event)">
+    <div id="cancel-modal" class="modal-overlay is-hidden" onclick="closeCancelModal(event)">
         <div class="modal-box" onclick="event.stopPropagation()">
-            <div class="text-center mb-2" style="font-size:2.2rem;color:var(--danger);"><i class="bi bi-exclamation-triangle-fill"></i></div>
+            <div class="text-center mb-2 modal-danger-icon"><i class="bi bi-exclamation-triangle-fill"></i></div>
             <h5 class="text-center fw-bold mb-1">Cancel this booking?</h5>
-            <p class="text-center text-muted mb-4" style="font-size:.9rem;">
+            <p class="text-center mb-4 modal-copy">
                 Booking <strong>${booking.bookingCode}</strong> will be cancelled and your seats released. This cannot be undone.
             </p>
             <div class="d-flex gap-2">
                 <button class="btn btn-outline-secondary flex-fill" onclick="closeCancelModal()">Keep booking</button>
                 <form action="${pageContext.request.contextPath}/customer/booking/cancel" method="post" class="flex-fill m-0">
-            <%@ include file="/WEB-INF/views/common/csrf-hidden.jspf" %>
+                    <%@ include file="/WEB-INF/views/common/csrf-hidden.jspf" %>
                     <input type="hidden" name="bookingId"  value="${booking.bookingId}"/>
                     <input type="hidden" name="showtimeId" value="${showtimeId}"/>
                     <button type="submit" class="btn btn-danger w-100">Yes, cancel</button>
@@ -317,27 +390,46 @@
             </div>
         </div>
     </div>
-</div><!-- /container -->
+</div>
 
 <jsp:include page="../common/footer.jsp" />
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
+    /* ── Cancel modal ── */
     function openCancelModal() {
-        document.getElementById('cancel-modal').style.display = 'flex';
+        document.getElementById('cancel-modal').classList.remove('is-hidden');
         document.body.style.overflow = 'hidden';
     }
     function closeCancelModal(e) {
         if (e && e.target !== e.currentTarget) return;
-        document.getElementById('cancel-modal').style.display = 'none';
+        document.getElementById('cancel-modal').classList.add('is-hidden');
         document.body.style.overflow = '';
     }
+    window.addEventListener('pageshow', function (ev) {
+        if (ev.persisted) closeCancelModal();
+    });
+
+    /* ── Notes character counter ── */
+    (function () {
+        var ta = document.getElementById('bookingNotes');
+        var counter = document.getElementById('notesCounter');
+        if (!ta || !counter) return;
+        function update() {
+            var len = ta.value.length;
+            counter.textContent = len + ' / 500';
+            counter.classList.toggle('is-near-limit', len > 400);
+        }
+        ta.addEventListener('input', update);
+        update();
+    })();
 </script>
 
 <c:if test="${not empty booking}">
 <script>
-    // Dem nguoc 10 phut giu ghe (client-side, tu luc load trang).
+    // Countdown seat hold (Admin Settings: pending_hold_minutes; client-side from page load).
     (function () {
-        var LIMIT_MS = 10 * 60 * 1000;
+        var HOLD_MIN = ${empty pendingHoldMinutes ? 10 : pendingHoldMinutes};
+        var LIMIT_MS = HOLD_MIN * 60 * 1000;
         var start = Date.now();
         var cd   = document.getElementById('countdown');
         var pill = document.getElementById('reserve-pill');
@@ -351,7 +443,7 @@
             if (remaining === 0) {
                 clearInterval(timer);
                 cd.textContent = 'Expired';
-                alert('Your seat hold has expired. Please pick seats again.');
+                lcAlert('Your seat hold has expired. Please pick seats again.');
                 window.location.href = '${pageContext.request.contextPath}/booking/seats?showtimeId=${showtimeId}';
             }
         }

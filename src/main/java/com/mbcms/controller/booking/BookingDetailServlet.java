@@ -41,6 +41,11 @@ public class BookingDetailServlet extends HttpServlet {
 
         try {
             long bookingId = Long.parseLong(bookingIdParam.trim());
+            try {
+                bookingService.releaseExpiredLocks();
+            } catch (RuntimeException e) {
+                getServletContext().log("Could not clean expired pending bookings before detail load", e);
+            }
             Booking booking = bookingService.getBookingDetail(bookingId, customer.getUsername());
             if (booking == null) {
                 resp.sendRedirect(req.getContextPath() + "/customer/booking/history");

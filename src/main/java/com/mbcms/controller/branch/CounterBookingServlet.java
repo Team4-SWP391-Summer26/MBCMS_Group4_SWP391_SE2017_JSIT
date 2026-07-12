@@ -70,12 +70,13 @@ public class CounterBookingServlet extends HttpServlet {
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
 
-        // Retrieve current branch ID from session
-        Long branchId = (Long) req.getSession().getAttribute("currentBranchId");
-        if (branchId == null) {
+        // [Security Check] Verify active HTTP session
+        jakarta.servlet.http.HttpSession session = req.getSession(false);
+        if (session == null || session.getAttribute("currentBranchId") == null) {
             resp.sendRedirect(req.getContextPath() + "/auth/login");
             return;
         }
+        Long branchId = (Long) session.getAttribute("currentBranchId");
 
         ConsoleSupport.ensureBranchName(req);
 
@@ -97,12 +98,16 @@ public class CounterBookingServlet extends HttpServlet {
             req.setAttribute("err", err);
         }
 
-        // Render checkout screen
-        List<Movie> movies = movieDAO.findActiveMovies();
+        // Only movies Admin assigned to this branch (movie_branch) — same rule as showtime form
+        List<Movie> movies = movieDAO.findActiveMoviesForBranch(branchId);
         List<Room> rooms = roomDAO.findActiveByBranch(branchId);
 
         req.setAttribute("movies", movies);
         req.setAttribute("rooms", rooms);
+        req.setAttribute("vipSurchargePercent", pricingService.getVipSurchargePercent());
+        req.setAttribute("maxSeatsPerBooking", com.mbcms.util.SystemSettings.maxSeatsPerBooking());
+
+        // [Flow Step: Servlet -> JSP] Forward request parameters, stats, and active lists to counter-booking.jsp view
         req.getRequestDispatcher("/WEB-INF/views/branch/booking/counter-booking.jsp").forward(req, resp);
     }
 
@@ -123,7 +128,7 @@ public class CounterBookingServlet extends HttpServlet {
         }
         Customer c = customerDAO.findByUsername(username);
         if (c == null || !c.isActive()) {
-            throw new IllegalArgumentException("Khách hàng không tồn tại hoặc đã bị khóa.");
+                throw new IllegalArgumentException("Customer does not exist or has been locked.");
         }
         return c.getUsername();
     }
@@ -133,6 +138,7 @@ public class CounterBookingServlet extends HttpServlet {
         resp.setContentType("application/json;charset=UTF-8");
 
         if ("getShowtimes".equals(action)) {
+            // [Flow Step: JSP -> Servlet] AJAX GET requests for showtimes filtering by movieId and date
             Long movieId = null;
             String movieIdParam = req.getParameter("movieId");
             if (movieIdParam != null && !movieIdParam.trim().isEmpty()) {
@@ -145,16 +151,26 @@ public class CounterBookingServlet extends HttpServlet {
                 date = java.time.LocalDate.parse(dateParam.trim());
             }
 
+            // [Flow Step: Servlet -> Database] Query showtime list based on parameters via ShowtimeDAO
             List<Showtime> showtimes = showtimeDAO.findByBranch(branchId, movieId, null, date);
 
             // Format showtimes safely as serializable Maps
             List<Map<String, Object>> showtimeMaps = new ArrayList<>();
-            DateTimeFormatter timeFmt = DateTimeFormatter.ofPattern("HH:mm");
             DateTimeFormatter dateFmt = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+
+            // Reject movie not assigned to this branch (tampered AJAX movieId)
+            if (movieId != null && !movieDAO.isAssignedToBranch(movieId, branchId)) {
+                mapper.writeValue(resp.getWriter(), showtimeMaps);
+                return;
+            }
 
             java.time.LocalDateTime now = java.time.LocalDateTime.now();
             for (Showtime st : showtimes) {
                 if ("SCHEDULED".equals(st.getStatus()) && st.getStartTime().isAfter(now)) {
+                    // When listing all movies, skip showtimes for unassigned titles
+                    if (movieId == null && !movieDAO.isAssignedToBranch(st.getMovieId(), branchId)) {
+                        continue;
+                    }
                     Map<String, Object> map = new HashMap<>();
                     map.put("showtimeId", st.getShowtimeId());
                     map.put("movieId", st.getMovieId());
@@ -167,8 +183,8 @@ public class CounterBookingServlet extends HttpServlet {
                     map.put("basePrice", st.getBasePrice());
                     map.put("format", st.getFormat());
                     map.put("subtitleType", st.getSubtitleType());
-                    map.put("startTime", st.getStartTime().format(timeFmt));
-                    map.put("endTime", st.getEndTime().format(timeFmt));
+                    map.put("startTime", com.mbcms.util.DateTimeUtil.formatAmPm(st.getStartTime()));
+                    map.put("endTime", com.mbcms.util.DateTimeUtil.formatAmPm(st.getEndTime()));
                     map.put("date", st.getStartTime().format(dateFmt));
                     showtimeMaps.add(map);
                 }
@@ -176,6 +192,7 @@ public class CounterBookingServlet extends HttpServlet {
             mapper.writeValue(resp.getWriter(), showtimeMaps);
 
         } else if ("getSeats".equals(action)) {
+            // [Flow Step: JSP -> Servlet] AJAX GET requests for seat map with showtimeId parameter
             String showtimeIdParam = req.getParameter("showtimeId");
             if (showtimeIdParam == null || showtimeIdParam.trim().isEmpty()) {
                 resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Missing showtimeId");
@@ -188,14 +205,16 @@ public class CounterBookingServlet extends HttpServlet {
                 resp.sendError(HttpServletResponse.SC_NOT_FOUND, "Showtime not found");
                 return;
             }
-            // Branch scope: chi load so do ghe cua suat thuoc chi nhanh staff
+            // Branch scope check: only load seat layout for showtimes within manager's branch
             if (!roomBelongsToBranch(showtime.getRoomId(), branchId)) {
                 resp.sendError(HttpServletResponse.SC_FORBIDDEN, "Showtime not in your branch");
                 return;
             }
 
+            // [Flow Step: Servlet -> Database] Query DB via Service to load room layout, booked seats, and soft-locked seats list
             Map<String, List<Seat>> seatsByRow = seatService.getSeatsByRow(showtimeId);
             Set<Long> bookedSeatIds = seatService.getBookedSeatIds(showtimeId);
+            Set<Long> heldSeatIds = seatService.getHeldSeatIds(showtimeId);
 
             // Convert to safe map objects
             Map<String, List<Map<String, Object>>> seatsByRowMap = new LinkedHashMap<>();
@@ -218,6 +237,7 @@ public class CounterBookingServlet extends HttpServlet {
             result.put("showtimeBasePrice", showtime.getBasePrice());
             result.put("seatsByRow", seatsByRowMap);
             result.put("bookedSeatIds", bookedSeatIds);
+            result.put("heldSeatIds", heldSeatIds);
 
             mapper.writeValue(resp.getWriter(), result);
 
@@ -235,6 +255,7 @@ public class CounterBookingServlet extends HttpServlet {
             }
             mapper.writeValue(resp.getWriter(), ticket);
         } else if ("getFoodItems".equals(action)) {
+            // [Flow Step: Servlet -> Database] Query DB via Service to load all active food and beverage stock menu items
             List<FoodItem> foodItems = foodService.getActiveFoodItemsByBranch(branchId);
             mapper.writeValue(resp.getWriter(), foodItems);
         } else if ("getBookingFoodItems".equals(action)) {
@@ -269,25 +290,30 @@ public class CounterBookingServlet extends HttpServlet {
         Map<String, Object> result = new HashMap<>();
 
         try {
-            Long branchId = (Long) req.getSession().getAttribute("currentBranchId");
-            if (branchId == null) {
-                throw new SecurityException("Phiên làm việc không hợp lệ.");
+            // [Security Check] Verify active HTTP session
+            jakarta.servlet.http.HttpSession session = req.getSession(false);
+            if (session == null || session.getAttribute("currentBranchId") == null) {
+                throw new SecurityException("Invalid session.");
             }
+            Long branchId = (Long) session.getAttribute("currentBranchId");
 
+            // [Flow Step: JSP -> Servlet] AJAX POST request received containing counter booking checkout details
             String showtimeIdParam = req.getParameter("showtimeId");
             if (showtimeIdParam == null || showtimeIdParam.trim().isEmpty()) {
-                throw new IllegalArgumentException("Vui lòng chọn suất chiếu.");
+                throw new IllegalArgumentException("Please select a showtime.");
             }
 
             long showtimeId = Long.parseLong(showtimeIdParam.trim());
+            
+            // [Flow Step: Servlet -> Database] Query DB via DAO to verify showtime entity
             Showtime showtime = showtimeDAO.findById(showtimeId);
             if (showtime == null) {
-                throw new IllegalArgumentException("Không tìm thấy suất chiếu tương ứng.");
+                throw new IllegalArgumentException("Matching showtime was not found.");
             }
 
-            // Verify showtime belongs to the staff's branch
+            // Verify showtime belongs to the staff's branch (Security check)
             if (!roomBelongsToBranch(showtime.getRoomId(), branchId)) {
-                throw new SecurityException("Suất chiếu không thuộc chi nhánh của bạn.");
+                throw new SecurityException("This showtime does not belong to your branch.");
             }
 
             // Parse selected seat IDs
@@ -309,7 +335,7 @@ public class CounterBookingServlet extends HttpServlet {
             }
 
             if (seatIds.isEmpty()) {
-                throw new IllegalArgumentException("Vui lòng chọn ít nhất 1 ghế.");
+                throw new IllegalArgumentException("Please select at least 1 seat.");
             }
 
             String promoCode = req.getParameter("promoCode");
@@ -332,6 +358,7 @@ public class CounterBookingServlet extends HttpServlet {
                         if (qty > 0) {
                             qty = Math.min(qty, 10);
                             selectedFood.put(foodId, qty);
+                            // [Flow Step: Servlet -> Database] Query DB via service to look up food items prices
                             FoodItem item = foodService.getFoodItemById(foodId);
                             if (item != null) {
                                 foodSubtotal = foodSubtotal.add(item.getPrice().multiply(BigDecimal.valueOf(qty)));
@@ -339,7 +366,7 @@ public class CounterBookingServlet extends HttpServlet {
                         }
                     }
                 } catch (Exception e) {
-                    System.err.println("Lỗi parse foodItems: " + e.getMessage());
+                    System.err.println("Error parsing foodItems: " + e.getMessage());
                 }
             }
             Booking createdBooking = null;
@@ -347,7 +374,7 @@ public class CounterBookingServlet extends HttpServlet {
             String customerUsername = resolveCustomerUsername(req.getParameter("customerUsername"));
 
             if ("VNPAY".equalsIgnoreCase(paymentMethod.trim())) {
-                // For VNPay: create a pending booking first
+                // [Flow Step: Servlet -> Service -> Database] Initiate VNPAY payment pending booking
                 createdBooking = bookingService.createPendingBooking(customerUsername, showtimeId, seatIds, promoCode, notes, foodSubtotal);
 
                 foodService.saveFoodOrder(createdBooking.getBookingId(), selectedFood, "PENDING");
@@ -372,9 +399,9 @@ public class CounterBookingServlet extends HttpServlet {
                 result.put("bookingCode", createdBooking.getBookingCode());
                 result.put("totalAmount", createdBooking.getTotalAmount());
                 result.put("redirectUrl", paymentUrl);
-                result.put("message", "Đang chuyển hướng sang cổng thanh toán VNPay...");
+                result.put("message", "Redirecting to the VNPay payment gateway...");
             } else {
-                // For Cash: existing flow
+                // For Cash checkout: existing flow
                 // Calculate base total for verification
                 List<Seat> allSeats = seatDAO.findByRoom(showtime.getRoomId());
                 List<Seat> selectedSeats = new ArrayList<>();
@@ -392,16 +419,17 @@ public class CounterBookingServlet extends HttpServlet {
                 booking.setSubtotal(subtotal);
                 booking.setNotes(notes);
 
-                // Execute service transaction
+                // [Flow Step: Servlet -> Service -> Database] Process instant cash booking registration in database
                 createdBooking = bookingService.createCounterBooking(booking, seatIds, promoCode, foodSubtotal);
 
                 if (!selectedFood.isEmpty()) {
+                    // [Flow Step: Service -> Database] Save food order record and decrement stock counts in database
                     foodService.saveFoodOrder(createdBooking.getBookingId(), selectedFood, "PREPARING");
                     foodService.decrementStockForBooking(createdBooking.getBookingId());
                 }
 
-                // Notify WebSocket server of the hard lock
-                String staffUsername = (String) req.getSession().getAttribute("username");
+                // [Flow Step: Service -> WebSocket] Broadcast seat status conversion (HARD_LOCK) to seat monitor clients
+                String staffUsername = (String) session.getAttribute("username");
                 if (staffUsername == null) {
                     staffUsername = "staff";
                 }
@@ -411,13 +439,14 @@ public class CounterBookingServlet extends HttpServlet {
                 result.put("bookingId", createdBooking.getBookingId());
                 result.put("bookingCode", createdBooking.getBookingCode());
                 result.put("totalAmount", createdBooking.getTotalAmount());
-                result.put("message", "Đã thanh toán thành công và xác nhận đặt vé!");
+                result.put("message", "Payment completed and booking confirmed successfully!");
             }
         } catch (Exception e) {
             result.put("success", false);
-            result.put("message", "Lỗi đặt vé: " + e.getMessage());
+            result.put("message", "Booking error: " + e.getMessage());
         }
 
+        // [Flow Step: Servlet -> JSP] Return transaction response (bookingId, totals, URLs) as JSON payload response
         mapper.writeValue(resp.getWriter(), result);
     }
 }

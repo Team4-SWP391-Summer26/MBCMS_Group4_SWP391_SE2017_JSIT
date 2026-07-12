@@ -2,6 +2,7 @@
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
+<fmt:setLocale value="en_US"/>
 <%--
     Payment History - Customer (owner: HungNT). Transaction-centric view: method,
     status, amount, paid time, transaction ref. Scope = chinh chu (servlet ep tu
@@ -109,7 +110,20 @@
                                 <div class="pm-sub">
                                     <c:if test="${not empty p.branchName}"><c:out value="${p.branchName}"/></c:if>
                                     <c:if test="${not empty p.startTime}">
-                                        · ${fn:substring(p.startTime, 0, 10)} ${fn:substring(p.startTime, 11, 16)}</c:if>
+                                        <%
+                                            com.mbcms.model.PaymentRecord _pr =
+                                                    (com.mbcms.model.PaymentRecord) pageContext.getAttribute("p");
+                                            if (_pr != null && _pr.getStartTime() != null) {
+                                                pageContext.setAttribute("pStart",
+                                                        com.mbcms.util.DateTimeUtil.vietnamLocalToDate(_pr.getStartTime()));
+                                            } else {
+                                                pageContext.setAttribute("pStart", null);
+                                            }
+                                        %>
+                                        <c:if test="${not empty pStart}">
+                                            · <fmt:formatDate value="${pStart}" pattern="dd/MM/yyyy · h:mm a" timeZone="Asia/Ho_Chi_Minh"/>
+                                        </c:if>
+                                    </c:if>
                                 </div>
                             </div>
                             <span class="sp sp-${p.status}">

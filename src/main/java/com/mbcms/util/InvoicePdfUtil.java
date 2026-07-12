@@ -66,7 +66,7 @@ public final class InvoicePdfUtil {
             doc.add(itemsTable(t, bold));
             doc.add(totalsTable(t, bold));
 
-            doc.add(new Paragraph("Thank you for choosing MBCMS. This receipt is your proof of payment.")
+            doc.add(new Paragraph("Thank you for choosing PentaPlex. This receipt is your proof of payment.")
                     .setFontColor(MUTED).setFontSize(8).setTextAlignment(TextAlignment.CENTER)
                     .setMarginTop(24));
         } finally {
@@ -80,7 +80,7 @@ public final class InvoicePdfUtil {
         Table tbl = new Table(UnitValue.createPercentArray(new float[]{60, 40}))
                 .useAllAvailableWidth();
         Cell left = bgCell(NAVY);
-        left.add(new Paragraph("MBCMS").setFont(bold).setFontSize(18).setFontColor(ColorConstants.WHITE).setMarginBottom(14));
+        left.add(new Paragraph("PentaPlex").setFont(bold).setFontSize(18).setFontColor(ColorConstants.WHITE).setMarginBottom(14));
         left.add(small("ISSUED TO", new DeviceRgb(150, 165, 190)));
         left.add(new Paragraph(nz(t.getCustomerFullName())).setFont(bold).setFontColor(ColorConstants.WHITE).setFontSize(12).setMarginBottom(0));
         left.add(new Paragraph(nz(t.getCustomerEmail())).setFontColor(new DeviceRgb(190, 200, 215)).setFontSize(9));

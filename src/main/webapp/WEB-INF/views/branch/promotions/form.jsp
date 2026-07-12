@@ -9,42 +9,10 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>${isEdit ? 'Edit Promotion' : 'Add New Promotion'} - PentaPlex Manager</title>
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
-        <link href="${pageContext.request.contextPath}/assets/css/manager.css?v=${applicationScope.assetVersion}" rel="stylesheet">
+        <%@ include file="/WEB-INF/views/branch/_branch-assets.jspf" %>
         <style>
-            .type-card-btn {
-                border: 2px solid var(--lc-border);
-                border-radius: 12px;
-                background: #fff;
-                color: var(--navy);
-                padding: 1rem;
-                display: block;
-                cursor: pointer;
-                transition: all 0.2s ease;
-                user-select: none;
-            }
-            .btn-check:checked + .type-card-btn {
-                border-color: var(--lc-primary);
-                background-color: var(--lc-light);
-            }
-            .type-icon {
-                font-size: 1.5rem;
-                margin-bottom: 0.5rem;
-                display: inline-block;
-                padding: 0.4rem 0.6rem;
-                border-radius: 8px;
-            }
-            .type-icon.pct {
-                background-color: var(--primary-100);
-                color: var(--primary);
-            }
-            .type-icon.fix {
-                background-color: #fef3c7;
-                color: #d97706;
-            }
-
-            /* Ticket Card CSS */
+            .lc-picker-icon.pct { background-color: var(--primary-100, #E7F0FF); color: var(--primary, #2563eb); }
+            .lc-picker-icon.fix { background-color: #fef3c7; color: #d97706; }
             .ticket-card {
                 background: linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%);
                 color: white;
@@ -95,6 +63,23 @@
                 height: 1.5em;
                 cursor: pointer;
             }
+                    body.lc-console .ticket-card,
+            body.lc-console .ticket-card .small,
+            body.lc-console .ticket-card small,
+            body.lc-console .ticket-card h3,
+            body.lc-console .ticket-card h4,
+            body.lc-console .ticket-card div,
+            body.lc-console .ticket-card span,
+            body.lc-console .ticket-card h3.text-white,
+            body.lc-console .ticket-card h4.text-white,
+            body.lc-console .ticket-card .fw-bold,
+            body.lc-console .ticket-card .fw-semibold {
+                color: #ffffff !important;
+                opacity: 1 !important;
+            }
+            body.lc-console .ticket-card .text-white-50 {
+                color: rgba(255, 255, 255, 0.75) !important;
+            }
         </style>
     </head>
     <body class="lc-console">
@@ -104,21 +89,20 @@
         </jsp:include>
 
         <main class="lc-admin-main">
-            <div class="container-fluid px-4 py-4" style="max-width: 1200px;">
+            <div class="lc-page">
 
-                <%-- ===== Page header ===== --%>
-                <div class="d-flex justify-content-between align-items-center mb-4">
+                <div class="lc-form-actions">
                     <div>
-                        <div class="text-muted small mb-1">
-                            <a href="${pageContext.request.contextPath}/branch/promotions" class="text-decoration-none text-muted">Promotions</a> 
-                            / ${isEdit ? 'Edit' : 'Add new'}
+                        <div class="lc-page-crumb">
+                            <a href="${pageContext.request.contextPath}/branch/promotions" class="text-decoration-none text-muted">Promotions</a>
+                            / <strong>${isEdit ? 'Edit' : 'Add new'}</strong>
                         </div>
-                        <h4 class="text-navy fw-bold mb-0">${isEdit ? 'Edit Promotion' : 'Add New Promotion'}</h4>
+                        <h1 class="lc-page-title mb-0">${isEdit ? 'Edit Promotion' : 'Add New Promotion'}</h1>
                     </div>
-                    <div>
-                        <a class="btn btn-outline-secondary btn-sm me-2" href="${pageContext.request.contextPath}/branch/promotions">Cancel</a>
-                        <button type="submit" form="promoForm" class="btn btn-primary btn-sm">
-                            <i class="bi bi-check-lg me-1"></i>${isEdit ? 'Save Changes' : 'Create Promotion'}
+                    <div class="lc-form-actions-end">
+                        <a class="lc-btn-ghost" href="${pageContext.request.contextPath}/branch/promotions">Cancel</a>
+                        <button type="submit" form="promoForm" class="st-toolbar-add border-0">
+                            <i class="bi bi-check-lg" aria-hidden="true"></i>${isEdit ? 'Save Changes' : 'Create Promotion'}
                         </button>
                     </div>
                 </div>
@@ -146,7 +130,7 @@
                             </c:if>
 
                             <%-- Section: Basic Information --%>
-                            <div class="card lc-elev p-4 mb-4">
+                            <div class="card lc-elev p-4 mb-4 lc-rise" style="--i:0;">
                                 <h5 class="text-navy fw-bold mb-3">Basic Information</h5>
                                 <div class="row g-3">
                                     <div class="col-md-6">
@@ -175,15 +159,15 @@
                             </div>
 
                             <%-- Section: Discount --%>
-                            <div class="card lc-elev p-4 mb-4">
+                            <div class="card lc-elev p-4 mb-4 lc-rise" style="--i:1;">
                                 <h5 class="text-navy fw-bold mb-3">Discount</h5>
                                 <label class="form-label fw-semibold text-navy small">Discount Type *</label>
                                 <div class="row g-3 mb-3">
                                     <div class="col-6">
                                         <input type="radio" class="btn-check" name="discountType" id="typePercentage" value="PERCENT" 
                                                ${promo.discountType != 'FIXED_AMOUNT' ? 'checked' : ''} onchange="onDiscountTypeChange()">
-                                        <label class="type-card-btn h-100" for="typePercentage">
-                                            <span class="type-icon pct"><i class="bi bi-percent"></i></span>
+                                        <label class="lc-picker-card h-100" for="typePercentage">
+                                            <span class="lc-picker-icon pct"><i class="bi bi-percent"></i></span>
                                             <div class="fw-bold text-navy">Percentage</div>
                                             <div class="text-muted small mt-1" style="font-size: 0.75rem;">e.g. 10% off the order</div>
                                         </label>
@@ -191,8 +175,8 @@
                                     <div class="col-6">
                                         <input type="radio" class="btn-check" name="discountType" id="typeFixed" value="FIXED_AMOUNT" 
                                                ${promo.discountType == 'FIXED_AMOUNT' ? 'checked' : ''} onchange="onDiscountTypeChange()">
-                                        <label class="type-card-btn h-100" for="typeFixed">
-                                            <span class="type-icon fix"><i class="bi bi-cash"></i></span>
+                                        <label class="lc-picker-card h-100" for="typeFixed">
+                                            <span class="lc-picker-icon fix"><i class="bi bi-cash"></i></span>
                                             <div class="fw-bold text-navy">Fixed amount</div>
                                             <div class="text-muted small mt-1" style="font-size: 0.75rem;">e.g. 50,000₫ off the order</div>
                                         </label>
@@ -222,7 +206,7 @@
                             </div>
 
                             <%-- Section: Validity Period --%>
-                            <div class="card lc-elev p-4 mb-4">
+                            <div class="card lc-elev p-4 mb-4 lc-rise" style="--i:2;">
                                 <h5 class="text-navy fw-bold mb-3">Validity Period</h5>
                                 <div class="row g-3">
                                     <div class="col-md-6">
@@ -240,7 +224,7 @@
                             </div>
 
                             <%-- Section: Usage Limits & Active status --%>
-                            <div class="card lc-elev p-4 mb-4">
+                            <div class="card lc-elev p-4 mb-4 lc-rise" style="--i:3;">
                                 <h5 class="text-navy fw-bold mb-3">Usage Limits</h5>
                                 <div class="d-flex align-items-center justify-content-between mb-3">
                                     <div>
@@ -294,19 +278,19 @@
                                     <div class="card-glow"></div>
                                     <div class="d-flex flex-column h-100 justify-content-between position-relative" style="z-index: 3; min-height: 150px;">
                                         <div>
-                                            <div class="small" style="opacity: 0.75; font-size: 0.72rem; letter-spacing: 0.05em;"><i class="bi bi-tag-fill me-1"></i>PROMO CODE</div>
+                                            <div class="small text-white" style="font-size: 0.72rem; letter-spacing: 0.05em;"><i class="bi bi-tag-fill me-1"></i>PROMO CODE</div>
                                             <h4 class="fw-bold mb-2 text-white font-monospace" id="previewCode" style="letter-spacing: 0.05em;">PROMO_CODE</h4>
-                                            <div class="fw-semibold text-truncate text-white-50 small" id="previewName" style="max-width: 90%;">Promotion name</div>
+                                            <div class="fw-semibold text-truncate text-white small" id="previewName" style="max-width: 90%;">Promotion name</div>
                                         </div>
 
                                         <div class="d-flex align-items-end justify-content-between mt-4">
                                             <div>
-                                                <div class="small" style="opacity: 0.7; font-size: 0.7rem; font-weight: 500;">YOU SAVE</div>
+                                                <div class="small text-white" style="font-size: 0.7rem; font-weight: 500;">YOU SAVE</div>
                                                 <h3 class="fw-extrabold text-white mb-0" id="previewValue" style="font-size: 1.8rem; font-weight: 800;">10%</h3>
                                             </div>
                                             <div class="text-end">
-                                                <div class="small" id="previewMinOrder" style="opacity: 0.75; font-size: 0.72rem;">No minimum order</div>
-                                                <div class="small text-white-50 mt-1" style="font-size: 0.72rem; font-weight: 500;" id="previewDates">Valid: dd/MM &rarr; dd/MM</div>
+                                                <div class="small text-white" id="previewMinOrder" style="font-size: 0.72rem;">No minimum order</div>
+                                                <div class="small text-white mt-1" style="font-size: 0.72rem; font-weight: 500;" id="previewDates">Valid: dd/MM &rarr; dd/MM</div>
                                             </div>
                                         </div>
                                     </div>
@@ -337,126 +321,144 @@
             </div>
         </main>
 
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+        <%@ include file="/WEB-INF/views/branch/_branch-scripts.jspf" %>
         <script>
-                                                   // Elements
-                                                   const inputCode = document.getElementById('inputCode');
-                                                   const inputName = document.getElementById('inputName');
-                                                   const typePercentage = document.getElementById('typePercentage');
-                                                   const typeFixed = document.getElementById('typeFixed');
-                                                   const inputValue = document.getElementById('inputValue');
-                                                   const inputMinOrder = document.getElementById('inputMinOrder');
-                                                   const inputStart = document.getElementById('inputStart');
-                                                   const inputEnd = document.getElementById('inputEnd');
-                                                   const toggleLimit = document.getElementById('toggleLimit');
-                                                   const inputMaxUses = document.getElementById('inputMaxUses');
+            // ── DOM Element Bindings ──────────────────────────────────────────
+            // Obtain references to HTML inputs for form processing
+            const inputCode = document.getElementById('inputCode');
+            const inputName = document.getElementById('inputName');
+            const typePercentage = document.getElementById('typePercentage');
+            const typeFixed = document.getElementById('typeFixed');
+            const inputValue = document.getElementById('inputValue');
+            const inputMinOrder = document.getElementById('inputMinOrder');
+            const inputStart = document.getElementById('inputStart');
+            const inputEnd = document.getElementById('inputEnd');
+            const toggleLimit = document.getElementById('toggleLimit');
+            const inputMaxUses = document.getElementById('inputMaxUses');
 
-                                                   // Preview Elements
-                                                   const previewCode = document.getElementById('previewCode');
-                                                   const previewName = document.getElementById('previewName');
-                                                   const previewValue = document.getElementById('previewValue');
-                                                   const previewMinOrder = document.getElementById('previewMinOrder');
-                                                   const previewDates = document.getElementById('previewDates');
-                                                   const examplePromoLabel = document.getElementById('examplePromoLabel');
-                                                   const exampleDiscount = document.getElementById('exampleDiscount');
-                                                   const exampleFinal = document.getElementById('exampleFinal');
+            // Obtain references to Live Preview card nodes (dynamic update targets)
+            const previewCode = document.getElementById('previewCode');
+            const previewName = document.getElementById('previewName');
+            const previewValue = document.getElementById('previewValue');
+            const previewMinOrder = document.getElementById('previewMinOrder');
+            const previewDates = document.getElementById('previewDates');
+            const examplePromoLabel = document.getElementById('examplePromoLabel');
+            const exampleDiscount = document.getElementById('exampleDiscount');
+            const exampleFinal = document.getElementById('exampleFinal');
 
+            /**
+             * [Flow Step: JavaScript] Formats numbers to local Vietnamese Dong currency format (e.g., 250,000₫)
+             */
+            function formatCurrency(num) {
+                return new Intl.NumberFormat('vi-VN').format(num) + '₫';
+            }
 
+            /**
+             * [Flow Step: JavaScript] Converts date string format 'YYYY-MM-DD' to friendly 'DD/MM' display
+             */
+            function formatDateString(dateStr) {
+                if (!dateStr) return '';
+                const parts = dateStr.split('-');
+                if (parts.length === 3) {
+                    return parts[2] + '/' + parts[1]; // Returns Day/Month only for clean layout space
+                }
+                return dateStr;
+            }
 
-                                                   function formatCurrency(num) {
-                                                       return new Intl.NumberFormat('vi-VN').format(num) + '₫';
-                                                   }
+            /**
+             * [Flow Step: JavaScript] Recalculates simulated cart values and reflects inputs onto the preview card
+             */
+            function updatePreview() {
+                const isPercent = typePercentage.checked;
+                const val = parseFloat(inputValue.value) || 0;
+                const code = inputCode.value || 'PROMO_CODE';
+                const name = inputName.value || 'Promotion name';
+                const minOrder = parseFloat(inputMinOrder.value) || 0;
 
-                                                   function formatDateString(dateStr) {
-                                                       if (!dateStr)
-                                                           return '';
-                                                       const parts = dateStr.split('-');
-                                                       if (parts.length === 3) {
-                                                           return parts[2] + '/' + parts[1];
-                                                       }
-                                                       return dateStr;
-                                                   }
+                // Sync code and name to the preview DOM text nodes
+                previewCode.textContent = code;
+                previewName.textContent = name;
+                examplePromoLabel.textContent = 'Discount (' + code + ')';
 
-                                                   function updatePreview() {
-                                                       const isPercent = typePercentage.checked;
-                                                       const val = parseFloat(inputValue.value) || 0;
-                                                       const code = inputCode.value || 'PROMO_CODE';
-                                                       const name = inputName.value || 'Promotion name';
-                                                       const minOrder = parseFloat(inputMinOrder.value) || 0;
+                // Handle percentage vs fixed amount discount preview math
+                if (isPercent) {
+                    previewValue.textContent = val + '%';
+                    exampleDiscount.textContent = '-' + formatCurrency(265000 * (val / 100));
+                    exampleFinal.textContent = formatCurrency(265000 - (265000 * (val / 100)));
+                } else {
+                    previewValue.textContent = formatCurrency(val);
+                    exampleDiscount.textContent = '-' + formatCurrency(val);
+                    exampleFinal.textContent = formatCurrency(Math.max(0, 265000 - val));
+                }
 
-                                                       // Update text
-                                                       previewCode.textContent = code;
-                                                       previewName.textContent = name;
-                                                       examplePromoLabel.textContent = 'Discount (' + code + ')';
+                // Sync minimum order requirements
+                previewMinOrder.textContent = minOrder > 0 ? 'Min. ' + formatCurrency(minOrder) : 'No minimum order';
 
-                                                       // Update Value
-                                                       if (isPercent) {
-                                                           previewValue.textContent = val + '%';
-                                                           exampleDiscount.textContent = '-' + formatCurrency(265000 * (val / 100));
-                                                           exampleFinal.textContent = formatCurrency(265000 - (265000 * (val / 100)));
-                                                       } else {
-                                                           previewValue.textContent = formatCurrency(val);
-                                                           exampleDiscount.textContent = '-' + formatCurrency(val);
-                                                           exampleFinal.textContent = formatCurrency(Math.max(0, 265000 - val));
-                                                       }
+                // Sync validity date strings
+                const start = formatDateString(inputStart.value);
+                const end = formatDateString(inputEnd.value);
+                previewDates.textContent = 'Valid: ' + start + ' → ' + end;
+            }
 
-                                                       // Update Min Order
-                                                       previewMinOrder.textContent = minOrder > 0 ? 'Min. ' + formatCurrency(minOrder) : 'No minimum order';
+            /**
+             * [Flow Step: JavaScript] Enforces date continuity (end date cannot be before start date)
+             */
+            function updateEndDateMin() {
+                if (inputStart.value) {
+                    inputEnd.min = inputStart.value; // Dynamically set the minimum allowed date on the end-date calendarpicker
+                }
+            }
 
-                                                       // Update Dates
-                                                       const start = formatDateString(inputStart.value);
-                                                       const end = formatDateString(inputEnd.value);
-                                                       previewDates.textContent = 'Valid: ' + start + ' → ' + end;
-                                                   }
+            /**
+             * [Flow Step: JavaScript] Changes form constraints depending on discount type selection
+             */
+            function onDiscountTypeChange() {
+                const suffix = document.getElementById('valueSuffix');
+                if (typePercentage.checked) {
+                    suffix.textContent = '%';
+                    inputValue.max = 100; // Enforce maximum 100% discount boundary on browser side
+                } else {
+                    suffix.textContent = '₫';
+                    inputValue.removeAttribute('max');
+                }
+                updatePreview();
+            }
 
-                                                   function updateEndDateMin() {
-                                                       if (inputStart.value) {
-                                                           inputEnd.min = inputStart.value;
-                                                       }
-                                                   }
+            /**
+             * [Flow Step: JavaScript] Shows or hides usage count inputs based on limit toggler switch
+             */
+            function onLimitToggleChange() {
+                const group = document.getElementById('maxUsesGroup');
+                if (toggleLimit.checked) {
+                    group.classList.remove('d-none');
+                    inputMaxUses.setAttribute('required', 'required');
+                } else {
+                    group.classList.add('d-none');
+                    inputMaxUses.removeAttribute('required');
+                    inputMaxUses.value = ''; // Clean input value when disabled
+                }
+            }
 
-                                                   function onDiscountTypeChange() {
-                                                       const suffix = document.getElementById('valueSuffix');
-                                                       if (typePercentage.checked) {
-                                                           suffix.textContent = '%';
-                                                           inputValue.max = 100;
-                                                       } else {
-                                                           suffix.textContent = '₫';
-                                                           inputValue.removeAttribute('max');
-                                                       }
-                                                       updatePreview();
-                                                   }
+            // ── Event Listener Registrations ──────────────────────────────────
+            // Re-render live preview on any input interaction
+            inputCode.addEventListener('input', updatePreview);
+            inputName.addEventListener('input', updatePreview);
+            inputValue.addEventListener('input', updatePreview);
+            inputMinOrder.addEventListener('input', updatePreview);
+            inputStart.addEventListener('change', () => {
+                updateEndDateMin();
+                updatePreview();
+            });
+            inputEnd.addEventListener('change', updatePreview);
 
-                                                   function onLimitToggleChange() {
-                                                       const group = document.getElementById('maxUsesGroup');
-                                                       if (toggleLimit.checked) {
-                                                           group.classList.remove('d-none');
-                                                           inputMaxUses.setAttribute('required', 'required');
-                                                       } else {
-                                                           group.classList.add('d-none');
-                                                           inputMaxUses.removeAttribute('required');
-                                                           inputMaxUses.value = '';
-                                                       }
-                                                   }
-
-                                                   // Bind listeners
-                                                   inputCode.addEventListener('input', updatePreview);
-                                                   inputName.addEventListener('input', updatePreview);
-                                                   inputValue.addEventListener('input', updatePreview);
-                                                   inputMinOrder.addEventListener('input', updatePreview);
-                                                   inputStart.addEventListener('change', () => {
-                                                       updateEndDateMin();
-                                                       updatePreview();
-                                                   });
-                                                   inputEnd.addEventListener('change', updatePreview);
-
-                                                   // Initialization
-                                                   window.addEventListener('DOMContentLoaded', () => {
-                                                       onDiscountTypeChange();
-                                                       onLimitToggleChange();
-                                                       updateEndDateMin();
-                                                       updatePreview();
-                                                   });
+            // ── Page Initialization ──────────────────────────────────────────
+            // Trigger baseline rendering when browser finishes parsing DOM
+            window.addEventListener('DOMContentLoaded', () => {
+                onDiscountTypeChange();
+                onLimitToggleChange();
+                updateEndDateMin();
+                updatePreview();
+            });
         </script>
     </body>
 </html>

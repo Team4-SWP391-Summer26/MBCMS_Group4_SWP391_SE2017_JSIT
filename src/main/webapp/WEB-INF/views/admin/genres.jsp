@@ -5,48 +5,9 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Genre Management – PentaPlex</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
-    <link href="${pageContext.request.contextPath}/assets/css/manager.css?v=${applicationScope.assetVersion}" rel="stylesheet">
-    <style>
-        .lc-alert { border-radius:10px; font-size:.88rem; padding:.7rem 1rem; display:flex;
-            align-items:center; gap:.6rem; border:none; margin-bottom:1.25rem; }
-        .lc-alert-success { background:#D1FAE5; color:#065F46; }
-        .lc-alert-danger  { background:#FEE2E2; color:#991B1B; }
-
-        .lc-card { background:#fff; border:1px solid var(--lc-border); border-radius:16px;
-            box-shadow:var(--lc-shadow); overflow:hidden; }
-        .genre-table { width:100%; margin:0; }
-        .genre-table th { font-size:.72rem; text-transform:uppercase; letter-spacing:.05em; color:var(--lc-muted);
-            font-weight:700; padding:.85rem 1.25rem; border-bottom:1px solid var(--lc-border); text-align:left; background:#fafbfd; }
-        .genre-table td { padding:.85rem 1.25rem; border-bottom:1px solid var(--lc-border); font-size:.9rem; vertical-align:middle; }
-        .genre-table tr:last-child td { border-bottom:none; }
-        .genre-table tbody tr:hover { background:#fafbff; }
-        .genre-actions { display:flex; gap:.45rem; justify-content:flex-end; align-items:center; }
-        .genre-name { font-weight:600; color:var(--navy); }
-        .count-pill { font-size:.72rem; font-weight:600; padding:.18rem .6rem; border-radius:999px;
-            background:var(--lc-light); color:var(--lc-primary); }
-        .count-pill.zero { background:#F1F5F9; color:var(--lc-muted); }
-        .icon-btn { width:32px; height:32px; border-radius:8px; border:1px solid var(--lc-border); background:#fff;
-            color:#475569; display:inline-flex; align-items:center; justify-content:center; cursor:pointer; transition:.12s; }
-        .icon-btn:hover { border-color:var(--lc-primary); color:var(--lc-primary); background:var(--lc-light); }
-        .icon-btn.danger:hover { border-color:#FECACA; color:#991B1B; background:#FEE2E2; }
-        .icon-btn:disabled { opacity:.4; cursor:not-allowed; }
-
-        .modal-content { border:none; border-radius:16px; box-shadow:0 20px 60px rgba(0,0,0,.15); }
-        .modal-title { font-weight:700; font-size:1rem; color:var(--navy); }
-        .lc-form-label { font-size:.8rem; font-weight:600; color:#374151; margin-bottom:.3rem; }
-        .lc-form-control { border:1px solid var(--lc-border); border-radius:8px; padding:.5rem .75rem; font-size:.88rem; width:100%; }
-        .lc-form-control:focus { outline:none; border-color:var(--lc-primary); box-shadow:0 0 0 3px rgba(37,99,235,.1); }
-        .lc-modal-btn { padding:.5rem 1.2rem; border-radius:8px; font-size:.88rem; font-weight:600; cursor:pointer; border:none; }
-        .lc-modal-btn-cancel { background:var(--lc-light); color:#374151; border:1px solid var(--lc-border); }
-        .lc-modal-btn-save { background:var(--lc-primary); color:#fff; }
-        .lc-modal-btn-save:hover { background:var(--lc-primary-700); }
-        .lc-modal-btn-danger { background:var(--danger); color:#fff; }
-        .lc-modal-btn-danger:hover { background:#B91C1C; }
-    </style>
+    <%@ include file="/WEB-INF/views/admin/_admin-assets.jspf" %>
 </head>
 
 <body class="lc-console">
@@ -56,17 +17,13 @@
 </jsp:include>
 
 <main class="lc-admin-main">
-    <div class="container-fluid px-4 py-4" style="max-width:1080px;">
+    <div class="lc-page">
 
-        <div class="text-muted small mb-1">Admin / <span class="fw-semibold">Genres</span></div>
-        <div class="d-flex justify-content-between align-items-start mb-4">
+        <div class="lc-page-head">
             <div>
-                <h4 class="fw-bold text-navy mb-1">Genre Management</h4>
-                <div class="text-muted small">Maintain the list of movie genres used across the catalog.</div>
+                <div class="lc-page-crumb">Admin / <strong>Genres</strong></div>
+                <h1 class="lc-page-title">Genre Management</h1>
             </div>
-            <button class="btn btn-primary btn-sm text-nowrap" data-bs-toggle="modal" data-bs-target="#addModal">
-                <i class="bi bi-plus-lg me-1"></i>Add Genre
-            </button>
         </div>
 
         <c:if test="${not empty successMsg}">
@@ -82,51 +39,135 @@
             </div>
         </c:if>
 
-        <div class="lc-card">
-            <table class="genre-table">
-                <thead>
-                    <tr>
-                        <th style="width:55%;">Genre</th>
-                        <th>Movies using it</th>
-                        <th style="width:130px;text-align:right;">Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <c:forEach items="${genres}" var="g">
-                        <tr>
-                            <td><span class="genre-name"><i class="bi bi-tag-fill me-2 text-primary opacity-50"></i>${fn:escapeXml(g.name)}</span></td>
-                            <td><span class="count-pill ${g.movieCount == 0 ? 'zero' : ''}">${g.movieCount} movie${g.movieCount == 1 ? '' : 's'}</span></td>
-                            <td style="text-align:right;">
-                                <div class="genre-actions">
-                                <button type="button" class="icon-btn edit-btn"
-                                        data-id="${g.genreId}" data-name="${fn:escapeXml(g.name)}"
-                                        data-bs-toggle="modal" data-bs-target="#editModal" title="Rename">
-                                    <i class="bi bi-pencil"></i>
-                                </button>
-                                <button type="button" class="icon-btn danger delete-btn"
-                                        data-id="${g.genreId}" data-name="${fn:escapeXml(g.name)}"
-                                        ${g.movieCount > 0 ? 'disabled' : ''}
-                                        data-bs-toggle="modal" data-bs-target="#deleteModal"
-                                        title="${g.movieCount > 0 ? 'In use - cannot delete' : 'Delete'}">
-                                    <i class="bi bi-trash"></i>
-                                </button>
-                                </div>
-                            </td>
-                        </tr>
-                    </c:forEach>
-                    <c:if test="${empty genres}">
-                        <tr><td colspan="3" class="text-center py-5" style="color:var(--lc-muted);">
-                            <i class="bi bi-tags" style="font-size:2rem;display:block;margin-bottom:.5rem;"></i>
-                            No genres yet. Click “Add Genre” to create one.
-                        </td></tr>
-                    </c:if>
-                </tbody>
-            </table>
+        <%-- KPI --%>
+        <c:set var="genreTotal" value="${fn:length(genres)}"/>
+        <c:set var="genreInUse" value="0"/>
+        <c:set var="genreUnused" value="0"/>
+        <c:forEach items="${genres}" var="g">
+            <c:choose>
+                <c:when test="${g.movieCount > 0}">
+                    <c:set var="genreInUse" value="${genreInUse + 1}"/>
+                </c:when>
+                <c:otherwise>
+                    <c:set var="genreUnused" value="${genreUnused + 1}"/>
+                </c:otherwise>
+            </c:choose>
+        </c:forEach>
+
+        <div class="lc-kpi-row lc-kpi-row--3">
+            <div class="lc-kpi-card lc-rise" style="--i:0;">
+                <div class="lc-stat-icon lc-kpi-icon--blue"><i class="bi bi-tags-fill"></i></div>
+                <div>
+                    <div class="lc-kpi-label">Total genres</div>
+                    <div class="lc-kpi-value">${genreTotal}</div>
+                    <div class="lc-kpi-hint">In the catalog</div>
+                </div>
+            </div>
+            <div class="lc-kpi-card lc-rise" style="--i:1;">
+                <div class="lc-stat-icon lc-kpi-icon--green"><i class="bi bi-film"></i></div>
+                <div>
+                    <div class="lc-kpi-label">In use</div>
+                    <div class="lc-kpi-value">${genreInUse}</div>
+                    <div class="lc-kpi-hint">Linked to movies</div>
+                </div>
+            </div>
+            <div class="lc-kpi-card lc-rise" style="--i:2;">
+                <div class="lc-stat-icon lc-kpi-icon--slate"><i class="bi bi-dash-circle"></i></div>
+                <div>
+                    <div class="lc-kpi-label">Unused</div>
+                    <div class="lc-kpi-value">${genreUnused}</div>
+                    <div class="lc-kpi-hint">Safe to remove</div>
+                </div>
+            </div>
         </div>
+
+        <%-- Toolbar --%>
+        <div class="st-toolbar st-toolbar--single lc-toolbar mb-4">
+            <div class="st-toolbar-track w-100">
+                <div class="lc-toolbar-search">
+                    <i class="bi bi-search" aria-hidden="true"></i>
+                    <input type="search" id="genreSearch" class="fnb-search-input"
+                           placeholder="Search genres..." autocomplete="off"
+                           aria-label="Search genres">
+                </div>
+                <div class="lc-toolbar-spacer" aria-hidden="true"></div>
+                <button type="button" class="st-toolbar-add border-0" data-bs-toggle="modal" data-bs-target="#addModal">
+                    <i class="bi bi-plus-lg" aria-hidden="true"></i> Add Genre
+                </button>
+            </div>
+        </div>
+
+        <%-- Genre list --%>
+        <div class="genre-panel">
+            <div class="genre-panel-head">
+                <span>Catalog genres</span>
+                <span id="genreVisibleCount">${genreTotal} shown</span>
+            </div>
+
+            <c:choose>
+                <c:when test="${empty genres}">
+                    <div class="genre-empty">
+                        <div class="genre-empty-ic"><i class="bi bi-tags" aria-hidden="true"></i></div>
+                        <h3>No genres yet</h3>
+                        <p>Create genres to classify movies in the catalog.</p>
+                        <button type="button" class="st-toolbar-add border-0" data-bs-toggle="modal" data-bs-target="#addModal">
+                            <i class="bi bi-plus-lg" aria-hidden="true"></i> Add first genre
+                        </button>
+                    </div>
+                </c:when>
+                <c:otherwise>
+                    <div class="genre-list" id="genreList">
+                        <c:forEach items="${genres}" var="g" varStatus="st">
+                            <c:set var="toneIdx" value="${st.index % 6}"/>
+                            <c:set var="tone" value="blue"/>
+                            <c:if test="${toneIdx == 1}"><c:set var="tone" value="green"/></c:if>
+                            <c:if test="${toneIdx == 2}"><c:set var="tone" value="amber"/></c:if>
+                            <c:if test="${toneIdx == 3}"><c:set var="tone" value="rose"/></c:if>
+                            <c:if test="${toneIdx == 4}"><c:set var="tone" value="slate"/></c:if>
+                            <c:if test="${toneIdx == 5}"><c:set var="tone" value="violet"/></c:if>
+                            <article class="genre-item" data-tone="${tone}" data-name="${fn:toLowerCase(g.name)}"
+                                     style="--i:${st.index};">
+                                <div class="genre-swatch" aria-hidden="true">
+                                    <i class="bi bi-tag-fill"></i>
+                                </div>
+                                <div>
+                                    <p class="genre-name">${fn:escapeXml(g.name)}</p>
+                                    <div class="genre-slug">genre-${g.genreId}</div>
+                                </div>
+                                <span class="genre-count ${g.movieCount == 0 ? 'is-zero' : ''}">
+                                    <i class="bi bi-film" aria-hidden="true"></i>
+                                    ${g.movieCount} movie${g.movieCount == 1 ? '' : 's'}
+                                </span>
+                                <div class="genre-actions">
+                                    <button type="button" class="genre-act edit-btn"
+                                            data-id="${g.genreId}" data-name="${fn:escapeXml(g.name)}"
+                                            data-bs-toggle="modal" data-bs-target="#editModal"
+                                            title="Rename" aria-label="Rename ${fn:escapeXml(g.name)}">
+                                        <i class="bi bi-pencil"></i>
+                                    </button>
+                                    <button type="button" class="genre-act is-danger delete-btn"
+                                            data-id="${g.genreId}" data-name="${fn:escapeXml(g.name)}"
+                                            ${g.movieCount > 0 ? 'disabled' : ''}
+                                            data-bs-toggle="modal" data-bs-target="#deleteModal"
+                                            title="${g.movieCount > 0 ? 'In use — cannot delete' : 'Delete'}"
+                                            aria-label="Delete ${fn:escapeXml(g.name)}">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            </article>
+                        </c:forEach>
+                    </div>
+                    <div class="genre-no-match" id="genreNoMatch">
+                        <i class="bi bi-search me-1"></i> No genres match your search.
+                    </div>
+                </c:otherwise>
+            </c:choose>
+        </div>
+
     </div>
 </main>
 
-<%-- ── Add modal ─────────────────────────────────────────── --%>
+<%-- Add modal --%>
 <div class="modal fade" id="addModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
@@ -138,9 +179,10 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body px-4 py-3">
-                    <label class="lc-form-label">Genre name <span class="text-danger">*</span></label>
-                    <input type="text" name="name" class="lc-form-control" maxlength="50" required
+                    <label class="lc-form-label" for="addName">Genre name <span class="text-danger">*</span></label>
+                    <input type="text" name="name" id="addName" class="lc-form-control" maxlength="50" required
                            placeholder="e.g. Action" autocomplete="off">
+                    <div class="form-text text-muted small mt-1">Shown on movie detail and browse filters.</div>
                 </div>
                 <div class="modal-footer gap-2">
                     <button type="button" class="lc-modal-btn lc-modal-btn-cancel" data-bs-dismiss="modal">Cancel</button>
@@ -151,7 +193,7 @@
     </div>
 </div>
 
-<%-- ── Edit modal ────────────────────────────────────────── --%>
+<%-- Edit modal --%>
 <div class="modal fade" id="editModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
@@ -164,7 +206,7 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body px-4 py-3">
-                    <label class="lc-form-label">Genre name <span class="text-danger">*</span></label>
+                    <label class="lc-form-label" for="editName">Genre name <span class="text-danger">*</span></label>
                     <input type="text" name="name" id="editName" class="lc-form-control" maxlength="50" required autocomplete="off">
                 </div>
                 <div class="modal-footer gap-2">
@@ -176,7 +218,7 @@
     </div>
 </div>
 
-<%-- ── Delete modal ──────────────────────────────────────── --%>
+<%-- Delete modal --%>
 <div class="modal fade" id="deleteModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
@@ -200,16 +242,44 @@
     </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<%@ include file="/WEB-INF/views/admin/_admin-scripts.jspf" %>
 <script>
-    document.querySelectorAll('.edit-btn').forEach(b => b.addEventListener('click', function () {
-        document.getElementById('editId').value = this.dataset.id;
-        document.getElementById('editName').value = this.dataset.name;
-    }));
-    document.querySelectorAll('.delete-btn').forEach(b => b.addEventListener('click', function () {
-        document.getElementById('delId').value = this.dataset.id;
-        document.getElementById('delName').textContent = this.dataset.name;
-    }));
+    document.querySelectorAll('.edit-btn').forEach(function (b) {
+        b.addEventListener('click', function () {
+            document.getElementById('editId').value = this.dataset.id;
+            document.getElementById('editName').value = this.dataset.name;
+        });
+    });
+    document.querySelectorAll('.delete-btn').forEach(function (b) {
+        b.addEventListener('click', function () {
+            document.getElementById('delId').value = this.dataset.id;
+            document.getElementById('delName').textContent = this.dataset.name;
+        });
+    });
+
+    (function () {
+        var input = document.getElementById('genreSearch');
+        var list = document.getElementById('genreList');
+        var noMatch = document.getElementById('genreNoMatch');
+        var counter = document.getElementById('genreVisibleCount');
+        if (!input || !list) return;
+
+        function filterGenres() {
+            var q = input.value.trim().toLowerCase();
+            var items = list.querySelectorAll('.genre-item');
+            var visible = 0;
+            items.forEach(function (el) {
+                var name = el.getAttribute('data-name') || '';
+                var show = !q || name.indexOf(q) !== -1;
+                el.classList.toggle('is-hidden', !show);
+                if (show) visible++;
+            });
+            if (counter) counter.textContent = visible + ' shown';
+            if (noMatch) noMatch.classList.toggle('is-visible', visible === 0 && items.length > 0);
+        }
+
+        input.addEventListener('input', filterGenres);
+    })();
 </script>
 </body>
 </html>

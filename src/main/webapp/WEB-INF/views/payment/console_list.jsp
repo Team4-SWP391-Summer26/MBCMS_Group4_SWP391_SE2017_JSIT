@@ -14,9 +14,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Payment History – PentaPlex ${isAdmin ? 'Admin' : 'Manager'}</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
-    <link href="${pageContext.request.contextPath}/assets/css/manager.css?v=${applicationScope.assetVersion}" rel="stylesheet">
+    <%@ include file="/WEB-INF/views/branch/_branch-assets.jspf" %>
 </head>
 <body class="lc-console">
 
@@ -34,20 +32,26 @@
 </c:choose>
 
 <main class="lc-admin-main">
-    <div class="container-fluid px-4 py-4" style="max-width: 1240px;">
+    <div class="lc-page">
 
-        <%-- ===== Header + segmented tab ===== --%>
-        <div class="pay-head">
+        <div class="lc-page-head">
             <div>
-                <div class="pay-eyebrow"><i class="bi bi-credit-card-2-front"></i> Finance &middot; Payments</div>
-                <h1 class="pay-title">Payment History</h1>
+                <c:choose>
+                    <c:when test="${isAdmin}">
+                        <div class="lc-page-crumb">Admin / <strong>Payments</strong></div>
+                    </c:when>
+                    <c:otherwise>
+                        <div class="lc-page-section"><i class="bi bi-credit-card-2-front me-1"></i> Finance / Payments</div>
+                    </c:otherwise>
+                </c:choose>
+                <h1 class="lc-page-title">Payment History</h1>
             </div>
-            <div class="pay-seg">
+            <nav class="lc-page-nav" aria-label="Payment views">
                 <a class="active" href="${pageContext.request.contextPath}${base}/payments">
-                    <i class="bi bi-list-ul"></i> History</a>
+                    <i class="bi bi-list-ul" aria-hidden="true"></i> History</a>
                 <a href="${pageContext.request.contextPath}${base}/payments/monitor">
-                    <i class="bi bi-activity"></i> Monitoring</a>
-            </div>
+                    <i class="bi bi-activity" aria-hidden="true"></i> Monitoring</a>
+            </nav>
         </div>
 
         <c:if test="${not isAdmin}">
@@ -59,30 +63,30 @@
         </c:if>
 
         <%-- ===== Filter toolbar (dropdown/date auto-submit; text: Search) ===== --%>
-        <div class="pay-toolbar">
-            <form class="row g-2 align-items-end" method="get"
+        <div class="pay-toolbar lc-rise" style="--i:0;">
+            <form class="pay-filter-grid ${isAdmin ? 'has-branch' : ''}" method="get"
                   action="${pageContext.request.contextPath}${base}/payments">
-                <div class="col-6 col-md">
+                <div class="pay-filter-field">
                     <label>Status</label>
-                    <select name="status" class="form-select form-select-sm" onchange="this.form.submit()">
+                    <select name="status" class="form-select" onchange="this.form.submit()">
                         <option value="">All statuses</option>
                         <option value="SUCCESS" ${fStatus == 'SUCCESS' ? 'selected' : ''}>Success</option>
                         <option value="PENDING" ${fStatus == 'PENDING' ? 'selected' : ''}>Pending</option>
                         <option value="FAILED"  ${fStatus == 'FAILED'  ? 'selected' : ''}>Failed</option>
                     </select>
                 </div>
-                <div class="col-6 col-md">
+                <div class="pay-filter-field">
                     <label>Method</label>
-                    <select name="method" class="form-select form-select-sm" onchange="this.form.submit()">
+                    <select name="method" class="form-select" onchange="this.form.submit()">
                         <option value="">All methods</option>
                         <option value="VNPAY" ${fMethod == 'VNPAY' ? 'selected' : ''}>VNPay</option>
                         <option value="CASH"  ${fMethod == 'CASH'  ? 'selected' : ''}>Cash</option>
                     </select>
                 </div>
                 <c:if test="${isAdmin}">
-                    <div class="col-6 col-md">
+                    <div class="pay-filter-field">
                         <label>Branch</label>
-                        <select name="branch" class="form-select form-select-sm" onchange="this.form.submit()">
+                        <select name="branch" class="form-select" onchange="this.form.submit()">
                             <option value="">All branches</option>
                             <c:forEach var="br" items="${branches}">
                                 <option value="${br.branchId}" ${fBranch == br.branchId ? 'selected' : ''}>
@@ -91,33 +95,34 @@
                         </select>
                     </div>
                 </c:if>
-                <div class="col-6 col-md">
+                <div class="pay-filter-field">
                     <label>From</label>
-                    <input type="date" name="from" class="form-control form-control-sm"
+                    <input type="date" name="from" class="form-control"
                            value="${fFrom}" onchange="this.form.submit()">
                 </div>
-                <div class="col-6 col-md">
+                <div class="pay-filter-field">
                     <label>To</label>
-                    <input type="date" name="to" class="form-control form-control-sm"
+                    <input type="date" name="to" class="form-control"
                            value="${fTo}" onchange="this.form.submit()">
                 </div>
-                <div class="col-12 col-md-3">
+                <div class="pay-filter-field pay-filter-field--search">
                     <label>Search</label>
-                    <div class="input-group input-group-sm">
-                        <input type="text" name="q" class="form-control"
-                               placeholder="Code / ref / customer" value="${fn:escapeXml(fQ)}">
-                        <button class="btn btn-primary" type="submit" title="Search">
-                            <i class="bi bi-search"></i></button>
-                        <a class="btn btn-outline-secondary"
+                    <div class="pay-search-box">
+                        <i class="bi bi-search" aria-hidden="true"></i>
+                        <input type="search" name="q" placeholder="Code / ref / customer"
+                               value="${fn:escapeXml(fQ)}" aria-label="Search transactions">
+                        <button class="pay-search-btn" type="submit" title="Search">
+                            <i class="bi bi-arrow-right" aria-hidden="true"></i></button>
+                        <a class="pay-search-reset"
                            href="${pageContext.request.contextPath}${base}/payments" title="Reset filters">
-                            <i class="bi bi-arrow-counterclockwise"></i></a>
+                            <i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i></a>
                     </div>
                 </div>
             </form>
         </div>
 
         <%-- ===== Table ===== --%>
-        <div class="pay-card">
+        <div class="pay-card lc-rise" style="--i:1;">
             <div class="table-responsive">
                 <table class="pay-table">
                     <thead>
@@ -226,6 +231,6 @@
     </div>
 </main>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<%@ include file="/WEB-INF/views/branch/_branch-scripts.jspf" %>
 </body>
 </html>

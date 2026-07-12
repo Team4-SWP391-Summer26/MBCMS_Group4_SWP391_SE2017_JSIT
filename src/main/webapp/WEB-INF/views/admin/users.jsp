@@ -1,30 +1,13 @@
-﻿<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
-<%-- Admin User Management - rebuilt to match Payment console aesthetic (pay-table / pay-st / lc-kpi). --%>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>User Management - PentaPlex Admin</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
-    <link href="${pageContext.request.contextPath}/assets/css/manager.css?v=${applicationScope.assetVersion}" rel="stylesheet">
-    <style>
-        .u-role { display:inline-flex; align-items:center; font-size:.72rem; font-weight:700; padding:.22rem .6rem; border-radius:999px; white-space:nowrap; }
-        .u-role.r-customer { background:var(--lc-light); color:var(--primary-700); }
-        .u-role.r-manager  { background:#f5f3ff; color:#6d28d9; }
-        .u-role.r-staff    { background:#fffbeb; color:#b45309; }
-        .u-role.r-admin    { background:#fff1f2; color:#be123c; }
-        .u-act { width:34px; height:34px; border-radius:9px; border:1px solid var(--lc-border); background:#fff; color:var(--lc-muted); display:inline-flex; align-items:center; justify-content:center; transition:all .12s ease; text-decoration:none; }
-        .u-act:hover { transform:translateY(-1px); }
-        .u-act.a-edit:hover    { color:var(--lc-primary); border-color:#bfdbfe; background:var(--lc-light); }
-        .u-act.a-key:hover     { color:#b45309; border-color:#fde68a; background:#fffbeb; }
-        .u-act.a-suspend:hover { color:var(--danger); border-color:#fecaca; background:#fef2f2; }
-        .u-filter { height:38px; border:1px solid var(--lc-border); border-radius:9px; background:#fff; padding:0 .8rem; font-size:.88rem; color:var(--lc-navy); }
-        .u-filter:focus { outline:none; border-color:var(--lc-primary); box-shadow:0 0 0 3px rgba(37,99,235,.1); }
-    </style>
+    <%@ include file="/WEB-INF/views/admin/_admin-assets.jspf" %>
 </head>
 <body class="lc-console">
 
@@ -33,10 +16,15 @@
 </jsp:include>
 
 <main class="lc-admin-main">
-    <div class="container-fluid px-4 py-4" style="max-width:1300px;">
-        <div class="text-muted small mb-1">Admin / <span class="fw-semibold">Users</span></div>
-        <h4 class="fw-bold text-navy mb-1">User Management</h4>
-        <div class="text-muted small mb-4">Manage customers, branch staff and administrators across the system.</div>
+    <div class="lc-page">
+
+        <div class="lc-page-head">
+            <div>
+                <div class="lc-page-crumb">Admin / <strong>Users</strong></div>
+                <h1 class="lc-page-title">User Management</h1>
+                <p class="text-muted small mb-0 mt-1">Manage customers, branch staff and administrators across the system.</p>
+            </div>
+        </div>
 
         <c:if test="${not empty successMsg}">
             <div class="alert alert-success py-2 alert-dismissible fade show"><i class="bi bi-check-circle-fill me-2"></i>${successMsg}
@@ -47,73 +35,109 @@
                 <button class="btn-close" data-bs-dismiss="alert"></button></div>
         </c:if>
 
-        <%-- KPI ROW --%>
-        <div class="row g-3 mb-4">
-            <div class="col-md col-6"><div class="lc-kpi"><div class="lc-kpi-icon"><i class="bi bi-people-fill"></i></div>
-                <div><div class="lc-kpi-label">Total Users</div><div class="lc-kpi-value">${stats.totalUsers}</div></div></div></div>
-            <div class="col-md col-6"><div class="lc-kpi"><div class="lc-kpi-icon i-green"><i class="bi bi-person-fill"></i></div>
-                <div><div class="lc-kpi-label">Customers</div><div class="lc-kpi-value">${stats.customersCount}</div></div></div></div>
-            <div class="col-md col-6"><div class="lc-kpi"><div class="lc-kpi-icon i-purple"><i class="bi bi-person-badge-fill"></i></div>
-                <div><div class="lc-kpi-label">Branch Managers</div><div class="lc-kpi-value">${stats.branchManagersCount}</div></div></div></div>
-            <div class="col-md col-6"><div class="lc-kpi"><div class="lc-kpi-icon i-amber"><i class="bi bi-person-vcard-fill"></i></div>
-                <div><div class="lc-kpi-label">Branch Staff</div><div class="lc-kpi-value">${stats.branchStaffCount}</div></div></div></div>
-            <div class="col-md col-6"><div class="lc-kpi"><div class="lc-kpi-icon i-red"><i class="bi bi-shield-fill-check"></i></div>
-                <div><div class="lc-kpi-label">Admins</div><div class="lc-kpi-value">${stats.adminsCount}</div></div></div></div>
+        <div class="lc-kpi-row lc-kpi-row--5">
+            <div class="lc-kpi-card lc-rise" style="--i:0;">
+                <div class="lc-stat-icon lc-kpi-icon--blue"><i class="bi bi-people-fill"></i></div>
+                <div>
+                    <div class="lc-kpi-label">Total users</div>
+                    <div class="lc-kpi-value">${stats.totalUsers}</div>
+                    <div class="lc-kpi-hint">All roles combined</div>
+                </div>
+            </div>
+            <div class="lc-kpi-card lc-rise" style="--i:1;">
+                <div class="lc-stat-icon lc-kpi-icon--green"><i class="bi bi-person-fill"></i></div>
+                <div>
+                    <div class="lc-kpi-label">Customers</div>
+                    <div class="lc-kpi-value">${stats.customersCount}</div>
+                    <div class="lc-kpi-hint">Registered moviegoers</div>
+                </div>
+            </div>
+            <div class="lc-kpi-card lc-rise" style="--i:2;">
+                <div class="lc-stat-icon lc-kpi-icon--violet"><i class="bi bi-person-badge-fill"></i></div>
+                <div>
+                    <div class="lc-kpi-label">Branch managers</div>
+                    <div class="lc-kpi-value">${stats.branchManagersCount}</div>
+                    <div class="lc-kpi-hint">Manage a cinema</div>
+                </div>
+            </div>
+            <div class="lc-kpi-card lc-rise" style="--i:3;">
+                <div class="lc-stat-icon lc-kpi-icon--amber"><i class="bi bi-person-vcard-fill"></i></div>
+                <div>
+                    <div class="lc-kpi-label">Branch staff</div>
+                    <div class="lc-kpi-value">${stats.branchStaffCount}</div>
+                    <div class="lc-kpi-hint">Counter &amp; operations</div>
+                </div>
+            </div>
+            <div class="lc-kpi-card lc-rise" style="--i:4;">
+                <div class="lc-stat-icon lc-kpi-icon--rose"><i class="bi bi-shield-fill-check"></i></div>
+                <div>
+                    <div class="lc-kpi-label">Admins</div>
+                    <div class="lc-kpi-value">${stats.adminsCount}</div>
+                    <div class="lc-kpi-hint">System-wide access</div>
+                </div>
+            </div>
         </div>
 
-        <%-- TOOLBAR --%>
-        <div class="pay-toolbar mb-3">
+        <div class="st-toolbar st-toolbar--single lc-toolbar mb-4">
             <form id="filterForm" method="get" action="${pageContext.request.contextPath}/admin/users"
-                  class="d-flex flex-wrap align-items-center gap-2">
-                <div class="position-relative flex-grow-1" style="min-width:220px; max-width:340px;">
-                    <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
-                    <input type="text" name="search" value="<c:out value='${searchQuery}'/>"
-                           class="form-control u-filter w-100" style="padding-left:2.2rem;" placeholder="Search by name, email, or username...">
+                  class="st-toolbar-track w-100">
+                <div class="lc-toolbar-search">
+                    <i class="bi bi-search" aria-hidden="true"></i>
+                    <input type="search" name="search" value="<c:out value='${searchQuery}'/>"
+                           placeholder="Search by name, email, or username..." aria-label="Search users">
                 </div>
-                <select name="role" class="u-filter" onchange="this.form.submit()">
-                    <option value="">All Roles</option>
+                <div class="st-toolbar-vrule" aria-hidden="true"></div>
+                <select name="role" class="st-toolbar-select" onchange="this.form.submit()" aria-label="Filter by role">
+                    <option value="">All roles</option>
                     <option value="CUSTOMER" ${selectedRole == 'CUSTOMER' ? 'selected' : ''}>Customer</option>
                     <option value="BRANCH_MANAGER" ${selectedRole == 'BRANCH_MANAGER' ? 'selected' : ''}>Branch Manager</option>
                     <option value="BRANCH_STAFF" ${selectedRole == 'BRANCH_STAFF' ? 'selected' : ''}>Branch Staff</option>
                     <option value="ADMIN" ${selectedRole == 'ADMIN' ? 'selected' : ''}>Admin</option>
                 </select>
-                <select name="branchId" class="u-filter" onchange="this.form.submit()">
-                    <option value="">All Cinemas</option>
+                <div class="st-toolbar-vrule" aria-hidden="true"></div>
+                <select name="branchId" class="st-toolbar-select" onchange="this.form.submit()" aria-label="Filter by cinema">
+                    <option value="">All cinemas</option>
                     <c:forEach items="${branches}" var="b">
                         <option value="${b.branchId}" ${selectedBranchId == b.branchId ? 'selected' : ''}><c:out value="${b.name}"/></option>
                     </c:forEach>
                 </select>
+                <div class="st-toolbar-vrule" aria-hidden="true"></div>
                 <input type="hidden" id="statusInput" name="status" value="<c:out value='${selectedStatus}'/>">
-                <div class="btn-group" role="group">
-                    <button type="button" class="btn btn-sm ${empty selectedStatus ? 'btn-primary' : 'btn-light border'}" onclick="setStatus('')">All</button>
-                    <button type="button" class="btn btn-sm ${selectedStatus == 'Active' ? 'btn-primary' : 'btn-light border'}" onclick="setStatus('Active')">Active</button>
-                    <button type="button" class="btn btn-sm ${selectedStatus == 'Inactive' ? 'btn-primary' : 'btn-light border'}" onclick="setStatus('Inactive')">Inactive</button>
+                <div class="lc-seg" role="tablist" aria-label="Filter by status">
+                    <button type="button" class="lc-seg-btn ${empty selectedStatus ? 'active' : ''}" onclick="setStatus('')">All</button>
+                    <button type="button" class="lc-seg-btn ${selectedStatus == 'Active' ? 'active' : ''}" onclick="setStatus('Active')">Active</button>
+                    <button type="button" class="lc-seg-btn ${selectedStatus == 'Inactive' ? 'active' : ''}" onclick="setStatus('Inactive')">Inactive</button>
                 </div>
-                <div class="d-flex gap-2 ms-auto">
-                    <button type="button" onclick="exportCSV()" class="btn btn-light border btn-sm">
-                        <i class="bi bi-file-earmark-arrow-down me-1"></i>Export</button>
-                    <a href="${pageContext.request.contextPath}/admin/users?action=add" class="btn btn-primary btn-sm text-nowrap">
-                        <i class="bi bi-plus-circle me-1"></i>Add User</a>
-                </div>
+                <div class="lc-toolbar-spacer" aria-hidden="true"></div>
+                <button type="button" onclick="exportCSV()" class="lc-btn-ghost">
+                    <i class="bi bi-file-earmark-arrow-down me-1"></i>Export</button>
+                <a href="${pageContext.request.contextPath}/admin/users?action=add" class="st-toolbar-add">
+                    <i class="bi bi-plus-lg" aria-hidden="true"></i> Add User</a>
             </form>
         </div>
 
-        <%-- TABLE --%>
-        <div class="pay-card">
+        <div class="card lc-elev p-0 overflow-hidden">
             <div class="table-responsive">
-                <table class="pay-table">
+                <table class="table lc-table align-middle mb-0">
                     <thead>
                     <tr>
-                        <th style="width:40px;"><input class="form-check-input" type="checkbox" id="selectAll"></th>
-                        <th>User</th><th>Email</th><th>Role</th><th>Assigned Cinema</th>
-                        <th>Last login</th><th>Status</th><th class="r">Actions</th>
+                        <th class="ps-3" style="width:40px;"><input class="form-check-input" type="checkbox" id="selectAll"></th>
+                        <th>User</th><th>Email</th><th>Role</th><th>Assigned cinema</th>
+                        <th>Last login</th><th>Status</th><th class="text-end pe-3">Actions</th>
                     </tr>
                     </thead>
                     <tbody>
                     <c:choose>
                         <c:when test="${empty users}">
-                            <tr><td colspan="8" class="text-center text-muted py-5">
-                                <i class="bi bi-people fs-1 d-block mb-2 opacity-50"></i>No matching users.</td></tr>
+                            <tr><td colspan="8" class="p-0">
+                                <div class="lc-empty">
+                                    <i class="bi bi-people"></i>
+                                    <div class="lc-empty-title">No matching users</div>
+                                    <div class="lc-empty-hint">No users match your current search and filters. Try clearing them, or add a new user.</div>
+                                    <a class="st-toolbar-add mt-2" href="${pageContext.request.contextPath}/admin/users?action=add">
+                                        <i class="bi bi-plus-lg"></i> Add User</a>
+                                </div>
+                            </td></tr>
                         </c:when>
                         <c:otherwise>
                             <c:forEach items="${users}" var="user">
@@ -123,7 +147,7 @@
                                     <c:set var="initials" value="${fn:substring(words[0], 0, 1)}${fn:substring(words[fn:length(words) - 1], 0, 1)}" />
                                 </c:if>
                                 <tr>
-                                    <td><input class="form-check-input user-checkbox" type="checkbox" value="${user.username}"></td>
+                                    <td class="ps-3"><input class="form-check-input user-checkbox" type="checkbox" value="${user.username}"></td>
                                     <td>
                                         <div class="pay-cust">
                                             <div class="pay-avatar"><c:out value="${fn:toUpperCase(initials)}"/></div>
@@ -168,7 +192,7 @@
                                             <c:otherwise><span class="pay-st s-off"><span class="dot"></span>Inactive</span></c:otherwise>
                                         </c:choose>
                                     </td>
-                                    <td class="r">
+                                    <td class="text-end pe-3">
                                         <div class="d-inline-flex gap-1">
                                             <a href="${pageContext.request.contextPath}/admin/users?action=edit&username=${user.username}"
                                                class="u-act a-edit" title="Edit"><i class="bi bi-pencil"></i></a>
@@ -198,7 +222,6 @@
                 </table>
             </div>
 
-            <%-- PAGINATION --%>
             <div class="pay-foot d-flex justify-content-between align-items-center">
                 <div class="text-muted small">Showing <strong>${fn:length(users)}</strong> of <strong>${totalUsersCount}</strong> users</div>
                 <c:if test="${totalPages > 1}">
@@ -218,10 +241,11 @@
                 </c:if>
             </div>
         </div>
+
     </div>
 </main>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<%@ include file="/WEB-INF/views/admin/_admin-scripts.jspf" %>
 <script>
     function setStatus(v) {
         document.getElementById('statusInput').value = v;

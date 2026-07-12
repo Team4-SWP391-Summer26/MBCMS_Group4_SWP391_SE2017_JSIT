@@ -9,25 +9,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><c:choose><c:when test="${isAdd}">Add User</c:when><c:otherwise>Edit User</c:otherwise></c:choose> – PentaPlex</title>
-
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
-    <link href="${pageContext.request.contextPath}/assets/css/manager.css?v=${applicationScope.assetVersion}" rel="stylesheet">
-
+    <%@ include file="/WEB-INF/views/admin/_admin-assets.jspf" %>
     <style>
-        /* ── Topbar ─────────────────────────────────────── */
-        .lc-topbar {
-            display: flex; align-items: center; justify-content: space-between;
-            padding: .75rem 1.75rem; background: #fff;
-            border-bottom: 1px solid var(--lc-border);
-            position: sticky; top: 0; z-index: 100;
-        }
-        .lc-topbar-breadcrumb { font-size: .82rem; color: var(--lc-muted); }
-        .lc-topbar-breadcrumb a { color: var(--lc-muted); text-decoration: none; }
-        .lc-topbar-breadcrumb a:hover { color: var(--lc-primary); }
-        .lc-topbar-title { font-size: 1.45rem; font-weight: 800; color: var(--navy); margin-top: 1px; }
-
-        /* ── Panel card ──────────────────────────────────── */
         .lc-panel {
             background: #fff; border: 1px solid var(--lc-border);
             border-radius: 16px; box-shadow: var(--lc-shadow);
@@ -115,26 +98,14 @@
         .lc-btn-sm { padding: .4rem .9rem; font-size: .8rem; }
         .lc-btn-block { width: 100%; justify-content: center; }
 
-        /* ── Alert ───────────────────────────────────────── */
-        .lc-alert {
-            border-radius: 10px; font-size: .88rem; padding: .7rem 1rem;
-            display: flex; align-items: center; gap: .6rem;
-            border: none; margin-bottom: 1.25rem;
-        }
-        .lc-alert-success { background: #D1FAE5; color: #065F46; }
-        .lc-alert-danger  { background: #FEE2E2; color: #991B1B; }
-
-        /* ── Branch dropdown (conditional) ──────────────── */
         #branchSection { display: none; }
         #branchSection.show { display: block; }
 
-        /* ── Divider ─────────────────────────────────────── */
         .lc-divider {
             border: none; border-top: 1px solid var(--lc-border);
             margin: 1rem 0;
         }
 
-        /* ── Account ID chip ─────────────────────────────── */
         .lc-chip {
             display: inline-flex; align-items: center; gap: .35rem;
             background: var(--lc-light); color: var(--lc-primary);
@@ -151,38 +122,28 @@
 </jsp:include>
 
 <main class="lc-admin-main">
+    <div class="lc-page">
 
-    <%-- ── Topbar ──────────────────────────────────────────── --%>
-    <div class="lc-topbar">
-        <div>
-            <div class="lc-topbar-breadcrumb">
-                <a href="${pageContext.request.contextPath}/admin/dashboard">Admin</a>
-                <span class="mx-1">/</span>
-                <a href="${pageContext.request.contextPath}/admin/users">Users</a>
-                <span class="mx-1">/</span>
-                <c:choose>
-                    <c:when test="${isAdd}">Add User</c:when>
-                    <c:otherwise>Edit User</c:otherwise>
-                </c:choose>
+        <div class="lc-form-actions">
+            <div>
+                <div class="lc-page-crumb">
+                    <a href="${pageContext.request.contextPath}/admin/users" class="text-decoration-none text-muted">Admin / Users</a>
+                    / <strong><c:choose><c:when test="${isAdd}">Add User</c:when><c:otherwise>Edit User</c:otherwise></c:choose></strong>
+                </div>
+                <h1 class="lc-page-title mb-0">
+                    <c:choose><c:when test="${isAdd}">Add New User</c:when><c:otherwise>Edit User</c:otherwise></c:choose>
+                </h1>
             </div>
-            <div class="lc-topbar-title">
-                <c:choose>
-                    <c:when test="${isAdd}">Add New User</c:when>
-                    <c:otherwise>Edit User</c:otherwise>
-                </c:choose>
+            <div class="lc-form-actions-end">
+                <a href="${pageContext.request.contextPath}/admin/users" class="lc-back-link">
+                    <i class="bi bi-arrow-left"></i> Back</a>
+                <button type="submit" form="mainForm" class="st-toolbar-add border-0">
+                    <i class="bi bi-check-lg" aria-hidden="true"></i>
+                    <c:choose><c:when test="${isAdd}">Create User</c:when><c:otherwise>Save Changes</c:otherwise></c:choose>
+                </button>
             </div>
         </div>
-        <div class="d-flex align-items-center gap-3">
-            <span class="header-badge-admin">
-                <i class="bi bi-shield-fill"></i> ADMIN ACCESS
-            </span>
-            <div class="header-profile-circle">SA</div>
-        </div>
-    </div>
 
-    <div class="container-fluid px-4 py-4">
-
-        <%-- ── Alerts ────────────────────────────────────────── --%>
         <c:if test="${not empty successMsg}">
             <div class="lc-alert lc-alert-success alert-dismissible">
                 <i class="bi bi-check-circle-fill"></i> ${successMsg}
@@ -196,12 +157,6 @@
             </div>
         </c:if>
 
-        <%-- ── Back link ─────────────────────────────────────── --%>
-        <a href="${pageContext.request.contextPath}/admin/users" class="lc-btn lc-btn-ghost lc-btn-sm mb-3">
-            <i class="bi bi-arrow-left"></i> Back to Users
-        </a>
-
-        <%-- ── Main form ─────────────────────────────────────── --%>
         <form method="post" action="${pageContext.request.contextPath}/admin/users" id="mainForm">
             <%@ include file="/WEB-INF/views/common/csrf-hidden.jspf" %>
             <input type="hidden" name="action" value="${isAdd ? 'add' : 'edit'}">
@@ -215,7 +170,7 @@
                 <div class="col-lg-4">
 
                     <%-- Avatar + identity card --%>
-                    <div class="lc-panel mb-3">
+                    <div class="lc-panel mb-3 lc-rise" style="--i:0;">
                         <div class="p-4 text-center">
 
                             <%-- Dynamic avatar colour based on role --%>
@@ -328,7 +283,7 @@
                 <div class="col-lg-8">
 
                     <%-- Personal Details --%>
-                    <div class="lc-panel mb-3">
+                    <div class="lc-panel mb-3 lc-rise" style="--i:1;">
                         <div class="lc-panel-header">
                             <i class="bi bi-person-lines-fill text-primary"></i> Personal Details
                         </div>
@@ -399,7 +354,7 @@
                     </div>
 
                     <%-- Password --%>
-                    <div class="lc-panel mb-3">
+                    <div class="lc-panel mb-3 lc-rise" style="--i:2;">
                         <div class="lc-panel-header">
                             <i class="bi bi-lock-fill text-primary"></i>
                             <c:choose>
@@ -421,7 +376,7 @@
                     </div>
 
                     <%-- Role selection --%>
-                    <div class="lc-panel mb-3">
+                    <div class="lc-panel mb-3 lc-rise" style="--i:3;">
                         <div class="lc-panel-header">
                             <i class="bi bi-shield-check text-primary"></i> Role &amp; Permissions
                         </div>
@@ -511,28 +466,14 @@
                         </div>
                     </div>
 
-                    <%-- Action buttons --%>
-                    <div class="d-flex justify-content-end gap-2">
-                        <a href="${pageContext.request.contextPath}/admin/users" class="lc-btn lc-btn-ghost">
-                            <i class="bi bi-x-lg"></i> Cancel
-                        </a>
-                        <button type="submit" class="lc-btn lc-btn-primary">
-                            <i class="bi bi-check-lg"></i>
-                            <c:choose>
-                                <c:when test="${isAdd}">Create User</c:when>
-                                <c:otherwise>Save Changes</c:otherwise>
-                            </c:choose>
-                        </button>
-                    </div>
-
                 </div><%-- /col right --%>
             </div><%-- /row --%>
         </form>
 
-    </div><%-- /container --%>
+    </div>
 </main>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<%@ include file="/WEB-INF/views/admin/_admin-scripts.jspf" %>
 <script>
     /* ── Branch section visibility ──────────────────────── */
     const BRANCH_ROLES = ['BRANCH_MANAGER', 'BRANCH_STAFF'];
@@ -575,12 +516,12 @@
         const role = document.querySelector('input[name="role"]:checked');
         if (!role) {
             e.preventDefault();
-            alert('Please select a role for this user.');
+            lcAlert('Please select a role for this user.');
             return;
         }
         if (BRANCH_ROLES.includes(role.value) && !branchSelect.value) {
             e.preventDefault();
-            alert('Please select an assigned cinema for Manager / Staff roles.');
+            lcAlert('Please select an assigned cinema for Manager / Staff roles.');
             branchSelect.focus();
         }
     });
