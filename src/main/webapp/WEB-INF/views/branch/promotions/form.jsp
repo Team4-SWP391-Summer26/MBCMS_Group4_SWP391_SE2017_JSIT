@@ -63,19 +63,21 @@
                 height: 1.5em;
                 cursor: pointer;
             }
-                    .ticket-card,
-            .ticket-card .small,
-            .ticket-card small,
-            .ticket-card h3,
-            .ticket-card h4,
-            .ticket-card div,
-            .ticket-card span,
-            .ticket-card h3.text-white,
-            .ticket-card h4.text-white {
+                    body.lc-console .ticket-card,
+            body.lc-console .ticket-card .small,
+            body.lc-console .ticket-card small,
+            body.lc-console .ticket-card h3,
+            body.lc-console .ticket-card h4,
+            body.lc-console .ticket-card div,
+            body.lc-console .ticket-card span,
+            body.lc-console .ticket-card h3.text-white,
+            body.lc-console .ticket-card h4.text-white,
+            body.lc-console .ticket-card .fw-bold,
+            body.lc-console .ticket-card .fw-semibold {
                 color: #ffffff !important;
                 opacity: 1 !important;
             }
-            .ticket-card .text-white-50 {
+            body.lc-console .ticket-card .text-white-50 {
                 color: rgba(255, 255, 255, 0.75) !important;
             }
         </style>
