@@ -188,24 +188,106 @@ public class MovieDAOImpl extends BaseDAO implements MovieDAO {
         return m;
     }
 
+    /** Cot chung khi can phim + the loai (Home/list). */
+    private static final String MOVIE_GENRE_COLUMNS
+            = "SELECT m.movie_id, m.title, m.description, m.duration_min, m.director, m.cast_list, "
+            + "m.language, m.country, m.rated, m.poster_url, m.trailer_url, m.release_date, m.status, m.active, "
+            + "g.name AS genre_name ";
+
     @Override
     public List<Movie> findMoviesByStatus(String status, int limit) {
-        String sql = "SELECT TOP (" + limit + ") m.movie_id, m.title, m.description, m.duration_min, m.director, m.cast_list, "
-                + "m.language, m.country, m.rated, m.poster_url, m.trailer_url, m.release_date, m.status, m.active, "
-                + "g.name AS genre_name "
-                + "FROM movies m "
+        // TOP phai ap dung tren movie_id TRUOC khi JOIN genre (1 phim nhieu the loai
+        // = nhieu dong). Neu TOP sau JOIN, danh sach bi cat thieu phim.
+        int safeLimit = Math.max(1, Math.min(limit, 100));
+        String sql = MOVIE_GENRE_COLUMNS
+                + "FROM ( "
+                + "  SELECT TOP (" + safeLimit + ") movie_id "
+                + "  FROM movies "
+                + "  WHERE active = 1 AND status = ? "
+                + "  ORDER BY movie_id DESC "
+                + ") ids "
+                + "JOIN movies m ON m.movie_id = ids.movie_id "
                 + "LEFT JOIN movie_genres mg ON m.movie_id = mg.movie_id "
                 + "LEFT JOIN genres g ON mg.genre_id = g.genre_id "
-                + "WHERE m.active = 1 AND m.status = ? "
                 + "ORDER BY m.movie_id DESC";
+        return queryMoviesWithGenres(sql, "findMoviesByStatus", status);
+    }
 
+    @Override
+    public List<Movie> findSpotlightMovies(int limit) {
+        // Nghiep vu spotlight: phim NOW_SHOWING dang co NHIEU suat SCHEDULED sap
+        // toi nhat (rap dau tu nhieu suat = phim dang hot / duoc uu tien ban ve).
+        int safeLimit = Math.max(1, Math.min(limit, 20));
+        String sql = MOVIE_GENRE_COLUMNS
+                + "FROM ( "
+                + "  SELECT TOP (" + safeLimit + ") st.movie_id, COUNT(*) AS upcoming_count "
+                + "  FROM showtimes st "
+                + "  JOIN movies mv ON mv.movie_id = st.movie_id "
+                + "  WHERE mv.active = 1 AND mv.status = 'NOW_SHOWING' "
+                + "    AND st.status = 'SCHEDULED' AND st.start_time > GETDATE() "
+                + "  GROUP BY st.movie_id "
+                + "  ORDER BY COUNT(*) DESC "
+                + ") ids "
+                + "JOIN movies m ON m.movie_id = ids.movie_id "
+                + "LEFT JOIN movie_genres mg ON m.movie_id = mg.movie_id "
+                + "LEFT JOIN genres g ON mg.genre_id = g.genre_id "
+                + "ORDER BY ids.upcoming_count DESC, m.movie_id DESC";
+        return queryMoviesWithGenres(sql, "findSpotlightMovies");
+    }
+
+    @Override
+    public List<Movie> findHomeNowShowing(int limit) {
+        // Nghiep vu Now Showing (Home): chi phim con BAN VE duoc — co it nhat
+        // 1 suat SCHEDULED trong tuong lai. Uu tien phim moi ra rap.
+        int safeLimit = Math.max(1, Math.min(limit, 50));
+        String sql = MOVIE_GENRE_COLUMNS
+                + "FROM ( "
+                + "  SELECT TOP (" + safeLimit + ") m2.movie_id, m2.release_date "
+                + "  FROM movies m2 "
+                + "  WHERE m2.active = 1 AND m2.status = 'NOW_SHOWING' "
+                + "    AND EXISTS ( "
+                + "      SELECT 1 FROM showtimes st "
+                + "      WHERE st.movie_id = m2.movie_id "
+                + "        AND st.status = 'SCHEDULED' AND st.start_time > GETDATE() "
+                + "    ) "
+                + "  ORDER BY m2.release_date DESC, m2.movie_id DESC "
+                + ") ids "
+                + "JOIN movies m ON m.movie_id = ids.movie_id "
+                + "LEFT JOIN movie_genres mg ON m.movie_id = mg.movie_id "
+                + "LEFT JOIN genres g ON mg.genre_id = g.genre_id "
+                + "ORDER BY ids.release_date DESC, m.movie_id DESC";
+        return queryMoviesWithGenres(sql, "findHomeNowShowing");
+    }
+
+    @Override
+    public List<Movie> findUpcomingMovies(int limit) {
+        // Coming Soon: phim sap ra rap GAN NHAT len truoc (release_date tang dan).
+        int safeLimit = Math.max(1, Math.min(limit, 50));
+        String sql = MOVIE_GENRE_COLUMNS
+                + "FROM ( "
+                + "  SELECT TOP (" + safeLimit + ") m2.movie_id, m2.release_date "
+                + "  FROM movies m2 "
+                + "  WHERE m2.active = 1 AND m2.status = 'UPCOMING' "
+                + "  ORDER BY m2.release_date ASC, m2.movie_id ASC "
+                + ") ids "
+                + "JOIN movies m ON m.movie_id = ids.movie_id "
+                + "LEFT JOIN movie_genres mg ON m.movie_id = mg.movie_id "
+                + "LEFT JOIN genres g ON mg.genre_id = g.genre_id "
+                + "ORDER BY ids.release_date ASC, m.movie_id ASC";
+        return queryMoviesWithGenres(sql, "findUpcomingMovies");
+    }
+
+    /** Chay query da build san (params theo thu tu ?) va gom genre ve tung phim. */
+    private List<Movie> queryMoviesWithGenres(String sql, String ctx, Object... params) {
         Connection conn = null;
         PreparedStatement ps = null;
         ResultSet rs = null;
         try {
             conn = getConnection();
             ps = conn.prepareStatement(sql);
-            ps.setString(1, status);
+            for (int i = 0; i < params.length; i++) {
+                ps.setObject(i + 1, params[i]);
+            }
             rs = ps.executeQuery();
 
             List<Movie> list = new ArrayList<>();
@@ -245,7 +327,7 @@ public class MovieDAOImpl extends BaseDAO implements MovieDAO {
             }
             return list;
         } catch (SQLException e) {
-            throw new RuntimeException("Loi in MovieDAOImpl.findMoviesByStatus: " + e.getMessage(), e);
+            throw new RuntimeException("Loi in MovieDAOImpl." + ctx + ": " + e.getMessage(), e);
         } finally {
             closeAll(rs, ps, conn);
         }
@@ -253,7 +335,7 @@ public class MovieDAOImpl extends BaseDAO implements MovieDAO {
 
     @Override
     public Movie findFeaturedMovie() {
-        List<Movie> list = findMoviesByStatus("NOW_SHOWING", 1);
+        List<Movie> list = findSpotlightMovies(1);
         return list.isEmpty() ? null : list.get(0);
     }
 

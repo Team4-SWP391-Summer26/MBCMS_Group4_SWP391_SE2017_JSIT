@@ -161,7 +161,13 @@
                                             </span>
                                         </div>
                                         <span class="room-fmt-sub">
-                                            <c:out value="${rg.format}"/> &bull; <c:out value="${rg.subtitleType}"/>
+                                            <c:out value="${rg.format}"/> &bull;
+                                            <c:choose>
+                                                <c:when test="${rg.subtitleType eq 'SUB'}">Subtitled</c:when>
+                                                <c:when test="${rg.subtitleType eq 'DUB'}">Dubbed</c:when>
+                                                <c:when test="${rg.subtitleType eq 'ORIGINAL'}">Original</c:when>
+                                                <c:otherwise><c:out value="${rg.subtitleType}"/></c:otherwise>
+                                            </c:choose>
                                         </span>
                                         <span class="room-price-from">
                                             From <fmt:formatNumber value="${rg.minPrice}" pattern="#,##0"/> VND

@@ -82,9 +82,15 @@
                                     data-type="${room.roomType}"
                                     data-bs-toggle="modal" data-bs-target="#editRoomModal">
                                 <i class="bi bi-pencil me-1"></i>Edit</button>
-                            <a class="btn btn-primary btn-sm flex-fill"
+                            <a class="btn btn-outline-primary btn-sm flex-fill"
                                href="${pageContext.request.contextPath}/branch/seats?roomId=${room.roomId}">
                                 <i class="bi bi-grid-3x3-gap me-1"></i>Seats</a>
+                        </div>
+                        <div class="px-3 pb-3">
+                            <a class="btn btn-primary btn-sm w-100"
+                               href="${pageContext.request.contextPath}/branch/seats?roomId=${room.roomId}#genModal"
+                               title="Regenerate seat grid to change capacity">
+                                <i class="bi bi-arrow-repeat me-1"></i>Change layout / capacity</a>
                         </div>
                     </div>
                 </div>
@@ -102,8 +108,9 @@
 
         <div class="alert alert-light border mt-3 small text-muted">
             <i class="bi bi-info-circle me-1 text-primary"></i>
-            <strong>Capacity is auto-calculated.</strong> The seat count on each room is derived from the seats
-            configured in the Seat Layout editor. To change capacity, edit the seat grid.
+            <strong>Capacity is auto-calculated</strong> from the seat layout.
+            Use <strong>Change layout / capacity</strong> to regenerate the grid (blocked if the room still has future showtimes or bookings).
+            Do not try to edit capacity on the room name/type form.
         </div>
     </div>
 </main>
@@ -120,7 +127,9 @@
                 <div class="mb-3"><label class="form-label fw-semibold small">Room Name</label>
                     <input type="text" class="form-control" name="name" required></div>
                 <div class="mb-3"><label class="form-label fw-semibold small">Initial capacity</label>
-                    <input type="number" class="form-control" name="capacity" min="1" max="260" required></div>
+                    <input type="number" class="form-control" name="capacity" min="1" max="260" required>
+                    <div class="form-text">Max 260 with default 10-column grid. Change later via Seat Layout regenerate.</div>
+                </div>
                 <div class="mb-3"><label class="form-label fw-semibold small">Room Type</label>
                     <select class="form-select" name="roomType">
                         <option value="STANDARD">STANDARD</option>

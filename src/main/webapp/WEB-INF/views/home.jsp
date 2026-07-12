@@ -18,9 +18,11 @@
 
         <jsp:include page="common/header.jsp" />
 
-        <%-- ================= HERO (2 cột: thông tin trái · coverflow poster phải) ================= --%>
-        <c:if test="${not empty nowShowing}">
-            <c:set var="cf0" value="${nowShowing[0]}" />
+        <%-- ================= HERO SPOTLIGHT =================
+             Chỉ tối đa 5 phim hot nhất (nhiều suất SCHEDULED sắp tới nhất),
+             không phải toàn bộ Now Showing. --%>
+        <c:if test="${not empty spotlight}">
+            <c:set var="cf0" value="${spotlight[0]}" />
             <c:set var="cf0RatingVal" value="${((cf0.movieId * 7) % 30) / 10 + 7.0}" />
             <c:set var="cf0Rating"><fmt:formatNumber value="${cf0RatingVal}" pattern="0.0" /></c:set>
             <c:set var="cf0Genres" value="" />
@@ -28,7 +30,7 @@
             <section class="hero-cf">
                 <div class="container public-shell">
                     <div class="row align-items-center g-4 g-lg-5">
-                        <%-- LEFT: thông tin phim đang ở giữa --%>
+                        <%-- LEFT: thông tin phim đang ở giữa (z-index cao hơn carousel) --%>
                         <div class="col-lg-5 order-2 order-lg-1 hero-cf-info home-reveal" style="--i:0">
                             <span class="eyebrow">Spotlight</span>
                             <h1 class="cf-title" id="cfTitle"><c:out value="${cf0.title}"/></h1>
@@ -46,11 +48,11 @@
                             </a>
                         </div>
 
-                        <%-- RIGHT: coverflow posters --%>
-                        <div class="col-lg-7 order-1 order-lg-2 home-reveal" style="--i:1">
+                        <%-- RIGHT: coverflow — clip trong cot de khong de poster len chu --%>
+                        <div class="col-lg-7 order-1 order-lg-2 hero-cf-carousel home-reveal" style="--i:1">
                             <div class="swiper movieSwiper">
                                 <div class="swiper-wrapper">
-                                    <c:forEach var="m" items="${nowShowing}">
+                                    <c:forEach var="m" items="${spotlight}">
                                         <c:set var="cfRatingVal" value="${((m.movieId * 7) % 30) / 10 + 7.0}" />
                                         <c:set var="cfRatingStr"><fmt:formatNumber value="${cfRatingVal}" pattern="0.0" /></c:set>
                                         <c:set var="cfGenres" value="" />
@@ -143,18 +145,21 @@
 
             <%-- ================= NOW SHOWING ================= --%>
             <section class="mb-5 home-reveal" style="--i:2">
-                <div class="home-section-head mb-4">
+                <div class="home-section-head home-section-head--split mb-4">
                     <div class="home-section-intro">
                         <span class="section-kicker"><i class="bi bi-camera-reels"></i> In cinemas</span>
                         <h2 class="section-title mb-1">Now Showing</h2>
                         <p class="section-desc mb-0">Book tickets for movies currently in our cinemas.</p>
                     </div>
-                    <div class="genre-tabs home-genre-tabs">
-                        <button type="button" class="genre-tab-btn active" data-genre-btn="All" onclick="filterGenre('All')">All</button>
-                        <c:forEach var="gen" items="${genres}">
-                            <button type="button" class="genre-tab-btn" data-genre-btn="${gen.name}" onclick="filterGenre('${gen.name}')">${gen.name}</button>
-                        </c:forEach>
-                    </div>
+                    <a href="${pageContext.request.contextPath}/movies?status=NOW_SHOWING" class="view-all-link text-nowrap">
+                        View all <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="genre-tabs home-genre-tabs mb-4">
+                    <button type="button" class="genre-tab-btn active" data-genre-btn="All" onclick="filterGenre('All')">All</button>
+                    <c:forEach var="gen" items="${genres}">
+                        <button type="button" class="genre-tab-btn" data-genre-btn="${gen.name}" onclick="filterGenre('${gen.name}')">${gen.name}</button>
+                    </c:forEach>
                 </div>
 
                 <div class="movie-grid" id="nowShowingGrid">
@@ -389,7 +394,7 @@
                     resizeObserver: true,
                     speed: 450,
                     slideToClickedSlide: true,
-                    coverflowEffect: { rotate: 14, stretch: -12, depth: 90, modifier: 1.15, slideShadows: false },
+                    coverflowEffect: { rotate: 10, stretch: 0, depth: 70, modifier: 1, slideShadows: false },
                     autoplay: { delay: 4500, disableOnInteraction: false, pauseOnMouseEnter: true, waitForTransition: true },
                     navigation: {
                         nextEl: '.movieSwiper .swiper-button-next',

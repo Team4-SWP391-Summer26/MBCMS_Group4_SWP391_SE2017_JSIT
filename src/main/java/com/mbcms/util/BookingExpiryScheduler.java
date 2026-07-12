@@ -14,13 +14,10 @@ import java.util.concurrent.TimeUnit;
 /**
  * BookingExpiryScheduler:
  *  1. Tu dong giai phong PENDING booking qua 10 phut (releaseExpiredLocks).
- *  2. Tu dong danh dau CONFIRMED -> USED khi suat chieu da bat dau qua 30
- *     phut (markCompletedBookingsAsUsed).
+ *  2. CONFIRMED + chua check-in + now &gt; end_time → NO_SHOW
+ *     (markNoShowAfterShowtimeEnded). USED chi tu check-in thu cong.
  *
  * Chay moi 60 giay. Duoc khoi dong khi deploy, tat khi undeploy.
- *
- * Dang ky: @WebListener (tu dong phat hien boi servlet container).
- * Khong can khai bao them trong web.xml.
  */
 @WebListener
 public class BookingExpiryScheduler implements ServletContextListener {
@@ -48,13 +45,13 @@ public class BookingExpiryScheduler implements ServletContextListener {
             }
 
             try {
-                int used = bookingService.markCompletedBookingsAsUsed();
-                if (used > 0) {
+                int noShow = bookingService.markNoShowAfterShowtimeEnded();
+                if (noShow > 0) {
                     System.out.println("[BookingExpiryScheduler] Danh dau "
-                        + used + " booking CONFIRMED -> USED (qua 30 phut chieu).");
+                        + noShow + " booking CONFIRMED -> NO_SHOW (het suat, chua check-in).");
                 }
             } catch (Exception e) {
-                System.err.println("[BookingExpiryScheduler] Loi markCompletedBookingsAsUsed: " + e.getMessage());
+                System.err.println("[BookingExpiryScheduler] Loi markNoShowAfterShowtimeEnded: " + e.getMessage());
             }
         }, 60, 60, TimeUnit.SECONDS);
 

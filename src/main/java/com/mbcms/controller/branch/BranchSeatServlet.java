@@ -2,8 +2,10 @@ package com.mbcms.controller.branch;
 
 import com.mbcms.model.Room;
 import com.mbcms.model.Seat;
+import com.mbcms.service.PricingService;
 import com.mbcms.service.RoomService;
 import com.mbcms.service.SeatService;
+import com.mbcms.service.impl.PricingServiceImpl;
 import com.mbcms.service.impl.RoomServiceImpl;
 import com.mbcms.service.impl.SeatServiceImpl;
 import jakarta.servlet.ServletException;
@@ -27,6 +29,7 @@ public class BranchSeatServlet extends HttpServlet {
 
     private final SeatService seatService = new SeatServiceImpl();
     private final RoomService roomService = new RoomServiceImpl();
+    private final PricingService pricingService = new PricingServiceImpl();
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
@@ -66,7 +69,8 @@ public class BranchSeatServlet extends HttpServlet {
         req.setAttribute("room", room);
         req.setAttribute("seatsByRow", seatsByRow);
         req.setAttribute("roomId", roomId);
-        
+        req.setAttribute("vipSurchargePercent", pricingService.getVipSurchargePercent());
+
         req.setAttribute("successMsg", req.getParameter("successMsg"));
         req.setAttribute("errorMsg", req.getParameter("errorMsg"));
 

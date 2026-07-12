@@ -21,8 +21,10 @@ import com.mbcms.model.Showtime;
 import com.mbcms.service.BookingService;
 import com.mbcms.service.FoodService;
 import com.mbcms.service.NotificationService;
+import com.mbcms.service.PricingService;
 import com.mbcms.service.impl.FoodServiceImpl;
 import com.mbcms.util.DateTimeUtil;
+import com.mbcms.util.SystemSettings;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -35,11 +37,9 @@ import java.util.*;
  *
  * JSP tính status: !active→MAINTENANCE, inHeld→HELD, inBooked→BOOKED, else→AVAILABLE.
  *
- * Price logic: STANDARD : basePrice × 1.00 VIP : basePrice × 1.30
+ * Price: STANDARD / VIP via {@link PricingService} (Admin Settings VIP percent).
  */
 public class BookingServiceImpl implements BookingService {
-
-    private static final double VIP_SURCHARGE = 0.30;
 
     public BookingServiceImpl() {
         this.bookingDao = new BookingDAOImpl();
@@ -48,6 +48,7 @@ public class BookingServiceImpl implements BookingService {
         this.promoDao = new PromotionDAOImpl();
         this.notificationService = new NotificationServiceImpl();
         this.foodService = new FoodServiceImpl();
+        this.pricingService = new PricingServiceImpl();
     }
 
     /** Constructor for unit tests (inject mocks). */
@@ -58,12 +59,19 @@ public class BookingServiceImpl implements BookingService {
 
     BookingServiceImpl(BookingDAO bookingDao, SeatDAO seatDao, ShowtimeDAO showtimeDao,
             PromotionDAO promoDao, NotificationService notificationService, FoodService foodService) {
+        this(bookingDao, seatDao, showtimeDao, promoDao, notificationService, foodService, new PricingServiceImpl());
+    }
+
+    BookingServiceImpl(BookingDAO bookingDao, SeatDAO seatDao, ShowtimeDAO showtimeDao,
+            PromotionDAO promoDao, NotificationService notificationService, FoodService foodService,
+            PricingService pricingService) {
         this.bookingDao = bookingDao;
         this.seatDao = seatDao;
         this.showtimeDao = showtimeDao;
         this.promoDao = promoDao;
         this.notificationService = notificationService;
         this.foodService = foodService;
+        this.pricingService = pricingService;
     }
 
     private final BookingDAO bookingDao;
@@ -72,6 +80,7 @@ public class BookingServiceImpl implements BookingService {
     private final PromotionDAO promoDao;
     private final NotificationService notificationService;
     private final FoodService foodService;
+    private final PricingService pricingService;
 
     // ── validatePromoCode ─────────────────────────────────────────────────
     @Override
@@ -116,8 +125,9 @@ public class BookingServiceImpl implements BookingService {
         if (seatIds == null || seatIds.isEmpty()) {
             throw new IllegalArgumentException("Please select at least one seat.");
         }
-        if (seatIds.size() > 8) {
-            throw new IllegalArgumentException("Maximum 8 seats per booking.");
+        int maxSeats = SystemSettings.maxSeatsPerBooking();
+        if (seatIds.size() > maxSeats) {
+            throw new IllegalArgumentException("Maximum " + maxSeats + " seats per booking.");
         }
 
         // Lấy showtime
@@ -398,8 +408,10 @@ public class BookingServiceImpl implements BookingService {
         if (seatIds == null || seatIds.isEmpty()) {
             throw new IllegalArgumentException("Please select at least 1 seat.");
         }
-        if (seatIds.size() > 8) {
-            throw new IllegalArgumentException("You can select a maximum of 8 seats per booking.");
+        int maxSeats = SystemSettings.maxSeatsPerBooking();
+        if (seatIds.size() > maxSeats) {
+            throw new IllegalArgumentException(
+                    "You can select a maximum of " + maxSeats + " seats per booking.");
         }
 
         Showtime st = showtimeDao.findById(booking.getShowtimeId());
@@ -459,8 +471,8 @@ public class BookingServiceImpl implements BookingService {
     }
     
     @Override
-    public int markCompletedBookingsAsUsed() {
-        return bookingDao.markCompletedBookingsAsUsed();
+    public int markNoShowAfterShowtimeEnded() {
+        return bookingDao.markNoShowAfterShowtimeEnded();
     }
     // ── Private helpers ───────────────────────────────────────────────────
     private void validateShowtimeForBooking(Showtime st) {
@@ -481,13 +493,8 @@ public class BookingServiceImpl implements BookingService {
         BigDecimal total = BigDecimal.ZERO;
         for (Long id : selectedIds) {
             Seat seat = seatMap.get(id);
-            BigDecimal price = basePrice;
-            if (seat != null) {
-                if ("VIP".equals(seat.getSeatType())) {
-                    price = basePrice.multiply(BigDecimal.valueOf(1 + VIP_SURCHARGE));
-                }
-            }
-            total = total.add(price.setScale(0, RoundingMode.HALF_UP));
+            String seatType = seat != null ? seat.getSeatType() : Seat.TYPE_STANDARD;
+            total = total.add(pricingService.calculateSeatPrice(basePrice, seatType));
         }
         return total;
     }

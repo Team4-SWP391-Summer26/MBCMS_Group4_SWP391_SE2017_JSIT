@@ -68,8 +68,9 @@ public class PaymentServlet extends HttpServlet {
             Booking booking = paymentService.preparePayment(bookingId, customer.getUsername());
 
             req.setAttribute("booking", booking);
-            // So giay con lai cua dong ho giu ghe (10 phut) -> JS dem nguoc tren payment.jsp.
+            // So giay con lai cua dong ho giu ghe (Admin Settings) -> JS dem nguoc tren payment.jsp.
             req.setAttribute("remainingSeconds", remainingSeconds(booking));
+            req.setAttribute("pendingHoldMinutes", com.mbcms.util.SystemSettings.pendingHoldMinutes());
             // err: tu callback chuyen ve (signature | failed) de hien canh bao
             req.setAttribute("payError", req.getParameter("err"));
             req.getRequestDispatcher(VIEW).forward(req, resp);
@@ -96,10 +97,11 @@ public class PaymentServlet extends HttpServlet {
         }
     }
 
-    /** So giay con lai cua cua so giu ghe (10 phut tu created_at UTC). */
+    /** So giay con lai cua cua so giu ghe (Admin Settings: pending_hold_minutes). */
     private long remainingSeconds(Booking booking) {
+        long holdSeconds = com.mbcms.util.SystemSettings.pendingHoldMinutes() * 60L;
         if (booking.getCreatedAt() == null) {
-            return 600;
+            return holdSeconds;
         }
         if (bookingDao.isPendingHoldExpired(booking.getBookingId())) {
             return 0;
@@ -107,7 +109,7 @@ public class PaymentServlet extends HttpServlet {
         // So giay da troi = now(UTC) - created_at. Dung UTC cho khop voi DB (tranh lech mui gio).
         long elapsed = Duration.between(
                 booking.getCreatedAt(), java.time.LocalDateTime.now(java.time.ZoneOffset.UTC)).getSeconds();
-        long remaining = 600 - elapsed;
+        long remaining = holdSeconds - elapsed;
         return remaining < 0 ? 0 : remaining;
     }
 

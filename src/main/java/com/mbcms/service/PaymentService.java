@@ -22,7 +22,9 @@ public interface PaymentService {
     enum Result {
         SUCCESS,       // vua confirm thanh cong
         ALREADY_PAID,  // booking da CONFIRMED tu truoc (callback lap) - idempotent
-        EXPIRED        // booking het han / khong con PENDING -> khong confirm
+        EXPIRED,       // booking het han / khong con PENDING -> khong confirm
+        SHOWTIME_INVALID, // suat da huy / khong SCHEDULED / da qua gio chieu
+        PROMO_EXHAUSTED   // promo het max_uses luc confirm (rollback, khong confirm)
     }
 
     /**

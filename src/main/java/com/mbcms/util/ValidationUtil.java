@@ -1,5 +1,6 @@
 package com.mbcms.util;
 
+import java.util.Set;
 import java.util.regex.Pattern;
 
 /**
@@ -13,7 +14,55 @@ public class ValidationUtil {
     private static final Pattern PHONE_PATTERN
             = Pattern.compile("^(0|\\+84)[3-9][0-9]{8}$");
 
+    /** Whitelist thanh pho VN pho bien (branch city). */
+    private static final Set<String> VN_CITIES = Set.of(
+            "Ha Noi", "Hà Nội",
+            "TP. Ho Chi Minh", "TP. Hồ Chí Minh", "Ho Chi Minh", "Hồ Chí Minh",
+            "Da Nang", "Đà Nẵng",
+            "Hai Phong", "Hải Phòng",
+            "Can Tho", "Cần Thơ",
+            "Hue", "Huế",
+            "Nha Trang",
+            "Vung Tau", "Vũng Tàu",
+            "Bien Hoa", "Biên Hòa",
+            "Buon Ma Thuot", "Buôn Ma Thuột",
+            "Quy Nhon", "Quy Nhơn",
+            "Thai Nguyen", "Thái Nguyên",
+            "Nam Dinh", "Nam Định",
+            "Vinh"
+    );
+
     private ValidationUtil() {
+    }
+
+    public static boolean isValidVnCity(String city) {
+        if (city == null) {
+            return false;
+        }
+        String t = city.trim();
+        if (t.isEmpty() || t.length() > 50) {
+            return false;
+        }
+        for (String allowed : VN_CITIES) {
+            if (allowed.equalsIgnoreCase(t)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** Canonical city label from whitelist, or null if invalid. */
+    public static String normalizeVnCity(String city) {
+        if (city == null) {
+            return null;
+        }
+        String t = city.trim();
+        for (String allowed : VN_CITIES) {
+            if (allowed.equalsIgnoreCase(t)) {
+                return allowed;
+            }
+        }
+        return null;
     }
 
     public static boolean isValidEmail(String email) {

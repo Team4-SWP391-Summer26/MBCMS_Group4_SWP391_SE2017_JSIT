@@ -1,4 +1,4 @@
-﻿<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 <%--
@@ -154,7 +154,7 @@
                     <h6 class="text-navy fw-bold mt-4 mb-2">Pricing</h6>
                     <div class="sl-note">
                         <i class="bi bi-info-circle me-1"></i>
-                        VIP seats are charged at <strong>+30%</strong> of each showtime's base price.
+                        VIP seats are charged at <strong>+${vipSurchargePercent}%</strong> of each showtime's base price.
                         Saving updates capacity for all future showtimes.
                     </div>
                 </div>
@@ -213,5 +213,13 @@
     const CSRF_TOKEN = '${sessionScope.csrfToken}';
 </script>
 <script src="${pageContext.request.contextPath}/assets/js/seat-layout.js?v=${applicationScope.assetVersion}"></script>
+<script>
+    if (window.location.hash === '#genModal') {
+        var el = document.getElementById('genModal');
+        if (el && window.bootstrap) {
+            bootstrap.Modal.getOrCreateInstance(el).show();
+        }
+    }
+</script>
 </body>
 </html>

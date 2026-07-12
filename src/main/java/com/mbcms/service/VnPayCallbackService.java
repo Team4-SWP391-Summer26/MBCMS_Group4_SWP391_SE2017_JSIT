@@ -18,7 +18,8 @@ public class VnPayCallbackService {
 
     public enum Outcome {
         SUCCESS, ALREADY_PAID, EXPIRED, PAYMENT_FAILED,
-        INVALID_SIGNATURE, INVALID_TXN_REF, BOOKING_NOT_FOUND, AMOUNT_MISMATCH
+        INVALID_SIGNATURE, INVALID_TXN_REF, BOOKING_NOT_FOUND, AMOUNT_MISMATCH,
+        SHOWTIME_INVALID, PROMO_EXHAUSTED
     }
 
     public static final class Result {
@@ -114,6 +115,8 @@ public class VnPayCallbackService {
             case SUCCESS -> new Result(Outcome.SUCCESS, updated);
             case ALREADY_PAID -> new Result(Outcome.ALREADY_PAID, updated);
             case EXPIRED -> new Result(Outcome.EXPIRED, booking);
+            case SHOWTIME_INVALID -> new Result(Outcome.SHOWTIME_INVALID, booking);
+            case PROMO_EXHAUSTED -> new Result(Outcome.PROMO_EXHAUSTED, booking);
         };
     }
 }

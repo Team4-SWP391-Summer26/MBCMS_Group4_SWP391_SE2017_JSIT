@@ -22,6 +22,10 @@ db.pool.validationQuery=SELECT 1
 # Example production: https://your-domain.com/MBCMS
 app.baseUrl=http://localhost:9999/MBCMS
 
+# Fallback VIP surcharge if dbo.system_settings is missing (Admin UI: /admin/settings).
+# Prefer editing Settings in the app after seed; this is only a bootstrap default.
+pricing.vipSurchargePercent=30
+
 # ----- VNPay Sandbox (thanh toan online) -----
 # 1. Dang ky: https://sandbox.vnpayment.vn/devreg/
 # 2. Lay Terminal ID (vnp_TmnCode) + Secret Key (hashSecret)

@@ -68,11 +68,11 @@
                 <span class="lc-sb-soon">Soon</span>
             </span>
 
-            <span class="lc-sb-item disabled">
+            <a class="lc-sb-item ${param.active == 'settings' ? 'active' : ''}"
+                href="${pageContext.request.contextPath}/admin/settings">
                 <i class="bi bi-gear"></i>
                 Settings
-                <span class="lc-sb-soon">Soon</span>
-            </span>
+            </a>
 
             <div style="flex:1"></div>
 

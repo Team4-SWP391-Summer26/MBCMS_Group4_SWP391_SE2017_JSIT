@@ -46,7 +46,7 @@ public class BranchServiceImpl implements BranchService {
 
         branch.setName(branch.getName().trim());
         branch.setAddress(branch.getAddress().trim());
-        branch.setCity(branch.getCity().trim());
+        // city already normalized in validateBranch
         if (branch.getPhone() != null) {
             branch.setPhone(branch.getPhone().trim());
         }
@@ -83,7 +83,7 @@ public class BranchServiceImpl implements BranchService {
 
         existing.setName(branch.getName().trim());
         existing.setAddress(branch.getAddress().trim());
-        existing.setCity(branch.getCity().trim());
+        existing.setCity(branch.getCity()); // normalized in validateBranch
         existing.setPhone(branch.getPhone() != null ? branch.getPhone().trim() : null);
         existing.setEmail(branch.getEmail() != null ? branch.getEmail().trim() : null);
         existing.setActive(branch.isActive());
@@ -109,7 +109,7 @@ public class BranchServiceImpl implements BranchService {
 
         existing.setName(branch.getName().trim());
         existing.setAddress(branch.getAddress().trim());
-        existing.setCity(branch.getCity().trim());
+        existing.setCity(branch.getCity()); // normalized in validateBranch
         existing.setPhone(branch.getPhone() != null ? branch.getPhone().trim() : null);
         existing.setEmail(branch.getEmail() != null ? branch.getEmail().trim() : null);
         existing.setOpeningTime(openingTime);
@@ -171,6 +171,12 @@ public class BranchServiceImpl implements BranchService {
         if (ValidationUtil.isNullOrEmpty(b.getCity())) {
             throw new IllegalArgumentException("City is required.");
         }
+        String city = ValidationUtil.normalizeVnCity(b.getCity());
+        if (city == null) {
+            throw new IllegalArgumentException(
+                    "City must be a supported Vietnamese city (e.g. Ha Noi, TP. Ho Chi Minh, Da Nang).");
+        }
+        b.setCity(city);
         if (!ValidationUtil.isNullOrEmpty(b.getEmail()) && !ValidationUtil.isValidEmail(b.getEmail())) {
             throw new IllegalArgumentException("Invalid email format.");
         }

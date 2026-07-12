@@ -42,6 +42,11 @@
                     <span class="lc-sb-item disabled"><i class="bi bi-bar-chart"></i> Reports <span
                             class="lc-sb-soon">Soon</span></span>
 
+                    <div class="lc-sb-section">Branch</div>
+                    <a class="lc-sb-item ${param.active == 'settings' ? 'active' : ''}"
+                        href="${pageContext.request.contextPath}/branch/settings">
+                        <i class="bi bi-gear"></i> Settings</a>
+
                     <div style="flex:1;"></div>
 
                     <div class="d-flex align-items-center gap-2 p-2 mt-3 lc-sb-user">

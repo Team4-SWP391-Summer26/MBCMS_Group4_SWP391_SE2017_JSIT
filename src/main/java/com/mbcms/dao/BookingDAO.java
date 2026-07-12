@@ -100,7 +100,11 @@ public interface BookingDAO {
     
     List<Booking> findConfirmedForReminder(int minutesFrom, int minutesTo);
     
-    int markCompletedBookingsAsUsed();
+    /**
+     * CONFIRMED + chua check-in + showtimes.end_time &lt; now (gio VN local)
+     * → NO_SHOW. USED chi den tu check-in thu cong.
+     */
+    int markNoShowAfterShowtimeEnded();
 
     // ── Ticket validation / check-in (Branch Staff) ──────────────────────────
 

@@ -1,7 +1,7 @@
 -- =====================================================================
 -- CinemaDB - SQL Server DDL (schema only)
 -- Project: SWP391 - Multi-Branch Cinema Management System (PentaPlex)
--- Source : 01_Database/CinemaDB_final.dbml  (18 tables) + movie_branch bridge = 19 tables
+-- Source : 01_Database/CinemaDB_final.dbml  (18 tables) + movie_branch bridge + system_settings = 20 tables
 -- Target : SQL Server 2019+
 --
 -- HOW TO RUN (SSMS):
@@ -28,6 +28,8 @@ GO
 -- ---------------------------------------------------------------------
 -- 1. Drop existing tables (reverse dependency order) - for re-runs
 -- ---------------------------------------------------------------------
+IF OBJECT_ID('dbo.fn_setting_int', 'FN') IS NOT NULL DROP FUNCTION dbo.fn_setting_int;
+IF OBJECT_ID('dbo.system_settings', 'U') IS NOT NULL DROP TABLE dbo.system_settings;
 IF OBJECT_ID('dbo.booking_food_items', 'U') IS NOT NULL DROP TABLE dbo.booking_food_items;
 IF OBJECT_ID('dbo.food_orders',        'U') IS NOT NULL DROP TABLE dbo.food_orders;
 IF OBJECT_ID('dbo.food_items',         'U') IS NOT NULL DROP TABLE dbo.food_items;
@@ -109,8 +111,16 @@ CREATE TABLE dbo.branches (
     created_at DATETIME2     NOT NULL CONSTRAINT DF_branches_created DEFAULT (SYSUTCDATETIME()),
     opening_time TIME         NULL,
     closing_time TIME         NULL,
-    CONSTRAINT PK_branches PRIMARY KEY (branch_id)
+    CONSTRAINT PK_branches PRIMARY KEY (branch_id),
+    CONSTRAINT UQ_branches_name UNIQUE (name),
+    -- opening/closing both NULL = chua cau hinh; neu co thi closing phai sau opening (cung ngay).
+    CONSTRAINT CK_branches_hours CHECK (
+        opening_time IS NULL OR closing_time IS NULL OR closing_time > opening_time
+    )
 );
+GO
+-- email chi unique khi co gia tri (nhieu chi nhanh co the chua nhap email)
+CREATE UNIQUE INDEX UQ_branches_email ON dbo.branches (email) WHERE email IS NOT NULL;
 GO
 
 -- movie_branch (M:N): Admin CAP phim cho chi nhanh; BM chi xep lich phim duoc cap.
@@ -138,6 +148,7 @@ CREATE TABLE dbo.rooms (
     active    BIT          NOT NULL CONSTRAINT DF_rooms_active DEFAULT (1),
     CONSTRAINT PK_rooms PRIMARY KEY (room_id),
     CONSTRAINT FK_rooms_branch FOREIGN KEY (branch_id) REFERENCES dbo.branches (branch_id),
+    CONSTRAINT UQ_rooms_branch_name UNIQUE (branch_id, name),
     CONSTRAINT CK_rooms_capacity CHECK (capacity > 0),
     CONSTRAINT CK_rooms_type     CHECK (room_type IN ('STANDARD','VIP','IMAX'))
 );
@@ -235,8 +246,16 @@ CREATE TABLE dbo.promotions (
     CONSTRAINT FK_promotions_branch FOREIGN KEY (branch_id)
         REFERENCES dbo.branches (branch_id),
     CONSTRAINT CK_promotions_value CHECK (discount_value > 0),
+    -- PERCENT: 0 < value <= 100; FIXED_AMOUNT: chi can > 0 (o tren).
+    CONSTRAINT CK_promotions_percent CHECK (
+        discount_type <> 'PERCENT' OR discount_value <= 100
+    ),
     CONSTRAINT CK_promotions_dates CHECK (valid_to > valid_from),
-    CONSTRAINT CK_promotions_type  CHECK (discount_type IN ('PERCENT','FIXED_AMOUNT'))
+    CONSTRAINT CK_promotions_type  CHECK (discount_type IN ('PERCENT','FIXED_AMOUNT')),
+    -- used_count khong am; neu co max_uses thi khong duoc vuot.
+    CONSTRAINT CK_promotions_uses CHECK (
+        used_count >= 0 AND (max_uses IS NULL OR used_count <= max_uses)
+    )
 );
 GO
 -- Unique code only among non-deleted rows:
@@ -268,7 +287,10 @@ CREATE TABLE dbo.bookings (
     CONSTRAINT CK_bookings_subtotal CHECK (subtotal >= 0),
     CONSTRAINT CK_bookings_discount CHECK (discount_amount >= 0),
     CONSTRAINT CK_bookings_total    CHECK (total_amount >= 0),
-    CONSTRAINT CK_bookings_status   CHECK ([status] IN ('PENDING','CONFIRMED','USED','CANCELLED'))
+    -- App tinh: subtotal (ve + F&B) - discount (tren ve) = total. Chan row lech so.
+    CONSTRAINT CK_bookings_math CHECK (total_amount = subtotal - discount_amount),
+    -- NO_SHOW: CONFIRMED het suat (end_time) ma chua check-in (scheduler).
+    CONSTRAINT CK_bookings_status   CHECK ([status] IN ('PENDING','CONFIRMED','USED','CANCELLED','NO_SHOW'))
 );
 GO
 CREATE INDEX IX_bookings_customer ON dbo.bookings (customer_username);
@@ -279,18 +301,31 @@ CREATE INDEX IX_bookings_created  ON dbo.bookings (created_at);
 GO
 
 CREATE TABLE dbo.booking_seats (
-    booking_id BIGINT NOT NULL,
-    seat_id    BIGINT NOT NULL,
+    booking_id  BIGINT NOT NULL,
+    seat_id     BIGINT NOT NULL,
+    -- Denormalize showtime_id de UNIQUE chong trung ghe theo suat (luoi DB).
+    -- App BAT BUOC xoa booking_seats khi booking -> CANCELLED (huy / het han hold),
+    -- neu khong ghe bi ket mai vi UNIQUE van giu row.
+    showtime_id BIGINT NOT NULL,
     is_checked_in BIT     NOT NULL CONSTRAINT DF_booking_seats_checkin DEFAULT (0),
     check_in_time DATETIME2 NULL,
     CONSTRAINT PK_booking_seats PRIMARY KEY (booking_id, seat_id),
+    CONSTRAINT UQ_booking_seats_showtime_seat UNIQUE (showtime_id, seat_id),
     CONSTRAINT FK_booking_seats_booking FOREIGN KEY (booking_id)
         REFERENCES dbo.bookings (booking_id) ON DELETE CASCADE,
     CONSTRAINT FK_booking_seats_seat FOREIGN KEY (seat_id)
-        REFERENCES dbo.seats (seat_id)
+        REFERENCES dbo.seats (seat_id),
+    CONSTRAINT FK_booking_seats_showtime FOREIGN KEY (showtime_id)
+        REFERENCES dbo.showtimes (showtime_id),
+    -- check-in: false <=> chua co thoi diem; true <=> phai co check_in_time.
+    CONSTRAINT CK_booking_seats_checkin CHECK (
+        (is_checked_in = 0 AND check_in_time IS NULL)
+        OR (is_checked_in = 1 AND check_in_time IS NOT NULL)
+    )
 );
 GO
 CREATE INDEX IX_booking_seats_seat ON dbo.booking_seats (seat_id);
+CREATE INDEX IX_booking_seats_showtime ON dbo.booking_seats (showtime_id);
 GO
 
 CREATE TABLE dbo.payments (
@@ -326,6 +361,7 @@ CREATE TABLE dbo.food_items (
     active      BIT           NOT NULL CONSTRAINT DF_food_items_active DEFAULT (1),
     CONSTRAINT PK_food_items PRIMARY KEY (food_id),
     CONSTRAINT FK_food_items_branch FOREIGN KEY (branch_id) REFERENCES dbo.branches (branch_id),
+    CONSTRAINT UQ_food_items_branch_name UNIQUE (branch_id, name),
     CONSTRAINT CK_food_items_price    CHECK (price >= 0),
     CONSTRAINT CK_food_items_stock    CHECK (stock >= 0),
     CONSTRAINT CK_food_items_category CHECK (category IN ('SNACK','DRINK','COMBO'))
@@ -434,5 +470,31 @@ CREATE INDEX IX_feedbacks_branch   ON dbo.feedbacks (branch_id);
 CREATE INDEX IX_feedbacks_status   ON dbo.feedbacks ([status]);
 GO
 
-PRINT 'CinemaDB schema created: 19 tables (incl. movie_branch).';
+
+-- =====================================================================
+-- GROUP 06 - SYSTEM SETTINGS (Admin-configurable business rules)
+-- =====================================================================
+CREATE TABLE dbo.system_settings (
+    setting_key   VARCHAR(64)    NOT NULL,
+    setting_value NVARCHAR(200)  NOT NULL,
+    description   NVARCHAR(300)  NULL,
+    updated_at    DATETIME2      NOT NULL CONSTRAINT DF_system_settings_updated DEFAULT (SYSUTCDATETIME()),
+    CONSTRAINT PK_system_settings PRIMARY KEY (setting_key)
+);
+GO
+
+-- Scalar helper so SQL hold/gap rules can read Admin settings without hardcoding.
+CREATE FUNCTION dbo.fn_setting_int (@key VARCHAR(64), @default INT)
+RETURNS INT
+AS
+BEGIN
+    DECLARE @v INT;
+    SELECT @v = TRY_CAST(setting_value AS INT)
+    FROM dbo.system_settings
+    WHERE setting_key = @key;
+    RETURN COALESCE(@v, @default);
+END;
+GO
+
+PRINT 'CinemaDB schema created: 20 tables (incl. movie_branch + system_settings).';
 GO

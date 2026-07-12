@@ -344,7 +344,7 @@ public class BranchDAOImpl extends BaseDAO implements BranchDAO {
                 + "WHERE r.branch_id = ? AND st.start_time >= GETDATE()"
                 + "AND b.status IN ('PENDING','CONFIRMED') "
                 + "AND (b.status != 'PENDING' "
-                + "     OR DATEDIFF(MINUTE, b.created_at, SYSUTCDATETIME()) < 10)";
+                + "     OR DATEADD(MINUTE, dbo.fn_setting_int('pending_hold_minutes', 10), b.created_at) > SYSUTCDATETIME())";
         Connection conn = null;
         PreparedStatement ps = null;
         ResultSet rs = null;

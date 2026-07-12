@@ -305,19 +305,19 @@
                                     <div class="card-glow"></div>
                                     <div class="d-flex flex-column h-100 justify-content-between position-relative" style="z-index: 3; min-height: 150px;">
                                         <div>
-                                            <div class="small" style="opacity: 0.75; font-size: 0.72rem; letter-spacing: 0.05em;"><i class="bi bi-tag-fill me-1"></i>PROMO CODE</div>
+                                            <div class="small text-white" style="font-size: 0.72rem; letter-spacing: 0.05em;"><i class="bi bi-tag-fill me-1"></i>PROMO CODE</div>
                                             <h4 class="fw-bold mb-2 text-white font-monospace" id="previewCode" style="letter-spacing: 0.05em;">PROMO_CODE</h4>
-                                            <div class="fw-semibold text-truncate text-white-50 small" id="previewName" style="max-width: 90%;">Promotion name</div>
+                                            <div class="fw-semibold text-truncate text-white small" id="previewName" style="max-width: 90%;">Promotion name</div>
                                         </div>
 
                                         <div class="d-flex align-items-end justify-content-between mt-4">
                                             <div>
-                                                <div class="small" style="opacity: 0.7; font-size: 0.7rem; font-weight: 500;">YOU SAVE</div>
+                                                <div class="small text-white" style="font-size: 0.7rem; font-weight: 500;">YOU SAVE</div>
                                                 <h3 class="fw-extrabold text-white mb-0" id="previewValue" style="font-size: 1.8rem; font-weight: 800;">10%</h3>
                                             </div>
                                             <div class="text-end">
-                                                <div class="small" id="previewMinOrder" style="opacity: 0.75; font-size: 0.72rem;">No minimum order</div>
-                                                <div class="small text-white-50 mt-1" style="font-size: 0.72rem; font-weight: 500;" id="previewDates">Valid: dd/MM &rarr; dd/MM</div>
+                                                <div class="small text-white" id="previewMinOrder" style="font-size: 0.72rem;">No minimum order</div>
+                                                <div class="small text-white mt-1" style="font-size: 0.72rem; font-weight: 500;" id="previewDates">Valid: dd/MM &rarr; dd/MM</div>
                                             </div>
                                         </div>
                                     </div>

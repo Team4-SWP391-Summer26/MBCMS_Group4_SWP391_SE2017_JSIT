@@ -57,7 +57,7 @@ public class SeatDAOImpl extends BaseDAO implements SeatDAO {
     public Set<Long> findHeldSeatIds(long showtimeId) {
         return querySeatIdsByBookingStatus(showtimeId,
                 "b.[status] = 'PENDING' "
-                + "AND DATEDIFF(MINUTE, b.created_at, SYSUTCDATETIME()) < 10");
+                + "AND DATEADD(MINUTE, dbo.fn_setting_int('pending_hold_minutes', 10), b.created_at) > SYSUTCDATETIME()");
     }
 
     @Override
@@ -65,7 +65,7 @@ public class SeatDAOImpl extends BaseDAO implements SeatDAO {
         return querySeatIdsByBookingStatus(showtimeId,
                 "b.[status] IN ('CONFIRMED', 'USED') "
                 + "OR (b.[status] = 'PENDING' "
-                + "    AND DATEDIFF(MINUTE, b.created_at, SYSUTCDATETIME()) < 10)");
+                + "    AND DATEADD(MINUTE, dbo.fn_setting_int('pending_hold_minutes', 10), b.created_at) > SYSUTCDATETIME())");
     }
 
     private Set<Long> querySeatIdsByBookingStatus(long showtimeId, String statusFilter) {
@@ -234,7 +234,7 @@ public class SeatDAOImpl extends BaseDAO implements SeatDAO {
                 + "AND st.start_time >= GETDATE() "
                 + "AND b.[status] IN ('PENDING', 'CONFIRMED') "
                 + "AND (b.[status] != 'PENDING' "
-                + "     OR DATEDIFF(MINUTE, b.created_at, SYSUTCDATETIME()) < 10)";
+                + "     OR DATEADD(MINUTE, dbo.fn_setting_int('pending_hold_minutes', 10), b.created_at) > SYSUTCDATETIME())";
 
         Connection conn = null;
         PreparedStatement ps = null;
@@ -375,7 +375,7 @@ public class SeatDAOImpl extends BaseDAO implements SeatDAO {
                 + "AND ("
                 + " b.[status] IN ('CONFIRMED','USED') "
                 + " OR (b.[status] = 'PENDING' "
-                + " AND DATEDIFF(MINUTE,b.created_at,SYSUTCDATETIME()) < 10)"
+                + " AND DATEADD(MINUTE, dbo.fn_setting_int('pending_hold_minutes', 10), b.created_at) > SYSUTCDATETIME())"
                 + ") "
                 + "AND bs.seat_id IN (%s)";
 

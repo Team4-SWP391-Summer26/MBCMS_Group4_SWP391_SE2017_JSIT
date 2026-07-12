@@ -46,33 +46,7 @@
 
                 </div>
 
-                <div class="footer-social-row">
 
-                    <a href="" class="social-icon lc-disabled-link" aria-disabled="true" title="Facebook">
-
-                        <i class="bi bi-facebook"></i>
-
-                    </a>
-
-                    <a href="" class="social-icon lc-disabled-link" aria-disabled="true" title="Instagram">
-
-                        <i class="bi bi-instagram"></i>
-
-                    </a>
-
-                    <a href="" class="social-icon lc-disabled-link" aria-disabled="true" title="YouTube">
-
-                        <i class="bi bi-youtube"></i>
-
-                    </a>
-
-                    <a href="" class="social-icon lc-disabled-link" aria-disabled="true" title="TikTok">
-
-                        <i class="bi bi-tiktok"></i>
-
-                    </a>
-
-                </div>
 
             </div>
 
@@ -88,9 +62,9 @@
 
                     <li><a href="${pageContext.request.contextPath}/movies?status=UPCOMING">Coming Soon</a></li>
 
-                    <li><a href="" class="lc-disabled-link" aria-disabled="true">Cinemas</a></li>
+                    <li><a href="${pageContext.request.contextPath}/movies?status=NOW_SHOWING">Showtimes</a></li>
 
-                    <li><a href="" class="lc-disabled-link" aria-disabled="true">Promotions</a></li>
+                    <li><a href="" class="lc-disabled-link" aria-disabled="true">Support</a></li>
 
                 </ul>
 
@@ -182,17 +156,7 @@
 
                 <span>&copy; 2026 PentaPlex. All rights reserved.</span>
 
-                <span class="bottom-sep" aria-hidden="true">&middot;</span>
 
-                <a href="" class="lc-disabled-link" aria-disabled="true">Terms</a>
-
-                <span class="bottom-sep" aria-hidden="true">&middot;</span>
-
-                <a href="" class="lc-disabled-link" aria-disabled="true">Privacy</a>
-
-                <span class="bottom-sep" aria-hidden="true">&middot;</span>
-
-                <a href="" class="lc-disabled-link" aria-disabled="true">Cookies</a>
 
             </div>
 
@@ -202,7 +166,7 @@
 
                 <span class="accept-label">We accept</span>
 
-                <span class="payment-badge badge-vnpay">VNPAY</span>
+                <img src="${pageContext.request.contextPath}/assets/img/vnpay-logo.png" alt="VNPAY" height="22" style="object-fit: contain; margin-left: 8px; vertical-align: middle; border-radius: 2px;">
 
                 <div class="language-select" role="button" tabindex="0" aria-label="Language">
 

@@ -1,6 +1,7 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
+<fmt:setLocale value="en_US"/>
 <fmt:setTimeZone value="Asia/Ho_Chi_Minh"/>
 <%--
     Booking confirmation - e-ticket (owner: HungNT). Booking step 5/5.
@@ -118,7 +119,7 @@
                     <div class="tk-label">Time</div>
                     <div class="tk-value">
                         <c:choose>
-                            <c:when test="${not empty startDate}"><fmt:formatDate value="${startDate}" pattern="HH:mm"/></c:when>
+                            <c:when test="${not empty startDate}"><fmt:formatDate value="${startDate}" pattern="h:mm a"/></c:when>
                             <c:otherwise>—</c:otherwise>
                         </c:choose>
                     </div>

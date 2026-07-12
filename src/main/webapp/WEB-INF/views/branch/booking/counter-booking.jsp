@@ -1,4 +1,4 @@
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+﻿<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 <!DOCTYPE html>
@@ -621,7 +621,7 @@
                                             <div class="form-check flex-fill p-3 payment-method-card" style="cursor: pointer;" onclick="document.getElementById('pay-vnpay').click();">
                                                 <input class="form-check-input ms-0 me-2" type="radio" name="paymentMethodRadio" id="pay-vnpay" value="VNPAY" style="cursor: pointer;">
                                                 <label class="form-check-label fw-bold text-navy" for="pay-vnpay" style="cursor: pointer;">
-                                                    <span class="text-primary me-1 fw-bold" style="font-style: italic; letter-spacing: -1px;">VNPAY</span>
+                                                    <img src="${pageContext.request.contextPath}/assets/img/vnpay-logo.png" alt="VNPAY" height="20" style="object-fit: contain; vertical-align: middle; margin-top: -3px;">
                                                 </label>
                                             </div>
                                         </div>
@@ -1109,8 +1109,8 @@
                                         setSeatState(btn, 'available');
                                         sendWS({action: 'DESELECT', seatId: Number(id), showtimeId: state.showtimeId});
                                     } else {
-                                        if (state.selectedSeats.length >= 8) {
-                                            lcAlert('You can select a maximum of 8 seats per booking.');
+                                        if (state.selectedSeats.length >= Number('${empty maxSeatsPerBooking ? 8 : maxSeatsPerBooking}')) {
+                                            lcAlert('You can select a maximum of ${empty maxSeatsPerBooking ? 8 : maxSeatsPerBooking} seats per booking.');
                                             return;
                                         }
                                         state.selectedSeats.push(seat);
@@ -1287,10 +1287,11 @@
                                     const seatLabels = state.selectedSeats.map(s => s.rowLabel + s.colNumber);
                                     document.getElementById('selected-seats-display').innerText = seatLabels.join(', ');
 
-                                    // Calculate total price based on seat multipliers
+                                    // Calculate total price based on seat multipliers (VIP % from AppConfig)
+                                    const vipMult = 1 + (Number('${vipSurchargePercent}') || 30) / 100;
                                     let subtotal = 0;
                                     state.selectedSeats.forEach(s => {
-                                        const multiplier = s.seatType === 'VIP' ? 1.2 : 1.0;
+                                        const multiplier = s.seatType === 'VIP' ? vipMult : 1.0;
                                         subtotal += Math.round(state.basePrice * multiplier);
                                     });
 

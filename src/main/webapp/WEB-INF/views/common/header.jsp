@@ -35,7 +35,10 @@
                     <a class="nav-link <c:if test="${activeMenu == 'cinemas'}">active</c:if>" href="" aria-disabled="true">Cinemas</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link <c:if test="${activeMenu == 'promotions'}">active</c:if>" href="" aria-disabled="true">Promotions</a>
+                    <a class="nav-link <c:if test="${activeMenu == 'showtimes'}">active</c:if>" href="${pageContext.request.contextPath}/movies?status=NOW_SHOWING">Showtimes</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link <c:if test="${activeMenu == 'support'}">active</c:if>" href="" aria-disabled="true">Support</a>
                 </li>
             </ul>
 
