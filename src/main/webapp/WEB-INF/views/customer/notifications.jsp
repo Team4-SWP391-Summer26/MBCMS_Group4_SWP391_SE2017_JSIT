@@ -256,10 +256,10 @@
                             </c:if>
                         </a>
                         <a class="lc-navitem" href="${pageContext.request.contextPath}/customer/complaints">
-                            <i class="bi bi-exclamation-circle"></i> Khiếu nại
+                            <i class="bi bi-exclamation-circle"></i> Complaints
                         </a>
                         <a class="lc-navitem" href="${pageContext.request.contextPath}/customer/support">
-                            <i class="bi bi-headset"></i> Hỗ trợ
+                            <i class="bi bi-headset"></i> Support
                         </a>
                         <hr style="margin:10px 0;border-color:#eef1f5;">
                         <form method="post" action="${pageContext.request.contextPath}/auth/logout" class="m-0">
