@@ -212,7 +212,7 @@ public class BranchFoodServlet extends HttpServlet {
         int  stock  = (int) parseLong(req.getParameter("stock"), -1);
 
         if (foodId < 0 || stock < 0) {
-            resp.getWriter().write("{\"success\":false,\"message\":\"Tham so khong hop le.\"}");
+            resp.getWriter().write("{\"success\":false,\"message\":\"Invalid parameters.\"}");
             return;
         }
 
@@ -222,14 +222,14 @@ public class BranchFoodServlet extends HttpServlet {
             if (ok) {
                 resp.getWriter().write("{\"success\":true}");
             } else {
-                resp.getWriter().write("{\"success\":false,\"message\":\"Cap nhat that bai.\"}");
+                resp.getWriter().write("{\"success\":false,\"message\":\"Stock update failed.\"}");
             }
         } catch (IllegalArgumentException e) {
             resp.getWriter().write("{\"success\":false,\"message\":\""
                     + e.getMessage().replace("\"", "'") + "\"}");
         } catch (Exception e) {
             getServletContext().log("handleUpdateStock error", e);
-            resp.getWriter().write("{\"success\":false,\"message\":\"Loi he thong.\"}");
+            resp.getWriter().write("{\"success\":false,\"message\":\"System error.\"}");
         }
     }
 
@@ -258,15 +258,15 @@ public class BranchFoodServlet extends HttpServlet {
         String toggled = req.getParameter("toggled");
         String error   = req.getParameter("error");
 
-        if ("1".equals(added))   req.setAttribute("successMsg", "Mon moi da duoc them thanh cong.");
-        else if ("1".equals(updated)) req.setAttribute("successMsg", "Cap nhat mon thanh cong.");
-        else if ("1".equals(deleted)) req.setAttribute("successMsg", "Da xoa mon khoi menu.");
-        else if ("1".equals(toggled)) req.setAttribute("successMsg", "Da cap nhat trang thai mon.");
+        if ("1".equals(added))   req.setAttribute("successMsg", "New item has been added successfully.");
+        else if ("1".equals(updated)) req.setAttribute("successMsg", "Item updated successfully.");
+        else if ("1".equals(deleted)) req.setAttribute("successMsg", "Item removed from menu.");
+        else if ("1".equals(toggled)) req.setAttribute("successMsg", "Item status updated successfully.");
         else if (error != null && !error.isEmpty()) {
             if ("server".equals(error)) {
-                req.setAttribute("errorMsg", "Loi he thong. Vui long thu lai.");
+                req.setAttribute("errorMsg", "System error. Please try again.");
             } else if ("notfound".equals(error)) {
-                req.setAttribute("errorMsg", "Khong tim thay mon hoac khong co quyen.");
+                req.setAttribute("errorMsg", "Item not found or you do not have permission.");
             } else {
                 req.setAttribute("errorMsg", error);
             }
@@ -290,7 +290,7 @@ public class BranchFoodServlet extends HttpServlet {
         if (priceStr != null && !priceStr.isEmpty()) {
             try { item.setPrice(new BigDecimal(priceStr)); }
             catch (NumberFormatException e) {
-                throw new IllegalArgumentException("Gia khong hop le.");
+                throw new IllegalArgumentException("Invalid price.");
             }
         }
 
@@ -298,7 +298,7 @@ public class BranchFoodServlet extends HttpServlet {
         if (category == null || (!FoodItem.CATEGORY_SNACK.equals(category)
                 && !FoodItem.CATEGORY_DRINK.equals(category)
                 && !FoodItem.CATEGORY_COMBO.equals(category))) {
-            throw new IllegalArgumentException("Loai mon khong hop le.");
+            throw new IllegalArgumentException("Invalid category.");
         }
         item.setCategory(category);
         item.setImageUrl(trim(req.getParameter("imageUrl")));
@@ -307,7 +307,7 @@ public class BranchFoodServlet extends HttpServlet {
         if (stockStr != null && !stockStr.isEmpty()) {
             try { item.setStock(Integer.parseInt(stockStr)); }
             catch (NumberFormatException e) {
-                throw new IllegalArgumentException("So luong ton kho khong hop le.");
+                throw new IllegalArgumentException("Invalid stock quantity.");
             }
         }
 

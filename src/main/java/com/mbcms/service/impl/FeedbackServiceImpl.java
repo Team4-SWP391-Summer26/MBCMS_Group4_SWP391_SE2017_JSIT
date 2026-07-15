@@ -2,8 +2,11 @@ package com.mbcms.service.impl;
 
 import com.mbcms.dao.FeedbackDAO;
 import com.mbcms.dao.impl.FeedbackDAOImpl;
+import com.mbcms.dao.CustomerDAO;
+import com.mbcms.dao.impl.CustomerDAOImpl;
 import com.mbcms.model.Feedback;
 import com.mbcms.model.Notification;
+import com.mbcms.model.Customer;
 import com.mbcms.service.FeedbackService;
 import com.mbcms.service.NotificationService;
 import com.mbcms.util.ValidationUtil;
@@ -57,7 +60,7 @@ public class FeedbackServiceImpl implements FeedbackService {
 
         // Security: verify customer has confirmed/used booking for this showtime
         if (!feedbackDAO.hasConfirmedBookingForShowtime(relatedShowtimeId, customerUsername)) {
-            return "ERR:Bạn chỉ có thể gửi khiếu nại về suất chiếu mà bạn đã đặt vé thành công.";
+            return "ERR:You can only submit a complaint for a showtime that you successfully booked.";
         }
 
         Feedback f = new Feedback();
@@ -66,12 +69,22 @@ public class FeedbackServiceImpl implements FeedbackService {
         f.setRelatedShowtimeId(relatedShowtimeId);
         f.setSubject(subject.trim());
         f.setMessage(message.trim());
-        // name & email populated from customer account (caller fills these before calling)
-        // We intentionally leave them to be set by the servlet from session data.
+
+        // Fetch customer details to populate name & email (required NOT NULL columns)
+        CustomerDAO customerDAO = new CustomerDAOImpl();
+        Customer cust = customerDAO.findByUsername(customerUsername);
+        if (cust != null) {
+            f.setName(cust.getFullName());
+            f.setEmail(cust.getEmail());
+        } else {
+            f.setName(customerUsername);
+            f.setEmail("unknown@example.com");
+        }
+
         f.setStatus(Feedback.STATUS_NEW);
 
         long id = feedbackDAO.insert(f);
-        if (id < 0) return "ERR:Không thể lưu khiếu nại. Vui lòng thử lại sau.";
+        if (id < 0) return "ERR:Failed to save complaint. Please try again later.";
         return id;
     }
 
@@ -83,7 +96,7 @@ public class FeedbackServiceImpl implements FeedbackService {
 
         // Validate sub_category
         if (subCategory == null || !VALID_SUB_CATEGORIES.contains(subCategory)) {
-            return "ERR:Loại yêu cầu hỗ trợ không hợp lệ.";
+            return "ERR:Invalid support request category.";
         }
 
         // Validate fields
@@ -96,10 +109,10 @@ public class FeedbackServiceImpl implements FeedbackService {
         // Security: if BOOKING sub-category, verify ownership (prevent IDOR)
         if (Feedback.SUB_BOOKING.equals(subCategory)) {
             if (relatedBookingId == null) {
-                return "ERR:Vui lòng chọn mã đặt vé liên quan.";
+                return "ERR:Please select a related booking ID.";
             }
             if (!feedbackDAO.isBookingOwnedByCustomer(relatedBookingId, customerUsername)) {
-                return "ERR:Mã đặt vé không hợp lệ hoặc không thuộc về tài khoản của bạn.";
+                return "ERR:Invalid booking ID or it does not belong to your account.";
             }
         } else {
             // ACCOUNT or OTHER — no booking ref needed
@@ -113,10 +126,22 @@ public class FeedbackServiceImpl implements FeedbackService {
         f.setRelatedBookingId(relatedBookingId);
         f.setSubject(subject.trim());
         f.setMessage(message.trim());
+
+        // Fetch customer details to populate name & email (required NOT NULL columns)
+        CustomerDAO customerDAO = new CustomerDAOImpl();
+        Customer cust = customerDAO.findByUsername(customerUsername);
+        if (cust != null) {
+            f.setName(cust.getFullName());
+            f.setEmail(cust.getEmail());
+        } else {
+            f.setName(customerUsername);
+            f.setEmail("unknown@example.com");
+        }
+
         f.setStatus(Feedback.STATUS_NEW);
 
         long id = feedbackDAO.insert(f);
-        if (id < 0) return "ERR:Không thể lưu yêu cầu hỗ trợ. Vui lòng thử lại sau.";
+        if (id < 0) return "ERR:Failed to save support request. Please try again later.";
         return id;
     }
 
@@ -155,25 +180,25 @@ public class FeedbackServiceImpl implements FeedbackService {
 
         // Validate status value
         if (!VALID_STATUSES.contains(newStatus)) {
-            return "Trạng thái không hợp lệ.";
+            return "Invalid status.";
         }
 
         // Response is required when resolving or closing
         if ((Feedback.STATUS_RESOLVED.equals(newStatus) || Feedback.STATUS_CLOSED.equals(newStatus))
                 && ValidationUtil.isNullOrEmpty(response)) {
-            return "Vui lòng nhập nội dung phản hồi trước khi đánh dấu là đã giải quyết/đóng.";
+            return "Please enter a response before marking as resolved or closed.";
         }
 
         // Verify feedback exists
         Feedback existing = feedbackDAO.findById(feedbackId);
         if (existing == null) {
-            return "Không tìm thấy phản hồi.";
+            return "Feedback not found.";
         }
 
         // Enforce branch scope for non-Admin roles
         if (branchScope != null) {
             if (existing.getBranchId() == null || !branchScope.equals(existing.getBranchId())) {
-                return "Bạn không có quyền cập nhật phản hồi này.";
+                return "You do not have permission to update this feedback.";
             }
         }
 
@@ -181,22 +206,22 @@ public class FeedbackServiceImpl implements FeedbackService {
                 ValidationUtil.isNullOrEmpty(response) ? null : response.trim(),
                 handledBy, branchScope);
 
-        if (!ok) return "Không thể cập nhật. Vui lòng thử lại.";
+        if (!ok) return "Failed to update. Please try again.";
 
         // Notify customer if resolved
         if ((Feedback.STATUS_RESOLVED.equals(newStatus) || Feedback.STATUS_CLOSED.equals(newStatus))
                 && existing.getCustomerUsername() != null) {
             try {
                 String categoryLabel = Feedback.CAT_COMPLAINT.equals(existing.getCategory())
-                        ? "Khiếu nại" : "Yêu cầu hỗ trợ";
+                        ? "Your complaint" : "Your support request";
                 notificationService.create(
                         existing.getCustomerUsername(),
-                        categoryLabel + " của bạn đã được giải quyết",
-                        "Phản hồi: " + (response != null ? response.trim() : ""),
+                        categoryLabel + " has been resolved",
+                        "Response: " + (response != null ? response.trim() : ""),
                         Notification.TYPE_FEEDBACK,
                         feedbackId);
             } catch (Exception e) {
-                System.err.println("[FeedbackService] Loi gui notification: " + e.getMessage());
+                System.err.println("[FeedbackService] Error sending notification: " + e.getMessage());
             }
         }
 
@@ -212,18 +237,18 @@ public class FeedbackServiceImpl implements FeedbackService {
     // ── Validation helpers ────────────────────────────────────────────────────
 
     private String validateSubject(String subject) {
-        if (ValidationUtil.isNullOrEmpty(subject)) return "Tiêu đề không được để trống.";
+        if (ValidationUtil.isNullOrEmpty(subject)) return "Subject cannot be empty.";
         int len = subject.trim().length();
-        if (len < 5)   return "Tiêu đề phải có ít nhất 5 ký tự.";
-        if (len > 150) return "Tiêu đề không được vượt quá 150 ký tự.";
+        if (len < 5)   return "Subject must be at least 5 characters.";
+        if (len > 150) return "Subject cannot exceed 150 characters.";
         return null;
     }
 
     private String validateMessage(String message) {
-        if (ValidationUtil.isNullOrEmpty(message)) return "Nội dung không được để trống.";
+        if (ValidationUtil.isNullOrEmpty(message)) return "Message cannot be empty.";
         int len = message.trim().length();
-        if (len < 10)   return "Nội dung phải có ít nhất 10 ký tự.";
-        if (len > 2000) return "Nội dung không được vượt quá 2000 ký tự.";
+        if (len < 10)   return "Message must be at least 10 characters.";
+        if (len > 2000) return "Message cannot exceed 2000 characters.";
         return null;
     }
 }

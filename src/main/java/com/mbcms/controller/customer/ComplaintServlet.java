@@ -78,7 +78,7 @@ public class ComplaintServlet extends HttpServlet {
         try {
             showtimeId = Long.parseLong(showtimeIdStr);
         } catch (NumberFormatException e) {
-            req.setAttribute("errorMsg", "Vui lòng chọn suất chiếu cần khiếu nại.");
+            req.setAttribute("errorMsg", "Please select a showtime to submit a complaint.");
             doGet(req, resp);
             return;
         }

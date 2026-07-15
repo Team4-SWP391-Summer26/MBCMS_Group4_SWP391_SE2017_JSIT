@@ -78,7 +78,7 @@ public class SupportRequestServlet extends HttpServlet {
             try {
                 relatedBookingId = Long.parseLong(bookingIdStr);
             } catch (NumberFormatException e) {
-                req.setAttribute("errorMsg", "Mã đặt vé không hợp lệ.");
+                req.setAttribute("errorMsg", "Invalid booking ID.");
                 doGet(req, resp);
                 return;
             }
