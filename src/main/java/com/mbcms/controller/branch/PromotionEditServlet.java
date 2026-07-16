@@ -63,11 +63,11 @@ public class PromotionEditServlet extends HttpServlet {
             req.setAttribute("isEdit", true);
             req.setAttribute("promo", p);
 
-            // Format dates back for HTML inputs
-            req.setAttribute("rawStartDate", p.getValidFrom().toLocalDate().toString());
-            req.setAttribute("rawEndDate", p.getValidTo().toLocalDate().toString());
-            req.setAttribute("rawDiscountValue", p.getDiscountValue().stripTrailingZeros().toPlainString());
-            req.setAttribute("rawMinOrderAmount", p.getMinOrderAmount().stripTrailingZeros().toPlainString());
+            // Format dates back for HTML inputs (with null guards)
+            req.setAttribute("rawStartDate", p.getValidFrom() != null ? p.getValidFrom().toLocalDate().toString() : "");
+            req.setAttribute("rawEndDate", p.getValidTo() != null ? p.getValidTo().toLocalDate().toString() : "");
+            req.setAttribute("rawDiscountValue", p.getDiscountValue() != null ? p.getDiscountValue().stripTrailingZeros().toPlainString() : "");
+            req.setAttribute("rawMinOrderAmount", p.getMinOrderAmount() != null ? p.getMinOrderAmount().stripTrailingZeros().toPlainString() : "");
             req.setAttribute("rawMaxUses", p.getMaxUses() != null ? p.getMaxUses().toString() : "");
 
             req.getRequestDispatcher(VIEW).forward(req, resp);
