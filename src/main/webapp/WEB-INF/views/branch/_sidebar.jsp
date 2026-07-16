@@ -22,8 +22,9 @@
                     <a class="lc-sb-item ${param.active == 'dashboard' ? 'active' : ''}"
                         href="${pageContext.request.contextPath}/branch/dashboard">
                         <i class="bi bi-speedometer2"></i> Dashboard</a>
-                    <span class="lc-sb-item disabled"><i class="bi bi-film"></i> Movies <span
-                            class="lc-sb-soon">Soon</span></span>
+                    <a class="lc-sb-item ${param.active == 'movies' ? 'active' : ''}"
+                        href="${pageContext.request.contextPath}/branch/movies">
+                        <i class="bi bi-film"></i> Movies</a>
                     <a class="lc-sb-item ${param.active == 'showtimes' ? 'active' : ''}"
                         href="${pageContext.request.contextPath}/branch/showtimes">
                         <i class="bi bi-calendar3"></i> Showtimes</a>

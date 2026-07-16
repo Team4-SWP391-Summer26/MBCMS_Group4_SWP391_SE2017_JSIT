@@ -340,6 +340,18 @@ public class MovieDAOImpl extends BaseDAO implements MovieDAO {
     }
 
     @Override
+    public List<Movie> findAssignedMoviesForBranch(long branchId) {
+        String sql = MOVIE_GENRE_COLUMNS
+                + "FROM movies m "
+                + "JOIN movie_branch mb ON mb.movie_id = m.movie_id "
+                + "LEFT JOIN movie_genres mg ON m.movie_id = mg.movie_id "
+                + "LEFT JOIN genres g ON mg.genre_id = g.genre_id "
+                + "WHERE m.active = 1 AND mb.branch_id = ? "
+                + "ORDER BY m.title";
+        return queryMoviesWithGenres(sql, "findAssignedMoviesForBranch", branchId);
+    }
+
+    @Override
     public List<Genre> findAllGenres() {
         String sql = "SELECT genre_id, name FROM genres ORDER BY name";
         Connection conn = null;
