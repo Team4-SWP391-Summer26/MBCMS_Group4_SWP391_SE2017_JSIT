@@ -1,4 +1,4 @@
-﻿<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 <!DOCTYPE html>
@@ -516,13 +516,23 @@
                         <div class="row justify-content-center">
                             <!-- Promotion Details -->
                             <div class="col-md-8 col-lg-6">
-                                <h6 class="text-navy fw-bold mb-3 text-uppercase small">Apply Promo Code</h6>
-                                <div class="mb-4">
+                                <!-- Input container (visible when NO promo code is applied) -->
+                                <div class="mb-4" id="promo-input-container">
+                                    <h6 class="text-navy fw-bold mb-3 text-uppercase small">Apply Promo Code</h6>
                                     <label class="form-label fw-semibold text-muted small">Promo Code</label>
                                     <div class="input-group">
                                         <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-tag-fill"></i></span>
                                         <input type="text" id="promo-code" class="form-control border-start-0 text-uppercase fw-bold text-primary" placeholder="Enter promo code..." style="letter-spacing: 1px;">
                                         <button class="btn btn-primary px-4 fw-semibold" type="button" id="btn-apply-promo"><i class="bi bi-check-lg me-1"></i>Apply</button>
+                                    </div>
+                                </div>
+
+                                <!-- Applied container (visible when promo code IS applied) -->
+                                <div class="mb-4 d-none" id="promo-applied-container">
+                                    <h6 class="text-navy fw-bold mb-3 text-uppercase small"><i class="bi bi-tag text-primary me-2"></i>Promotion Code</h6>
+                                    <div class="d-inline-flex align-items-center bg-success bg-opacity-10 text-success border border-success border-opacity-25 rounded px-3 py-1.5 fw-bold" style="gap: 12px; font-size: 0.95rem;">
+                                        <span id="promo-badge-code" class="text-uppercase" style="letter-spacing: 0.5px;"></span>
+                                        <span id="btn-remove-promo" style="cursor: pointer; line-height: 1;"><i class="bi bi-x-lg text-muted hover-danger" style="font-size: 14px;"></i></span>
                                     </div>
                                 </div>
 
@@ -1472,14 +1482,40 @@
                                 }
 
                                 // ==========================================
-                                // STEP 4: PROMO APPLICATION
-                                // ==========================================
-
-                                // Apply Promotion Code
+                                // STEP 4: PROMO                                // Apply Promotion Code
                                 const btnApplyPromo = document.getElementById('btn-apply-promo');
                                 const promoCodeInput = document.getElementById('promo-code');
                                 const promoSuccess = document.getElementById('promo-success-alert');
                                 const promoError = document.getElementById('promo-error-alert');
+
+                                const promoInputContainer = document.getElementById('promo-input-container');
+                                const promoAppliedContainer = document.getElementById('promo-applied-container');
+                                const promoBadgeCode = document.getElementById('promo-badge-code');
+                                const btnRemovePromo = document.getElementById('btn-remove-promo');
+
+                                function syncPromoUI() {
+                                    if (state.promoCode) {
+                                        promoInputContainer.classList.add('d-none');
+                                        promoAppliedContainer.classList.remove('d-none');
+                                        promoBadgeCode.innerText = state.promoCode;
+                                    } else {
+                                        promoInputContainer.classList.remove('d-none');
+                                        promoAppliedContainer.classList.add('d-none');
+                                        promoBadgeCode.innerText = '';
+                                        promoCodeInput.value = '';
+                                    }
+                                }
+
+                                // Remove Promotion Code click listener
+                                btnRemovePromo.addEventListener('click', () => {
+                                    state.promoCode = '';
+                                    state.promoDiscount = 0;
+                                    promoSuccess.classList.add('d-none');
+                                    promoError.classList.add('d-none');
+                                    document.getElementById('summary-discount').innerText = '0';
+                                    syncPromoUI();
+                                    calculateTotalCheckout();
+                                });
 
                                 btnApplyPromo.addEventListener('click', () => {
                                     const code = promoCodeInput.value.trim();
@@ -1490,6 +1526,7 @@
                                         promoSuccess.classList.add('d-none');
                                         promoError.classList.add('d-none');
                                         document.getElementById('summary-discount').innerText = '0';
+                                        syncPromoUI();
                                         calculateTotalCheckout();
                                         return;
                                     }
@@ -1502,7 +1539,7 @@
                                                 btnApplyPromo.disabled = false;
 
                                                 if (data.valid) {
-                                                    state.promoCode = code;
+                                                    state.promoCode = code.toUpperCase();
                                                     state.promoDiscount = data.discountAmount;
 
                                                     promoSuccess.innerText = data.message;
@@ -1510,6 +1547,7 @@
                                                     promoError.classList.add('d-none');
 
                                                     document.getElementById('summary-discount').innerText = data.discountAmount.toLocaleString();
+                                                    syncPromoUI();
                                                     calculateTotalCheckout();
                                                 } else {
                                                     state.promoCode = '';
@@ -1520,6 +1558,7 @@
                                                     promoSuccess.classList.add('d-none');
 
                                                     document.getElementById('summary-discount').innerText = '0';
+                                                    syncPromoUI();
                                                     calculateTotalCheckout();
                                                 }
                                             })
@@ -1541,6 +1580,7 @@
                                     document.getElementById('summary-subtotal').innerText = state.subtotalAmount.toLocaleString();
                                     document.getElementById('summary-food-subtotal').innerText = state.foodSubtotalAmount.toLocaleString();
                                     document.getElementById('summary-discount').innerText = state.promoDiscount.toLocaleString();
+                                    syncPromoUI();
                                     calculateTotalCheckout();
                                     goToStep(4);
                                 });
@@ -1844,6 +1884,7 @@
                                     // Clear UI elements
                                     promoSuccess.classList.add('d-none');
                                     promoError.classList.add('d-none');
+                                    syncPromoUI();
 
                                     // Ensure WebSocket connection is closed on reset
                                     closeWS();
