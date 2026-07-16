@@ -1,0 +1,367 @@
+<%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
+
+<c:choose>
+    <%-- ======================= TICKET SALES ======================= --%>
+    <c:when test="${activeTab == 'ticketSales'}">
+        <h4 class="mb-3">Ticket Sales Overview</h4>
+        <div class="row">
+            <div class="col-md-7">
+                <canvas id="ticketChart" width="400" height="250"></canvas>
+            </div>
+            <div class="col-md-5">
+                <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                    <table class="table table-sm table-hover lc-table">
+                        <thead class="table-light position-sticky top-0">
+                            <tr>
+                                <th>Date</th>
+                                <th>Movie</th>
+                                <th>Tickets Sold</th>
+                                <th>Revenue</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <c:forEach var="row" items="${ticketSales}">
+                                <tr>
+                                    <td>${row.date}</td>
+                                    <td>${row.movieTitle}</td>
+                                    <td>${row.ticketsSold}</td>
+                                    <td><fmt:formatNumber value="${row.revenue}" type="number" maxFractionDigits="0"/>&#8363;</td>
+                                </tr>
+                            </c:forEach>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const ctx = document.getElementById('ticketChart').getContext('2d');
+                // Prepare data (aggregate by date for chart)
+                const rawData = [
+                    <c:forEach var="row" items="${ticketSales}">
+                        { date: '${row.date}', tickets: ${row.ticketsSold}, revenue: ${row.revenue} },
+                    </c:forEach>
+                ];
+
+                // Aggregate by date
+                const agg = {};
+                rawData.forEach(r => {
+                    if(!agg[r.date]) agg[r.date] = { tickets: 0, revenue: 0 };
+                    agg[r.date].tickets += r.tickets;
+                    agg[r.date].revenue += r.revenue;
+                });
+
+                const labels = Object.keys(agg).sort();
+                const ticketData = labels.map(d => agg[d].tickets);
+                const revenueData = labels.map(d => agg[d].revenue);
+
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [
+                            {
+                                label: 'Tickets Sold',
+                                data: ticketData,
+                                backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                                borderColor: 'rgba(54, 162, 235, 1)',
+                                borderWidth: 1,
+                                yAxisID: 'y'
+                            },
+                            {
+                                label: 'Revenue',
+                                data: revenueData,
+                                type: 'line',
+                                borderColor: 'rgba(255, 99, 132, 1)',
+                                backgroundColor: 'rgba(255, 99, 132, 0.5)',
+                                yAxisID: 'y1'
+                            }
+                        ]
+                    },
+                    options: {
+                        scales: {
+                            y: { type: 'linear', display: true, position: 'left' },
+                            y1: { type: 'linear', display: true, position: 'right', grid: { drawOnChartArea: false } }
+                        }
+                    }
+                });
+            });
+        </script>
+    </c:when>
+
+    <%-- ======================= F&B SALES ======================= --%>
+    <c:when test="${activeTab == 'fnbSales'}">
+        <h4 class="mb-3">F&B Sales Performance</h4>
+        <div class="row">
+            <div class="col-md-7">
+                <canvas id="fnbChart" width="400" height="250"></canvas>
+            </div>
+            <div class="col-md-5">
+                <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                    <table class="table table-sm table-hover lc-table">
+                        <thead class="table-light position-sticky top-0">
+                            <tr>
+                                <th>Item Name</th>
+                                <th>Category</th>
+                                <th>Qty Sold</th>
+                                <th>Revenue</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <c:forEach var="row" items="${fnbSales}">
+                                <tr>
+                                    <td>${row.itemName}</td>
+                                    <td>${row.category}</td>
+                                    <td>${row.qtySold}</td>
+                                    <td><fmt:formatNumber value="${row.revenue}" type="number" maxFractionDigits="0"/>&#8363;</td>
+                                </tr>
+                            </c:forEach>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const ctx = document.getElementById('fnbChart').getContext('2d');
+                const labels = [];
+                const revenueData = [];
+                <c:forEach var="row" items="${fnbSales}" varStatus="loop">
+                    <c:if test="${loop.index < 10}">
+                        labels.push('${row.itemName}');
+                        revenueData.push(${row.revenue});
+                    </c:if>
+                </c:forEach>
+
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Top 10 F&B Revenue',
+                            data: revenueData,
+                            backgroundColor: 'rgba(255, 159, 64, 0.5)',
+                            borderColor: 'rgba(255, 159, 64, 1)',
+                            borderWidth: 1
+                        }]
+                    }
+                });
+            });
+        </script>
+    </c:when>
+
+    <%-- ======================= BRANCH REVENUE ======================= --%>
+    <c:when test="${activeTab == 'branchRevenue'}">
+        <h4 class="mb-3">Branch Revenue Breakdown</h4>
+        <div class="row">
+            <div class="col-md-5 d-flex justify-content-center">
+                <canvas id="branchPieChart" width="300" height="300" style="max-width: 300px; max-height: 300px;"></canvas>
+            </div>
+            <div class="col-md-7">
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover lc-table">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Branch Name</th>
+                                <th>Ticket Revenue</th>
+                                <th>F&B Revenue</th>
+                                <th>Total Revenue</th>
+                                <th>Bookings</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <c:forEach var="row" items="${branchRevenue}">
+                                <tr>
+                                    <td>${row.branchName}</td>
+                                    <td><fmt:formatNumber value="${row.ticketRevenue}" type="number" maxFractionDigits="0"/>&#8363;</td>
+                                    <td><fmt:formatNumber value="${row.fnbRevenue}" type="number" maxFractionDigits="0"/>&#8363;</td>
+                                    <td class="fw-bold"><fmt:formatNumber value="${row.totalRevenue}" type="number" maxFractionDigits="0"/>&#8363;</td>
+                                    <td>${row.bookingsCount}</td>
+                                </tr>
+                            </c:forEach>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const ctx = document.getElementById('branchPieChart').getContext('2d');
+                let totalTicket = 0;
+                let totalFnb = 0;
+                <c:forEach var="row" items="${branchRevenue}">
+                    totalTicket += ${row.ticketRevenue};
+                    totalFnb += ${row.fnbRevenue};
+                </c:forEach>
+
+                new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Ticket Revenue', 'F&B Revenue'],
+                        datasets: [{
+                            data: [totalTicket, totalFnb],
+                            backgroundColor: ['rgba(54, 162, 235, 0.7)', 'rgba(255, 159, 64, 0.7)'],
+                        }]
+                    }
+                });
+            });
+        </script>
+    </c:when>
+
+    <%-- ======================= SYSTEM REVENUE (Admin Only) ======================= --%>
+    <c:when test="${activeTab == 'revenue' && isAdmin}">
+        <h4 class="mb-3">System Revenue</h4>
+
+        <div class="row mb-4 text-center">
+            <div class="col-md-4">
+                <div class="card bg-light p-3">
+                    <h5 class="text-muted">Total Revenue</h5>
+                    <h3 class="text-success"><fmt:formatNumber value="${revenue.totalRevenue}" type="number" maxFractionDigits="0"/>&#8363;</h3>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card bg-light p-3">
+                    <h5 class="text-muted">Total Tickets</h5>
+                    <h3 class="text-primary"><fmt:formatNumber value="${revenue.ticketRevenue}" type="number" maxFractionDigits="0"/>&#8363;</h3>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card bg-light p-3">
+                    <h5 class="text-muted">Total F&B</h5>
+                    <h3 class="text-warning"><fmt:formatNumber value="${revenue.fnbRevenue}" type="number" maxFractionDigits="0"/>&#8363;</h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6 d-flex justify-content-center">
+                <canvas id="sysRevChart" width="300" height="300" style="max-width: 350px; max-height: 350px;"></canvas>
+            </div>
+            <div class="col-md-6">
+                <div class="table-responsive" style="max-height: 350px; overflow-y: auto;">
+                    <table class="table table-sm table-hover lc-table">
+                        <thead class="table-light position-sticky top-0">
+                            <tr>
+                                <th>Branch Name</th>
+                                <th>Total Revenue</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <c:forEach var="row" items="${revenue.byBranch}">
+                                <tr>
+                                    <td>${row.branchName}</td>
+                                    <td><fmt:formatNumber value="${row.totalRevenue}" type="number" maxFractionDigits="0"/>&#8363;</td>
+                                </tr>
+                            </c:forEach>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const ctx = document.getElementById('sysRevChart').getContext('2d');
+                const labels = [];
+                const data = [];
+                <c:forEach var="row" items="${revenue.byBranch}">
+                    labels.push('${row.branchName}');
+                    data.push(${row.totalRevenue});
+                </c:forEach>
+
+                new Chart(ctx, {
+                    type: 'pie',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            data: data,
+                        }]
+                    }
+                });
+            });
+        </script>
+    </c:when>
+
+    <%-- ======================= POPULAR MOVIES ======================= --%>
+    <c:when test="${activeTab == 'popularMovies'}">
+        <h4 class="mb-3">Popular Movies</h4>
+        <div class="table-responsive">
+            <table class="table table-hover lc-table align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th style="width: 50px;">Rank</th>
+                        <th style="width: 80px;">Poster</th>
+                        <th>Movie Title</th>
+                        <th>Tickets Sold</th>
+                        <th>Revenue</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <c:forEach var="row" items="${popularMovies}" varStatus="loop">
+                        <tr>
+                            <td class="text-center fw-bold fs-5 text-muted">#${loop.index + 1}</td>
+                            <td>
+                                <c:choose>
+                                    <c:when test="${not empty row.posterUrl}">
+                                        <img src="<c:url value='${row.posterUrl}'/>"
+                                             alt="Poster" class="img-fluid rounded shadow-sm" style="height: 80px; width: 60px; object-fit: cover;">
+                                    </c:when>
+                                    <c:otherwise>
+                                        <div style="height:80px;width:60px;border-radius:4px;background:linear-gradient(135deg,#3b82f6,#8b5cf6);display:flex;align-items:center;justify-content:center;color:white;font-size:0.6rem;font-weight:700;">N/A</div>
+                                    </c:otherwise>
+                                </c:choose>
+                            </td>
+                            <td class="fw-bold fs-5">${row.title}</td>
+                            <td><span class="badge bg-primary rounded-pill fs-6">${row.ticketsSold}</span></td>
+                            <td class="text-success fw-bold fs-6"><fmt:formatNumber value="${row.revenue}" type="number" maxFractionDigits="0"/>&#8363;</td>
+                        </tr>
+                    </c:forEach>
+                    <c:if test="${empty popularMovies}">
+                        <tr><td colspan="5" class="text-center text-muted">No data available in this period.</td></tr>
+                    </c:if>
+                </tbody>
+            </table>
+        </div>
+    </c:when>
+
+    <%-- ======================= PEAK BOOKING TIMES ======================= --%>
+    <c:when test="${activeTab == 'peakBooking'}">
+        <h4 class="mb-3">Peak Booking Times</h4>
+        <div class="row">
+            <div class="col-12">
+                <canvas id="peakChart" width="800" height="300"></canvas>
+            </div>
+        </div>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const ctx = document.getElementById('peakChart').getContext('2d');
+                const labels = [];
+                const data = [];
+                <c:forEach var="row" items="${peakBooking}">
+                    labels.push('${row.hourOfDay}:00');
+                    data.push(${row.bookingsCount});
+                </c:forEach>
+
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Number of Bookings',
+                            data: data,
+                            backgroundColor: 'rgba(75, 192, 192, 0.5)',
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        scales: {
+                            y: { beginAtZero: true, ticks: { stepSize: 1 } }
+                        }
+                    }
+                });
+            });
+        </script>
+    </c:when>
+
+</c:choose>

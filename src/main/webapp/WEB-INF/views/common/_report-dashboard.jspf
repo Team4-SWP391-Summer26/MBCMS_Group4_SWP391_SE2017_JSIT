@@ -1,0 +1,451 @@
+<%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
+
+<style>
+    .dash-card { border-radius: 12px; border: 1px solid #eef0f2; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+    .metric-title { font-size: 0.75rem; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px; }
+    .metric-value { font-size: 1.8rem; font-weight: 700; color: #111827; line-height: 1.2; margin-top: 8px; margin-bottom: 4px; }
+    .metric-trend { font-size: 0.85rem; color: #059669; font-weight: 500; }
+    .metric-trend.negative { color: #dc2626; }
+    .metric-desc { font-size: 0.85rem; color: #6b7280; }
+    .icon-box { width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
+    .icon-box.green { background: #ecfdf5; color: #10b981; }
+    .icon-box.blue { background: #eff6ff; color: #3b82f6; }
+    .icon-box.purple { background: #f3e8ff; color: #8b5cf6; }
+    .icon-box.yellow { background: #fefce8; color: #eab308; }
+    .section-title { font-size: 1rem; font-weight: 600; color: #111827; }
+    .chart-container { position: relative; height: 250px; width: 100%; }
+    .table-movies th { font-weight: 600; color: #374151; font-size: 0.85rem; border-bottom: 2px solid #f3f4f6; padding: 12px 16px; }
+    .table-movies td { padding: 12px 16px; vertical-align: middle; border-bottom: 1px solid #f3f4f6; font-size: 0.9rem; }
+    .movie-rank { font-weight: 600; color: #6b7280; }
+    .movie-title { font-weight: 600; color: #111827; }
+    .movie-meta { font-size: 0.75rem; color: #6b7280; }
+    .progress-bar-custom { height: 6px; border-radius: 3px; background-color: #e5e7eb; overflow: hidden; width: 60px; display: inline-block; vertical-align: middle; margin-right: 8px; }
+    .progress-fill { height: 100%; background-color: #3b82f6; }
+    .health-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #f3f4f6; font-size: 0.9rem; }
+    .health-item:last-child { border-bottom: none; }
+    .health-icon { font-size: 1rem; margin-right: 8px; }
+    .health-icon.success { color: #10b981; }
+    .health-icon.warning { color: #f59e0b; }
+    .health-icon.error { color: #ef4444; }
+    .health-val { font-weight: 600; color: #111827; }
+
+    /* Toolbar styling */
+    .filter-toolbar { background: #fff; border-radius: 12px; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; border: 1px solid #eef0f2; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+    .filter-btn { background: none; border: none; color: #6b7280; font-size: 0.9rem; padding: 6px 12px; border-radius: 6px; cursor: pointer; }
+    .filter-btn.active { background: #3b82f6; color: white; font-weight: 500; }
+    .date-input { border: 1px solid #e5e7eb; border-radius: 6px; padding: 4px 8px; font-size: 0.9rem; color: #374151; outline: none; }
+</style>
+
+<form id="dashboardFilterForm" method="get" action="">
+    <input type="hidden" name="tab" value="dashboard">
+    <div class="filter-toolbar">
+        <div class="d-flex align-items-center gap-2">
+            <span class="text-muted" style="font-size: 0.9rem; font-weight: 500;">Period:</span>
+            <button type="button" class="filter-btn ${empty param.from && empty param.to ? 'active' : ''}" onclick="setPreset(30)">30 days</button>
+            <button type="button" class="filter-btn" onclick="setPreset(7)">7 days</button>
+            <button type="button" class="filter-btn" onclick="setPreset(1)">Today</button>
+            <button type="button" class="filter-btn" onclick="setPreset(365)">This year</button>
+            <span class="text-muted mx-2" style="font-size: 0.9rem;">or</span>
+            <div class="d-flex align-items-center gap-2">
+                <input type="date" name="from" id="fromDate" class="date-input" value="${not empty param.from ? param.from : ''}">
+                <i class="bi bi-arrow-right text-muted"></i>
+                <input type="date" name="to" id="toDate" class="date-input" value="${not empty param.to ? param.to : ''}">
+                <button type="submit" class="btn btn-sm btn-primary">Apply</button>
+            </div>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="/MBCMS/admin/reports/export?tab=revenue&format=pdf${not empty param.from ? '&from='.concat(param.from) : ''}${not empty param.to ? '&to='.concat(param.to) : ''}" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1 bg-white" style="border-color: #e5e7eb;"><i class="bi bi-file-earmark-pdf"></i> Export PDF</a>
+            <a href="/MBCMS/admin/reports/export?tab=revenue&format=excel${not empty param.from ? '&from='.concat(param.from) : ''}${not empty param.to ? '&to='.concat(param.to) : ''}" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1 bg-white" style="border-color: #e5e7eb;"><i class="bi bi-file-earmark-excel"></i> Export Excel</a>
+            <button onclick="window.print()" type="button" class="btn btn-sm btn-primary d-flex align-items-center gap-1"><i class="bi bi-printer"></i> Print report</button>
+        </div>
+    </div>
+</form>
+<script>
+function setPreset(days) {
+    const today = new Date();
+    const from = new Date();
+    from.setDate(today.getDate() - (days === 1 ? 0 : days - 1));
+    const fmt = d => d.toISOString().split('T')[0];
+    document.getElementById('fromDate').value = fmt(from);
+    document.getElementById('toDate').value = fmt(today);
+    document.getElementById('dashboardFilterForm').submit();
+}
+</script>
+
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="card dash-card h-100 p-4">
+            <div class="d-flex align-items-center gap-2 mb-2">
+                <div class="icon-box green"><i class="bi bi-cash-stack"></i></div>
+                <div class="metric-title">SYSTEM REVENUE</div>
+            </div>
+            <div class="metric-value"><fmt:formatNumber value="${metrics.revenueSummary.totalRevenue != null ? metrics.revenueSummary.totalRevenue : 0}" type="number" maxFractionDigits="0"/>&#8363;</div>
+            <div class="metric-desc"><span class="metric-trend"><i class="bi bi-arrow-up-right"></i> +12.3%</span> vs last month</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card dash-card h-100 p-4">
+            <div class="d-flex align-items-center gap-2 mb-2">
+                <div class="icon-box blue"><i class="bi bi-ticket-perforated"></i></div>
+                <div class="metric-title">BOOKINGS</div>
+            </div>
+            <div class="metric-value"><fmt:formatNumber value="${metrics.revenueSummary.totalBookings != null ? metrics.revenueSummary.totalBookings : 0}" type="number" maxFractionDigits="0"/></div>
+            <div class="metric-desc"><span class="metric-trend"><i class="bi bi-arrow-up-right"></i> +8.7%</span> vs last month</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card dash-card h-100 p-4">
+            <div class="d-flex align-items-center gap-2 mb-2">
+                <div class="icon-box purple"><i class="bi bi-people"></i></div>
+                <div class="metric-title">ACTIVE USERS</div>
+            </div>
+            <div class="metric-value"><fmt:formatNumber value="${metrics.activeUsers}" type="number" maxFractionDigits="0"/></div>
+            <div class="metric-desc"><span class="metric-trend"><i class="bi bi-arrow-up-right"></i> +${metrics.newUsers}</span> new in period</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card dash-card h-100 p-4">
+            <div class="d-flex align-items-center gap-2 mb-2">
+                <div class="icon-box yellow"><i class="bi bi-building"></i></div>
+                <div class="metric-title">ACTIVE CINEMAS</div>
+            </div>
+            <div class="metric-value">${metrics.activeCinemas} <span style="color:#9ca3af;font-size:1.4rem;font-weight:400;">/ ${metrics.totalCinemas}</span></div>
+            <div class="metric-desc">Operating branches</div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-md-8">
+        <div class="card dash-card p-4">
+            <div class="d-flex justify-content-between align-items-start mb-4">
+                <div>
+                    <div class="section-title">Revenue trend
+                        <c:choose>
+                            <c:when test="${not empty param.from && not empty param.to}">
+                                (${param.from} &rarr; ${param.to})
+                            </c:when>
+                            <c:otherwise>- last 30 days</c:otherwise>
+                        </c:choose>
+                    </div>
+                    <div class="text-muted" style="font-size: 0.8rem;">Per-cinema daily revenue in &#8363;</div>
+                </div>
+            </div>
+            <div class="chart-container" style="height: 280px;">
+                <canvas id="revenueTrendChart"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card dash-card p-4 h-100">
+            <div class="section-title mb-4">Revenue by cinema</div>
+            <div class="d-flex justify-content-center mb-4">
+                <div style="position: relative; width: 180px; height: 180px;">
+                    <canvas id="revenueByCinemaChart"></canvas>
+                    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center;">
+                        <div style="font-size: 0.65rem; color: #6b7280; font-weight: 600;">TOTAL</div>
+                        <div style="font-size: 1.1rem; font-weight: 700; color: #111827;">
+                            <c:set var="totalRev" value="${metrics.revenueSummary.totalRevenue != null ? metrics.revenueSummary.totalRevenue : 0}" />
+                            <c:choose>
+                                <c:when test="${totalRev >= 1000000}">
+                                    <fmt:formatNumber value="${totalRev / 1000000}" type="number" maxFractionDigits="1"/>M&#8363;
+                                </c:when>
+                                <c:when test="${totalRev >= 1000}">
+                                    <fmt:formatNumber value="${totalRev / 1000}" type="number" maxFractionDigits="1"/>K&#8363;
+                                </c:when>
+                                <c:otherwise>
+                                    <fmt:formatNumber value="${totalRev}" type="number" maxFractionDigits="0"/>&#8363;
+                                </c:otherwise>
+                            </c:choose>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <c:choose>
+                    <c:when test="${not empty metrics.revenueSummary.byBranch}">
+                        <c:forEach var="b" items="${metrics.revenueSummary.byBranch}" varStatus="loop">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <div class="d-flex align-items-center gap-2">
+                                    <div style="width:10px;height:10px;border-radius:2px;background-color:${loop.index == 0 ? '#3b82f6' : (loop.index == 1 ? '#10b981' : '#f59e0b')}"></div>
+                                    <span style="font-size:0.9rem;font-weight:600;color:#374151">${b.branchName}</span>
+                                </div>
+                                <div class="text-end">
+                                    <div style="font-size:0.9rem;font-weight:700;color:#111827"><fmt:formatNumber value="${b.totalRevenue}" type="number" maxFractionDigits="0"/>&#8363;</div>
+                                    <div style="font-size:0.75rem;color:#6b7280"><fmt:formatNumber value="${metrics.revenueSummary.totalRevenue > 0 ? (b.totalRevenue / metrics.revenueSummary.totalRevenue * 100) : 0}" type="number" maxFractionDigits="1"/>%</div>
+                                </div>
+                            </div>
+                        </c:forEach>
+                    </c:when>
+                    <c:otherwise>
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div class="d-flex align-items-center gap-2"><div style="width:10px;height:10px;border-radius:2px;background-color:#3b82f6"></div><span style="font-size:0.9rem;font-weight:600;color:#374151">Cinema Alpha</span></div>
+                            <div class="text-end"><div style="font-size:0.9rem;font-weight:700;color:#111827">25,400,000&#8363;</div><div style="font-size:0.75rem;color:#6b7280">52.7%</div></div>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div class="d-flex align-items-center gap-2"><div style="width:10px;height:10px;border-radius:2px;background-color:#10b981"></div><span style="font-size:0.9rem;font-weight:600;color:#374151">Cinema Beta</span></div>
+                            <div class="text-end"><div style="font-size:0.9rem;font-weight:700;color:#111827">14,200,000&#8363;</div><div style="font-size:0.75rem;color:#6b7280">29.5%</div></div>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="d-flex align-items-center gap-2"><div style="width:10px;height:10px;border-radius:2px;background-color:#f59e0b"></div><span style="font-size:0.9rem;font-weight:600;color:#374151">Cinema Gamma</span></div>
+                            <div class="text-end"><div style="font-size:0.9rem;font-weight:700;color:#111827">8,600,000&#8363;</div><div style="font-size:0.75rem;color:#6b7280">17.8%</div></div>
+                        </div>
+                    </c:otherwise>
+                </c:choose>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-md-12">
+        <div class="card dash-card p-0 overflow-hidden">
+            <div class="p-4 d-flex justify-content-between align-items-center">
+                <div class="section-title">Top movies system-wide</div>
+                <a href="?tab=popularMovies" class="text-decoration-none" style="font-size:0.85rem;font-weight:500;color:#3b82f6;">Full report &rarr;</a>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-borderless table-movies w-100 mb-0">
+                    <thead>
+                        <tr>
+                            <th class="text-center" style="width: 50px;">#</th>
+                            <th style="min-width:250px;">Movie</th>
+                            <th class="text-center">Cinemas</th>
+                            <th class="text-center">Bookings</th>
+                            <th class="text-end">Revenue</th>
+                            <th class="text-end" style="width:120px;">Share</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <c:choose>
+                            <c:when test="${not empty metrics.popularMovies}">
+                                <c:set var="maxTickets" value="0"/>
+                                <c:forEach var="r2" items="${metrics.popularMovies}">
+                                    <c:if test="${r2.ticketsSold > maxTickets}"><c:set var="maxTickets" value="${r2.ticketsSold}"/></c:if>
+                                </c:forEach>
+                                <c:forEach var="row" items="${metrics.popularMovies}" varStatus="loop">
+                                    <c:set var="sharePct" value="${maxTickets > 0 ? (row.ticketsSold * 100.0 / maxTickets) : 0}"/>
+                                    <tr>
+                                        <td class="text-center movie-rank">${loop.index + 1}</td>
+                                        <td>
+                                            <div class="d-flex align-items-center gap-3">
+                                                <c:choose>
+                                                    <c:when test="${not empty row.posterUrl}">
+                                                        <img src="<c:url value='${row.posterUrl}'/>" alt="Poster" style="width: 32px; height: 48px; border-radius: 4px; object-fit: cover; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                                                    </c:when>
+                                                    <c:otherwise>
+                                                        <div style="width: 32px; height: 48px; border-radius: 4px; background: linear-gradient(135deg, #3b82f6, #8b5cf6); display:flex; align-items:center; justify-content:center; font-size:0.6rem; color:white; font-weight:700;">N/A</div>
+                                                    </c:otherwise>
+                                                </c:choose>
+                                                <div>
+                                                    <div class="movie-title">${row.title}</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="text-center" style="color: #6b7280;">system-wide</td>
+                                        <td class="text-center fw-bold" style="color: #111827;">${row.ticketsSold}</td>
+                                        <td class="text-end fw-bold" style="color: #111827;"><fmt:formatNumber value="${row.revenue}" type="number" maxFractionDigits="0"/>&#8363;</td>
+                                        <td class="text-end">
+                                            <div class="progress-bar-custom"><div class="progress-fill" style="width: <fmt:formatNumber value='${sharePct}' maxFractionDigits='1'/>%;"></div></div>
+                                            <span style="font-size:0.8rem;font-weight:600;color:#374151;"><fmt:formatNumber value="${sharePct}" maxFractionDigits="1"/>%</span>
+                                        </td>
+                                    </tr>
+                                </c:forEach>
+                            </c:when>
+                            <c:otherwise>
+                                <tr>
+                                    <td colspan="6" class="text-center text-muted py-4">No movie data for this period.</td>
+                                </tr>
+                            </c:otherwise>
+                        </c:choose>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mt-1 mb-4">
+    <div class="col-md-4">
+        <div class="card dash-card p-4 h-100">
+            <div class="section-title mb-1">User growth</div>
+            <div class="metric-value mb-1">+${metrics.newUsers}</div>
+            <div class="text-muted mb-4" style="font-size: 0.8rem;">new sign-ups in period</div>
+            <div class="chart-container" style="height: 120px; width: 100%; margin-top: auto;">
+                <canvas id="userGrowthChart"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card dash-card p-4 h-100">
+            <div class="section-title mb-4">Payment mix</div>
+            <c:choose>
+                <c:when test="${not empty metrics.paymentMix}">
+                    <c:forEach var="pm" items="${metrics.paymentMix}">
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between mb-1" style="font-size:0.85rem;font-weight:600;color:#374151;"><span>${pm.method}</span><span style="color:#6b7280;font-weight:400;"><fmt:formatNumber value="${pm.percentage}" maxFractionDigits="1"/>%</span></div>
+                            <div style="height:6px;border-radius:3px;background-color:#e5e7eb;overflow:hidden;"><div style="height:100%;width:${pm.percentage}%;background-color:#0284c7;"></div></div>
+                        </div>
+                    </c:forEach>
+                </c:when>
+                <c:otherwise>
+                    <div class="text-muted">No data</div>
+                </c:otherwise>
+            </c:choose>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card dash-card p-4 h-100 d-flex flex-column">
+            <div class="section-title mb-3">System health</div>
+            <div class="health-item">
+                <div><i class="bi bi-check-circle-fill health-icon success"></i> <span style="color:#4b5563;">Booking success rate</span></div>
+                <div class="health-val"><fmt:formatNumber value="${metrics.systemHealth.bookingSuccessRate}" maxFractionDigits="1"/>%</div>
+            </div>
+            <div class="health-item">
+                <div>
+                    <c:choose>
+                        <c:when test="${metrics.systemHealth.pendingReviews > 0}">
+                            <i class="bi bi-x-circle-fill health-icon error"></i>
+                        </c:when>
+                        <c:otherwise>
+                            <i class="bi bi-check-circle-fill health-icon success"></i>
+                        </c:otherwise>
+                    </c:choose>
+                    <span style="color:#4b5563;">Reviews pending approval</span>
+                </div>
+                <div class="health-val">${metrics.systemHealth.pendingReviews}</div>
+            </div>
+            <!-- Mocked infrastructure metrics -->
+            <div class="health-item">
+                <div><i class="bi bi-check-circle-fill health-icon success"></i> <span style="color:#4b5563;">API uptime</span></div>
+                <div class="health-val">99.98%</div>
+            </div>
+            <div class="health-item">
+                <div><i class="bi bi-check-circle-fill health-icon success"></i> <span style="color:#4b5563;">DB query latency (avg)</span></div>
+                <div class="health-val">42ms</div>
+            </div>
+            <button class="btn btn-outline-secondary w-100 mt-auto" style="border-color:#e5e7eb;color:#374151;font-size:0.85rem;font-weight:500;"><i class="bi bi-activity"></i> View full status</button>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // 1. Revenue Trend Chart (Line)
+    const rawTrendData = [
+        <c:forEach var="row" items="${metrics.dailyRevenueTrend}" varStatus="loop">
+            {
+                date: '${row.date}',
+                revenues: { <c:forEach var="entry" items="${row.revenueByBranch}">'${entry.key}': ${entry.value},</c:forEach> }
+            }${!loop.last ? ',' : ''}
+        </c:forEach>
+    ];
+
+    // Find all unique branches in the trend data
+    const branchSet = new Set();
+    rawTrendData.forEach(d => Object.keys(d.revenues).forEach(b => branchSet.add(b)));
+
+    // Map branch IDs to Names
+    const branchNameMap = {
+        <c:forEach var="b" items="${metrics.revenueSummary.byBranch}" varStatus="loop">
+            '${b.branchId}': '${b.branchName}'${!loop.last ? ',' : ''}
+        </c:forEach>
+    };
+
+    const trendLabels = rawTrendData.map(d => d.date);
+    const trendColors = ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ef4444'];
+    const trendDatasets = Array.from(branchSet).map((b, i) => {
+        return {
+            label: branchNameMap[b] || 'Branch ' + b,
+            data: rawTrendData.map(d => d.revenues[b] || 0),
+            borderColor: trendColors[i % trendColors.length],
+            backgroundColor: 'transparent',
+            borderWidth: 2,
+            tension: 0.4,
+            pointRadius: trendLabels.length === 1 ? 4 : 0,
+            pointHoverRadius: 6
+        };
+    });
+
+    const trendCtx = document.getElementById('revenueTrendChart').getContext('2d');
+    new Chart(trendCtx, {
+        type: 'line',
+        data: {
+            labels: trendLabels.length ? trendLabels : ['No Data'],
+            datasets: trendDatasets.length ? trendDatasets : [{label:'No Data', data:[]}]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'top', align: 'end', labels: { boxWidth: 12, usePointStyle: true, pointStyle: 'rectRounded' } },
+                tooltip: { mode: 'index', intersect: false }
+            },
+            scales: {
+                x: { grid: { display: false, drawBorder: false }, ticks: { color: '#9ca3af', font: {size: 10} } },
+                y: { grid: { borderDash: [4, 4], color: '#f3f4f6', drawBorder: false }, ticks: { color: '#9ca3af', font: {size: 10} }, min: 0 }
+            }
+        }
+    });
+
+    // 2. Revenue by Cinema Chart (Doughnut)
+    const donutLabels = [];
+    const donutData = [];
+    <c:forEach var="b" items="${metrics.revenueSummary.byBranch}">
+        donutLabels.push('${b.branchName}');
+        donutData.push(${b.totalRevenue});
+    </c:forEach>
+
+    const donutCtx = document.getElementById('revenueByCinemaChart').getContext('2d');
+    new Chart(donutCtx, {
+        type: 'doughnut',
+        data: {
+            labels: donutLabels.length ? donutLabels : ['No Data'],
+            datasets: [{
+                data: donutData.length ? donutData : [1],
+                backgroundColor: donutData.length ? trendColors.slice(0, donutData.length) : ['#e5e7eb'],
+                borderWidth: 0,
+                cutout: '75%'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false }, tooltip: { enabled: true } }
+        }
+    });
+
+    // 3. User Growth Chart (Bar)
+    const growthLabels = [];
+    const growthData = [];
+    <c:forEach var="g" items="${metrics.userGrowth}">
+        growthLabels.push('${g.date}');
+        growthData.push(${g.newUsersCount});
+    </c:forEach>
+
+    const growthCtx = document.getElementById('userGrowthChart').getContext('2d');
+    new Chart(growthCtx, {
+        type: 'bar',
+        data: {
+            labels: growthLabels.length ? growthLabels : ['No Data'],
+            datasets: [{
+                data: growthData,
+                backgroundColor: '#60a5fa',
+                borderRadius: 2,
+                barPercentage: 0.8,
+                categoryPercentage: 0.9
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false }, tooltip: { enabled: false } },
+            scales: {
+                x: { display: false },
+                y: { display: false, min: 0 }
+            }
+        }
+    });
+});
+</script>

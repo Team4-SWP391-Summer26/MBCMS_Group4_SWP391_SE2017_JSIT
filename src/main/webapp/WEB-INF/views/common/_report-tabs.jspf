@@ -1,0 +1,22 @@
+<%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<div class="lc-tabs mb-4 d-flex gap-3 border-bottom pb-2">
+    <a href="?tab=ticketSales&from=${param.from}&to=${param.to}${param.branchId != null ? '&branchId='.concat(param.branchId) : ''}"
+       class="text-decoration-none px-3 py-2 ${activeTab == 'ticketSales' ? 'border-bottom border-primary border-3 text-primary fw-bold' : 'text-secondary'}">Ticket Sales</a>
+
+    <a href="?tab=fnbSales&from=${param.from}&to=${param.to}${param.branchId != null ? '&branchId='.concat(param.branchId) : ''}"
+       class="text-decoration-none px-3 py-2 ${activeTab == 'fnbSales' ? 'border-bottom border-primary border-3 text-primary fw-bold' : 'text-secondary'}">F&B Sales</a>
+
+    <a href="?tab=branchRevenue&from=${param.from}&to=${param.to}${param.branchId != null ? '&branchId='.concat(param.branchId) : ''}"
+       class="text-decoration-none px-3 py-2 ${activeTab == 'branchRevenue' ? 'border-bottom border-primary border-3 text-primary fw-bold' : 'text-secondary'}">Branch Revenue</a>
+
+    <c:if test="${isAdmin}">
+        <a href="?tab=revenue&from=${param.from}&to=${param.to}"
+           class="text-decoration-none px-3 py-2 ${activeTab == 'revenue' ? 'border-bottom border-primary border-3 text-primary fw-bold' : 'text-secondary'}">System Revenue</a>
+    </c:if>
+
+    <a href="?tab=popularMovies&from=${param.from}&to=${param.to}${param.branchId != null ? '&branchId='.concat(param.branchId) : ''}"
+       class="text-decoration-none px-3 py-2 ${activeTab == 'popularMovies' ? 'border-bottom border-primary border-3 text-primary fw-bold' : 'text-secondary'}">Popular Movies</a>
+
+    <a href="?tab=peakBooking&from=${param.from}&to=${param.to}${param.branchId != null ? '&branchId='.concat(param.branchId) : ''}"
+       class="text-decoration-none px-3 py-2 ${activeTab == 'peakBooking' ? 'border-bottom border-primary border-3 text-primary fw-bold' : 'text-secondary'}">Peak Booking Times</a>
+</div>
