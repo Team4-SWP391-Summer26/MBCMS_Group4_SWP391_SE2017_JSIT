@@ -51,6 +51,12 @@
                 Genres
             </a>
 
+            <a class="lc-sb-item ${param.active == 'movie-branches' ? 'active' : ''}"
+                href="${pageContext.request.contextPath}/admin/movie-branches">
+                <i class="bi bi-diagram-3"></i>
+                Movie Assignment
+            </a>
+
             <div class="lc-sb-section">Finance</div>
             <a class="lc-sb-item ${param.active == 'payments' ? 'active' : ''}"
                 href="${pageContext.request.contextPath}/admin/payments">

@@ -65,6 +65,13 @@ public interface MovieDAO {
     /** Lay phim NOW_SHOWING moi nhat de lam featured banner. */
     Movie findFeaturedMovie();
 
+    /**
+     * Tat ca phim (moi status) da duoc Admin cap cho 1 chi nhanh (qua movie_branch),
+     * kem genres/poster/rated de hien man "Movies" (read-only) o Branch Manager console.
+     * Khac findActiveMoviesForBranch (chi loc NOW_SHOWING, dung cho dropdown showtime).
+     */
+    List<Movie> findAssignedMoviesForBranch(long branchId);
+
     /** Lay tat ca the loai. */
     List<Genre> findAllGenres();
 }
