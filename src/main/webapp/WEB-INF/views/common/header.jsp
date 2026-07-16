@@ -70,12 +70,20 @@
                             <%-- Dot hidden by default; JS shows it when unreadCount > 0 --%>
                             <span class="notification-dot is-hidden" id="notifDot"></span>
                         </button>
+                        
+                        <%-- Dropdown panel --%>
+                        <div class="notif-panel" id="notifPanel">
+                            <div class="notif-panel-header">
+                                <span>Notifications</span>
+                                <a href="#" class="notif-markall" id="notifMarkAll">Mark all as read</a>
                             </div>
                             <div class="notif-list" id="notifList">
                                 <p class="notif-empty">Loading...</p>
                             </div>
-                            <a href="${pageContext.request.contextPath}/customer/notifications"
-                               class="notif-viewall">View all</a>
+                            <div class="p-2 border-top text-center">
+                                <a href="${pageContext.request.contextPath}/customer/notifications"
+                                   class="notif-viewall">View all</a>
+                            </div>
                         </div>
                     </div>
                     </c:if>
