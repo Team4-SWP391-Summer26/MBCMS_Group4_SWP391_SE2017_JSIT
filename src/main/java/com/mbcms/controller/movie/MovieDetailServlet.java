@@ -181,7 +181,7 @@ public class MovieDetailServlet extends HttpServlet {
         req.setAttribute("branches", branches);
         req.setAttribute("dateTabs", dateTabs);
         req.setAttribute("selectedDate", selectedDate.toString());
-        req.setAttribute("selectedBranchId", selectedBranchId == null ? "all" : selectedBranchId);
+        req.setAttribute("selectedBranchId", selectedBranchId == null ? "all" : String.valueOf(selectedBranchId));
         req.setAttribute("branchShowtimesList", branchShowtimesList);
         req.setAttribute("showtimesAvailable", showtimesAvailable);
         req.setAttribute("availableFormats", availableFormats);
