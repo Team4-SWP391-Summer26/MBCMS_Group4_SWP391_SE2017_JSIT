@@ -70,7 +70,7 @@ public class FoodDAOImpl extends BaseDAO implements FoodDAO {
     @Override
     public void saveFoodOrder(long bookingId, Map<Long, Integer> items, String status) {
         if (items == null || items.isEmpty()) {
-            // Nếu lưu rỗng thì xoá sạch order nếu có (để dọn rác)
+            // Empty selection — remove any existing order for this booking
             deleteOrderIfExists(bookingId);
             return;
         }
@@ -86,7 +86,7 @@ public class FoodDAOImpl extends BaseDAO implements FoodDAO {
             conn = getConnection();
             conn.setAutoCommit(false);
 
-            // 1. Kiểm tra xem order đã tồn tại chưa
+            // 1. Check if an order already exists for this booking
             String getOrderSql = "SELECT food_order_id FROM dbo.food_orders WHERE booking_id = ?";
             psGetOrder = conn.prepareStatement(getOrderSql);
             psGetOrder.setLong(1, bookingId);
@@ -95,7 +95,7 @@ public class FoodDAOImpl extends BaseDAO implements FoodDAO {
             long foodOrderId = 0;
             if (rs.next()) {
                 foodOrderId = rs.getLong("food_order_id");
-                // Cập nhật trạng thái
+                // Update status on existing order
                 String updateOrderSql = "UPDATE dbo.food_orders SET status = ? WHERE food_order_id = ?";
                 try (PreparedStatement psUpdateOrder = conn.prepareStatement(updateOrderSql)) {
                     psUpdateOrder.setString(1, status);
@@ -103,7 +103,7 @@ public class FoodDAOImpl extends BaseDAO implements FoodDAO {
                     psUpdateOrder.executeUpdate();
                 }
             } else {
-                // Tạo mới order
+                // Create new order
                 String insertOrderSql = "INSERT INTO dbo.food_orders (booking_id, status, created_at) VALUES (?, ?, SYSUTCDATETIME())";
                 psInsertOrder = conn.prepareStatement(insertOrderSql, Statement.RETURN_GENERATED_KEYS);
                 psInsertOrder.setLong(1, bookingId);
@@ -113,7 +113,7 @@ public class FoodDAOImpl extends BaseDAO implements FoodDAO {
                     if (genKeys.next()) {
                         foodOrderId = genKeys.getLong(1);
                     } else {
-                        throw new SQLException("Không lấy được food_order_id được sinh ra.");
+                        throw new SQLException("Failed to retrieve generated food_order_id.");
                     }
                 }
             }
@@ -143,13 +143,13 @@ public class FoodDAOImpl extends BaseDAO implements FoodDAO {
                         || food.getBranchId() == null
                         || !bookingBranchId.equals(food.getBranchId())) {
                     throw new IllegalArgumentException(
-                            "Món \"" + food.getName() + "\" không thuộc chi nhánh của suất chiếu này.");
+                            "Item \"" + food.getName() + "\" does not belong to the branch of this showtime.");
                 }
                 int qty = entry.getValue() == null ? 0 : entry.getValue();
                 qty = Math.max(1, Math.min(10, qty));
                 if (qty > food.getStock()) {
                     throw new IllegalArgumentException(
-                            "Món \"" + food.getName() + "\" không đủ tồn kho (còn " + food.getStock() + ").");
+                            "Item \"" + food.getName() + "\" is out of stock (only " + food.getStock() + " left).");
                 }
                 psInsertItem.setLong(1, foodOrderId);
                 psInsertItem.setLong(2, entry.getKey());
@@ -166,7 +166,7 @@ public class FoodDAOImpl extends BaseDAO implements FoodDAO {
                 } catch (SQLException ignored) {
                 }
             }
-            throw new RuntimeException("Lỗi saveFoodOrder: " + e.getMessage(), e);
+            throw new RuntimeException("saveFoodOrder failed: " + e.getMessage(), e);
         } finally {
             closeAll(rs, psGetOrder, null);
             closeAll(psInsertOrder, null);

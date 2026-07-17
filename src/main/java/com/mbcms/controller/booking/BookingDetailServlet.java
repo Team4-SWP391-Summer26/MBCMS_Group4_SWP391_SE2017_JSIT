@@ -54,6 +54,8 @@ public class BookingDetailServlet extends HttpServlet {
             req.setAttribute("booking", booking);
             req.setAttribute("confirmed", "1".equals(req.getParameter("confirmed")) || "true".equals(req.getParameter("confirmed")));
             req.setAttribute("foodAdded", "1".equals(req.getParameter("foodAdded")));
+            String foodError = req.getParameter("foodError");
+            req.setAttribute("foodError", foodError != null ? foodError : "");
             
             // Fetch food order details
             req.setAttribute("concessions", foodService.getFoodItemsByBookingId(bookingId));

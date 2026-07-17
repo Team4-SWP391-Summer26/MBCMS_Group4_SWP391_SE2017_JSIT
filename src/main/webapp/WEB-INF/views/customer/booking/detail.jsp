@@ -1,4 +1,4 @@
-﻿<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 <fmt:setTimeZone value="Asia/Ho_Chi_Minh"/>
@@ -229,6 +229,18 @@
                 <div class="success-banner" style="background:#e0f2fe; border-color:#bae6fd;">
                     <div class="title" style="color:#0369a1;">Concessions saved!</div>
                     <div class="sub" style="color:#075985;">Please pay for concessions at the counter when you pick them up.</div>
+                </div>
+            </c:if>
+
+            <c:if test="${foodError == 'already_ordered'}">
+                <div class="alert alert-warning border-0 mb-3" style="border-radius: 10px; font-size: .9rem;">
+                    <strong>Concessions already added.</strong>
+                    This booking already has a food &amp; drinks order. You cannot add a second one.
+                </div>
+            </c:if>
+            <c:if test="${not empty foodError and foodError != 'already_ordered'}">
+                <div class="alert alert-danger border-0 mb-3" style="border-radius: 10px; font-size: .9rem;">
+                    <strong>Concessions error:</strong> <c:out value="${foodError}"/>
                 </div>
             </c:if>
 

@@ -85,7 +85,7 @@ public class AdminFeedbackServlet extends HttpServlet {
 
         // Flash messages
         req.setAttribute("successMsg", req.getParameter("success") != null
-                ? "Cập nhật phản hồi thành công." : null);
+                ? "Feedback updated successfully." : null);
         req.setAttribute("errorMsg", req.getParameter("error") != null
                 ? req.getParameter("error") : null);
 

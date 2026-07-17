@@ -121,12 +121,12 @@
     <div class="col-6 col-md-2">
         <label class="form-label mb-1 small fw-semibold">From Date</label>
         <input type="date" name="fromDate" class="form-control form-control-sm"
-               value="${fn:escapeXml(selFromDate)}">
+               lang="en-GB" value="${fn:escapeXml(selFromDate)}">
     </div>
     <div class="col-6 col-md-2">
         <label class="form-label mb-1 small fw-semibold">To Date</label>
         <input type="date" name="toDate" class="form-control form-control-sm"
-               value="${fn:escapeXml(selToDate)}">
+               lang="en-GB" value="${fn:escapeXml(selToDate)}">
     </div>
     <div class="col-12 col-md-2">
         <label class="form-label mb-1 small fw-semibold">Search</label>

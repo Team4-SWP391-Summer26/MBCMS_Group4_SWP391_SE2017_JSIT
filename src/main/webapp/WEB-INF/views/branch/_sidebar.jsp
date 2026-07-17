@@ -43,6 +43,9 @@
                     <a class="lc-sb-item ${param.active == 'reports' ? 'active' : ''}"
                         href="${pageContext.request.contextPath}/branch/reports">
                         <i class="bi bi-bar-chart"></i> Reports</a>
+                    <a class="lc-sb-item ${param.active == 'feedbacks' ? 'active' : ''}"
+                        href="${pageContext.request.contextPath}/branch/feedbacks">
+                        <i class="bi bi-chat-square-text"></i> Feedback</a>
 
                     <div class="lc-sb-section">Branch</div>
                     <a class="lc-sb-item ${param.active == 'settings' ? 'active' : ''}"

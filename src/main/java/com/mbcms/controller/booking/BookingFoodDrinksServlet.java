@@ -167,6 +167,20 @@ public class BookingFoodDrinksServlet extends HttpServlet {
             try {
                 long bookingId = Long.parseLong(bookingIdParam.trim());
                 bookingService.getBookingDetail(bookingId, customer.getUsername());
+
+                // FOOD-002 guard: prevent a second food order for the same booking.
+                // saveFoodOrder is an upsert (would silently overwrite); we explicitly
+                // block it here at the service boundary so the DB UNIQUE constraint
+                // on booking_id is never bypassed.
+                com.mbcms.model.FoodOrder existing =
+                        foodService.getFoodOrderByBookingId(bookingId);
+                if (existing != null) {
+                    resp.sendRedirect(req.getContextPath()
+                            + "/customer/booking/detail?bookingId=" + bookingId
+                            + "&foodError=already_ordered");
+                    return;
+                }
+
                 foodService.saveFoodOrder(bookingId, selectedFood, "PENDING");
                 bookingService.recalculateTotalsWithFood(bookingId, customer.getUsername(), selectedFood);
                 resp.sendRedirect(req.getContextPath()
@@ -174,6 +188,18 @@ public class BookingFoodDrinksServlet extends HttpServlet {
                 return;
             } catch (SecurityException e) {
                 resp.sendError(HttpServletResponse.SC_FORBIDDEN);
+                return;
+            } catch (IllegalArgumentException e) {
+                // Invalid food item / branch mismatch — pass bookingId back with error
+                try {
+                    long bookingId = Long.parseLong(bookingIdParam.trim());
+                    resp.sendRedirect(req.getContextPath()
+                            + "/customer/booking/detail?bookingId=" + bookingId
+                            + "&foodError=" + java.net.URLEncoder.encode(e.getMessage(),
+                                java.nio.charset.StandardCharsets.UTF_8));
+                } catch (NumberFormatException ignored) {
+                    resp.sendRedirect(req.getContextPath() + "/");
+                }
                 return;
             } catch (Exception ignored) {
             }
