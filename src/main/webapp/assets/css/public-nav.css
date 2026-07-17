@@ -89,7 +89,8 @@
 }
 
 .navbar-custom .search-container {
-    max-width: 240px;
+    width: 100%;
+    max-width: 440px;
     margin-bottom: 0;
 }
 

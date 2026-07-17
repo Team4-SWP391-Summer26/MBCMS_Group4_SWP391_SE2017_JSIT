@@ -26,19 +26,14 @@
         <!-- Nav items -->
         <c:set var="activeMenu" value="${param.activeMenu}" />
         <div class="collapse navbar-collapse" id="navMenu">
-            <ul class="navbar-nav ms-lg-5 me-auto mb-2 mb-lg-0 mt-2 mt-lg-0 gap-4">
+            <ul class="navbar-nav ms-lg-4 me-auto mb-2 mb-lg-0 mt-2 mt-lg-0 gap-lg-4 gap-2">
                 <li class="nav-item">
                     <a class="nav-link <c:if test="${activeMenu == 'movies'}">active</c:if>"
                        href="${pageContext.request.contextPath}/movies?status=NOW_SHOWING">Movies</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link <c:if test="${activeMenu == 'cinemas'}">active</c:if>" href="" aria-disabled="true">Cinemas</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link <c:if test="${activeMenu == 'showtimes'}">active</c:if>" href="${pageContext.request.contextPath}/movies?status=NOW_SHOWING">Showtimes</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link <c:if test="${activeMenu == 'support'}">active</c:if>" href="" aria-disabled="true">Support</a>
+                    <a class="nav-link <c:if test="${activeMenu == 'upcoming'}">active</c:if>"
+                       href="${pageContext.request.contextPath}/movies?status=UPCOMING">Coming Soon</a>
                 </li>
             </ul>
 
