@@ -72,12 +72,6 @@
                 System Reports
             </a>
 
-            <span class="lc-sb-item disabled">
-                <i class="bi bi-star"></i>
-                Review Approval
-                <span class="lc-sb-soon">Soon</span>
-            </span>
-
             <a class="lc-sb-item ${param.active == 'settings' ? 'active' : ''}"
                 href="${pageContext.request.contextPath}/admin/settings">
                 <i class="bi bi-gear"></i>
