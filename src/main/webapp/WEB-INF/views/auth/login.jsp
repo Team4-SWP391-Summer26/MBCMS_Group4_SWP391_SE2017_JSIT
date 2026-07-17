@@ -85,7 +85,7 @@
                                 <!-- Remember me and Forgot password -->
                                 <div class="d-flex justify-content-between align-items-center mb-4 auth-meta-row">
                                     <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" id="rememberMe">
+                                        <input class="form-check-input" type="checkbox" id="rememberMe" name="rememberMe" value="true">
                                         <label class="form-check-label text-secondary" for="rememberMe">
                                             Remember me (7-day session)
                                         </label>

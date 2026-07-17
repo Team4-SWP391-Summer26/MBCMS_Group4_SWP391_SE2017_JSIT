@@ -41,6 +41,7 @@ public class LoginServlet extends HttpServlet {
 
         String username = req.getParameter("email");
         String password = req.getParameter("password");
+        boolean rememberMe = "true".equals(req.getParameter("rememberMe"));
 
         if (username == null || username.trim().isEmpty()
                 || password == null || password.isEmpty()) {
@@ -84,6 +85,7 @@ public class LoginServlet extends HttpServlet {
             session.setAttribute("currentUser", customer);
             session.setAttribute("userRole", "CUSTOMER");
             session.setAttribute("username", customer.getUsername());
+            applyRememberMe(req, resp, session, rememberMe);
             String target = resolveSafeRedirect(req, redirectAfterLogin);
             resp.sendRedirect(target);
             return;
@@ -102,6 +104,7 @@ public class LoginServlet extends HttpServlet {
                 session.setAttribute("branchId", employee.getBranchId());
                 session.setAttribute("currentBranchId", employee.getBranchId());
             }
+            applyRememberMe(req, resp, session, rememberMe);
             String redirect;
             if (employee.isAdmin()) {
                 redirect = req.getContextPath() + "/admin/dashboard";
@@ -114,8 +117,14 @@ public class LoginServlet extends HttpServlet {
             return;
         }
 
-        // Phan biet: dung pass nhung chua verify email -> bao verify (khong phai "sai pass").
-        if (authService.isUnverifiedAccount(username, password)) {
+        // Phan biet cac truong hop dung pass nhung khong the dang nhap:
+        // 1. Tai khoan bi khoa/vo hieu hoa -> bao rieng.
+        // 2. Chua verify email -> bao verify (khong phai "sai pass").
+        // 3. Con lai -> sai username/password.
+        if (authService.isInactiveAccount(username, password)) {
+            req.setAttribute("errorMsg",
+                    "Your account has been deactivated. Please contact support for assistance.");
+        } else if (authService.isUnverifiedAccount(username, password)) {
             req.setAttribute("errorMsg",
                     "Your email is not verified yet. Please check your inbox for the verification link.");
         } else {
@@ -123,6 +132,33 @@ public class LoginServlet extends HttpServlet {
         }
         req.setAttribute("username", username);
         req.getRequestDispatcher("/WEB-INF/views/auth/login.jsp").forward(req, resp);
+    }
+
+    /**
+     * Xu ly "Remember me": neu duoc chon, keo dai thoi gian song cua session
+     * len 7 ngay VA ghi de cookie JSESSIONID de trinh duyet giu cookie sau khi
+     * dong (mac dinh JSESSIONID la session cookie, mat khi dong browser). Neu
+     * khong chon, giu nguyen session-timeout mac dinh trong web.xml (30 phut).
+     */
+    private static final int REMEMBER_ME_MAX_AGE_SECONDS = 7 * 24 * 60 * 60; // 7 ngay
+
+    private void applyRememberMe(HttpServletRequest req, HttpServletResponse resp,
+            HttpSession session, boolean rememberMe) {
+        if (!rememberMe) {
+            return;
+        }
+
+        session.setMaxInactiveInterval(REMEMBER_ME_MAX_AGE_SECONDS);
+
+        // Ghi de cookie session (mac dinh ten la JSESSIONID) voi Max-Age = 7 ngay
+        // de trinh duyet luu lai sau khi dong, thay vi xoa khi tat browser.
+        Cookie sessionCookie = new Cookie("JSESSIONID", session.getId());
+        sessionCookie.setMaxAge(REMEMBER_ME_MAX_AGE_SECONDS);
+        String cookiePath = req.getContextPath();
+        sessionCookie.setPath(cookiePath == null || cookiePath.isEmpty() ? "/" : cookiePath);
+        sessionCookie.setHttpOnly(true);
+        sessionCookie.setSecure(req.isSecure());
+        resp.addCookie(sessionCookie);
     }
 
     /** Chỉ cho redirect nội bộ app (chống open redirect). */
