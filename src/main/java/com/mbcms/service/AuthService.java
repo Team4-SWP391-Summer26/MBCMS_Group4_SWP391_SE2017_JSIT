@@ -18,6 +18,14 @@ public interface AuthService {
      */
     boolean isUnverifiedAccount(String loginId, String rawPassword);
 
+    /**
+     * True khi thong tin dang nhap DUNG (email/username + password khop)
+     * nhung tai khoan (customer hoac employee) da bi khoa/vo hieu hoa
+     * (active = false). Dung de Servlet hien thong bao "tai khoan bi khoa"
+     * thay vi "sai mat khau".
+     */
+    boolean isInactiveAccount(String loginId, String rawPassword);
+
     boolean registerCustomer(Customer customer, String rawPassword);
 
     /**

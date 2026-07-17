@@ -77,6 +77,28 @@ public class AuthServiceImpl implements AuthService {
         return BCrypt.checkpw(rawPassword, customer.getPasswordHash());
     }
 
+    @Override
+    public boolean isInactiveAccount(String loginId, String rawPassword) {
+        if (loginId == null || rawPassword == null) {
+            return false;
+        }
+
+        // Thu voi Customer truoc (loginId la email).
+        Customer customer = customerDAO.findByEmail(loginId);
+        if (customer != null) {
+            // Chi bao "tai khoan bi khoa" khi mat khau dung -> khong lo tai khoan nao ton tai.
+            return !customer.isActive() && BCrypt.checkpw(rawPassword, customer.getPasswordHash());
+        }
+
+        // Khong phai Customer -> thu voi Employee (loginId la username).
+        Employee employee = employeeDAO.findByUsername(loginId);
+        if (employee != null) {
+            return !employee.isActive() && BCrypt.checkpw(rawPassword, employee.getPasswordHash());
+        }
+
+        return false;
+    }
+
     /**
      * Xac thuc Employee (staff/admin).
      *
