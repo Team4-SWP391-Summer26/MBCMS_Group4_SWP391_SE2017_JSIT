@@ -62,10 +62,6 @@
 
                     <li><a href="${pageContext.request.contextPath}/movies?status=UPCOMING">Coming Soon</a></li>
 
-                    <li><a href="${pageContext.request.contextPath}/movies?status=NOW_SHOWING">Showtimes</a></li>
-
-                    <li><a href="" class="lc-disabled-link" aria-disabled="true">Support</a></li>
-
                 </ul>
 
             </div>
@@ -83,8 +79,6 @@
                     <li><a href="${pageContext.request.contextPath}/customer/profile">Profile</a></li>
 
                     <li><a href="${pageContext.request.contextPath}/customer/notifications">Notifications</a></li>
-
-                    <li><a href="" class="lc-disabled-link" aria-disabled="true">Help Center</a></li>
 
                 </ul>
 
@@ -167,14 +161,6 @@
                 <span class="accept-label">We accept</span>
 
                 <img src="${pageContext.request.contextPath}/assets/img/vnpay-logo.png" alt="VNPAY" height="28" style="object-fit: contain; margin-left: 8px; vertical-align: middle; border-radius: 2px;">
-
-                <div class="language-select" role="button" tabindex="0" aria-label="Language">
-
-                    <i class="bi bi-globe2"></i>
-
-                    <span>EN</span>
-
-                </div>
 
             </div>
 

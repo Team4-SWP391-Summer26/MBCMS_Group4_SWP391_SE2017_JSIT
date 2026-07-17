@@ -215,23 +215,8 @@
                 </div>
             </section>
 
-            <%-- ================= PROMO BANNER ================= --%>
-            <section class="mb-5 home-reveal" style="--i:3">
-                <div class="promo-banner d-flex align-items-center justify-content-between flex-wrap gap-3">
-                    <div class="d-flex align-items-center gap-3">
-                        <i class="bi bi-ticket-perforated promo-icon"></i>
-                        <div class="promo-copy">
-                            <span class="promo-badge">SUMMER10</span>
-                            <h4 class="fw-bold mb-1">10% off all bookings</h4>
-                            <p class="mb-0 small promo-note">Min order 100,000 VND. Valid through 31 July 2026.</p>
-                        </div>
-                    </div>
-                    <a href="${pageContext.request.contextPath}/movies?status=NOW_SHOWING" class="btn fw-bold px-4 py-2 promo-cta">Claim Offer</a>
-                </div>
-            </section>
-
             <%-- ================= COMING SOON ================= --%>
-            <section class="mb-5 home-reveal" style="--i:4">
+            <section class="mb-5 home-reveal" style="--i:3">
                 <div class="home-section-head home-section-head--split mb-4">
                     <div class="home-section-intro">
                         <span class="section-kicker"><i class="bi bi-calendar-event"></i> On the horizon</span>

@@ -54,7 +54,7 @@
 /* ----- Main grid: brand wide + 3 narrow cols ----- */
 .footer-top-grid {
     display: grid;
-    grid-template-columns: minmax(0, 1.55fr) minmax(0, .78fr) minmax(0, .78fr) minmax(0, 1.05fr);
+    grid-template-columns: minmax(0, 1.3fr) minmax(0, .85fr) minmax(0, .85fr) minmax(0, 1.1fr);
     gap: clamp(1.75rem, 3vw, 2.5rem) clamp(1.25rem, 2.5vw, 2rem);
     align-items: start;
 }
