@@ -312,8 +312,6 @@ public class NotificationServiceImpl implements NotificationService {
             case Notification.TYPE_REMINDER:
                 return ctx + "/customer/booking/detail?bookingId="
                         + notification.getReferenceId();
-            case Notification.TYPE_PROMOTION:
-                return ctx + "/promotions/" + notification.getReferenceId();
             case Notification.TYPE_FEEDBACK:
                 return ctx + "/customer/feedbacks";
             default:
