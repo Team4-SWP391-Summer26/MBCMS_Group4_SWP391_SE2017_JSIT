@@ -103,8 +103,10 @@ public class ShowtimeDAOImpl extends BaseDAO implements ShowtimeDAO {
      * UNIQUE(room_id, start_time) chi chan trung CHINH XAC gio bat dau, khong
      * chan chong lan mot phan -> bat buoc check bang query nay.
      *
-     * sp_getapplock theo room_id: serialize xep lich cung phong (2 manager
-     * khong cung check-then-insert overlap voi start_time khac nhau).
+     * Moi chi nhanh chi co 1 Branch Manager (xem employees) -> khong co canh
+     * 2 nguoi cung xep lich 1 phong. Check-then-INSERT trong 1 transaction la
+     * du; khong dung sp_getapplock (khoa ung dung tung gay ket lam chet ca
+     * chuc nang tao suat).
      */
     @Override
     public boolean createWithConflictCheck(Showtime st) {
@@ -126,9 +128,6 @@ public class ShowtimeDAOImpl extends BaseDAO implements ShowtimeDAO {
         try {
             conn = getConnection();
             conn.setAutoCommit(false); // bat dau transaction
-
-            // Khoa theo phong: chi 1 manager check+insert cung luc cho 1 room_id.
-            acquireRoomScheduleLock(conn, st.getRoomId());
 
             // 1. Check overlap trong cung phong
             psCheck = conn.prepareStatement(checkSql);
@@ -155,7 +154,7 @@ public class ShowtimeDAOImpl extends BaseDAO implements ShowtimeDAO {
             psInsert.setString(8, st.getStatus());
             psInsert.executeUpdate();
 
-            conn.commit(); // nhả sp_getapplock (LockOwner=Transaction)
+            conn.commit(); // ket thuc transaction
             return true;
         } catch (SQLException e) {
             rollbackQuietly(conn);
@@ -231,9 +230,6 @@ public class ShowtimeDAOImpl extends BaseDAO implements ShowtimeDAO {
             conn = getConnection();
             conn.setAutoCommit(false);
 
-            // Khoa theo phong moi (va phong cu neu doi phong — tranh race 2 chieu).
-            acquireRoomScheduleLock(conn, st.getRoomId());
-
             psCheck = conn.prepareStatement(checkSql);
             psCheck.setLong(1, st.getRoomId());
             psCheck.setTimestamp(2, Timestamp.valueOf(st.getEndTime()));
@@ -267,39 +263,6 @@ public class ShowtimeDAOImpl extends BaseDAO implements ShowtimeDAO {
             restoreAutoCommitQuietly(conn);
             closeAll(rs, psCheck, null);
             closeAll(psUpdate, conn);
-        }
-    }
-
-    /**
-     * Exclusive app-lock theo room_id trong transaction hien tai.
-     * Commit/rollback se tu nha khoa (LockOwner = Transaction).
-     * Return code &gt;= 0 = ok; &lt; 0 = timeout / loi.
-     */
-    private void acquireRoomScheduleLock(Connection conn, long roomId) throws SQLException {
-        String exec = "DECLARE @rc INT; "
-                + "EXEC @rc = sp_getapplock "
-                + "  @Resource = ?, "
-                + "  @LockMode = 'Exclusive', "
-                + "  @LockOwner = 'Transaction', "
-                + "  @LockTimeout = 5000; "
-                + "SELECT @rc AS lock_result;";
-        PreparedStatement ps = null;
-        ResultSet rs = null;
-        try {
-            ps = conn.prepareStatement(exec);
-            ps.setString(1, "showtime-room-" + roomId);
-            rs = ps.executeQuery();
-            if (!rs.next() || rs.getInt("lock_result") < 0) {
-                throw new SQLException("Could not acquire schedule lock for room_id=" + roomId
-                        + " (another manager may be editing this hall).");
-            }
-        } finally {
-            if (rs != null) {
-                try { rs.close(); } catch (SQLException ignored) {}
-            }
-            if (ps != null) {
-                try { ps.close(); } catch (SQLException ignored) {}
-            }
         }
     }
 

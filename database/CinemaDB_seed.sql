@@ -289,7 +289,11 @@ FROM dbo.branches b
 CROSS JOIN (VALUES
     (N'Room 1', 'STANDARD'),
     (N'Room 2', 'VIP'),
-    (N'IMAX Hall', 'IMAX')
+    (N'IMAX Hall', 'IMAX'),
+    -- Room 3: intentionally left with NO fixed schedule. Section 15 drops a
+    -- single "showing now" showtime here for the live check-in demo, so it can
+    -- never overlap the dense fixed schedule of the other rooms.
+    (N'Room 3', 'STANDARD')
 ) AS r(name, room_type);
 
 -- ---------------------------------------------------------------------
@@ -801,6 +805,56 @@ FROM dbo.bookings b WHERE b.booking_code IN ('BK-000002', 'BK-000003');
 
 DROP TABLE #plan;
 PRINT 'Extra bookings seeded (BK-000002..BK-000007).';
+GO
+
+-- ---------------------------------------------------------------------
+-- 15. LIVE check-in / validate demo (BK-000008)
+--     hungnt buys a ticket for a LONG movie (Dune: Part Two, 166 min) whose
+--     showtime STARTS 20 minutes before you run this seed -> the movie is
+--     playing RIGHT NOW, so the staff entry window [start - 45m, end] always
+--     covers the current clock time. => You can validate + check in BK-000008
+--     at ANY time of day on demo day, no matter when the DB was seeded.
+--     Branch: Nguyen Hue / Room 3 (a room with NO fixed schedule) so this
+--     single "now" showtime can never overlap another one in the same room.
+--     Log in as staff_hcm to validate/check-in.
+-- ---------------------------------------------------------------------
+DECLARE @liveBranch BIGINT = (SELECT branch_id FROM dbo.branches WHERE name = N'Nguyen Hue');
+DECLARE @liveRoom   BIGINT = (SELECT room_id FROM dbo.rooms WHERE branch_id = @liveBranch AND name = N'Room 3');
+DECLARE @liveMovie  BIGINT = (SELECT movie_id FROM dbo.movies WHERE title = N'Dune: Part Two');
+DECLARE @liveDur    INT    = (SELECT duration_min FROM dbo.movies WHERE movie_id = @liveMovie);
+
+-- Started 20 minutes ago (GETDATE = server local time, same basis as the
+-- other seeded showtimes). end_time = start + movie duration (still in future).
+DECLARE @liveStart DATETIME2 = CAST(DATEADD(MINUTE, -20, GETDATE()) AS DATETIME2);
+DECLARE @liveEnd   DATETIME2 = DATEADD(MINUTE, @liveDur, @liveStart);
+DECLARE @livePrice DECIMAL(10,2) = 90000;
+
+INSERT INTO dbo.showtimes (room_id, movie_id, start_time, end_time, base_price, format, subtitle_type, [status])
+VALUES (@liveRoom, @liveMovie, @liveStart, @liveEnd, @livePrice, '2D', 'SUB', 'SCHEDULED');
+DECLARE @liveShowtime BIGINT = SCOPE_IDENTITY();
+
+-- 2 seats (A1, A2) in that hall — brand-new showtime, so no seat clash.
+DECLARE @liveSeat1 BIGINT = (SELECT seat_id FROM dbo.seats WHERE room_id = @liveRoom AND row_label = 'A' AND col_number = 1);
+DECLARE @liveSeat2 BIGINT = (SELECT seat_id FROM dbo.seats WHERE room_id = @liveRoom AND row_label = 'A' AND col_number = 2);
+
+DECLARE @liveSubtotal DECIMAL(10,2) = @livePrice * 2;
+
+-- CONFIRMED + paid, NOT checked in yet -> validate = VALID, then check-in works,
+-- and a second scan shows ALREADY_USED.
+INSERT INTO dbo.bookings (customer_username, showtime_id, promo_id, booking_code, subtotal, discount_amount, total_amount, [status])
+VALUES ('hungnt', @liveShowtime, NULL, 'BK-000008', @liveSubtotal, 0, @liveSubtotal, 'CONFIRMED');
+DECLARE @liveBooking BIGINT = SCOPE_IDENTITY();
+
+INSERT INTO dbo.booking_seats (booking_id, seat_id, showtime_id)
+VALUES (@liveBooking, @liveSeat1, @liveShowtime), (@liveBooking, @liveSeat2, @liveShowtime);
+
+INSERT INTO dbo.payments (booking_id, method, amount, [status], transaction_ref, paid_at)
+VALUES (@liveBooking, 'VNPAY', @liveSubtotal, 'SUCCESS', 'VNPAY-TXN-0008', SYSUTCDATETIME());
+
+INSERT INTO dbo.notifications (customer_username, title, content, type, reference_id)
+VALUES ('hungnt', N'Booking confirmed', N'Your booking BK-000008 is confirmed. Enjoy the movie!', 'BOOKING', @liveBooking);
+
+PRINT 'Live check-in demo seeded: BK-000008 (hungnt, Nguyen Hue IMAX, showing now) - validate as staff_hcm.';
 GO
 
 -- ---------------------------------------------------------------------

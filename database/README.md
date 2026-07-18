@@ -63,4 +63,4 @@ Hashes in the database are bcrypt work-factor 10 for the string `"password"`, co
   - `UNIQUE (branch_id, name)` on `rooms` and `food_items`; branch name unique; branch hours `closing > opening` when both set
   - `CK_employees_branch` (ADMIN → `branch_id` NULL; MANAGER/STAFF → NOT NULL)
 - `ON DELETE CASCADE`: `movie_genres`, `booking_seats`, `payments`, `food_orders`, `booking_food_items`, `notifications`. `ON DELETE SET NULL`: `feedbacks.customer_username` (allows guest feedback without an account).
-- No triggers or views — business logic lives in Java (DAO). `sp_getapplock` may be used from JDBC for showtime scheduling races (not a permanent DB object).
+- No triggers or views — business logic lives in Java (DAO). Showtime overlap is prevented by a check-then-INSERT inside one JDBC transaction plus `UNIQUE (room_id, start_time)` (one Branch Manager per branch, so no cross-user scheduling race to guard).
