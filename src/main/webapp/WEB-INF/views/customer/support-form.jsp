@@ -38,21 +38,44 @@
 
     <%-- Sidebar --%>
     <div class="col-12 col-md-3">
-        <div class="lc-elev p-3 mb-3">
+        <div class="card lc-elev p-3">
             <c:set var="cu" value="${sessionScope.currentUser}"/>
-            <div class="d-flex align-items-center gap-3 mb-3">
-                <div class="lc-avatar">${fn:substring(cu.fullName,0,1)}</div>
-                <div>
-                    <div class="fw-semibold small">${fn:escapeXml(cu.fullName)}</div>
-                    <div class="text-muted" style="font-size:.78rem">${fn:escapeXml(cu.username)}</div>
+            <div class="d-flex flex-column align-items-center text-center py-3 mb-2"
+                 style="border-bottom:1px solid #eef1f5;">
+                <div class="lc-avatar mb-2">${fn:toUpperCase(fn:substring(cu.fullName, 0, 1))}</div>
+                <h6 class="text-navy fw-bold mb-0"><c:out value="${cu.fullName}" /></h6>
+                <div class="text-muted small">@<c:out value="${cu.username}" /></div>
+                <div class="small mt-1">
+                    <c:choose>
+                        <c:when test="${cu.emailVerified}">
+                            <i class="bi bi-patch-check-fill text-success"></i> <span class="text-muted">Email verified</span>
+                        </c:when>
+                        <c:otherwise>
+                            <i class="bi bi-exclamation-circle text-warning"></i> <span class="text-muted">Email not verified</span>
+                        </c:otherwise>
+                    </c:choose>
                 </div>
             </div>
-            <nav>
-                <a href="${pageContext.request.contextPath}/customer/profile"        class="lc-navitem"><i class="bi bi-person"></i>Profile</a>
-                <a href="${pageContext.request.contextPath}/customer/payment-history" class="lc-navitem"><i class="bi bi-receipt"></i>Booking History</a>
-                <a href="${pageContext.request.contextPath}/customer/notifications"   class="lc-navitem"><i class="bi bi-bell"></i>Notifications</a>
-                <a href="${pageContext.request.contextPath}/customer/complaints"      class="lc-navitem"><i class="bi bi-exclamation-circle"></i>Complaints</a>
-                <a href="${pageContext.request.contextPath}/customer/support"         class="lc-navitem active"><i class="bi bi-headset"></i>Support</a>
+
+            <nav class="d-flex flex-column">
+                <a class="lc-navitem" href="${pageContext.request.contextPath}/customer/profile">
+                    <i class="bi bi-person"></i> Profile</a>
+                <a class="lc-navitem" href="${pageContext.request.contextPath}/auth/change-password">
+                    <i class="bi bi-shield-lock"></i> Security</a>
+                <a class="lc-navitem" href="${pageContext.request.contextPath}/customer/booking/history">
+                    <i class="bi bi-ticket-perforated"></i> My Bookings</a>
+                <a class="lc-navitem" href="${pageContext.request.contextPath}/customer/notifications">
+                    <i class="bi bi-bell"></i> Notifications</a>
+                <a class="lc-navitem" href="${pageContext.request.contextPath}/customer/complaints">
+                    <i class="bi bi-exclamation-circle"></i> Complaints</a>
+                <a class="lc-navitem active" href="${pageContext.request.contextPath}/customer/support">
+                    <i class="bi bi-headset"></i> Support</a>
+                <hr style="margin:10px 0; border-color:#eef1f5;">
+                <form method="post" action="${pageContext.request.contextPath}/auth/logout" class="m-0">
+                    <%@ include file="/WEB-INF/views/common/csrf-hidden.jspf" %>
+                    <button type="submit" class="lc-navitem" style="color:var(--danger);border:0;background:none;width:100%;text-align:left;cursor:pointer;">
+                        <i class="bi bi-box-arrow-right"></i> Sign out</button>
+                </form>
             </nav>
         </div>
     </div>
