@@ -120,6 +120,8 @@ public class ShowtimeEditServlet extends HttpServlet {
                 return "Schedule conflict: this room already has a showtime overlapping that time.";
             case ShowtimeService.RESULT_ROOM_INVALID:
                 return "Invalid room.";
+            case ShowtimeService.RESULT_FORMAT_ROOM_MISMATCH:
+                return ShowtimeCreateServlet.MSG_FORMAT_ROOM_MISMATCH;
             case ShowtimeService.RESULT_NOT_EDITABLE:
                 return "This showtime can no longer be edited (already started, cancelled, or ended).";
             case ShowtimeService.RESULT_HAS_BOOKINGS:

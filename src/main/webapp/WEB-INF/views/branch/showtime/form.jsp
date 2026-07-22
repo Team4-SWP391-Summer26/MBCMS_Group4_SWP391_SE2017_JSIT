@@ -21,6 +21,10 @@
 <c:set var="vEndTime" value="${empty param.endTime ? (editing ? fn:substring(st.endTime, 11, 16) : '') : param.endTime}" />
 <c:set var="vEndMode" value="${empty param.endMode ? 'auto' : param.endMode}" />
 <c:set var="vReturnDate" value="${empty param.returnDate ? vDate : param.returnDate}" />
+<%-- Multiple-days mode (chi o Create): dateMode = single | range --%>
+<c:set var="vDateMode" value="${empty param.dateMode ? 'single' : param.dateMode}" />
+<c:set var="vDateFrom" value="${param.dateFrom}" />
+<c:set var="vDateTo" value="${param.dateTo}" />
 <!DOCTYPE html>
 <html lang="en">
 
@@ -111,9 +115,21 @@
 
                             <%-- ----- Schedule (UC20; end time auto = start + duration, SRS 3.5.2.2) ----- --%>
                             <div class="card lc-elev p-4 lc-rise" style="--i:1;">
-                                <div class="st-section-title">Schedule</div>
+                                <div class="st-section-title d-flex align-items-center justify-content-between">
+                                    <span>Schedule</span>
+                                    <%-- Toggle Single date / Multiple days: chi o Create (Edit sua 1 suat cu the) --%>
+                                    <c:if test="${!editing}">
+                                        <span class="end-toggle" id="dateModeToggle" role="group" aria-label="Date mode">
+                                            <button type="button" class="end-toggle-opt" data-dmode="single">Single date</button>
+                                            <button type="button" class="end-toggle-opt" data-dmode="range">Multiple days</button>
+                                        </span>
+                                    </c:if>
+                                </div>
+                                <c:if test="${!editing}">
+                                    <input type="hidden" name="dateMode" id="dateMode" value="single">
+                                </c:if>
                                 <div class="row g-3">
-                                    <div class="col-md-4">
+                                    <div class="col-md-4" id="singleDateCol">
                                         <label class="form-label" for="date">Date <span class="text-danger">*</span></label>
                                         <input type="date" class="form-control" id="date" name="date" value="${vDate}" required>
                                     </div>
@@ -140,6 +156,40 @@
                                         <div class="form-text" id="endTimeHint">Calculated: start + movie duration</div>
                                     </div>
                                 </div>
+
+                                <%-- ----- Multiple days: khoang ngay + cac thu ap dung (UC20) ----- --%>
+                                <c:if test="${!editing}">
+                                    <div class="row g-3 mt-0 d-none" id="rangeFields">
+                                        <div class="col-md-3">
+                                            <label class="form-label" for="dateFrom">From <span class="text-danger">*</span></label>
+                                            <input type="date" class="form-control" id="dateFrom" name="dateFrom" value="${vDateFrom}">
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="form-label" for="dateTo">To <span class="text-danger">*</span></label>
+                                            <input type="date" class="form-control" id="dateTo" name="dateTo" value="${vDateTo}">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label d-block">Repeat on</label>
+                                            <div class="d-flex flex-wrap gap-1">
+                                                <c:forEach var="dLabel" items="${['Mon','Tue','Wed','Thu','Fri','Sat','Sun']}" varStatus="s">
+                                                    <c:set var="dVal" value="${s.index + 1}" />
+                                                    <%-- Mac dinh (GET) tick het; sau POST loi thi giu dung cac o da tick --%>
+                                                    <c:set var="dChecked" value="${empty paramValues.days}" />
+                                                    <c:forEach var="pd" items="${paramValues.days}">
+                                                        <c:if test="${pd == dVal}"><c:set var="dChecked" value="true" /></c:if>
+                                                    </c:forEach>
+                                                    <span>
+                                                        <input type="checkbox" class="btn-check" name="days" id="day${dVal}"
+                                                               value="${dVal}" ${dChecked ? 'checked' : ''}>
+                                                        <label class="btn lc-radio btn-sm px-2" for="day${dVal}">${dLabel}</label>
+                                                    </span>
+                                                </c:forEach>
+                                            </div>
+                                            <div class="form-text">One showtime per selected day &mdash; same time, movie, room and price.
+                                                Days already booked (schedule conflict) are skipped and reported. Max 31 days.</div>
+                                        </div>
+                                    </div>
+                                </c:if>
                             </div>
 
                             <%-- ----- Format & Pricing (UC39 Set ticket pricing) ----- --%>
@@ -182,8 +232,9 @@
                                         <input type="number" class="form-control" id="basePrice" name="basePrice"
                                                min="10000" max="500000" step="1000" value="${vPrice}"
                                                placeholder="e.g. 90000" required>
-                                        <div class="form-text">Range: 10,000 &ndash; 500,000 VND.
-                                            Suggested &mdash; Standard: 80,000 &middot; VIP: 120,000 &middot; IMAX: 100,000</div>
+                                        <div class="form-text">Range: 10,000 &ndash; 500,000 VND. Standard-seat price;
+                                            VIP seats are auto-surcharged. See the PentaPlex Pricing Guide for the
+                                            suggested price (format &times; day &times; time slot).</div>
                                     </div>
                                 </div>
                             </div>
@@ -379,8 +430,68 @@
                             el.addEventListener('change', update);
                         });
 
+                // ----- Format-room rule (mirror server rule in ShowtimeServiceImpl) -----
+                // Phong IMAX chi chieu IMAX; phong STANDARD/VIP khong chieu IMAX.
+                function applyRoomFormatRule() {
+                    var rOpt = roomSel.options[roomSel.selectedIndex];
+                    var fmt2D = document.getElementById('fmt2D');
+                    var fmt3D = document.getElementById('fmt3D');
+                    var fmtIMAX = document.getElementById('fmtIMAX');
+                    if (!rOpt || !rOpt.value) {
+                        [fmt2D, fmt3D, fmtIMAX].forEach(function (el) {
+                            el.disabled = false;
+                        });
+                        return;
+                    }
+                    var imaxRoom = rOpt.getAttribute('data-type') === 'IMAX';
+                    fmt2D.disabled = imaxRoom;
+                    fmt3D.disabled = imaxRoom;
+                    fmtIMAX.disabled = !imaxRoom;
+                    if (imaxRoom) {
+                        fmtIMAX.checked = true;
+                    } else if (fmtIMAX.checked) {
+                        fmtIMAX.checked = false;
+                    }
+                    update();
+                }
+                roomSel.addEventListener('change', applyRoomFormatRule);
+
+                // ----- Single date / Multiple days (chi o Create; server nhan dateMode) -----
+                var dmToggle = document.getElementById('dateModeToggle');
+                if (dmToggle) {
+                    var dateModeInp = document.getElementById('dateMode');
+                    var singleCol = document.getElementById('singleDateCol');
+                    var rangeFields = document.getElementById('rangeFields');
+                    var dateFromInp = document.getElementById('dateFrom');
+                    var dateToInp = document.getElementById('dateTo');
+                    dateFromInp.min = dateInp.min;
+                    dateToInp.min = dateInp.min;
+
+                    function setDateMode(mode) {
+                        var range = mode === 'range';
+                        dateModeInp.value = range ? 'range' : 'single';
+                        dmToggle.querySelectorAll('.end-toggle-opt').forEach(function (b) {
+                            b.classList.toggle('active', b.getAttribute('data-dmode') === dateModeInp.value);
+                        });
+                        singleCol.classList.toggle('d-none', range);
+                        rangeFields.classList.toggle('d-none', !range);
+                        // required chi tren cac o dang hien; o an ma required se chan submit
+                        dateInp.required = !range;
+                        dateFromInp.required = range;
+                        dateToInp.required = range;
+                    }
+                    dmToggle.querySelectorAll('.end-toggle-opt').forEach(function (b) {
+                        b.addEventListener('click', function () {
+                            setDateMode(b.getAttribute('data-dmode'));
+                        });
+                    });
+                    // Sau POST loi o che do range thi mo lai dung mode do
+                    setDateMode('${vDateMode}' === 'range' ? 'range' : 'single');
+                }
+
                 // ----- Initial mode -----
                 update(); // compute autoEndHHMM first
+                applyRoomFormatRule(); // edit prefill / POST re-render: khoa format theo phong da chon
                 var EDITING = ${editing};
                 var POST_MODE = "${vEndMode}";          // 'custom' if a failed POST carried it
                 var EXISTING_END = "${vEndTime}";       // edit prefill
