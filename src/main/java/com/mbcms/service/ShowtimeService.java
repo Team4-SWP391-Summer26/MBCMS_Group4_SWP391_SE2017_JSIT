@@ -14,6 +14,7 @@ public interface ShowtimeService {
     String RESULT_NOT_FOUND = "NOT_FOUND";         // suat khong ton tai / khong thuoc branch nay
     String RESULT_NOT_EDITABLE = "NOT_EDITABLE";   // suat khong o trang thai SCHEDULED
     String RESULT_HAS_BOOKINGS = "HAS_BOOKINGS";   // da co booking -> khong duoc cancel / edit
+    String RESULT_FORMAT_ROOM_MISMATCH = "FORMAT_ROOM_MISMATCH"; // IMAX format <-> IMAX room khong khop
 
     /**
      * Tao showtime moi cho branch cua manager dang dang nhap. Verify room thuoc
