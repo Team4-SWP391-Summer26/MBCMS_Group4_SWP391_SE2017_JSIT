@@ -47,6 +47,12 @@ public class ShowtimeServiceImpl implements ShowtimeService {
             return RESULT_ROOM_INVALID;
         }
 
+        // Buoc 1.5 - Nghiep vu: format IMAX chi chieu duoc trong phong IMAX va
+        // nguoc lai (phong IMAX khong chieu 2D/3D thuong).
+        if (!formatMatchesRoom(showtime.getFormat(), room)) {
+            return RESULT_FORMAT_ROOM_MISMATCH;
+        }
+
         // Buoc 2 - Nghiep vu: giao cho DAO check trung lich + INSERT trong cung
         // 1 transaction. Tra ve true neu insert thanh cong, false neu trung lich.
         boolean created = showtimeDAO.createWithConflictCheck(showtime);
@@ -95,6 +101,10 @@ public class ShowtimeServiceImpl implements ShowtimeService {
         if (newRoom == null || newRoom.getBranchId() != branchId || !newRoom.isActive()) {
             return RESULT_ROOM_INVALID;
         }
+        // Cung rule format-phong nhu luc create.
+        if (!formatMatchesRoom(showtime.getFormat(), newRoom)) {
+            return RESULT_FORMAT_ROOM_MISMATCH;
+        }
 
         // Buoc 4: DAO check trung lich (loai tru chinh suat dang sua) + UPDATE trong transaction.
         boolean updated = showtimeDAO.updateWithConflictCheck(showtime);
@@ -126,6 +136,16 @@ public class ShowtimeServiceImpl implements ShowtimeService {
         // Buoc 4: qua het cac check -> doi status sang CANCELLED (soft cancel).
         boolean cancelled = showtimeDAO.cancel(showtimeId);
         return cancelled ? RESULT_OK : RESULT_NOT_EDITABLE;
+    }
+
+    /**
+     * Rule format-phong: suat IMAX bat buoc phong IMAX, va phong IMAX chi
+     * chieu IMAX. 2D/3D chieu duoc o phong STANDARD/VIP.
+     */
+    private boolean formatMatchesRoom(String format, Room room) {
+        boolean imaxFormat = "IMAX".equals(format);
+        boolean imaxRoom = Room.TYPE_IMAX.equals(room.getRoomType());
+        return imaxFormat == imaxRoom;
     }
 
     /**

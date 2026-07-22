@@ -112,6 +112,14 @@ public class ShowtimeListServlet extends HttpServlet {
         req.setAttribute("kpiSeatsSold", seatsSold);
         req.setAttribute("kpiOccupancy", occupancyPct);
 
+        // Flash tu che do "Multiple days" cua Create (tong ket dai, khong nhet vao
+        // query param duoc): doc 1 lan tu session roi xoa ngay (one-shot).
+        Object flash = req.getSession(false).getAttribute("flashSuccessMsg");
+        if (flash != null) {
+            req.getSession(false).removeAttribute("flashSuccessMsg");
+            req.setAttribute("successMsg", flash.toString());
+        }
+
         // PRG: cac servlet Create/Edit/Cancel redirect ve day kem query param -> toast
         if ("1".equals(req.getParameter("created"))) {
             req.setAttribute("successMsg", "Added successfully.");          // MSG04
