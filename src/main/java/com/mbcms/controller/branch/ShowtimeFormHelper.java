@@ -29,6 +29,13 @@ final class ShowtimeFormHelper {
     private static final BigDecimal PRICE_MIN = new BigDecimal("10000");
     private static final BigDecimal PRICE_MAX = new BigDecimal("500000");
 
+    /**
+     * Loi DUY NHAT phu thuoc vao ngay (cac loi khac ap dung cho moi ngay). Che
+     * do "Multiple days" dua vao hang so nay de biet: gap loi nay thi chi SKIP
+     * ngay do, gap loi khac thi dung ca batch (vi ngay nao cung se loi y het).
+     */
+    static final String ERR_START_IN_PAST = "Start time must be in the future.";
+
     private ShowtimeFormHelper() {
     }
 
@@ -39,9 +46,17 @@ final class ShowtimeFormHelper {
      * @return null neu hop le; nguoc lai tra ve thong bao loi de hien len form.
      */
     static String populate(HttpServletRequest req, Showtime target, long branchId) {
+        return populate(req, target, branchId, trim(req.getParameter("date")));
+    }
+
+    /**
+     * Nhu {@link #populate(HttpServletRequest, Showtime, long)} nhung ngay chieu
+     * truyen tu ngoai vao — dung cho che do "Multiple days" (UC20): servlet lap
+     * qua tung ngay trong khoang va goi lai DUNG ham validate nay cho moi ngay.
+     */
+    static String populate(HttpServletRequest req, Showtime target, long branchId, String dateStr) {
         String movieIdStr = trim(req.getParameter("movieId"));
         String roomIdStr = trim(req.getParameter("roomId"));
-        String dateStr = trim(req.getParameter("date"));
         String timeStr = trim(req.getParameter("startTime"));
         String priceStr = trim(req.getParameter("basePrice"));
         String format = trim(req.getParameter("format"));
@@ -96,7 +111,7 @@ final class ShowtimeFormHelper {
         }
         // So voi gio Viet Nam (start_time nhap theo gio VN) - khong phu thuoc tz cua server.
         if (!startTime.isAfter(DateTimeUtil.nowVietnam())) {
-            return "Start time must be in the future.";
+            return ERR_START_IN_PAST;
         }
 
         // --- End time: 2 che do ---
