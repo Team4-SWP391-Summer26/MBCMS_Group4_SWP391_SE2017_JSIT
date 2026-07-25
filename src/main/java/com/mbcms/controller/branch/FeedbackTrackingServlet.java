@@ -62,10 +62,22 @@ public class FeedbackTrackingServlet extends HttpServlet {
 
         // Filter params
         String category = req.getParameter("category");
-        String status   = req.getParameter("status");
         String search   = req.getParameter("search");
         LocalDate fromDate = parseDate(req.getParameter("fromDate"));
         LocalDate toDate   = parseDate(req.getParameter("toDate"));
+
+        // Status default: chua co param "status" tren URL (lan dau vao trang)
+        // => mac dinh chi hien Pending. Neu nguoi dung chon "-- All --" tren
+        // filter bar thi form se gui status="" (rong) => bo loc, hien tat ca.
+        String statusParam = req.getParameter("status");
+        String status;
+        if (statusParam == null) {
+            status = Feedback.STATUS_NEW;
+        } else if (statusParam.isEmpty()) {
+            status = null;
+        } else {
+            status = statusParam;
+        }
 
         int page = parsePage(req);
 
@@ -73,6 +85,7 @@ public class FeedbackTrackingServlet extends HttpServlet {
         int totalPages = (int) Math.ceil((double) total / PAGE_SIZE);
         List<Feedback> feedbacks = feedbackService.getByFilter(branchId, category, status, search, fromDate, toDate, page, PAGE_SIZE);
         Map<String, Integer> summary = feedbackService.getStatusSummary(branchId);
+        List<Feedback> topPending = feedbackService.getTopPendingFeedbacks(branchId);
 
         String uri = req.getRequestURI();
         String prefix = uri.contains("/staff/") ? "/staff" : "/branch";
@@ -82,6 +95,7 @@ public class FeedbackTrackingServlet extends HttpServlet {
 
         req.setAttribute("feedbacks",    feedbacks);
         req.setAttribute("summary",      summary);
+        req.setAttribute("topPending",   topPending);
         req.setAttribute("totalCount",   total);
         req.setAttribute("currentPage",  page);
         req.setAttribute("totalPages",   totalPages);

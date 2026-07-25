@@ -175,6 +175,11 @@ public class FeedbackServiceImpl implements FeedbackService {
     }
 
     @Override
+    public List<Feedback> getTopPendingFeedbacks(Long branchScope) {
+        return feedbackDAO.findTopPending(branchScope, 3);
+    }
+
+    @Override
     public String updateStatus(long feedbackId, String newStatus, String response,
                                String handledBy, Long branchScope) {
 

@@ -247,6 +247,31 @@ public class FeedbackDAOImpl extends BaseDAO implements FeedbackDAO {
     }
 
     @Override
+    public List<Feedback> findTopPending(Long branchScope, int limit) {
+        int safeLimit = (limit > 0 && limit <= 50) ? limit : 3;
+
+        StringBuilder sql = new StringBuilder(
+                "SELECT TOP (" + safeLimit + ") f.feedback_id, f.customer_username, f.branch_id, "
+                + "f.name, f.email, f.subject, f.message, f.[status], f.response, "
+                + "f.created_at, f.resolved_at, "
+                + "f.category, f.sub_category, f.related_booking_id, f.related_showtime_id, f.handled_by "
+                + "FROM dbo.feedbacks f WHERE f.[status] = ?");
+        List<Object> params = new ArrayList<>();
+        params.add(Feedback.STATUS_NEW);
+
+        if (branchScope != null) {
+            sql.append(" AND f.branch_id = ?");
+            params.add(branchScope);
+        }
+
+        // Earliest submission time first, so staff can prioritize the
+        // longest-waiting unresolved feedback.
+        sql.append(" ORDER BY f.created_at ASC");
+
+        return queryListWithParams(sql.toString(), params);
+    }
+
+    @Override
     public boolean updateStatus(long feedbackId, String newStatus, String response,
                                 String handledBy, Long branchScope) {
         StringBuilder sql = new StringBuilder(

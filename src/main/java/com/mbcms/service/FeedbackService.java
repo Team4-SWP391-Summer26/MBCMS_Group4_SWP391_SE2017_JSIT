@@ -72,6 +72,15 @@ public interface FeedbackService {
     Map<String, Integer> getStatusSummary(Long branchScope);
 
     /**
+     * Top 3 feedback dang cho xu ly (status = NEW / Pending), sap xep theo
+     * thoi gian gui som nhat truoc, giup staff uu tien xu ly cac khieu nai/
+     * yeu cau ho tro chua duoc giai quyet lau nhat.
+     *
+     * @param branchScope null = Admin (toan he thong), co gia tri = gioi han branch cu the
+     */
+    List<Feedback> getTopPendingFeedbacks(Long branchScope);
+
+    /**
      * Cap nhat status va tra loi khieu nai.
      * Validate: newStatus hop le, response bat buoc khi RESOLVED/CLOSED.
      * Enforce: branchScope dam bao Staff/Manager chi update feedback cua branch minh.

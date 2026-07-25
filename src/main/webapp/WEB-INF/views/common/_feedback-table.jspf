@@ -52,6 +52,24 @@
 .fb-table td { vertical-align: middle; font-size: .875rem; }
 .fb-table tbody tr:hover { background: #f8faff; }
 .fb-truncate { max-width: 220px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.fb-priority-panel {
+    border: 1px solid #fde68a; background: #fffbeb;
+    border-radius: 12px; padding: 16px 18px; margin-bottom: 1.5rem;
+}
+.fb-priority-panel h6 { color: #92400e; }
+.fb-priority-item {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 12px; padding: 10px 12px; border-radius: 8px;
+    background: #ffffff; border: 1px solid #fde68a;
+}
+.fb-priority-item + .fb-priority-item { margin-top: 8px; }
+.fb-priority-rank {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 24px; height: 24px; border-radius: 50%; background: #f59e0b;
+    color: #fff; font-weight: 700; font-size: .75rem; flex-shrink: 0;
+}
+.fb-priority-wait { font-size: .76rem; font-weight: 700; color: #b45309; white-space: nowrap; }
 </style>
 
 <%-- Summary Cards --%>
@@ -81,6 +99,40 @@
         </div>
     </div>
 </div>
+
+<%-- Priority Alert: Top 3 pending feedbacks with earliest submission time,
+     shown automatically so staff can prioritize the longest-waiting
+     unresolved customer issues. --%>
+<c:if test="${not empty topPending}">
+<div class="fb-priority-panel">
+    <h6 class="fw-bold mb-2">
+        <i class="bi bi-exclamation-triangle-fill me-1"></i>
+        Needs Attention &ndash; Top ${fn:length(topPending)} Longest-Waiting Pending Feedback<c:if test="${fn:length(topPending) > 1}">s</c:if>
+    </h6>
+    <c:forEach var="tp" items="${topPending}" varStatus="st">
+        <div class="fb-priority-item">
+            <div class="d-flex align-items-center gap-2 overflow-hidden">
+                <span class="fb-priority-rank">${st.index + 1}</span>
+                <span class="fb-cat-badge fb-cat-${tp.category}">
+                    <c:choose>
+                        <c:when test="${tp.category == 'COMPLAINT'}">Complaint</c:when>
+                        <c:when test="${tp.category == 'SUPPORT'}">Support</c:when>
+                        <c:otherwise>General</c:otherwise>
+                    </c:choose>
+                </span>
+                <span class="fw-semibold fb-truncate" style="font-size:.875rem" title="${fn:escapeXml(tp.subject)}">
+                    #${tp.feedbackId} &ndash; ${fn:escapeXml(tp.subject)}
+                </span>
+                <span class="text-muted small">(${fn:escapeXml(tp.name)})</span>
+            </div>
+            <span class="fb-priority-wait">
+                <i class="bi bi-clock-history me-1"></i>
+                <c:if test="${tp.createdAt != null}">${fn:replace(fn:substring(tp.createdAt.toString(), 0, 16), 'T', ' ')}</c:if>
+            </span>
+        </div>
+    </c:forEach>
+</div>
+</c:if>
 
 <%-- Filter Bar --%>
 <form method="get" action="${pageContext.request.contextPath}${baseUrl}" class="row g-2 align-items-end mb-4">
