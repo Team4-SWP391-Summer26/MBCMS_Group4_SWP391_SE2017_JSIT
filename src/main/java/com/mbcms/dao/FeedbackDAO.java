@@ -73,6 +73,16 @@ public interface FeedbackDAO {
      */
     Map<String, Integer> countGroupByStatus(Long branchScope);
 
+    /**
+     * Lay top N feedback dang cho xu ly (status = NEW), sap xep theo thoi gian
+     * gui som nhat truoc (created_at ASC) de staff uu tien xu ly cac feedback
+     * cho lau nhat.
+     *
+     * @param branchScope null = toan he thong (Admin), co gia tri = gioi han 1 branch
+     * @param limit       so luong ban ghi toi da can lay (vd: 3)
+     */
+    List<Feedback> findTopPending(Long branchScope, int limit);
+
     // ── Status update ────────────────────────────────────────────────────────
 
     /**
