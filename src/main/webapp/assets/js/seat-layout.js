@@ -71,7 +71,12 @@
             // Reload page to reflect updated database states in grid
             location.reload();
         } catch (e) {
-            lcAlert('Update failed. Please try again.');
+            const msg = e && e.message ? e.message : 'Update failed. Please try again.';
+            if (typeof lcAlert === 'function') {
+                lcAlert(msg);
+            } else {
+                alert(msg);
+            }
             applyBtn.disabled = false;
             updateApplyLabel();
         }
@@ -111,8 +116,19 @@
             headers: headers,
             body: body.toString()
         });
-        const json = await res.json();
-        if (!json.success) throw new Error(json.message || 'failed');
+
+        if (!res.ok) {
+            throw new Error('Server error (' + res.status + '). Please refresh and try again.');
+        }
+
+        let json;
+        try {
+            json = await res.json();
+        } catch (err) {
+            throw new Error('Invalid response from server.');
+        }
+
+        if (!json.success) throw new Error(json.message || 'Update failed.');
     }
 
     function updateApplyLabel() {

@@ -19,14 +19,16 @@ public final class AppConfig {
         VIP_SURCHARGE_PERCENT = parsePercent(p.getProperty("pricing.vipSurchargePercent"), 30);
     }
 
-    private AppConfig() {}
+    private AppConfig() {
+    }
 
     public static String getBaseUrl() {
         return BASE_URL;
     }
 
     /**
-     * Fallback VIP % from database.properties when dbo.system_settings is unavailable.
+     * Fallback VIP % from database.properties when dbo.system_settings is
+     * unavailable.
      * Prefer {@link SystemSettings#vipSurchargePercent()} at runtime.
      */
     public static int getVipSurchargePercentFallback() {

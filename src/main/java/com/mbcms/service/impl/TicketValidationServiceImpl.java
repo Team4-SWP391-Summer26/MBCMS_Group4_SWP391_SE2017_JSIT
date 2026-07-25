@@ -26,8 +26,8 @@ import java.util.List;
  */
 public class TicketValidationServiceImpl implements TicketValidationService {
 
-    /** Cho khach vao rap som nhat 45 phut truoc gio chieu. */
-    private static final int ENTRY_WINDOW_MINUTES = 45;
+    /** Cho khach vao rap som nhat 30 phut truoc gio chieu (khop SRS 3.6.2). */
+    private static final int ENTRY_WINDOW_MINUTES = 30;
 
     private final BookingDAO bookingDAO = new BookingDAOImpl();
 
