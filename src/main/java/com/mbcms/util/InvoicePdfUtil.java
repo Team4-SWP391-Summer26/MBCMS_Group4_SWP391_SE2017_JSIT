@@ -2,6 +2,7 @@ package com.mbcms.util;
 
 import com.itextpdf.io.font.PdfEncodings;
 import com.itextpdf.io.font.constants.StandardFonts;
+import com.itextpdf.io.image.ImageDataFactory;
 import com.itextpdf.kernel.colors.ColorConstants;
 import com.itextpdf.kernel.colors.DeviceRgb;
 import com.itextpdf.kernel.font.PdfFont;
@@ -12,8 +13,10 @@ import com.itextpdf.kernel.pdf.PdfWriter;
 import com.itextpdf.layout.Document;
 import com.itextpdf.layout.borders.Border;
 import com.itextpdf.layout.element.Cell;
+import com.itextpdf.layout.element.Image;
 import com.itextpdf.layout.element.Paragraph;
 import com.itextpdf.layout.element.Table;
+import com.itextpdf.layout.properties.HorizontalAlignment;
 import com.itextpdf.layout.properties.TextAlignment;
 import com.itextpdf.layout.properties.UnitValue;
 import com.mbcms.model.BookingTicket;
@@ -41,6 +44,9 @@ public final class InvoicePdfUtil {
     private static final DeviceRgb LIGHT = new DeviceRgb(247, 249, 252);
     private static final DecimalFormat MONEY = new DecimalFormat("#,###");
     private static final DateTimeFormatter DT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+    /** QR: 200x200 px khi sinh (net khi in), ve xuong PDF 100pt cho can trang A4. */
+    private static final int QR_PX = 200;
+    private static final float QR_PT = 100f;
 
     private InvoicePdfUtil() {}
 
@@ -65,6 +71,7 @@ public final class InvoicePdfUtil {
             doc.add(metaTable(t, p, paidAtVn, bold));
             doc.add(itemsTable(t, bold));
             doc.add(totalsTable(t, bold));
+            addQrBlock(doc, t, p, bold);
 
             doc.add(new Paragraph("Thank you for choosing PentaPlex. This receipt is your proof of payment.")
                     .setFontColor(MUTED).setFontSize(8).setTextAlignment(TextAlignment.CENTER)
@@ -73,6 +80,37 @@ public final class InvoicePdfUtil {
             doc.close(); // dong luon PdfDocument + writer
         }
         return baos.toByteArray();
+    }
+
+    /**
+     * QR e-ticket (ZXing) nhung vao PDF: ma hoa booking_code de Staff quet o cua rap.
+     * Chi in khi payment SUCCESS - hoa don chua thanh toan thi QR vo nghia (vao rap
+     * bi tu choi voi trang thai NOT_PAID), in ra chi gay hieu lam.
+     * QR loi (text rong / ZXing nem) KHONG duoc lam vo ca hoa don -> bo qua khoi nay.
+     */
+    private static void addQrBlock(Document doc, BookingTicket t, Payment p, PdfFont bold) {
+        if (p == null || !Payment.STATUS_SUCCESS.equals(p.getStatus())) {
+            return;
+        }
+        if (isBlank(t.getBookingCode())) {
+            return;
+        }
+        try {
+            byte[] png = QRCodeUtil.generateQRCodeBytes(t.getBookingCode(), QR_PX, QR_PX);
+            Image qr = new Image(ImageDataFactory.create(png))
+                    .setWidth(QR_PT).setHeight(QR_PT)
+                    .setHorizontalAlignment(HorizontalAlignment.CENTER);
+
+            doc.add(new Paragraph("E-TICKET").setFont(bold).setFontSize(9).setFontColor(MUTED)
+                    .setTextAlignment(TextAlignment.CENTER).setMarginTop(18).setMarginBottom(4));
+            doc.add(qr);
+            doc.add(new Paragraph(nz(t.getBookingCode())).setFont(bold).setFontSize(11).setFontColor(NAVY)
+                    .setTextAlignment(TextAlignment.CENTER).setMarginTop(4).setMarginBottom(0));
+            doc.add(new Paragraph("Present this QR code at the entrance. Valid for one entry only.")
+                    .setFontColor(MUTED).setFontSize(8).setTextAlignment(TextAlignment.CENTER));
+        } catch (Exception e) {
+            // Hoa don van xuat duoc, chi thieu khoi QR.
+        }
     }
 
     // ── Header (navy block): brand + issued-to | official receipt # ──────────
