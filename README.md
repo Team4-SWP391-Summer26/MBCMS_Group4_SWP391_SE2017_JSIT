@@ -115,8 +115,9 @@ Hashes in the database are bcrypt work-factor 10 for the string `"password"`, co
 
 <div align="center">
 
-### 🎉 CHÚNG TÔI ĐÃ PASS SWP TRỌN VẸN, CÙNG NHAU VÀ THÀNH CÔNG! 🎉
-📅 **Thời gian thực hiện dự án:** `12/05/2026 — 27/07/2026`
+### 🎉 We have successfully passed the SWP together and triumphantly! 🎉
+📅 **Project duration:** `12/05/2026 — 27/07/2026`
+ **Project leader:** Pham Quoc Anh
 
 ***
 
